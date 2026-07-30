@@ -1,0 +1,12 @@
+# MkDocs build output
+site/
+
+# Local virtualenv
+.venv/
+
+# Cache of the old wiki, populated by tools/migrate_wiki.py --fetch.
+# Not committed: it is 80+ MB and reproducible from the wiki while it is up.
+.wiki-cache/
+
+__pycache__/
+*.pyc

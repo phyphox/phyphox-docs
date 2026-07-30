@@ -1,0 +1,9 @@
+# Top-level navigation order. Handled by mkdocs-awesome-nav; each subdirectory
+# may carry its own .nav.yml to title and order its pages.
+nav:
+  - index.md
+  - file-format
+  - remote-interface
+  - editor
+  - transferring-experiments.md
+  - reference

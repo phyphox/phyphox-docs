@@ -1,0 +1,4 @@
+# Pinned to the versions this site is known to build with.
+mkdocs-material==9.7.7
+mkdocs-awesome-nav==3.3.0
+PyYAML==6.0.3

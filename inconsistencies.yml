@@ -1,0 +1,43 @@
+# Known inconsistencies between the phyphox implementations.
+#
+# One entry per divergence. Each entry renders in two places from this single
+# source: an inline warning wherever the affected page writes the marker
+#
+#     {{inconsistency:<id>}}
+#
+# and a row in the generated "Known inconsistencies" page. See tools/hooks.py.
+#
+# Fields
+#   id         short slug, used in the marker. Required.
+#   title      one line, shown as the admonition heading. Required.
+#   area       file-format | remote-interface | editor. Required.
+#   status     open      - nobody has decided which behaviour is correct yet
+#              decided   - canonical behaviour chosen, implementations not yet fixed
+#              fixed     - all implementations agree; keep the entry until the
+#                          release carrying the fix is out, then delete it
+#   canonical  what the correct behaviour is. Required once status is decided.
+#   affects    map of implementation -> observed behaviour. Use the keys
+#              android, ios, editor, arduino, micropython, wiki.
+#   since      optional: format version or app version the divergence appeared in
+#   issue      optional: URL of the tracking issue
+#   summary    reader-facing explanation, one short paragraph. Required.
+#
+# Keep entries factual and cite where the behaviour was observed, so the next
+# person can re-check it rather than trusting this file.
+
+- id: control-post
+  title: POST on /control
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Registers /control for both GET and POST
+      (RemoteServer.java, host.addContext("/control", ..., "GET", "POST")).
+    ios: >-
+      Registers /control for GET only
+      (ExperimentWebServer.swift, addHandler(forMethod: "GET", pathRegex: "/control")).
+  summary: >-
+    The Android app accepts POST requests on /control in addition to GET; the iOS
+    app accepts GET only. The web interface bundled with both apps issues GET
+    exclusively, so this does not affect normal use - but a script written against
+    the Android behaviour will fail against iOS.
