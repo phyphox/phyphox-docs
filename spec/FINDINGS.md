@@ -91,12 +91,56 @@ editor all read `auto_exposure`, so the documented spelling has never worked. Co
 the page, and a reminder that phase 3 must derive from the parsers and treat the prose as a
 fourth opinion, not as input.
 
+## The `views` block confirms the estimate
+
+`views.yml` models the second block: 17 elements, 130 attributes — two and a half times the
+size of `input`, and the block least like it.
+
+| | `input` | `views` | both |
+|---|---|---|---|
+| attributes | 52 | 130 | 182 |
+| agree — state it and move on | 67% | **79%** | 76% |
+| need a decision | 29% | 21% | 23% |
+
+**It raised no new questions of the decidable kind.** All 13 of its enum-related divergences
+fall under `enum-invalid-value` and `enum-case-insensitive`, decided already — `align`,
+`style`, `scaleMin*`/`scaleMax*`, `axis`, slider `type`, `darkFilter`, `lightFilter`,
+`show_controls`. That is the prediction from the `input` probe holding: the format-wide
+rules do the work, and modelling a new block mostly consumes them rather than adding to
+them.
+
+The one new entry, `views-one-sided-attributes`, is the same *kind* of question as its
+`input` counterpart — the category the maintainer already said is case by case — and it
+scales with attributes rather than being answered once. So the shape of the estimate is:
+**a small fixed set of policy rules, plus a growing list of individual parity questions.**
+
+Two of the fourteen are not really individual, though, and are the most substantive finding
+in this block. The map-graph colour scale is configured *incompatibly*: iOS takes up to nine
+explicit stops (`mapColor1`…`mapColor9`), Android instead offers `interpolateMapColors` over
+a built-in scale. Neither file can express the other's intent, so the same map is drawn in
+different colours on the two platforms. And the guided calibration workflow
+(`calibrationMode` with `calibrationParameter` on the datasets) exists only on iOS, silently
+doing nothing on Android. Those are feature-parity decisions, not attribute ones.
+
+### Revised projection
+
+262 documented attributes; 182 now modelled — **69% of the format**, leaving roughly 80,
+spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
+root block.
+
+With two blocks done and only one new *category* of question between them, the earlier
+"10–20 distinct decisions" looks high for policy rules and about right overall. A better
+split: **4–6 format-wide rules** (three already decided) plus **one parity list per block**.
+The mechanical share held steady and even improved on the larger block, which is the
+opposite of what a pessimistic estimate would predict.
+
 ## Suggested sequence, if this goes ahead
 
 1. ~~Decide the four questions above.~~ Done for three; `input-one-sided-attributes` is
    case by case and does not block modelling, since each attribute can carry `undecided`
    until its turn comes.
-2. Model `output` (3 attributes) and `views` (100) next — `views` is the largest block and
-   the least like `input`, so it will either confirm the estimate or break it early.
+2. ~~Model `views` next.~~ Done, and it confirmed the estimate rather than breaking it.
+   `bluetooth-low-energy` (74 attributes) is the largest untouched block and the next
+   worthwhile test, since its conversion machinery is unlike anything modelled so far.
 3. Only then write the generator. Generating reference pages from a spec that is still
    changing shape wastes the generator twice.

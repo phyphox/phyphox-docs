@@ -1,0 +1,842 @@
+# The <views> block, modelled completely.
+#
+# Sources compared for every entry below:
+#   Android  PhyphoxFile.java, viewsBlockParser / viewBlockParser (b4564695)
+#   iOS      Serialization/Handlers/ViewsElementHandler.swift and
+#            Serialization/Handlers/ViewHandlers/*.swift            (a0643729)
+#   docs     docs/file-format/views.md
+#
+# `agreement:` records what that comparison found. See README.md. Where an entry
+# has since been decided, `rules:` names the rule in rules.yml that settles it.
+#
+# Two structural notes that apply throughout and are not repeated per element:
+#
+#  * label and visibility are accepted on every view element by both apps.
+#    Android reads them once before dispatching on the tag; iOS declares them in
+#    each handler. Same surface, different mechanics.
+#  * Android additionally reads `unit` and `factor` before dispatching, so they
+#    are accepted syntactically on every element, but only `value` and `edit` do
+#    anything with them - which is also where iOS declares them. Modelled here as
+#    belonging to those two elements.
+
+block: views
+since: "1.0"
+summary: >-
+  How the experiment presents itself. The block holds one or more `view`
+  elements, each a page the user can switch between, and each view holds the
+  elements that display or collect data.
+
+elements:
+
+  # ------------------------------------------------------------------ views --
+  - name: views
+    parent: phyphox
+    since: "1.0"
+    summary: Container for the views of the experiment. At least one is required.
+    attributes: []
+    children: [view]
+
+  # ------------------------------------------------------------------- view --
+  - name: view
+    parent: views
+    since: "1.0"
+    summary: One page of the experiment, listed in the view selector.
+    children: [info, separator, value, graph, edit, button, toggle, slider,
+               dropdown, image, camera-gui, depth-gui]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Name shown in the view selector.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container whose value decides whether the view is shown.
+        agreement: agreed
+
+  # ------------------------------------------------------------------- info --
+  - name: info
+    parent: view
+    since: "1.0"
+    summary: Static text.
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: The text to display.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: color
+        type: color
+        summary: Text colour.
+        agreement: agreed
+      - name: size
+        type: float
+        default: 1.0
+        summary: Font size, relative to the default.
+        agreement: agreed
+      - name: align
+        type: enum
+        values: [left, right, center]
+        default: left
+        summary: Horizontal alignment.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: bold
+        type: boolean
+        default: false
+        summary: Bold text.
+        agreement: agreed
+      - name: italic
+        type: boolean
+        default: false
+        summary: Italic text.
+        agreement: agreed
+
+  # -------------------------------------------------------------- separator --
+  - name: separator
+    parent: view
+    since: "1.0"
+    summary: Blank space, optionally coloured, to group elements visually.
+    attributes:
+      - name: height
+        type: float
+        default: 0.1
+        summary: Height relative to the default element height.
+        agreement: agreed
+      - name: color
+        type: color
+        summary: Fill colour. Defaults to the background, making it invisible.
+        agreement: agreed
+
+  # ------------------------------------------------------------------ value --
+  - name: value
+    parent: view
+    since: "1.0"
+    summary: A single number from a data container, formatted for display.
+    children: [input, map]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text shown before the value.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: color
+        type: color
+        summary: Text colour.
+        agreement: agreed
+      - name: size
+        type: float
+        default: 1.0
+        summary: Font size, relative to the default.
+        agreement: agreed
+      - name: precision
+        type: integer
+        default: 2
+        summary: Digits after the decimal point.
+        agreement: agreed
+      - name: scientific
+        type: boolean
+        default: false
+        summary: Use scientific notation.
+        agreement: agreed
+      - name: unit
+        type: string
+        translatable: true
+        summary: Unit appended to the value.
+        agreement: agreed
+      - name: factor
+        type: float
+        default: 1.0
+        summary: The value is multiplied by this before display.
+        agreement: agreed
+      - name: positiveUnit
+        type: string
+        translatable: true
+        summary: Unit used when the value is positive, overriding unit.
+        agreement: agreed
+      - name: negativeUnit
+        type: string
+        translatable: true
+        summary: >-
+          Unit used when the value is negative, overriding unit. The value is
+          displayed without its sign.
+        agreement: agreed
+      - name: format
+        type: string
+        summary: Format specifier for the displayed number.
+        agreement: agreed
+
+  - name: map
+    parent: value
+    since: "1.0"
+    summary: >-
+      Replaces a range of values with a fixed text, so a number can be shown as
+      a word.
+    attributes:
+      - name: min
+        type: float
+        default: -Infinity
+        summary: Lower bound of the range, inclusive.
+        agreement: agreed
+      - name: max
+        type: float
+        default: Infinity
+        summary: Upper bound of the range, inclusive.
+        agreement: agreed
+
+  # ------------------------------------------------------------------ graph --
+  - name: graph
+    parent: view
+    since: "1.0"
+    summary: A plot of one or more data containers.
+    children: [input]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Title above the graph.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: labelX
+        type: string
+        translatable: true
+        summary: Label of the x axis.
+        agreement: agreed
+      - name: labelY
+        type: string
+        translatable: true
+        summary: Label of the y axis.
+        agreement: agreed
+      - name: labelZ
+        type: string
+        translatable: true
+        summary: Label of the z axis, for map styles.
+        agreement: agreed
+      - name: unitX
+        type: string
+        translatable: true
+        summary: Unit of the x axis.
+        agreement: agreed
+      - name: unitY
+        type: string
+        translatable: true
+        summary: Unit of the y axis.
+        agreement: agreed
+      - name: unitZ
+        type: string
+        translatable: true
+        summary: Unit of the z axis.
+        agreement: agreed
+      - name: unitYperX
+        type: string
+        translatable: true
+        summary: Unit shown for the slope when the user measures on the graph.
+        agreement: agreed
+      - name: timeOnX
+        type: boolean
+        default: false
+        summary: Treat x values as timestamps and label the axis as a clock.
+        agreement: agreed
+      - name: timeOnY
+        type: boolean
+        default: false
+        summary: Treat y values as timestamps.
+        agreement: agreed
+      - name: systemTime
+        type: boolean
+        default: false
+        summary: Show absolute system time rather than time since the start.
+        agreement: agreed
+      - name: linearTime
+        type: boolean
+        default: false
+        summary: Ignore pauses when converting experiment time to a clock.
+        agreement: agreed
+      - name: hideTimeMarkers
+        type: boolean
+        default: false
+        summary: Do not mark starts and pauses on a time axis.
+        agreement: agreed
+      - name: aspectRatio
+        type: float
+        default: 2.5
+        summary: Width divided by height.
+        agreement: agreed
+      - name: style
+        type: enum
+        values: [lines, dots, hbars, vbars, map]
+        default: lines
+        summary: How the data is drawn.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+        note: >-
+          iOS's GraphStyle also has a `mapZ` case, which is not a value the file
+          format accepts - it exists only so the remote interface can identify
+          the third buffer of a map. Not part of the format.
+      - name: partialUpdate
+        type: boolean
+        default: false
+        summary: Send only new data to the remote interface rather than the whole buffer.
+        agreement: agreed
+      - name: history
+        type: integer
+        default: 1
+        summary: Number of past datasets to keep on screen.
+        agreement: agreed
+      - name: lineWidth
+        type: float
+        default: 1.0
+        summary: Line or dot size, relative to the default.
+        agreement: agreed
+      - name: color
+        type: color
+        summary: Colour of the first dataset.
+        agreement: agreed
+      - name: logX
+        type: boolean
+        default: false
+        summary: Logarithmic x axis.
+        agreement: agreed
+      - name: logY
+        type: boolean
+        default: false
+        summary: Logarithmic y axis.
+        agreement: agreed
+      - name: logZ
+        type: boolean
+        default: false
+        summary: Logarithmic z axis.
+        agreement: agreed
+      - name: xPrecision
+        type: integer
+        default: -1
+        summary: Digits on the x axis. -1 picks automatically.
+        agreement: agreed
+      - name: yPrecision
+        type: integer
+        default: -1
+        summary: Digits on the y axis.
+        agreement: agreed
+      - name: zPrecision
+        type: integer
+        default: -1
+        summary: Digits on the z axis.
+        agreement: agreed
+      - name: suppressScientificNotation
+        type: boolean
+        default: false
+        summary: Never label axes in scientific notation.
+        agreement: agreed
+      - name: scaleMinX
+        type: enum
+        values: [auto, extend, fixed]
+        default: auto
+        summary: How the lower x bound is chosen.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: scaleMaxX
+        type: enum
+        values: [auto, extend, fixed]
+        default: auto
+        summary: How the upper x bound is chosen.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: scaleMinY
+        type: enum
+        values: [auto, extend, fixed]
+        default: auto
+        summary: How the lower y bound is chosen.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: scaleMaxY
+        type: enum
+        values: [auto, extend, fixed]
+        default: auto
+        summary: How the upper y bound is chosen.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: scaleMinZ
+        type: enum
+        values: [auto, extend, fixed]
+        default: auto
+        summary: How the lower z bound is chosen.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: scaleMaxZ
+        type: enum
+        values: [auto, extend, fixed]
+        default: auto
+        summary: How the upper z bound is chosen.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: minX
+        type: float
+        default: 0.0
+        summary: Lower x bound, used when scaleMinX is fixed or extend.
+        agreement: agreed
+      - name: maxX
+        type: float
+        default: 0.0
+        summary: Upper x bound.
+        agreement: agreed
+      - name: minY
+        type: float
+        default: 0.0
+        summary: Lower y bound.
+        agreement: agreed
+      - name: maxY
+        type: float
+        default: 0.0
+        summary: Upper y bound.
+        agreement: agreed
+      - name: minZ
+        type: float
+        default: 0.0
+        summary: Lower z bound.
+        agreement: agreed
+      - name: maxZ
+        type: float
+        default: 0.0
+        summary: Upper z bound.
+        agreement: agreed
+      - name: followX
+        type: boolean
+        default: false
+        summary: Keep the newest data in view by scrolling the x axis.
+        agreement: agreed
+      - name: mapWidth
+        type: integer
+        default: 0
+        summary: Width in points of the lattice built for a map style.
+        agreement: agreed
+      - name: showColorScale
+        type: boolean
+        default: true
+        summary: Show the colour scale beside a map.
+        agreement: agreed
+      - name: mapColor1
+        type: color
+        summary: >-
+          First stop of the colour scale for a map style. mapColor1 to mapColor9
+          define the gradient.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor2
+        type: color
+        summary: Second stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor3
+        type: color
+        summary: Third stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor4
+        type: color
+        summary: Fourth stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor5
+        type: color
+        summary: Fifth stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor6
+        type: color
+        summary: Sixth stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor7
+        type: color
+        summary: Seventh stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor8
+        type: color
+        summary: Eighth stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: mapColor9
+        type: color
+        summary: Ninth stop of the map colour scale.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: interpolateMapColors
+        type: boolean
+        default: true
+        summary: Blend between the colour scale stops instead of stepping.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: calibrationMode
+        type: string
+        summary: Enables the guided calibration workflow on a graph.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+      - name: pickLabel
+        type: string
+        translatable: true
+        summary: Label for the value picked when the user taps the graph.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+
+  - name: input
+    parent: graph
+    since: "1.0"
+    summary: One dataset of a graph, naming the data container to plot.
+    attributes:
+      - name: axis
+        type: enum
+        required: true
+        values: [x, y, z]
+        summary: Which axis this container supplies.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: color
+        type: color
+        summary: Colour of this dataset, overriding the graph's colour.
+        agreement: agreed
+      - name: lineWidth
+        type: float
+        summary: Line width of this dataset, overriding the graph's.
+        agreement: agreed
+      - name: style
+        type: enum
+        values: [lines, dots, hbars, vbars, map]
+        summary: Style of this dataset, overriding the graph's.
+        agreement: agreed
+      - name: calibrationParameter
+        type: string
+        summary: Parameter this dataset supplies to the calibration workflow.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+
+  # ------------------------------------------------------------------- edit --
+  - name: edit
+    parent: view
+    since: "1.0"
+    summary: A field for the user to type a value into a data container.
+    children: [output]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text shown before the field.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: signed
+        type: boolean
+        default: true
+        summary: Allow negative values.
+        agreement: agreed
+      - name: decimal
+        type: boolean
+        default: true
+        summary: Allow a decimal point.
+        agreement: agreed
+      - name: min
+        type: float
+        default: -Infinity
+        summary: Smallest value accepted.
+        agreement: agreed
+      - name: max
+        type: float
+        default: Infinity
+        summary: Largest value accepted.
+        agreement: agreed
+      - name: unit
+        type: string
+        translatable: true
+        summary: Unit shown after the field.
+        agreement: agreed
+      - name: factor
+        type: float
+        default: 1.0
+        summary: The entered value is multiplied by this before being stored.
+        agreement: agreed
+      - name: default
+        type: float
+        default: 0.0
+        summary: Value the field starts with.
+        agreement: agreed
+      - name: editable
+        type: boolean
+        default: true
+        summary: Whether the user may change the value.
+        agreement: divergent
+        inconsistency: views-one-sided-attributes
+
+  # ----------------------------------------------------------------- button --
+  - name: button
+    parent: view
+    since: "1.0"
+    summary: A button that copies values or triggers a network connection.
+    children: [input, output]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text on the button.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: dynamicLabel
+        type: string
+        summary: Data container supplying the button text at runtime.
+        agreement: agreed
+
+  # ----------------------------------------------------------------- toggle --
+  - name: toggle
+    parent: view
+    since: "1.19"
+    summary: An on/off switch writing 0 or 1 to a data container.
+    children: [output]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text beside the switch.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: default
+        type: float
+        default: 0.0
+        summary: State the switch starts in.
+        agreement: agreed
+
+  # ----------------------------------------------------------------- slider --
+  - name: slider
+    parent: view
+    since: "1.19"
+    summary: A slider for choosing a value, or a range with two handles.
+    children: [output]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text beside the slider.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: minValue
+        type: float
+        default: 0.0
+        summary: Value at the left end.
+        agreement: agreed
+      - name: maxValue
+        type: float
+        default: 1.0
+        summary: Value at the right end.
+        agreement: agreed
+      - name: stepSize
+        type: float
+        default: 1.0
+        summary: Granularity of the slider.
+        agreement: agreed
+      - name: default
+        type: float
+        default: 0.0
+        summary: Value the slider starts at.
+        agreement: agreed
+      - name: precision
+        type: integer
+        default: 2
+        summary: Digits shown for the current value.
+        agreement: agreed
+      - name: type
+        type: enum
+        values: [normal, range]
+        default: normal
+        summary: A single handle, or two defining a range.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: showValue
+        type: boolean
+        default: true
+        summary: Display the current value beside the slider.
+        agreement: agreed
+      - name: color
+        type: color
+        summary: Colour of the slider.
+        agreement: agreed
+
+  # --------------------------------------------------------------- dropdown --
+  - name: dropdown
+    parent: view
+    since: "1.19"
+    summary: A menu of predefined values.
+    children: [output, mapping]
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text beside the menu.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: default
+        type: float
+        default: 0.0
+        summary: Value selected initially.
+        agreement: agreed
+      - name: color
+        type: color
+        summary: Colour of the menu.
+        agreement: agreed
+
+  - name: mapping
+    parent: dropdown
+    since: "1.19"
+    summary: One entry of the menu, mapping a value to the text shown for it.
+    attributes:
+      - name: value
+        type: float
+        default: 0.0
+        summary: Value written to the data container when this entry is chosen.
+        agreement: agreed
+      - name: replacement
+        type: string
+        translatable: true
+        summary: Text shown for this entry. Defaults to the value itself.
+        agreement: agreed
+
+  # ------------------------------------------------------------------ image --
+  - name: image
+    parent: view
+    since: "1.18"
+    summary: A picture shipped with the experiment.
+    attributes:
+      - name: src
+        type: string
+        required: true
+        summary: >-
+          File name of the image, resolved against the experiment's resources.
+          There is no <resource> element - both apps derive the resource list
+          from the view elements naming a file.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: scale
+        type: float
+        default: 1.0
+        summary: Size relative to the available width.
+        agreement: agreed
+      - name: darkFilter
+        type: enum
+        values: [none, invert]
+        default: none
+        summary: Filter applied when the app is in dark mode.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: lightFilter
+        type: enum
+        values: [none, invert]
+        default: none
+        summary: Filter applied when the app is in light mode.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  # ------------------------------------------------------------- camera-gui --
+  - name: camera-gui
+    parent: view
+    since: "1.17"
+    summary: Live camera preview with the selected region and exposure controls.
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Title above the preview.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: exposure_adjustment_level
+        type: integer
+        default: 1
+        summary: >-
+          How many exposure controls to offer: 1 basic, 2 intermediate,
+          3 advanced.
+        agreement: agreed
+        note: >-
+          The literal defaults differ - Android 1, iOS 0 - but iOS maps anything
+          outside 1..3 to the basic level, so both start at basic. Modelled as 1
+          because that is the value that means what the default does.
+      - name: grayscale
+        type: boolean
+        default: false
+        summary: Show the preview without colour.
+        agreement: agreed
+      - name: markOverexposure
+        type: color
+        summary: Colour used to highlight overexposed pixels. Unset disables it.
+        agreement: agreed
+      - name: markUnderexposure
+        type: color
+        summary: Colour used to highlight underexposed pixels. Unset disables it.
+        agreement: agreed
+      - name: show_controls
+        type: enum
+        values: [always, full_view_only, never]
+        default: full_view_only
+        summary: When the exposure controls are offered.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  # -------------------------------------------------------------- depth-gui --
+  - name: depth-gui
+    parent: view
+    since: "1.14"
+    summary: Live preview of the depth camera and the selected region.
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Title above the preview.
+        agreement: agreed
+      - name: visibility
+        type: string
+        summary: Data container deciding whether the element is shown.
+        agreement: agreed
+      - name: aspectRatio
+        type: float
+        default: 2.5
+        summary: Width divided by height.
+        agreement: agreed
