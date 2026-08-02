@@ -375,7 +375,25 @@ def run(args):
                 Probe("server.cors", "/", relates_to=["cors-header"]),
                 [f"Access-Control-Allow-Origin: android={a_cors} ios={i_cors}"]))
 
+    # A recorded divergence that no probe can see any more has probably been
+    # fixed on one side, and the entry is now lying to readers. Reported as a
+    # note rather than a failure: some probes cannot observe their divergence
+    # through a shape diff alone, so absence here is a prompt to check, not
+    # proof. This is the signal that someone fixed a bug and forgot the docs.
+    probed_ids = {i for p in probes for i in p.relates_to}
+    if len(targets) == 2:
+        probed_ids.add("cors-header")   # checked above, not by a probe
+    seen_ids = {i for p, _ in expected_diffs for i in p.relates_to}
+    resolved = sorted(probed_ids - seen_ids)
+
     # --------------------------------------------------------------- report
+    if resolved:
+        print("Recorded divergences that did NOT show up in this run:\n")
+        for i in resolved:
+            print(f"  {i}")
+        print("\n  If one of these was fixed, update its entry in "
+              "inconsistencies.yml (status: fixed) and the spec along with it.\n")
+
     if expected_diffs:
         print("Known divergences, already recorded in inconsistencies.yml:\n")
         for probe, diffs in expected_diffs:
