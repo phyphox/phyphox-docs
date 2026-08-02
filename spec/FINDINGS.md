@@ -288,6 +288,28 @@ plainly that BLE arrived in 1.7. Corrected, along with its two child elements.
 The `since` values in this spec came from the documentation where it stated them and from
 inference where it did not. The inferred ones deserve the same suspicion as everything else.
 
+### Metadata identifiers: an entry that should never have existed
+
+`metadata-uniqueid-spelling` claimed that Android accepts `uniqueID` and iOS `uniqueId`, so
+an experiment requesting the identifier would work on exactly one platform. **That was
+wrong.** iOS's *parser* accepts the string `uniqueID` — `PhyphoxElementHandler.swift` maps it
+onto an internal case named `.uniqueId` — and `uniqueId` is accepted by neither. The bundled
+`sensordb.phyphox` uses `uniqueID` and works on both, which is what prompted the check.
+
+The error came from reading `Metadata.swift`, where the `identifier` property returns
+`"uniqueId"`, and assuming that was the parsing surface. It is not: it names the *outgoing*
+key. Two different vocabularies in the same file, and I conflated them.
+
+Diffing the accepted sets properly: iOS's parser takes 19 identifiers, Android's enum 20, and
+the only difference is Android's `sensorMetadata`, which is an internal routing value rather
+than something a file would ever contain. Both are case-sensitive — iOS switches on exact
+strings, Android uses `Enum.valueOf` — and they agree. Entry deleted.
+
+Worth noting what this means for the case-sensitivity rule: `enum-case-insensitive` is scoped
+to attributes with `type: enum`. Metadata identifiers are element *text*, so the rule does not
+reach them, and both parsers are strict there. Whether it should be extended is an open
+question, not an established divergence.
+
 ### Revised projection
 
 262 documented attributes; 185 now modelled — **71% of the format**, leaving roughly 80,

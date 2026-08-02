@@ -345,28 +345,6 @@
     Android. Separately, Android falls back to images bundled with the app when a
     resource is not in the experiment's own folder and iOS does not, which would
     show up for an experiment naming a resource it does not ship.
-
-- id: metadata-uniqueid-spelling
-  title: Spelling of the uniqueID metadata identifier
-  area: file-format
-  status: open
-  affects:
-    android: >-
-      Accepts "uniqueID"
-      (Metadata.java, "enum DeviceMetadata { uniqueID, ... }", resolved with
-      DeviceMetadata.valueOf, which is case sensitive).
-    ios: >-
-      Accepts "uniqueId"
-      (Metadata.swift, "case .uniqueId: return \"uniqueId\"").
-    wiki: >-
-      Documents "uniqueID".
-  summary: >-
-    The per-user identifier a network connection can send is spelled uniqueID on
-    Android and uniqueId on iOS, so an experiment that requests it works on
-    exactly one platform whichever spelling its author picks. Found while
-    comparing the /meta endpoints, which exclude the identifier on both platforms
-    and are therefore unaffected.
-
 - id: meta-missing-value-representation
   title: How /meta reports a value the device cannot supply
   area: remote-interface
@@ -540,7 +518,14 @@
 - id: views-map-color-limit
   title: How many stops a map graph's colour scale may have
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    No limit. A colour scale may have as many stops as the file gives, ending at
+    the first gap in the numbering - which is what Android already does and what
+    the documentation describes generically as mapColor[n]. The cap of nine is to
+    be removed from iOS. The related question of what a parser should do with an
+    unparseable colour, where iOS truncates the scale and Android substitutes its
+    default and carries on, is a separate matter and is not settled by this.
   affects:
     android: >-
       Unbounded. Reads mapColor1, mapColor2, ... in a while loop that stops at

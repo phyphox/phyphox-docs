@@ -482,8 +482,9 @@ elements:
       - name: mapColor9
         type: color
         summary: >-
-          Ninth stop of the map colour scale, and the last one iOS reads. Android
-          keeps going for as many stops as are present.
+          Ninth stop of the map colour scale. There is no upper limit - the scale
+          ends at the first gap in the numbering - so mapColor10 and beyond are
+          valid. iOS currently stops reading at nine; see the inconsistency.
         agreement: divergent
         inconsistency: views-map-color-limit
       - name: interpolateMapColors
