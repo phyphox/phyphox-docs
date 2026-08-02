@@ -10,9 +10,12 @@
 #
 # Where the two disagree, the divergence is recorded in ../../inconsistencies.yml
 # and referenced from here with `x-phyphox-inconsistency`. The docs build fails
-# if such a reference names an entry that does not exist. Do not resolve a
-# divergence by picking a behaviour and writing it down here — see the "Choosing
-# the canonical behaviour" rule in ../../CLAUDE.md.
+# if such a reference names an entry that does not exist.
+#
+# Do not resolve a divergence by picking a behaviour and writing it down here.
+# Which implementation is correct is the maintainer's decision; record the
+# divergence with `status: open` and leave it visible. See
+# docs/reference/known-inconsistencies.md for what the statuses mean.
 
 openapi: 3.1.1
 
