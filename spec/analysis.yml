@@ -950,15 +950,25 @@ elements:
     attributes: []
     outputs:
       - name: batteryLevel
-        as_required: false
-        min: 0
-        max: 1
-      - name: wifiSignalStrength
         as_required: true
         min: 0
         max: 1
         agreement: divergent
-        inconsistency: ios-missing-wifisignalstrength
+        inconsistency: android-info-batterylevel-as-optional
+        note: >-
+          Android's table has asRequired = false for this slot alone, which is
+          the bug; the value here is the documented behaviour.
+      - name: wifiSignalStrength
+        as_required: true
+        min: 0
+        max: 1
+        agreement: platform
+        platforms: [android]
+        note: >-
+          iOS cannot obtain this metric. It accepts the output and leaves the
+          data container unfilled rather than refusing the file, which is
+          deliberate: the info module is a way in to obscure system-specific
+          values, and the other outputs of the same module stay useful.
       - name: systemVolume
         as_required: true
         min: 0

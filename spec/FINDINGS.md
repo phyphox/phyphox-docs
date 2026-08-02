@@ -428,17 +428,30 @@ standard deviation's buffer and vice versa. The experiment runs and the graph is
 positionally and never looking at their names, where Android requires `as` on `yi1` and
 `yi2`. Both are recorded as `analysis-outputs-assigned-by-position`.
 
-**`info`** turned out to be two different things. `wifiSignalStrength` is documented since
-file format **1.19**, which iOS declares support for, and is simply not implemented there —
-so an experiment using it loads and silently never fills the buffer. That is reachable today,
-unlike the 1.20 gaps, and is recorded separately. The module's three battery outputs are 1.20
-*and* documented "(Only available on Android.)", so those are a deliberate platform limit.
+**`info`** was two false alarms and one real finding, and I got both false alarms backwards
+before the maintainer corrected them.
+
+`wifiSignalStrength` is a **documented platform limitation**, not a gap: iOS cannot obtain the
+metric, and the documentation says so. It is right that iOS accepts the output and leaves the
+container unfilled rather than refusing the file — the info module exists as a way in to
+obscure system-specific values, and the other outputs of the same module stay useful. Marked
+`platform`. The three battery outputs are the same, and 1.20 besides.
+
+`info/batteryLevel` I reported as a documentation error, on the grounds that the docs require
+`as` where Android's table has `asRequired = false`. **It is the other way round**: the
+documentation is correct, `as` should be required as it is for every other output of the
+module, and Android is the one to fix. Recorded as
+`android-info-batterylevel-as-optional`; my "correction" to the page has been reverted.
 
 **`power`** was a false positive: iOS does not match `exponent` by name, but with `base` as its
 priority key the two-input case resolves correctly whichever order they appear in.
 
-One documentation error fell out of the same pass: `info/batteryLevel` is documented as
-requiring `as`, where Android's table has `asRequired = false`. Corrected.
+Both `info` mistakes share one cause with an earlier one. A definition-list term in these pages
+carries `:` lines for type and requirement, and then a **paragraph underneath** with the
+description — and that paragraph is where the platform notes live. "Only available on Android."
+for `wifiSignalStrength`, "Only applies to LiDAR on iOS devices" for `depth/smooth`. I read the
+`:` lines and skipped the prose, twice. `tools/spec_vs_docs.py` compares names and cannot catch
+this; only reading can.
 
 ### Revised projection
 

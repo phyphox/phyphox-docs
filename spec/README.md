@@ -124,6 +124,14 @@ Record that with `text:`. A model that only lists attributes silently loses it â
 dropdown's option labels were briefly modelled as a `replacement` attribute, which iOS
 declares but never reads and which appears nowhere in the documentation.
 
+### Read the prose under a definition-list term, not just the term
+
+Twice a platform limitation was already documented and still recorded as an unexplained
+divergence, because the note lives in the paragraph *below* the term rather than in the
+`:` lines beside it â€” `depth/smooth` ("Only applies to LiDAR on iOS devices") and
+`info/wifiSignalStrength` ("Only available on Android."). `tools/spec_vs_docs.py` compares
+names only and cannot catch this; the description has to be read.
+
 ### Verifying a one-sided attribute
 
 Before recording an attribute as read by only one app, check *how* the other parser names

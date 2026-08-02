@@ -770,22 +770,26 @@
     mapping table. These two were the only name-level mismatches; the other 48
     agree.
 
-- id: ios-missing-wifisignalstrength
-  title: The info module's wifiSignalStrength output is missing on iOS
+- id: android-info-batterylevel-as-optional
+  title: The info module's batteryLevel output does not require as on Android
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The as attribute is required, as the documentation states and as every other
+    output of the module already demands. Android's mapping table has
+    asRequired = false for this one slot and must be corrected, so that an
+    unnamed output is not silently taken to be the battery level.
   affects:
     android: >-
-      Implements it as an output of the info analysis module
-      (PhyphoxFile.java, analysisBlockParser, case "info").
+      asRequired = false for batteryLevel, so an output carrying no as attribute
+      is assigned to it (PhyphoxFile.java, analysisBlockParser, case "info").
     ios: >-
-      InfoAnalysis handles only batteryLevel and systemVolume; there is no
-      wifiSignalStrength output (InfoAnalysis.swift).
+      Matches batteryLevel by name only; an unnamed output is not assigned to it
+      (InfoAnalysis.swift).
   summary: >-
-    Unlike most gaps of this kind, this one is reachable today. The info module
-    and this output arrived in file format 1.19, which iOS declares support for,
-    so an experiment using it loads on iOS and simply never fills the buffer -
-    no error, no indication. The module's other three Android-only outputs
-    (batteryVoltage, batteryCurrent, batteryTemperature) are different: they are
-    1.20 and the documentation states plainly that they are Android-only, so
-    those are a deliberate platform limitation rather than an omission.
+    batteryLevel is the only output of the info module that Android will accept
+    without an as attribute, which the documentation does not permit and iOS does
+    not do. An unnamed output in an info module is therefore silently treated as
+    a request for the battery level on Android and ignored on iOS. The
+    inconsistency is small, but it is in the parser rather than the format: the
+    documented behaviour is what both should do.
