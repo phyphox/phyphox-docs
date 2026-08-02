@@ -222,6 +222,26 @@ def _check_spec(entries):
         # trigger tag went missing - the name was written down, the element
         # behind it never was, and nothing complained.
         modelled = {(e.get("parent"), e["name"]) for e in elements}
+        # An attribute cannot predate the element it belongs to. This is what
+        # exposed aeFPSTarget being documented as file format 1.3 when the camera
+        # element itself arrived in 1.17 - a copy-paste error in the prose that
+        # had been sitting there unnoticed.
+        def _ver(v):
+            try:
+                return tuple(int(x) for x in str(v).split("."))
+            except ValueError:
+                return None
+
+        for element in elements:
+            ev = _ver(element.get("since"))
+            for attr in element.get("attributes") or []:
+                av = _ver(attr.get("since"))
+                if ev and av and av < ev:
+                    problems.append(
+                        f"{fn}: {element['name']}/{attr['name']} is marked since "
+                        f"{attr['since']} but its element only exists from "
+                        f"{element['since']}")
+
         for element in elements:
             for child in element.get("children") or []:
                 if (element["name"], child) in modelled:

@@ -149,7 +149,7 @@ aeStrategy
 
 aeFPSTarget
 :   Set a target framerate when using *aeStrategy* *prioritizeFramerate*. If this is not set, *prioritizeFramerate* will default to the shorted supported frame duration (inverse of max framerate). If it is set, the target FPS acts as a maximum exposure time to at least achieve the set FPS. It does not prevent the camera from going above the target FPS.
-:   *optional*, default: 0, **Available since phyphox file format 1.3 (phyphox 1.0.4)**
+:   *optional*, default: 0, **Available since phyphox file format 1.20 (phyphox 1.2.1)**
 
 locked
 :   A string that locks some values preventing the user from changing them through a camera-gui element. Specific values can also be given. See explanation and examples above.

@@ -95,13 +95,15 @@ rules:
       buffer. Worth a pass over the bundled experiment collection with the
       stricter parser before the release that carries it.
 
-# Still open, deliberately. Unlike the three above, this one does not reduce to a
-# single rule: each attribute needs its own answer about whether the feature
-# should exist on both platforms or is genuinely one-sided.
-open_questions:
-  - inconsistency: input-one-sided-attributes
-    note: >-
-      Decided case by case. Six attributes in the input block are honoured by one
-      app and ignored by the other: camera/aeFPSTarget, camera/threshold,
-      bluetooth/address and bluetooth/mtu (Android only), depth/smooth and
-      bluetooth/id (iOS only).
+# The "one-sided attributes" question, which the input probe expected to be a
+# growing case-by-case list, did not survive scrutiny. Of the six attributes it
+# started with, one was never one-sided at all (bluetooth/id, read by both), two
+# are deliberate platform differences (bluetooth/mtu, depth/smooth), one is a
+# platform difference needing a clearer failure mode (bluetooth/address), one is
+# not part of the format (camera/threshold), and the last is simply a file format
+# 1.20 feature iOS has not implemented yet (camera/aeFPSTarget).
+#
+# The lesson for the remaining blocks: an attribute that appears one-sided is
+# more often a misreading, a documented platform limit, or ordinary parity work
+# than a question anyone needs to decide. Check those three before recording it.
+open_questions: []

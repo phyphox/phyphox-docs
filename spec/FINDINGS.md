@@ -252,6 +252,42 @@ resolvable and two remain** — `camera/aeFPSTarget` and `depth/smooth`.
 like it would scale with attributes has largely evaporated on inspection, which shifts the
 projection further towards "a few rules and a short tail".
 
+### The "one-sided attributes" category dissolved
+
+The `input` probe predicted a category that would scale with attribute count: attributes one
+app honours and the other ignores, each needing its own decision. It started with six. On
+review, **not one of them was what it looked like**:
+
+| attribute | what it actually was |
+|---|---|
+| `bluetooth/id` | never one-sided — read by both; my grep covered the wrong lines |
+| `bluetooth/mtu` | a documented platform limit; iOS cannot control the MTU |
+| `depth/smooth` | a documented platform limit; it selects between two ARKit frame properties |
+| `bluetooth/address` | a platform limit needing a clearer failure mode, not a decision |
+| `camera/threshold` | not part of the format; being removed from the parser |
+| `camera/aeFPSTarget` | ordinary parity work — a 1.20 feature iOS has not implemented |
+
+`views` told the same story: `edit/editable` was unofficial, `interpolateMapColors` is 1.20
+parity work. So both "one-sided" entries are gone, replaced by one entry for the 1.20 features
+iOS has yet to implement.
+
+**That removes the only category that was projected to grow with the format.** What remains is
+a small set of format-wide rules plus a handful of genuine one-offs. Two of the six were my
+own misreadings and two were answered by documentation I had not read carefully enough —
+which says the modelling needs to consult the prose *for meaning*, not only diff it for names.
+`depth/smooth` was documented as iOS-only in the very entry I had classified as an unexplained
+divergence.
+
+### A spec-internal check earns its place immediately
+
+An attribute cannot predate the element it belongs to. Adding that check found the
+`aeFPSTarget` error it was written for — and one more the same second: `bluetooth` was
+modelled as arriving in file format 1.11, a number I had guessed. The Bluetooth page says
+plainly that BLE arrived in 1.7. Corrected, along with its two child elements.
+
+The `since` values in this spec came from the documentation where it stated them and from
+inference where it did not. The inferred ones deserve the same suspicion as everything else.
+
 ### Revised projection
 
 262 documented attributes; 185 now modelled — **71% of the format**, leaving roughly 80,

@@ -217,9 +217,15 @@ elements:
       - name: smooth
         type: boolean
         default: true
-        summary: Smooth the depth data.
-        agreement: divergent
-        inconsistency: input-one-sided-attributes
+        summary: >-
+          Applies only to LiDAR on iOS. Chooses ARKit's smoothedSceneDepth over
+          sceneDepth, that is, whether ARKit's own smoothing is used.
+        agreement: platform
+        platforms: [ios]
+        note: >-
+          Android has no equivalent: the setting selects between two ARKit frame
+          properties, so there is nothing for it to read. Documented as
+          iOS-specific on the input page.
 
     outputs:
       attribute: component
@@ -281,10 +287,13 @@ elements:
       - name: aeFPSTarget
         type: float
         default: 0.0
-        since: "1.3"
-        summary: Frame rate the prioritizeFramerate strategy aims for.
+        since: "1.20"
+        summary: >-
+          Target frame rate for the prioritizeFramerate strategy, acting as a
+          maximum exposure time. Unset, that strategy uses the shortest supported
+          frame duration. It does not stop the camera exceeding the target.
         agreement: divergent
-        inconsistency: input-one-sided-attributes
+        inconsistency: ios-behind-on-format-1-20
 
       - name: locked
         type: string
@@ -329,7 +338,7 @@ elements:
   # -------------------------------------------------------------- bluetooth --
   - name: bluetooth
     parent: input
-    since: "1.11"
+    since: "1.7"
     summary: A Bluetooth Low Energy device.
     children: [output, config]
     attributes:
@@ -393,7 +402,7 @@ elements:
 
   - name: output
     parent: bluetooth
-    since: "1.11"
+    since: "1.7"
     summary: Maps a characteristic, or a value derived from one, onto a buffer.
     attributes:
       - name: char
@@ -449,7 +458,7 @@ elements:
 
   - name: config
     parent: bluetooth
-    since: "1.11"
+    since: "1.7"
     summary: Value written to a characteristic once on connecting.
     attributes:
       - name: char

@@ -504,28 +504,6 @@
     camera/aeStrategy, which use valueOf and a case-sensitive switch. Like
     input-invalid-enum-handling this wants a single rule for the whole format
     rather than an answer per attribute.
-
-- id: input-one-sided-attributes
-  title: Attributes only one app acts on
-  area: file-format
-  status: open
-  affects:
-    android: >-
-      Reads camera/aeFPSTarget; does not read depth/smooth.
-    ios: >-
-      Reads depth/smooth; does not read camera/aeFPSTarget.
-  summary: >-
-    Two attributes of the input block are honoured by one app and ignored by the
-    other, with nothing in the file to say so. camera/aeFPSTarget sets the frame
-    rate the prioritizeFramerate exposure strategy aims for, and is read only by
-    Android; depth/smooth smooths the depth data and is read only by iOS. Each
-    needs its own answer about whether the feature should exist on both platforms
-    or is genuinely one-sided. Four further attributes were originally listed here
-    and have since been resolved: bluetooth/id is in fact read by both,
-    bluetooth/mtu is a documented platform limitation, bluetooth/address is
-    covered by ble-address-ios-must-reject, and camera/threshold by
-    android-unofficial-attributes.
-
 - id: input-output-component-validation
   title: Validation of the component attribute on input outputs
   area: file-format
@@ -559,23 +537,6 @@
     largest structural difference found while modelling the input block, and it
     affects every input, output and view element in the format rather than one
     attribute.
-
-- id: views-one-sided-attributes
-  title: View attributes only one app acts on
-  area: file-format
-  status: open
-  affects:
-    android: >-
-      Reads graph/interpolateMapColors (PhyphoxFile.java, viewBlockParser).
-    ios: >-
-      Does not (GraphViewElementHandler.swift).
-  summary: >-
-    graph/interpolateMapColors blends between the stops of a map graph's colour
-    scale rather than stepping between them. Android reads it, iOS does not - an
-    ordinary parity gap, the feature simply being newer than the iOS
-    implementation. edit/editable was originally listed here too and is now
-    covered by android-unofficial-attributes.
-
 - id: views-map-color-limit
   title: How many stops a map graph's colour scale may have
   area: file-format
@@ -690,3 +651,31 @@
     dropped so that the removal is traceable and so that anyone finding them in
     the Android source knows they are not part of the format. Worth a search of
     the experiment collection before the removal lands.
+
+- id: ios-behind-on-format-1-20
+  title: File format 1.20 features not yet implemented on iOS
+  area: file-format
+  status: decided
+  canonical: >-
+    These are ordinary features of file format 1.20 and belong on both platforms.
+    iOS should implement them when it moves to 1.20; nothing about the format
+    itself is in question. Listed together because they share one cause and one
+    fix, rather than as separate divergences.
+  affects:
+    android: >-
+      Declares file format 1.20 (PhyphoxFile.phyphoxFileVersion) and implements
+      camera/aeFPSTarget and graph/interpolateMapColors.
+    ios: >-
+      Declares 1.19 (latestSupportedFileVersion in PhyphoxElementHandler.swift)
+      and implements neither.
+  summary: >-
+    Two attributes introduced with file format 1.20 exist only on Android:
+    camera/aeFPSTarget, the target frame rate for the prioritizeFramerate
+    exposure strategy, and graph/interpolateMapColors, which blends between the
+    stops of a map graph's colour scale instead of stepping. Neither is a
+    disagreement about the format - iOS simply has not caught up. Note that this
+    is invisible to users today, because iOS refuses a file declaring 1.20 with
+    the normal "update the app" message; it becomes relevant the moment iOS moves
+    to 1.20 with these unimplemented. The data picker is the third 1.20 feature
+    missing on iOS and is tracked separately as graph-output-data-picker, because
+    it has a sharper failure mode.

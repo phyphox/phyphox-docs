@@ -492,7 +492,7 @@ elements:
         summary: Blend between the colour scale stops instead of stepping between them.
         since: "1.20"
         agreement: divergent
-        inconsistency: views-one-sided-attributes
+        inconsistency: ios-behind-on-format-1-20
       - name: calibrationMode
         type: string
         values: [xLinear]
