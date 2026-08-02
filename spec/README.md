@@ -64,6 +64,15 @@ belong to any one block — how to treat an invalid enumerated value, whether en
 folds case, whether output components are validated. Answering those once is what keeps the
 decision count from growing with the attribute count.
 
+### Verifying a one-sided attribute
+
+Before recording an attribute as read by only one app, check *how* the other parser names
+attributes. Android builds the map-graph colour stops as `"mapColor" + index` in a loop, so
+`mapColor1` appears nowhere in its source and a grep for it wrongly suggested the attribute
+was iOS-only. That is currently the only dynamically constructed attribute name in either
+codebase, but the failure is silent, so a negative grep is not on its own evidence of a
+divergence.
+
 `platform` must not become a dumping ground for divergences nobody wants to think about.
 An attribute one parser silently ignores is `divergent`, not `platform`, unless there is a
 reason it *cannot* exist on the other side.

@@ -436,54 +436,50 @@ elements:
       - name: mapColor1
         type: color
         summary: >-
-          First stop of the colour scale for a map style. mapColor1 to mapColor9
-          define the gradient.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+          First stop of the colour scale for a map style. The stops are read in
+          order and the scale ends at the first one that is absent, so they must
+          be numbered without gaps.
+        agreement: agreed
       - name: mapColor2
         type: color
         summary: Second stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor3
         type: color
         summary: Third stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor4
         type: color
         summary: Fourth stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor5
         type: color
         summary: Fifth stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor6
         type: color
         summary: Sixth stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor7
         type: color
         summary: Seventh stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor8
         type: color
         summary: Eighth stop of the map colour scale.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
+        agreement: agreed
       - name: mapColor9
         type: color
-        summary: Ninth stop of the map colour scale.
+        summary: >-
+          Ninth stop of the map colour scale, and the last one iOS reads. Android
+          keeps going for as many stops as are present.
         agreement: divergent
-        inconsistency: views-one-sided-attributes
+        inconsistency: views-map-color-limit
       - name: interpolateMapColors
         type: boolean
         default: true
-        summary: Blend between the colour scale stops instead of stepping.
+        summary: Blend between the colour scale stops instead of stepping between them.
+        since: "1.20"
         agreement: divergent
         inconsistency: views-one-sided-attributes
       - name: calibrationMode

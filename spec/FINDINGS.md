@@ -99,8 +99,8 @@ size of `input`, and the block least like it.
 | | `input` | `views` | both |
 |---|---|---|---|
 | attributes | 52 | 130 | 182 |
-| agree — state it and move on | 67% | **79%** | 76% |
-| need a decision | 29% | 21% | 23% |
+| agree — state it and move on | 67% | **85%** | 80% |
+| need a decision | 29% | 15% | 19% |
 
 **It raised no new questions of the decidable kind.** All 13 of its enum-related divergences
 fall under `enum-invalid-value` and `enum-case-insensitive`, decided already — `align`,
@@ -109,18 +109,35 @@ fall under `enum-invalid-value` and `enum-case-insensitive`, decided already —
 rules do the work, and modelling a new block mostly consumes them rather than adding to
 them.
 
-The one new entry, `views-one-sided-attributes`, is the same *kind* of question as its
-`input` counterpart — the category the maintainer already said is case by case — and it
-scales with attributes rather than being answered once. So the shape of the estimate is:
-**a small fixed set of policy rules, plus a growing list of individual parity questions.**
+The new entries are `views-one-sided-attributes` (five attributes) and
+`views-map-color-limit` (one). Both are the same *kind* of question as
+`input-one-sided-attributes` — the category already agreed to be case by case — and they
+scale with attributes rather than being answered once. So the shape of the estimate is:
+**a small fixed set of policy rules, plus a short parity list per block.**
 
-Two of the fourteen are not really individual, though, and are the most substantive finding
-in this block. The map-graph colour scale is configured *incompatibly*: iOS takes up to nine
-explicit stops (`mapColor1`…`mapColor9`), Android instead offers `interpolateMapColors` over
-a built-in scale. Neither file can express the other's intent, so the same map is drawn in
-different colours on the two platforms. And the guided calibration workflow
-(`calibrationMode` with `calibrationParameter` on the datasets) exists only on iOS, silently
-doing nothing on Android. Those are feature-parity decisions, not attribute ones.
+The substantive one is the guided calibration workflow — `calibrationMode` on the graph with
+`calibrationParameter` on its datasets — which exists only on iOS. Android loads such a
+graph without complaint and silently does not offer the workflow, so an author testing on
+iOS cannot discover that half their audience gets a different experiment.
+
+### A correction, and the method lesson behind it
+
+The first version of this section claimed the two apps colour map graphs *incompatibly* —
+that `mapColor1`…`mapColor9` were iOS-only and Android offered `interpolateMapColors` over a
+built-in scale instead. That was wrong, and the maintainer caught it.
+
+Android reads the same explicit stops, in a `while` loop that builds the attribute name as
+`"mapColor" + index`. The literal string `mapColor1` therefore never appears in the Android
+source, and a grep for it returned nothing. Both apps in fact read stops numbered from 1 and
+end the scale at the first gap, so scales of up to nine stops behave identically;
+`interpolateMapColors` is simply a newer feature not yet ported.
+
+**Grepping for literal attribute names does not find dynamically constructed ones.** A
+search of both codebases turned up exactly one such case — this one — so nothing else in the
+182 attributes modelled so far is affected. But the failure mode is silent and it produced a
+confident, wrong, and quite dramatic claim, which is worth remembering when the remaining
+blocks are modelled: an attribute that appears one-sided deserves a second look at *how* the
+other parser reads attributes before it is written down as a divergence.
 
 ### Revised projection
 
@@ -131,8 +148,8 @@ root block.
 With two blocks done and only one new *category* of question between them, the earlier
 "10–20 distinct decisions" looks high for policy rules and about right overall. A better
 split: **4–6 format-wide rules** (three already decided) plus **one parity list per block**.
-The mechanical share held steady and even improved on the larger block, which is the
-opposite of what a pessimistic estimate would predict.
+The mechanical share did not just hold on the larger block, it improved — 85% against 67% —
+which is the opposite of what a pessimistic estimate would predict.
 
 ## Suggested sequence, if this goes ahead
 

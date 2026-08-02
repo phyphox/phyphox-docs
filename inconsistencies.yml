@@ -571,24 +571,48 @@
   affects:
     android: >-
       Reads graph/interpolateMapColors, graph/pickLabel and edit/editable. Does
-      not read graph/mapColor1..mapColor9, graph/calibrationMode or
-      graph/input/calibrationParameter (PhyphoxFile.java, viewBlockParser).
+      not read graph/calibrationMode or graph/input/calibrationParameter
+      (PhyphoxFile.java, viewBlockParser).
     ios: >-
-      Reads graph/mapColor1..mapColor9, graph/calibrationMode and
-      graph/input/calibrationParameter. Does not read
-      graph/interpolateMapColors, graph/pickLabel or edit/editable
+      Reads graph/calibrationMode and graph/input/calibrationParameter. Does not
+      read graph/interpolateMapColors, graph/pickLabel or edit/editable
       (GraphViewElementHandler.swift, EditViewElementHandler.swift).
   summary: >-
-    Fourteen attributes of the views block are honoured by one app and ignored by
-    the other. Two clusters stand out rather than being isolated omissions. The
-    colour scale of a map graph is configured entirely differently: iOS takes up
-    to nine explicit stops via mapColor1..9, Android instead offers
-    interpolateMapColors over a built-in scale, so the same map is drawn with
-    different colours on the two platforms and neither file can express the
-    other's intent. And the guided calibration workflow - calibrationMode with
-    calibrationParameter on the datasets - exists only on iOS, with no error on
-    Android to say the graph will not do what its author wrote. The remaining
-    cases are single attributes: pickLabel and editable on Android only. Same
-    theme as input-one-sided-attributes; like that one it is decided case by
-    case, but the two map-colour clusters are a feature-parity question rather
-    than an attribute-by-attribute one.
+    Five attributes of the views block are honoured by one app and ignored by the
+    other. Two are ordinary parity gaps around a single feature:
+    interpolateMapColors blends between the stops of a map graph's colour scale
+    instead of stepping between them, and is simply newer than the iOS
+    implementation. pickLabel and editable are likewise single attributes Android
+    has and iOS does not.
+
+    The substantive one is the guided calibration workflow - calibrationMode on
+    the graph together with calibrationParameter on its datasets - which exists
+    only on iOS. Android loads such a graph without complaint and silently does
+    not offer the workflow, so an author testing on iOS has no way to discover
+    that half their audience gets a different experiment.
+
+    Same theme as input-one-sided-attributes, and decided the same way: case by
+    case.
+
+- id: views-map-color-limit
+  title: How many stops a map graph's colour scale may have
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Unbounded. Reads mapColor1, mapColor2, ... in a while loop that stops at
+      the first attribute that is absent, so a scale may have any number of
+      stops (PhyphoxFile.java, viewBlockParser, around the mapColor loop).
+    ios: >-
+      Capped at nine. Iterates a fixed list mapColor1...mapColor9 and breaks at
+      the first one missing, so a tenth stop is silently ignored
+      (GraphViewElementHandler.swift).
+  summary: >-
+    Both apps read an explicit colour scale for map graphs the same way - stops
+    numbered from 1, ending at the first gap - so scales of up to nine stops
+    behave identically. Beyond that they part: Android keeps reading, iOS stops
+    at nine and drops the rest without an error, so a finely graded scale is
+    rendered coarser on iOS with nothing to say why. A related detail worth
+    settling at the same time: an unparseable colour truncates the scale on iOS,
+    where it is treated as absent, while Android substitutes its default colour
+    and carries on.
