@@ -570,29 +570,17 @@
   status: open
   affects:
     android: >-
-      Reads graph/interpolateMapColors, graph/pickLabel and edit/editable. Does
-      not read graph/calibrationMode or graph/input/calibrationParameter
+      Reads graph/interpolateMapColors and edit/editable
       (PhyphoxFile.java, viewBlockParser).
     ios: >-
-      Reads graph/calibrationMode and graph/input/calibrationParameter. Does not
-      read graph/interpolateMapColors, graph/pickLabel or edit/editable
-      (GraphViewElementHandler.swift, EditViewElementHandler.swift).
+      Reads neither (GraphViewElementHandler.swift, EditViewElementHandler.swift).
   summary: >-
-    Five attributes of the views block are honoured by one app and ignored by the
-    other. Two are ordinary parity gaps around a single feature:
+    Two attributes of the views block are read by Android and ignored by iOS.
     interpolateMapColors blends between the stops of a map graph's colour scale
-    instead of stepping between them, and is simply newer than the iOS
-    implementation. pickLabel and editable are likewise single attributes Android
-    has and iOS does not.
-
-    The substantive one is the guided calibration workflow - calibrationMode on
-    the graph together with calibrationParameter on its datasets - which exists
-    only on iOS. Android loads such a graph without complaint and silently does
-    not offer the workflow, so an author testing on iOS has no way to discover
-    that half their audience gets a different experiment.
-
-    Same theme as input-one-sided-attributes, and decided the same way: case by
-    case.
+    rather than stepping between them, and is simply newer than the iOS
+    implementation. editable decides whether the user may change the value in an
+    edit field. Both are ordinary parity gaps, decided case by case like
+    input-one-sided-attributes.
 
 - id: views-map-color-limit
   title: How many stops a map graph's colour scale may have
@@ -616,3 +604,40 @@
     settling at the same time: an unparseable colour truncates the scale on iOS,
     where it is treated as absent, while Android substitutes its default colour
     and carries on.
+
+- id: graph-output-data-picker
+  title: The output element of a graph means different things on the two apps
+  area: file-format
+  status: decided
+  canonical: >-
+    The data picker. A graph's output tags configure the data picker introduced
+    in file format 1.20: each carries axis (x, xcal, y, ycal, z, zcal) and a
+    label, and writes a coordinate of the point the user picks into a data
+    container, with the cal variants prompting for a value to assign. graph's
+    pickLabel renames the button. The calibrationMode and calibrationParameter
+    attributes were a draft for the spectroscopy feature, are replaced by this,
+    and are to be removed from iOS rather than implemented on Android.
+  affects:
+    android: >-
+      Implements the data picker. The graph's ioBlockParser accepts outputs
+      mapped by axis to x, xcal, y, ycal, z and zcal, each repeatable and each
+      carrying a label; DataOutput has a label field for exactly this
+      (PhyphoxFile.java, viewBlockParser; ExpView.graphElement.setPickConfig).
+    ios: >-
+      Does not implement the data picker at all. Its graph output handler reads
+      only calibrationParameter, and reads it with the required-attribute
+      accessor - so an output tag written for the data picker throws
+      missingAttribute and the whole experiment fails to parse, rather than the
+      picker simply being unavailable
+      (GraphViewElementHandler.swift, GraphOutputElementHandler).
+  summary: >-
+    Both apps accept an output tag inside a graph and neither can read the
+    other's. Android uses it for the data picker; iOS uses it for a superseded
+    calibration draft whose calibrationParameter attribute is mandatory, so a
+    data-picker graph does not merely lose the feature on iOS - it stops the file
+    loading. In practice the version gate hides this today: the data picker
+    arrived in file format 1.20, iOS supports up to 1.19, so such a file is
+    refused with the normal "update the app" message. The sharp edge is a file
+    that declares an older version and uses the construct anyway, which fails
+    with a confusing parse error instead. Implementing the picker on iOS and
+    dropping the calibration attributes resolves both.

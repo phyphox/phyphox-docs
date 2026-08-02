@@ -198,7 +198,7 @@ elements:
     parent: view
     since: "1.0"
     summary: A plot of one or more data containers.
-    children: [input]
+    children: [input, output]
     attributes:
       - name: label
         type: string
@@ -484,15 +484,23 @@ elements:
         inconsistency: views-one-sided-attributes
       - name: calibrationMode
         type: string
-        summary: Enables the guided calibration workflow on a graph.
+        values: [xLinear]
+        deprecated: true
+        superseded_by: the data picker, configured by the graph's output tags
+        summary: >-
+          Draft of a guided calibration workflow, written for the spectroscopy
+          feature and since replaced. Not part of the format going forward.
         agreement: divergent
-        inconsistency: views-one-sided-attributes
+        inconsistency: graph-output-data-picker
       - name: pickLabel
         type: string
         translatable: true
-        summary: Label for the value picked when the user taps the graph.
+        since: "1.20"
+        summary: >-
+          Renames the "Pick data" button, to say what picking is for. Part of the
+          data picker, configured by the graph's output tags.
         agreement: divergent
-        inconsistency: views-one-sided-attributes
+        inconsistency: graph-output-data-picker
 
   - name: input
     parent: graph
@@ -520,11 +528,44 @@ elements:
         values: [lines, dots, hbars, vbars, map]
         summary: Style of this dataset, overriding the graph's.
         agreement: agreed
-      - name: calibrationParameter
-        type: string
-        summary: Parameter this dataset supplies to the calibration workflow.
+
+  - name: output
+    parent: graph
+    since: "1.20"
+    summary: >-
+      Configures the data picker: one button offered to the user when they pick a
+      point on the maximised graph, writing a coordinate of that point into a
+      data container. Any number may be given.
+    attributes:
+      - name: axis
+        type: enum
+        required: true
+        values: [x, xcal, y, ycal, z, zcal]
+        summary: >-
+          Which coordinate of the picked point to write. The `cal` variants
+          modify the preceding output of the same axis: instead of writing
+          immediately, the user is prompted for a value, the point's coordinate
+          goes to the plain output and the entered value to the `cal` one. That
+          is how two points are mapped to reference values for a calibration.
         agreement: divergent
-        inconsistency: views-one-sided-attributes
+        inconsistency: graph-output-data-picker
+      - name: label
+        type: string
+        translatable: true
+        summary: Text of the button offered for this output once a point is picked.
+        agreement: divergent
+        inconsistency: graph-output-data-picker
+      - name: calibrationParameter
+        type: enum
+        values: [slope, intercept]
+        deprecated: true
+        superseded_by: the axis attribute of this element
+        summary: >-
+          Part of the superseded calibration draft. Required by iOS on every
+          graph output, which is what makes the two readings of this element
+          incompatible.
+        agreement: divergent
+        inconsistency: graph-output-data-picker
 
   # ------------------------------------------------------------------- edit --
   - name: edit

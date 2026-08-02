@@ -93,14 +93,14 @@ fourth opinion, not as input.
 
 ## The `views` block confirms the estimate
 
-`views.yml` models the second block: 17 elements, 130 attributes — two and a half times the
+`views.yml` models the second block: 18 elements, 132 attributes — two and a half times the
 size of `input`, and the block least like it.
 
 | | `input` | `views` | both |
 |---|---|---|---|
-| attributes | 52 | 130 | 182 |
-| agree — state it and move on | 67% | **85%** | 80% |
-| need a decision | 29% | 15% | 19% |
+| attributes | 52 | 132 | 184 |
+| agree — state it and move on | 67% | **84%** | 79% |
+| need a decision | 29% | 16% | 20% |
 
 **It raised no new questions of the decidable kind.** All 13 of its enum-related divergences
 fall under `enum-invalid-value` and `enum-case-insensitive`, decided already — `align`,
@@ -139,9 +139,33 @@ confident, wrong, and quite dramatic claim, which is worth remembering when the 
 blocks are modelled: an attribute that appears one-sided deserves a second look at *how* the
 other parser reads attributes before it is written down as a divergence.
 
+### A second correction: a whole feature was missed
+
+`graph` was modelled with one child element, `input`. It has two. The `output` tag configures
+the **data picker** — the graph's outputs name data containers that receive the coordinates of
+a point the user picks, with `axis` values `x`, `xcal`, `y`, `ycal`, `z`, `zcal` and a `label`
+per button — and it was omitted completely, along with the finding that goes with it.
+
+That finding is the sharpest in the block. Both apps accept `<output>` inside a graph and
+**neither can read the other's**: Android reads `axis`, iOS reads `calibrationParameter` and
+reads it as *required*, so a data-picker graph does not merely lose the feature on iOS, it
+stops the file parsing. The version gate hides this today — the picker is file format 1.20
+and iOS supports 1.19 — but a file declaring an older version and using the construct fails
+with a confusing parse error rather than the clean "update the app" message.
+
+The calibration attributes turn out to be a superseded draft of the spectroscopy feature
+rather than a live iOS-only capability, so `views-one-sided-attributes` shrinks again, to
+`interpolateMapColors` and `editable`.
+
+Two lessons, both now in `README.md`: **enumerate child elements from both parsers** rather
+than assuming, and **check which of a handler's several `Attribute` enums an attribute
+belongs to** — `calibrationParameter` was filed under `input` when it is an `output`
+attribute. Neither error would have been caught by any check in the repo; both were caught by
+the maintainer knowing the feature existed.
+
 ### Revised projection
 
-262 documented attributes; 182 now modelled — **69% of the format**, leaving roughly 80,
+262 documented attributes; 184 now modelled — **70% of the format**, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 

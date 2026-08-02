@@ -64,6 +64,17 @@ belong to any one block — how to treat an invalid enumerated value, whether en
 folds case, whether output components are validated. Answering those once is what keeps the
 decision count from growing with the attribute count.
 
+### Enumerate child elements from both parsers, not one
+
+The first pass at `views.yml` gave `graph` the single child `input`, missing `output`
+entirely — and with it the whole data-picker feature. iOS registers both
+(`childHandlers = ["input": ..., "output": ...]`) and Android parses both; the omission was
+simply not looking. Children deserve the same treatment as attributes: list them from each
+parser and compare, rather than assuming the obvious ones are all there are.
+
+The same pass filed `calibrationParameter` under `input` when it belongs to `output`. When a
+handler declares several private `Attribute` enums, check which one each belongs to.
+
 ### Verifying a one-sided attribute
 
 Before recording an attribute as read by only one app, check *how* the other parser names
