@@ -41,6 +41,7 @@ Two things learned from the first run against real phones:
 
 import argparse
 import json
+import re
 import os
 import sys
 import urllib.error
@@ -62,7 +63,7 @@ class Probe:
     """One request, run identically against both phones."""
 
     def __init__(self, name, path, params=None, schema=None, expect_json=True,
-                 relates_to=(), destructive=False, clears=False):
+                 relates_to=(), destructive=False, clears=False, keep_values=()):
         self.name = name
         self.path = path
         self.params = params or {}
@@ -71,14 +72,24 @@ class Probe:
         self.relates_to = tuple(relates_to)   # inconsistency ids
         self.destructive = destructive
         self.clears = clears
+        # Paths whose literal string value is part of what this probe compares.
+        # Normally strings collapse to "<string>", because device names and
+        # titles differ legitimately - but where an entry is *about* the wording
+        # (res-fallback is), the wording has to be visible.
+        self.keep_values = frozenset(keep_values)
 
     def url(self, base):
         q = urllib.parse.urlencode(self.params)
         return f"{base.rstrip('/')}{self.path}" + (f"?{q}" if q else "")
 
 
-def build_probes(buffer_name):
-    """The probe set. `buffer_name` comes from the running experiment's /config."""
+def build_probes(buffer_name, resource_name=None):
+    """The probe set.
+
+    `buffer_name` comes from /config; `resource_name` from the generated
+    interface. Load an experiment with an image view element to exercise /res
+    properly - with none, those probes only cover the refusal paths.
+    """
     b = buffer_name
     probes = [
         Probe("config", "/config", schema="Config"),
@@ -106,18 +117,20 @@ def build_probes(buffer_name):
               expect_json=False,
               relates_to=["export-invalid-format", "cors-error-paths"]),
         Probe("res.missing.src", "/res",
-              relates_to=["res-fallback"]),
+              relates_to=["res-fallback"], keep_values=["error"]),
         Probe("res.unknown.src", "/res", {"src": "nosuchfile___.png"},
-              relates_to=["res-fallback"]),
-        # hue.png is bundled with the app rather than with the experiment, so
-        # this is the request that shows the fallback divergence.
-        Probe("res.bundled.fallback", "/res", {"src": "hue.png"},
-              expect_json=False, relates_to=["res-fallback"]),
+              relates_to=["res-fallback"], keep_values=["error"]),
 
         Probe("control.bad.command", "/control", {"cmd": "nosuchcommand___"},
               schema="ControlResult"),
         Probe("control.no.command", "/control", schema="ControlResult"),
     ]
+
+    if resource_name:
+        probes.insert(
+            len(probes) - 2,
+            Probe("res.existing", "/res", {"src": resource_name},
+                  expect_json=False, relates_to=["res-content-type"]))
 
     control = [
         Probe("control.set", "/control", {"cmd": "set", "buffer": b, "value": "1"},
@@ -193,19 +206,21 @@ VOLATILE = {
 }
 
 
-def shape(value, path=""):
+def shape(value, path="", keep=frozenset()):
     """A structural signature: keys, types, enum choices and booleans."""
     if path in VOLATILE:
         return f"<volatile {type(value).__name__}>"
+    if path in keep:
+        return repr(value)
     if isinstance(value, dict):
-        return {k: shape(v, f"{path}.{k}" if path else k)
+        return {k: shape(v, f"{path}.{k}" if path else k, keep)
                 for k, v in sorted(value.items())}
     if isinstance(value, list):
         # Collapse to the set of distinct element shapes, so a different number
         # of samples is not reported as a difference.
         seen = []
         for item in value:
-            s = shape(item, path)
+            s = shape(item, path, keep)
             if s not in seen:
                 seen.append(s)
         return {"<array of>": sorted(seen, key=repr)}
@@ -295,6 +310,21 @@ def validator_for(spec, schema_name):
         registry=registry)
 
 
+def pick_resource(base):
+    """A resource name the running experiment actually references.
+
+    /config does not list resources - there is no <resource> element in the
+    format, both apps derive the list from the view elements that name a file -
+    so the only way to find one from outside is to read the generated interface,
+    which links each image as res?src=NAME.
+    """
+    r = fetch(f"{base.rstrip('/')}/")
+    if r["status"] != 200:
+        return None
+    names = re.findall(rb"res\?src=([^\"'\\ >]+)", r["body"])
+    return names[0].decode() if names else None
+
+
 def pick_buffer(base):
     """A buffer name from the running experiment, preferring an exported one."""
     r = fetch(f"{base.rstrip('/')}/config")
@@ -331,10 +361,16 @@ def run(args):
         sys.exit("The phones are running different experiments (crc32 "
                  + ", ".join(f"{k}={v}" for k, v in crc.items())
                  + "). Load the same experiment on both.")
+    resource_name = None
+    for base in targets.values():
+        resource_name = resource_name or pick_resource(base)
     print(f"experiment crc32 {next(iter(crc.values()))}, probing buffer "
-          f"{buffer_name!r}\n")
+          f"{buffer_name!r}"
+          + (f", resource {resource_name!r}" if resource_name
+             else ", no image resource in this experiment")
+          + "\n")
 
-    probes, control, clearing = build_probes(buffer_name)
+    probes, control, clearing = build_probes(buffer_name, resource_name)
     if args.allow_control:
         probes += control
     if args.allow_clear:
@@ -392,7 +428,8 @@ def run(args):
             results[name] = {
                 "status": r["status"],
                 "content_type": r["content_type"],
-                "shape": shape(parsed) if parsed is not None else "<non-json>",
+                "shape": (shape(parsed, "", probe.keep_values)
+                          if parsed is not None else "<non-json>"),
             }
 
         if len(targets) < 2:

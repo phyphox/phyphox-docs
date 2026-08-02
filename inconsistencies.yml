@@ -330,11 +330,21 @@
       Looks only in the experiment's resource folder and otherwise reports
       {"error": "Unknown file."}
       (ExperimentWebServer.swift, "/res" handler).
+  verified: >-
+    Partly confirmed on hardware 2026-08-02 with the Roller Coaster experiment on
+    Android 1.2.1-beta2 and iOS 1.2.0. The differing error messages were
+    reproduced exactly. The fallback itself was not: both apps refuse a resource
+    the experiment does not reference, so the Android asset lookup is only
+    reachable for an experiment that *names* a resource it does not ship, which
+    that test could not produce. Path traversal ("../../../etc/hostname") was
+    refused by both.
   summary: >-
-    An experiment that names a bundled image without shipping it renders in the
-    app on both platforms, but over the remote interface only on Android. iOS also
-    distinguishes a missing src parameter ("No file requested.") from an unknown
-    one, where Android reports the same message for both.
+    iOS distinguishes a missing src parameter ("No file requested.") from an
+    unknown one ("Unknown file."), where Android answers "Unknown file." to both -
+    so a client cannot tell a malformed request from a wrong file name on
+    Android. Separately, Android falls back to images bundled with the app when a
+    resource is not in the experiment's own folder and iOS does not, which would
+    show up for an experiment naming a resource it does not ship.
 
 - id: metadata-uniqueid-spelling
   title: Spelling of the uniqueID metadata identifier
@@ -409,3 +419,28 @@
     instead of the status code - the case where a useful message matters most.
     Distinct from cors-header, which is about iOS having no CORS at all; fixing
     that one would not fix this.
+
+- id: res-content-type
+  title: Content-Type of a resource served by /res
+  area: remote-interface
+  status: open
+  verified: >-
+    Confirmed on hardware 2026-08-02 with the Roller Coaster experiment
+    (crc32 31697a06) on Android 1.2.1-beta2 and iOS 1.2.0: both returned the
+    identical 40559-byte PNG (sha256 d180fe9da741...), Android as
+    application/octet-stream and iOS as image/png.
+  affects:
+    android: >-
+      Passes a null content type to respond(), so jlhttp falls back to
+      application/octet-stream for every resource whatever its type
+      (RemoteServer.java, handleRes()).
+    ios: >-
+      GCDWebServerFileResponse derives the type from the file extension, so a
+      PNG is served as image/png
+      (ExperimentWebServer.swift, "/res" handler).
+  summary: >-
+    The same image comes back with a different Content-Type from the two apps.
+    The bundled interface is unaffected because browsers sniff images inside an
+    <img> tag regardless, but any other client - one saving the file, or
+    deciding how to render it from the header - sees a generic binary blob from
+    Android and a typed image from iOS.
