@@ -342,10 +342,39 @@ comparing `bluetooth-low-energy.md` against each spec file separately reported e
 constructs as missing from the other. Pages are now compared against the *union* of the specs
 that claim them, which also let the last `OTHER_BLOCK` exception go.
 
+### The analysis block: a different shape, and the sharpest bug yet
+
+`analysis.yml` covers the block and all 54 modules: 55 elements, 43 attributes and **194
+named input/output slots**. It is structurally unlike the other three — the attribute count is
+small, and almost the whole surface is the slot vocabulary of each module (`minuend` and
+`subtrahend` for `subtract`, `x`/`y`/`threshold` for `threshold`, and so on).
+
+Only Android states that vocabulary declaratively. Every module carries an `ioMapping` table
+naming each slot, whether `as` is required for it, how many may appear and whether a literal
+value is allowed. iOS resolves the same names implicitly — `priorityInputKey` in the
+complex-update modules, position elsewhere. **Android's tables are the only explicit statement
+of the slot names anywhere, including the documentation**, which describes them in prose.
+
+The comparison came out well: 54 modules on Android against 52 on iOS, differing only by
+`butterworth` and `imagedecode` (already recorded as 1.20 work), and 21 of the 24 modules that
+carry attributes agree exactly.
+
+The other three were `sinh`, `cosh` and `tanh` — and that turned out not to be an attribute
+disagreement at all but **iOS computing the wrong function**. `ExperimentAnalysisFactory`
+maps them onto `SinAnalysis`, `CosAnalysis` and `TanAnalysis`; the correct classes exist and
+are referenced nowhere. Recorded as `ios-hyperbolic-modules-compute-trig`, since decided.
+
+Worth noting how it surfaced. The extractor reported iOS reading a `deg` attribute on the
+hyperbolic modules, which is mathematically meaningless — hyperbolic functions take a number,
+not an angle. It looked like a fault in the tooling. It was the tooling being right about
+something surprising. That is now the third time a wrong-looking extraction result has been
+correct, against a consistent instinct to assume my own error first.
+
 ### Revised projection
 
-262 documented attributes; 206 across three blocks now modelled — **around 79% of
-the format**, with `analysis`, `network-connections` and the root block left, leaving roughly 80,
+Four blocks are now modelled — `input`, `views`, `output` and `analysis` — leaving
+`network-connections` and the small root block. 101 elements, 249 attributes and 194 named
+analysis slots, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 

@@ -677,7 +677,12 @@
 - id: ios-hyperbolic-modules-compute-trig
   title: sinh, cosh and tanh compute sin, cos and tan on iOS
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Android is correct: sinh, cosh and tanh compute the hyperbolic functions, as
+    documented. The iOS classMap entries are a bug and must point at
+    SinhAnalysis, CoshAnalysis and TanhAnalysis, which already exist and are
+    correct. On the iOS to-do list as of 2026-08-03.
   affects:
     android: >-
       Correct. analysisBlockParser maps sinh, cosh and tanh to their own
@@ -699,9 +704,7 @@
     would never do.
 
     This is not a disagreement about the format - all three modules are
-    documented and Android implements them correctly. It is recorded here rather
-    than fixed unilaterally only because that is the rule; there is no real
-    question about what the correct behaviour is.
+    documented and Android implements them correctly.
 
     No bundled experiment uses these modules, so the exposure is limited to
     user-written and community experiments, which cannot be surveyed from here.

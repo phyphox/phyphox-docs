@@ -38,6 +38,11 @@ PAIRS = {
     "input.yml": ["input.md", "bluetooth-low-energy.md"],
     "views.yml": ["views.md"],
     "output.yml": ["output.md", "bluetooth-low-energy.md"],
+    "analysis.yml": ["analysis/index.md", "analysis/basic-math.md",
+                     "analysis/trigonometric-functions.md", "analysis/statistics.md",
+                     "analysis/advanced-math.md", "analysis/buffer-operations.md",
+                     "analysis/data-generation.md", "analysis/logic.md",
+                     "analysis/other.md", "analysis/formula-node.md"],
 }
 
 # Placeholders and unrelated elements that appear inside the skeletons.
@@ -99,15 +104,22 @@ def from_docs(page):
 def from_spec(fn):
     doc = yaml.safe_load(open(os.path.join(SPEC, fn), encoding="utf-8"))
     elements = {}
+    for group, items in (doc.get("common") or {}).items():
+        key = "input" if "input" in group else ("output" if "output" in group else "_common")
+        elements.setdefault(key, set()).update(i["name"] for i in items or [])
     for el in doc.get("elements") or []:
         attrs = {a["name"] for a in (el.get("attributes") or [])}
         # `outputs:` describes the child <output> element of input modules,
         # including the attribute that names the component.
         outputs = el.get("outputs")
-        if outputs:
+        if isinstance(outputs, dict):
             elements.setdefault("output", set())
             if outputs.get("attribute"):
                 elements["output"].add(outputs["attribute"])
+        elif outputs:                       # analysis modules: a list of slots
+            elements.setdefault("output", set())
+        if el.get("inputs"):
+            elements.setdefault("input", set())
         elements.setdefault(el["name"], set()).update(attrs)
     return elements
 

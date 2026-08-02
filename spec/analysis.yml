@@ -1,0 +1,1000 @@
+# The <analysis> block and its modules, modelled completely.
+#
+# Sources compared for every entry below:
+#   Android  PhyphoxFile.java, analysisBlockParser                 (b4564695)
+#   iOS      Serialization/Handlers/AnalysisElementHandler.swift,
+#            ExperimentAnalysisFactory.swift and Analysis/Modules/*  (a0643729)
+#   docs     docs/file-format/analysis/*.md
+#
+# How the two sides express a module's inputs and outputs differs, and only
+# Android states it declaratively. Android gives every module an ioMapping
+# table naming each slot, whether the `as` attribute is required for it, how
+# many may appear and whether a literal value is allowed. iOS resolves the same
+# names implicitly - `priorityInputKey` in the complex-update modules, position
+# elsewhere. The slot names below are therefore taken from Android's tables,
+# which are the only explicit statement of them anywhere, including the docs.
+
+block: analysis
+since: "1.0"
+summary: >-
+  The mathematics of the experiment. Modules run in order, each reading data
+  containers and writing results to others, and the whole block repeats in a
+  loop while the experiment runs.
+
+# Accepted by every module, and checked once rather than repeated 54 times.
+common:
+  module_attributes:
+    - name: cycles
+      type: string
+      since: "1.10"
+      summary: >-
+        Which analysis cycles this module runs in, as a space-separated list of
+        numbers and dash-ranges with open ends allowed, e.g. "0 3 5-7 10-".
+        Cycle 0 runs once when the experiment is opened, before the user presses
+        start. Unset, the module runs in every cycle.
+      agreement: agreed
+  input_attributes:
+    - name: as
+      type: string
+      summary: >-
+        Which slot of the module this input feeds.
+      agreement: agreed
+    - name: type
+      type: enum
+      values: [buffer, value, empty]
+      default: buffer
+      summary: >-
+        Whether the text names a data container, is a literal value, or
+        stands for a constant empty buffer.
+      agreement: divergent
+      inconsistency: input-invalid-enum-handling
+      rules: [enum-invalid-value, enum-case-insensitive]
+    - name: keep
+      type: boolean
+      default: false
+      summary: >-
+        Whether the data container keeps its contents after being read.
+        False clears it, so each dataset is processed once.
+      agreement: agreed
+    - name: clear
+      type: boolean
+      default: true
+      summary: >-
+        Deprecated in file format 1.17 in favour of keep, which is the more
+        intuitive spelling. clear=true corresponds to keep=false.
+      deprecated: true
+      superseded_by: keep
+      agreement: agreed
+  output_attributes:
+    - name: as
+      type: string
+      summary: >-
+        Which slot of the module this output receives.
+      agreement: agreed
+    - name: append
+      type: boolean
+      default: false
+      summary: >-
+        Whether new data is appended to the container rather than replacing
+        its contents.
+      agreement: agreed
+    - name: clear
+      type: boolean
+      default: true
+      summary: >-
+        Deprecated in file format 1.17 in favour of append. clear=true
+        corresponds to append=false.
+      deprecated: true
+      superseded_by: append
+      agreement: agreed
+
+elements:
+
+  - name: analysis
+    parent: phyphox
+    since: "1.0"
+    summary: Container for the analysis modules, executed in document order.
+    children: [abs, acos, add, append, asin, atan, atan2, autocorrelation, average, binning, butterworth, const, cos, cosh, count, crosscorrelation, differentiate, divide, eventstream, fft, first, formula, gausssmooth, gcd, if, imagedecode, info, integrate, interpolate, lcm, loess, log, map, match, max, min, movingaverage, multiply, periodicity, power, ramp, rangefilter, reduce, round, sin, sinh, sort, split, subrange, subtract, tan, tanh, threshold, timer]
+    attributes:
+      - name: sleep
+        type: float
+        default: 0.0
+        summary: >-
+          Minimum seconds between the end of one run of the block and the
+          start of the next.
+        agreement: agreed
+      - name: dynamicSleep
+        type: string
+        since: "1.5"
+        summary: >-
+          Data container supplying the sleep time, so the analysis can set
+          its own rate. Falls back to sleep when empty.
+        agreement: agreed
+      - name: onUserInput
+        type: boolean
+        default: false
+        summary: >-
+          Run the block only when the user changes an input view, rather
+          than continuously.
+        agreement: agreed
+      - name: requireFill
+        type: string
+        since: "1.16"
+        summary: >-
+          Data container that must hold enough values before the block runs
+          at all.
+        agreement: agreed
+      - name: requireFillThreshold
+        type: integer
+        default: 1
+        since: "1.16"
+        summary: >-
+          How many values requireFill needs.
+        agreement: agreed
+      - name: requireFillDynamic
+        type: string
+        since: "1.16"
+        summary: >-
+          Data container supplying that count. Falls back to
+          requireFillThreshold when empty.
+        agreement: agreed
+      - name: timedRun
+        type: boolean
+        default: false
+        since: "1.10"
+        summary: >-
+          Preset for the timed-run setting. The user can still change it.
+        agreement: agreed
+      - name: timedRunStartDelay
+        type: float
+        default: 3.0
+        since: "1.10"
+        summary: >-
+          Preset start delay in seconds for timed runs.
+        agreement: agreed
+      - name: timedRunStopDelay
+        type: float
+        default: 10.0
+        since: "1.10"
+        summary: >-
+          Preset stop delay in seconds for timed runs.
+        agreement: agreed
+
+  - name: abs
+    parent: analysis
+    summary: >-
+      Calculates the absolute value of a single input element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: abs    # required
+
+  - name: acos
+    parent: analysis
+    summary: >-
+      Calculates the inverse cosine of a single input (in radians) element-
+      wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: acos    # required
+
+  - name: add
+    parent: analysis
+    summary: >-
+      Calculates the sum of all inputs element-wise and writes it to a
+      single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: summand    # required, repeatable, literal value allowed
+    outputs:
+      - name: sum    # required
+
+  - name: append
+    parent: analysis
+    summary: >-
+      This module appends all the values of the input buffers to a single
+      output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required, repeatable, literal value allowed, empty allowed
+    outputs:
+      - name: out    # required
+
+  - name: asin
+    parent: analysis
+    summary: >-
+      Calculates the inverse sine of a single input (in radians) element-
+      wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: asin    # required
+
+  - name: atan
+    parent: analysis
+    summary: >-
+      Calculates the inverse tangens of a single input (in radians) element-
+      wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: atan    # required
+
+  - name: atan2
+    parent: analysis
+    summary: >-
+      Calculates the two-argument variant of the inverse tangens
+      (corresponding to atan(y/x), see
+      [Wikipadia](https://en.wikipedia.org/wiki/Atan2) for an ex
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: y    # required, literal value allowed
+      - name: x    # required, literal value allowed
+    outputs:
+      - name: atan2    # required
+
+  - name: autocorrelation
+    parent: analysis
+    summary: >-
+      This module will calculate the autocorrelation.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: x
+      - name: y    # required
+      - name: minX    # literal value allowed
+      - name: maxX    # literal value allowed
+    outputs:
+      - name: y
+      - name: x
+
+  - name: average
+    parent: analysis
+    since: "1.2"
+    summary: >-
+      This module calculates the average of all values in the input buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: buffer    # required
+    outputs:
+      - name: average
+      - name: stddev
+
+  - name: binning
+    parent: analysis
+    since: "1.2"
+    summary: >-
+      The binning module distributes the values from its input in into
+      ranges (bins) and outputs a mapping of these ranges and the number of
+      values in each
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required
+      - name: x0    # literal value allowed
+      - name: dx    # literal value allowed
+    outputs:
+      - name: binStarts    # required
+      - name: binCounts    # required
+
+  - name: butterworth
+    parent: analysis
+    since: "1.20"
+    summary: >-
+      This module represents the transfer function of a Butterworth filter.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: y    # required
+      - name: x    # required
+      - name: n    # required, literal value allowed
+      - name: cutoff    # required, literal value allowed
+      - name: cutoffLow    # literal value allowed
+    outputs:
+      - name: filtered    # required
+
+  - name: const
+    parent: analysis
+    summary: >-
+      This module will initialize a buffer to a constant value.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # literal value allowed
+      - name: length    # literal value allowed
+    outputs:
+      - name: out    # required
+
+  - name: cos
+    parent: analysis
+    summary: >-
+      Calculates the cosine of a single input (in radians) element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: cos    # required
+
+  - name: cosh
+    parent: analysis
+    summary: >-
+      Calculates the hyperbolic cosine of a single input (in radians)
+      element-wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: cosh    # required
+
+  - name: count
+    parent: analysis
+    since: "1.2"
+    summary: >-
+      Returns the number of values in the input buffer
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: buffer    # required
+    outputs:
+      - name: count    # required
+
+  - name: crosscorrelation
+    parent: analysis
+    summary: >-
+      This module will calculate a crosscorrelation of two inputs.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required
+    outputs:
+      - name: out    # required
+
+  - name: differentiate
+    parent: analysis
+    summary: >-
+      Performs a simple differentiation of a single input by calculating the
+      difference of consecutive elements.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required
+    outputs:
+      - name: out    # required
+
+  - name: divide
+    parent: analysis
+    summary: >-
+      Calculates the quotient of multiple divisors from a single dividend
+      element-wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: dividend    # required, literal value allowed
+      - name: divisor    # required, repeatable, literal value allowed
+    outputs:
+      - name: quotient    # required
+
+  - name: eventstream
+    parent: analysis
+    since: "1.18"
+    summary: >-
+      This is a convenient and faster substitute for stopwatch
+      implementations like it is used in the acoustic stopwatch.
+    children: [input, output]
+    attributes:
+      - name: mode
+        type: string
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: data    # required
+      - name: threshold    # literal value allowed
+      - name: distance    # literal value allowed
+      - name: index    # literal value allowed
+      - name: skip    # literal value allowed
+      - name: last    # literal value allowed
+    outputs:
+      - name: events
+      - name: index
+      - name: skip
+      - name: last
+
+  - name: fft
+    parent: analysis
+    summary: >-
+      This module will perform a fast fourier transform of a complex input
+      and will write the complex result to the output buffers.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: re    # required
+      - name: im
+    outputs:
+      - name: re
+      - name: im
+
+  - name: first
+    parent: analysis
+    summary: >-
+      Retrieves the first entry of each buffer and appends it to each output
+      buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, repeatable
+    outputs:
+      - name: first    # required, repeatable
+
+  - name: formula
+    parent: analysis
+    children: [input, output]
+    attributes:
+      - name: formula
+        type: string
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: in    # repeatable
+    outputs:
+      - name: out    # required
+
+  - name: gausssmooth
+    parent: analysis
+    summary: >-
+      This module will smooth the data provided from the only input.
+    children: [input, output]
+    attributes:
+      - name: sigma
+        type: float
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: in    # required
+    outputs:
+      - name: out    # required
+
+  - name: gcd
+    parent: analysis
+    summary: >-
+      Calculates the greatest common divisor of two inputs element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: gcd    # required
+
+  - name: if
+    parent: analysis
+    since: "1.3"
+    summary: >-
+      The if module is the phyphox equivalent to the if-statement of a
+      programming language.
+    children: [input, output]
+    attributes:
+      - name: equal
+        type: float
+        summary: See the module description.
+        agreement: agreed
+      - name: greater
+        type: float
+        summary: See the module description.
+        agreement: agreed
+      - name: less
+        type: float
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: a    # required, literal value allowed
+      - name: b    # required, literal value allowed
+      - name: true    # literal value allowed, empty allowed
+      - name: false    # literal value allowed, empty allowed
+    outputs:
+      - name: result    # required
+
+  - name: imagedecode
+    parent: analysis
+    since: "1.20"
+    summary: >-
+      This module takes the input data as a stream of bytes encoded by the
+      values 0 to 255.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required
+    outputs:
+      - name: width
+      - name: height
+      - name: r
+      - name: g
+      - name: b
+      - name: a
+      - name: luma
+      - name: luminance
+
+  - name: info
+    parent: analysis
+    since: "1.19"
+    summary: >-
+      The info module is used as a generic way to access system information
+      like the device's battery level.
+    children: [output]
+    attributes: []
+    outputs:
+      - name: batteryLevel
+      - name: wifiSignalStrength
+      - name: systemVolume
+      - name: batteryVoltage
+      - name: batteryCurrent
+      - name: batteryTemperature
+
+  - name: integrate
+    parent: analysis
+    summary: >-
+      Performs a simple integration of a single input by summing all
+      elements and returning each step of the summation as a value.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required
+    outputs:
+      - name: out    # required
+
+  - name: interpolate
+    parent: analysis
+    summary: >-
+      Interpolate input data.
+    children: [input, output]
+    attributes:
+      - name: method
+        type: enum
+        values: [nearest, previous, next, linear]
+        summary: See the module description.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+    inputs:
+      - name: x    # required
+      - name: y    # required
+      - name: xi    # required, literal value allowed
+    outputs:
+      - name: out    # required, repeatable
+
+  - name: lcm
+    parent: analysis
+    summary: >-
+      Calculates the least common multiple of two inputs element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: lcm    # required
+
+  - name: loess
+    parent: analysis
+    summary: >-
+      Smooths data using locally estimated scatterplot smoothing (LOESS) aka
+      local regression.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: x    # required
+      - name: y    # required
+      - name: d    # required, literal value allowed
+      - name: xi    # required, literal value allowed
+    outputs:
+      - name: yi0    # required, repeatable
+      - name: yi1    # repeatable
+      - name: yi2    # repeatable
+
+  - name: log
+    parent: analysis
+    since: "1.5"
+    summary: >-
+      Calculates the natural logarithm of a single input element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: log    # required
+
+  - name: map
+    parent: analysis
+    since: "1.7"
+    summary: >-
+      This module takes three buffers representing x, y and z data.
+    children: [input, output]
+    attributes:
+      - name: zMode
+        type: string
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: mapWidth    # required, literal value allowed
+      - name: minX    # required, literal value allowed
+      - name: maxX    # required, literal value allowed
+      - name: mapHeight    # required, literal value allowed
+      - name: minY    # required, literal value allowed
+      - name: maxY    # required, literal value allowed
+      - name: x    # required, literal value allowed
+      - name: y    # required, literal value allowed
+      - name: z    # literal value allowed
+    outputs:
+      - name: x    # required
+      - name: y    # required
+      - name: z    # required
+
+  - name: match
+    parent: analysis
+    summary: >-
+      This module takes multiple inputs and match valid values to the same
+      number of outputs.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required, repeatable
+    outputs:
+      - name: out    # required, repeatable
+
+  - name: max
+    parent: analysis
+    summary: >-
+      Returns the maximum and its position.
+    children: [input, output]
+    attributes:
+      - name: multiple
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: x
+      - name: y    # required
+      - name: threshold    # literal value allowed
+    outputs:
+      - name: max
+      - name: position
+
+  - name: min
+    parent: analysis
+    summary: >-
+      Returns the minimum and its position.
+    children: [input, output]
+    attributes:
+      - name: multiple
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: x
+      - name: y    # required
+      - name: threshold    # literal value allowed
+    outputs:
+      - name: min
+      - name: position
+
+  - name: movingaverage
+    parent: analysis
+    since: "1.18"
+    summary: >-
+      Take data as input and calculate the moving average of its items.
+    children: [input, output]
+    attributes:
+      - name: dropIncomplete
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: data    # required
+      - name: width    # literal value allowed
+    outputs:
+      - name: data    # required
+
+  - name: multiply
+    parent: analysis
+    summary: >-
+      Calculates the product of all inputs element-wise and writes it to a
+      single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: factor    # required, repeatable, literal value allowed
+    outputs:
+      - name: product    # required
+
+  - name: periodicity
+    parent: analysis
+    summary: >-
+      Mathematically, this module is similar to the autocorrelation module,
+      but is meant to analyse large amounts of data in small subsets.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: x    # required
+      - name: y    # required
+      - name: dx    # required, literal value allowed
+      - name: overlap    # literal value allowed
+      - name: min    # literal value allowed
+      - name: max    # literal value allowed
+    outputs:
+      - name: time
+      - name: period
+
+  - name: power
+    parent: analysis
+    summary: >-
+      Calculates the power of a base and an exponent element-wise and writes
+      it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: base    # required, literal value allowed
+      - name: exponent    # required, literal value allowed
+    outputs:
+      - name: power    # required
+
+  - name: ramp
+    parent: analysis
+    summary: >-
+      This module will create a ramp of values, i.e.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: start    # required, literal value allowed
+      - name: stop    # required, literal value allowed
+      - name: length    # literal value allowed
+    outputs:
+      - name: out    # required
+
+  - name: rangefilter
+    parent: analysis
+    summary: >-
+      This module takes multiple inputs and allows to set min and max limits
+      for each of them.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: in    # required, repeatable
+      - name: min    # repeatable, literal value allowed
+      - name: max    # repeatable, literal value allowed
+    outputs:
+      - name: out    # required, repeatable
+
+  - name: reduce
+    parent: analysis
+    since: "1.7"
+    summary: >-
+      This module takes a buffer with multiple values and reduces the number
+      of items by a given (integer) factor.
+    children: [input, output]
+    attributes:
+      - name: averageX
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+      - name: averageY
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+      - name: sumY
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: factor    # required, literal value allowed
+      - name: x    # required
+      - name: y
+    outputs:
+      - name: x
+      - name: y
+
+  - name: round
+    parent: analysis
+    since: "1.5"
+    summary: >-
+      Round the values from the single input element-wise and writes the
+      results to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: ceil
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+      - name: floor
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: round    # required
+
+  - name: sin
+    parent: analysis
+    summary: >-
+      Calculates the sine of a single input (in radians) element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: sin    # required
+
+  - name: sinh
+    parent: analysis
+    summary: >-
+      Calculates the hyperbolic sine of a single input (in radians) element-
+      wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: sinh    # required
+
+  - name: sort
+    parent: analysis
+    summary: >-
+      This module takes at least one input and sorts it.
+    children: [input, output]
+    attributes:
+      - name: descending
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: in    # required, repeatable
+    outputs:
+      - name: out    # required, repeatable
+
+  - name: split
+    parent: analysis
+    since: "1.18"
+    summary: >-
+      Takes data as input and splits it into two buffers at the given index.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: data    # required
+      - name: index    # literal value allowed
+      - name: overlap    # literal value allowed
+    outputs:
+      - name: out1
+      - name: out2
+
+  - name: subrange
+    parent: analysis
+    summary: >-
+      This module takes multiple inputs and returns all values within a
+      given index range.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: from    # literal value allowed
+      - name: to    # literal value allowed
+      - name: length    # literal value allowed
+      - name: in    # required, repeatable
+    outputs:
+      - name: out    # required, repeatable
+
+  - name: subtract
+    parent: analysis
+    summary: >-
+      Calculates the difference of multiple subtrahends from a single
+      minuend element-wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: minuend    # required, literal value allowed
+      - name: subtrahend    # required, repeatable, literal value allowed
+    outputs:
+      - name: difference    # required
+
+  - name: tan
+    parent: analysis
+    summary: >-
+      Calculates the tangens of a single input (in radians) element-wise and
+      writes it to a single output buffer.
+    children: [input, output]
+    attributes:
+      - name: deg
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: tan    # required
+
+  - name: tanh
+    parent: analysis
+    summary: >-
+      Calculates the hyperbolic tangens of a single input (in radians)
+      element-wise and writes it to a single output buffer.
+    children: [input, output]
+    attributes: []
+    inputs:
+      - name: value    # required, literal value allowed
+    outputs:
+      - name: tanh    # required
+
+  - name: threshold
+    parent: analysis
+    summary: >-
+      This module takes at least one input y and looks for position at which
+      the values cross a given threshold.
+    children: [input, output]
+    attributes:
+      - name: falling
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    inputs:
+      - name: x
+      - name: y    # required
+      - name: threshold    # literal value allowed
+    outputs:
+      - name: position    # required
+
+  - name: timer
+    parent: analysis
+    summary: >-
+      Simple module which outputs the (fractional) seconds that have past
+      since the experiment started (referred to as "experiment time") and
+      the current an
+    children: [output]
+    attributes:
+      - name: linearTime
+        type: boolean
+        summary: See the module description.
+        agreement: agreed
+    outputs:
+      - name: out
+      - name: offset1970
+

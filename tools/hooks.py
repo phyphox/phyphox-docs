@@ -246,9 +246,13 @@ def _check_spec(entries):
             for child in element.get("children") or []:
                 if (element["name"], child) in modelled:
                     continue
-                # input elements describe their outputs with the `outputs:` key
-                # instead of a child element, which is the same thing said once.
+                # Some elements describe a child once with a key rather than as
+                # a separate element: input modules list their components under
+                # `outputs:`, and analysis modules list their slots under
+                # `inputs:`/`outputs:` with the shared attributes in `common:`.
                 if child == "output" and element.get("outputs"):
+                    continue
+                if child == "input" and element.get("inputs"):
                     continue
                 problems.append(f"{fn}: {element['name']} declares child "
                                 f"'{child}' but no such element is modelled")
@@ -259,9 +263,26 @@ def _check_spec(entries):
                     problems.append(f"{fn}: {parent}/{element['name']} is modelled "
                                     f"but not listed in {parent}'s children")
 
+        # attributes shared by every module of a block live under `common:`
+        for group, items in (doc.get("common") or {}).items():
+            for h in items or []:
+                where = f"{fn}: common/{group}/{h.get('name')}"
+                ref = h.get("inconsistency")
+                if h.get("agreement") in ("divergent", "undecided") and not ref:
+                    problems.append(f"{where}: agreement '{h['agreement']}' "
+                                    f"requires an inconsistency id")
+                if ref and ref not in entries:
+                    problems.append(f"{where}: unknown inconsistency {ref}")
+                for r in h.get("rules") or []:
+                    if r not in rule_ids:
+                        problems.append(f"{where}: unknown rule {r}")
+
         for element in elements:
             holders = list(element.get("attributes") or [])
-            if element.get("outputs"):
+            # Input modules describe their component set as a mapping under
+            # `outputs:`; analysis modules use the same key for a plain list of
+            # slot names, which carries no agreement of its own.
+            if isinstance(element.get("outputs"), dict):
                 holders.append(element["outputs"])
             for h in holders:
                 where = f"{fn}: {element['name']}/{h.get('name', '<outputs>')}"
