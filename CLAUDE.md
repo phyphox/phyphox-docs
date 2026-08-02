@@ -61,6 +61,28 @@ files inside `docs/` and its subdirectories.
 Pages are plain Markdown. Material extensions available include admonitions, `attr_list`, tables,
 `pymdownx.details`, `superfences` and `highlight`; they are declared in `mkdocs.yml`.
 
+`validation.links.anchors: warn` is set, so under `--strict` a link to a heading that does not
+exist fails the build, not only a link to a file that does not exist. Note this covers Markdown
+links only — a bare autolink (`<../page.md#anchor>`) is invisible to it, and two of those survived
+the wiki import unnoticed for exactly that reason. Write links as `[text](target)`.
+
+### file-format is a hub plus one page per block
+
+`file-format/index.md` walks through the blocks of a `.phyphox` file in the order they appear.
+Blocks small enough to document in place (`phyphox`, `translations`, `data-containers`, `export`,
+`events`) are there in full. The large ones live on their own page and the index carries a stub:
+a sentence, a list of the elements with deep links, and a link to the page.
+
+    input.md   output.md   views.md   analysis/   network-connections.md
+
+Keep that pattern when a block outgrows the index — a stub that only links, without listing what is
+on the other side, makes the index useless as an overview. The analysis block additionally splits
+per module category under `analysis/`, with `analysis/index.md` holding the block's own attributes
+and the rules common to all modules.
+
+This structure is deliberately the one phase 3's generator should emit, so that generated pages can
+be diffed against the hand-written ones page by page.
+
 ## The inconsistency mechanism
 
 phyphox is implemented independently several times over — Android, iOS, the Blockly editor, the
@@ -116,7 +138,9 @@ a community page — but the editor documentation will want screenshots eventual
 
 `MIGRATION-REPORT.md` records per-page conversion notes and the wiki links that had no destination
 in the new structure. It is a review aid for the import, not living documentation; delete it once
-the review pass is done.
+the review pass is done. It names pages by the path they had *at import time* — `file-format/
+analysis-modules.md` has since been split apart — and is left that way on purpose, because
+rewriting it would make it a worse record of what the import actually did.
 
 Code blocks needed the most care. The wiki writes them two ways — a leading-space `<nowiki>` line,
 and `<code>` abused as a block element — and pandoc renders both as a run of single-line inline code

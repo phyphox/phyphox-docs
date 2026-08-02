@@ -1,0 +1,137 @@
+# Analysis
+
+The analysis block describes all the math required for the experiment. Each element within this block is executed consecutively and usually reads from a data-container, performs a mathematical operation on the data and writes the results to another data-container.
+
+In most experiments the analysis block is executed in a loop, so the experiment data is analysed as fast as possible. However, if you need to aquire a certain amount of data first (mostly when recording from the microphone) or if the results only change if the user changes a parameter, you can define the attributes *sleep*, *dynamicSleep* and/or *onUserInput* to pause the analysis loop.
+
+sleep
+:   The minimum time in seconds before the whole analysis block is executed again after the last execution has finished. Decimal values allowed.
+:   *optional*, default: '0.0' (immediately)
+
+dynamicSleep
+:   The minimum time in seconds before the whole analysis block is executed again after the last execution has finished. This refers to a buffer, so the sleep time can be set by the analysis result. If the buffer is empty, the value from *sleep* is used instead. **Available since phyphox file format 1.5 (phyphox 1.0.7)**
+:   *optional*, default: not set (no dynamic sleep)
+
+onUserInput
+:   If true, the analysis block will not be executed again unless the user changes the content of an input view.
+:   *optional*, default: 'false'
+
+requireFill
+:   Sets the name of a data container that needs to be filled. The attribute requireFillThreshold or requireFillDynamic define a required number of elements in the data container (default 1 element). If this number is not fulfilled, the analysis block is skipped. **Available since phyphox file format 1.16 ([phyphox 1.1.12](../../reference/version-history/1.1.12.md))**
+
+requireFillThreshold
+:   A static integer number setting the threshold for the requireFill attribute. **Available since phyphox file format 1.16 ([phyphox 1.1.12](../../reference/version-history/1.1.12.md))**
+:   *optional*, default: '1'
+
+requireFillDynamic
+:   A dynamic value for the required number of elements in the data container defined by requireFill. This attribute points to another data container, which defines this value. If it is empty, the value from requireFillThreshold is used instead. **Available since phyphox file format 1.16 ([phyphox 1.1.12](../../reference/version-history/1.1.12.md))**
+:   *optional*, default: '' (requireFillThreshold used instead)
+
+timedRun
+:   Enable the timed run setting by default. This just acts as a preset. The user can still deactivate it from the main menu. **Available since phyphox file format 1.10 ([phyphox 1.1.6](../../reference/version-history/1.1.6.md))**
+:   *optional*, default: 'false' (deactivated)
+
+timedRunStartDelay
+:   Start delay in seconds for the timed run setting. This just acts as a preset. The user can still change it from the main menu. Also, this does not enable the function by default. To enable it, see *timedRun* above. **Available since phyphox file format 1.10 ([phyphox 1.1.6](../../reference/version-history/1.1.6.md))**
+:   *optional*, default: '3'
+
+timedRunStopDelay
+:   Stop delay in seconds for the timed run setting. This just acts as a preset. The user can still change it from the main menu. Also, this does not enable the function by default. To enable it, see *timedRun* above. **Available since phyphox file format 1.10 ([phyphox 1.1.6](../../reference/version-history/1.1.6.md))**
+:   *optional*, default: '10'
+
+optimization
+:   **Removed in phyphox file format 1.10 (phyphox 1.1.6)** This barely added any value but increased confusion significantly.
+
+```xml
+<phyphox version="1.0">
+    ...
+    <analysis sleep="2.0" dynamicSleep="buffer" onUserInput="false">
+        <add>
+            <input>Buffer1</input>
+            <input type="buffer">Buffer 2</input>
+            <output>sumBuffer</output>
+        </add>
+        <divide>
+            <input type="value" as="dividend">1</input>
+            <input as="divisor">sumBuffer</input>
+            <output>inverseSum</output>
+        </divide>
+    </analysis>
+    ...
+</phyphox>
+```
+
+## Analysis modules in general
+
+```xml
+<input type="TYPE" as="AS">BUFFER/VALUE</input>
+<output as="AS">BUFFER</output>
+```
+
+Almost all analysis modules take inputs and write their results to an output buffer. All inputs and outputs are defined as *input* and *output* tags within the analysis module. While the output always has to be a data-container, the input may also be a floating point value which can be defined by setting the attribute *type* to *value*. If *type* is not set, it defaults to *buffer* and the given name has to match a data-container. Additionally, the input may be set to the *type* *empty*, which is similar to *value* but represents a constant empty buffer. This only makes sense and is supported for few modules and will be noted there.
+
+Both, inputs and outputs, can be given a specific function by the *as* attribute. For many modules this attribute can be omitted if it is obvious. For example the *add* module takes an arbitrary number of inputs in an arbitrary order (a+b equals b+a), but the *subtract* module needs an explicit mapping for the *minuend* and the *subtrahend* (a-b does not equal b-a). Similarly, a single output does not need to be mapped, while multiple outputs (for example value and position of a maximum in the *max* module) need to be mapped.
+
+Additionally, some analysis modules take parameters that are not dynamically defined, but as an attribute to the analysis module tag. As an example, the *threshold* module searches the point at which the input values cross a given threshold and the attribute *falling* can switch it to look for a crossing from larger to smaller values.
+
+**Since file format version 1.10 (phyphox 1.1.6)** all analysis module support a new attribute that allows to determine whether the module should be executed in each anlysis cycle or only for specific cycles. For this, each run of the analysis process (a cycle) is numbered. When the user opens the experiment and **before** he presses start, analysis is triggered with the cycle number 0, which can be used to prepare some buffers or fill graphs with defaults. After pressing start, the first cycle is number 1, followed by cycle 2 etc.
+
+You can then set the attribute *cycles* for any analysis module. If not set, the module is executed in every cycle (including 0). If set it is only executed in the cycles that you specify by a space separated list. For example, cycles="1 3 42" means that the module is only executed in cycle 1, 3 and 42. You can also define ranges with a simple dash, so cycles="3-6" means that it will be executed in 3, 4, 5 and 6. Open ended lists can be achieved by simply omitting a number, so cycles="1-" will run in every cycle except for 0 and cycles="-5" will run in every cycle up to and including number 5. As a final example, mixing all these, cycles="0 3 5-7 10-" will run in cycle 0, 3, 5, 6, 7, 10 and then every subsequent cycle.
+
+attributes
+:   for all analysis modules
+
+    cycles
+    :   Determine in which cycles the modules should be executed, see above. default: Execute in every cycle.
+
+<!-- -->
+
+input-tag
+:   Attributes for input tags:
+
+    as
+    :   The mapping of the input to a function
+    :   *optional* or *required* depending on the module
+
+    type
+    :   Can be set to *buffer* or *value* and indicates whether the content of the the tag is a numeric value or refers to a data-container
+    :   *optional*, default: *buffer*
+
+    keep
+    :   *true* will mean, that the buffer retains its data after reading. If set to false, the buffer is cleared after reading, which can be used to process each dataset from an input only once.
+    :   *optional*, default: *false*
+
+    clear (deprecated in file format 1.17)
+    :   *false* will mean, that the buffer retains its data after reading. If set to true, the buffer is cleared after reading, which can be used to process each dataset from an input only once. Note that this attribute has been deprecated with file format 1.17 (phyphox 1.1.13) and should be repalced with the more intuitive keep attribute. clear=true corresponds to keep=false.
+    :   *optional*, default: *true*
+
+<!-- -->
+
+output-tag
+:   Attributes for output tags:
+
+    as
+    :   The mapping of the input to a function
+    :   *optional* or *required* depending on the module
+
+    append
+    :   *true* will mean, that new data is appended to the content that is already in the buffer. *false* will clear the buffer first, effectively replacing its content with new data.
+    :   *optional*, default: *false*
+
+    clear (deprecated in file format 1.17)
+    :   *false* will mean, that the buffer retains its data (from another module writing to this buffer or from the previous analysis run) and new data is appended. *true* will clear the buffer first. Note that this attribute has been deprecated with file format 1.17 (phyphox 1.1.13) and should be repalced with the more intuitive append attribute. clear=true corresponds to append=false.
+    :   *optional*, default: *true*
+
+## List of analysis modules
+
+The specific mappings, attributes and functionality of the analysis modules are documented by category:
+
+- [Formula node](formula-node.md)
+- [Basic math](basic-math.md)
+- [Trigonometric functions](trigonometric-functions.md)
+- [Statistics](statistics.md)
+- [Advanced math](advanced-math.md)
+- [Buffer operations](buffer-operations.md)
+- [Data generation](data-generation.md)
+- [Logic](logic.md)
+- [Other](other.md)

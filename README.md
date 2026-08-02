@@ -33,6 +33,12 @@ navigation entries into errors, so build that way before pushing:
 docs/                   the pages themselves
   .nav.yml              navigation order (mkdocs-awesome-nav)
   file-format/          the experiment XML format
+    index.md            the blocks of a .phyphox file; links onward to the
+                        blocks that have their own page
+    input.md            \
+    output.md            | one page per block
+    views.md            /
+    analysis/           the analysis block, one page per module category
   remote-interface/     the REST API
   editor/               the Blockly editor
   reference/            version history (one page per release),

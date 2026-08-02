@@ -1,0 +1,13 @@
+# Category order follows the original single-page listing, which groups the
+# modules roughly by increasing specialisation.
+nav:
+  - index.md
+  - formula-node.md
+  - basic-math.md
+  - trigonometric-functions.md
+  - statistics.md
+  - advanced-math.md
+  - buffer-operations.md
+  - data-generation.md
+  - logic.md
+  - other.md

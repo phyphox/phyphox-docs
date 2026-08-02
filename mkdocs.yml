@@ -12,6 +12,12 @@ copyright: >-
 docs_dir: docs
 site_dir: site
 
+# A broken heading anchor is as bad as a broken link, and much easier to
+# introduce when pages are split up. --strict promotes both to build errors.
+validation:
+  links:
+    anchors: warn
+
 theme:
   name: material
   language: en

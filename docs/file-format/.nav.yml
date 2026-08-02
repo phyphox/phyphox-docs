@@ -1,0 +1,11 @@
+# The blocks are listed in the order they appear in an experiment file, which is
+# also the order the index page introduces them.
+nav:
+  - index.md
+  - input.md
+  - output.md
+  - analysis
+  - views.md
+  - network-connections.md
+  - bluetooth-low-energy.md
+  - colors.md

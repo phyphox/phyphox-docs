@@ -9,7 +9,7 @@ experiments, and this documentation exists to describe exactly how.
 
 - **[The experiment file format](file-format/index.md)** — the XML format that
   defines every phyphox experiment: data sources, analysis, views, export and metadata.
-- **[Analysis modules](file-format/analysis-modules.md)** — every mathematical
+- **[Analysis modules](file-format/analysis/index.md)** — every mathematical
   operation available in the analysis stage, from `add` to Fourier transforms.
 - **[Bluetooth Low Energy](file-format/bluetooth-low-energy.md)** — reading and
   writing BLE devices from an experiment.
