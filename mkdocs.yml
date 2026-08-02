@@ -40,6 +40,12 @@ theme:
     - search.highlight
     - content.code.copy
     - content.action.edit
+  # Two schemes, picked by the visitor's system preference and switchable from
+  # the header. Both are styled - check both after any colour change.
+  #
+  # `deep orange` is a placeholder: this Material version accepts only its own
+  # palette names here, and docs/assets/stylesheets/phyphox.css overrides every
+  # colour it sets with the app's #ff7e22. Renaming it changes nothing visible.
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -74,6 +80,11 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.keys
+
+# Overrides the theme's palette with the app's own colours. Loaded after the
+# theme's stylesheets, which is what lets it win.
+extra_css:
+  - assets/stylesheets/phyphox.css
 
 plugins:
   - search

@@ -91,6 +91,34 @@ and the rules common to all modules.
 This structure is deliberately the one phase 3's generator should emit, so that generated pages can
 be diffed against the hand-written ones page by page.
 
+## Colours come from the app, not from Material
+
+`docs/assets/stylesheets/phyphox.css` restates the theme's palette in the app's own colours, taken
+from `phyphox-android/app/src/main/res/values/colors.xml` — `#ff7e22` for the brand orange, white
+on top of it, and the desaturated grey ladder (`#101010`, `#202020`, `#303030`, …). Do not invent
+shades; if you need a new one, take it from that file.
+
+Three things to know before touching it:
+
+- **There are two schemes**, light and dark, selected by `prefers-color-scheme` and switchable from
+  the header. Check both after any change — the toggle is easy to forget, and the dark scheme is
+  the one most contributors will see.
+- **Material has no `custom` palette entry in this version.** `mkdocs.yml` still names
+  `deep orange`, and the stylesheet overrides everything it sets; renaming it changes nothing.
+- **Some theme variables are scoped with two attributes**
+  (`[data-md-color-scheme=slate][data-md-color-primary=deep-orange]` sets `--md-typeset-a-color`).
+  A single attribute selector loses to those no matter how late it loads, which is why the scheme
+  blocks here are written with two.
+
+Link colour differs between the schemes on purpose. The brand orange on white is only 2.5:1, which
+fails WCAG AA for body text, so the light scheme uses a darkened `#b85c00` (4.6:1) for links while
+the dark scheme uses `#ff7e22` directly (6.4:1). Large areas such as the header bar keep the brand
+colour in both.
+
+If you verify colours in a browser, note that `navigation.instant` swaps the document without
+re-running the cascade the way you would expect: measuring computed styles after toggling the
+scheme by script gives stale answers. Navigate to a fresh URL instead.
+
 ## The site makes no third-party requests
 
 Reading this site must not make a visitor's browser contact anyone but the host serving it. phyphox

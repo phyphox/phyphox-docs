@@ -1,0 +1,111 @@
+/* phyphox colours for Material.
+ *
+ * The values here are not invented: they are the app's own palette, taken from
+ * phyphox-android/app/src/main/res/values/colors.xml, which the remote-interface
+ * stylesheet uses as well.
+ *
+ *   #ff7e22   phyphox_primary      the brand orange
+ *   #ffffff   phyphox_white_100    white on orange, as in the web interface
+ *   #f0f0f0   phyphox_white_90
+ *   #e0e0e0   phyphox_white_80
+ *   #404040   phyphox_black_40
+ *   #303030   phyphox_black_50
+ *   #202020   phyphox_black_60     the dark background
+ *   #101010   phyphox_black_80
+ *
+ * Material has no "custom" primary colour in this version, so mkdocs.yml still
+ * names a stock palette entry and everything below overrides it. This file is
+ * loaded after the theme's palette stylesheet, so equal specificity is enough —
+ * hence plain :root rather than anything more contrived.
+ */
+
+:root {
+  --phyphox-orange: #ff7e22;
+  --phyphox-orange-light: #ffa05c;
+  --phyphox-orange-dark: #e06400;
+
+  /* Orange on white is only about 2.5:1, which is fine for a header bar but
+   * fails WCAG AA for body text. Link text in the light scheme therefore uses a
+   * darkened brand orange (4.6:1) rather than the brand value itself. The dark
+   * scheme has no such problem and uses #ff7e22 directly. */
+  --phyphox-orange-readable: #b85c00;
+}
+
+/* ---------------------------------------------------------------- brand ---- */
+
+:root,
+[data-md-color-primary] {
+  --md-primary-fg-color:          var(--phyphox-orange);
+  --md-primary-fg-color--light:   var(--phyphox-orange-light);
+  --md-primary-fg-color--dark:    var(--phyphox-orange-dark);
+  --md-primary-bg-color:          #ffffff;
+  --md-primary-bg-color--light:   rgba(255, 255, 255, 0.7);
+}
+
+:root,
+[data-md-color-accent] {
+  --md-accent-fg-color:             var(--phyphox-orange);
+  --md-accent-fg-color--transparent: rgba(255, 126, 34, 0.1);
+  --md-accent-bg-color:             #ffffff;
+  --md-accent-bg-color--light:      rgba(255, 255, 255, 0.7);
+}
+
+/* ----------------------------------------------------------- light mode ---- */
+
+/* Two attributes, because the theme scopes one of these variables with
+ * [data-md-color-scheme=slate][data-md-color-primary=deep-orange] — a single
+ * attribute selector loses to it however late it is loaded. */
+[data-md-color-scheme="default"][data-md-color-primary] {
+  --md-typeset-a-color: var(--phyphox-orange-readable);
+  --md-code-bg-color: #f0f0f0;          /* phyphox_white_90 */
+  --md-code-fg-color: #202020;          /* phyphox_black_60 */
+}
+
+/* ------------------------------------------------------------ dark mode ---- */
+
+/* Material's slate scheme builds its greys as hsla(var(--md-hue), 15%, …), so
+ * every surface carries a blue tint and --md-hue alone cannot remove it. The
+ * ladder is therefore restated at zero saturation, with the lightness values
+ * chosen to land exactly on the phyphox greys: 12.549% = #202020, 18.824% =
+ * #303030, 6.275% = #101010, 94.118% = #f0f0f0, 87.843% = #e0e0e0.
+ *
+ * The alpha values are Material's own and are left alone — they are what makes
+ * secondary text and borders recede. */
+
+[data-md-color-scheme="slate"][data-md-color-primary] {
+  --md-default-fg-color:          hsla(0, 0%, 94.118%, 0.82);
+  --md-default-fg-color--light:   hsla(0, 0%, 94.118%, 0.56);
+  --md-default-fg-color--lighter: hsla(0, 0%, 94.118%, 0.32);
+  --md-default-fg-color--lightest:hsla(0, 0%, 94.118%, 0.12);
+
+  --md-default-bg-color:          hsla(0, 0%, 12.549%, 1);      /* #202020 */
+  --md-default-bg-color--light:   hsla(0, 0%, 12.549%, 0.54);
+  --md-default-bg-color--lighter: hsla(0, 0%, 12.549%, 0.26);
+  --md-default-bg-color--lightest:hsla(0, 0%, 12.549%, 0.07);
+
+  --md-code-fg-color:             hsla(0, 0%, 87.843%, 0.82);
+  --md-code-bg-color:             hsla(0, 0%, 18.824%, 1);      /* #303030 */
+  --md-code-bg-color--light:      hsla(0, 0%, 18.824%, 0.9);
+  --md-code-bg-color--lighter:    hsla(0, 0%, 18.824%, 0.54);
+
+  --md-typeset-kbd-color:         hsla(0, 0%, 94.118%, 0.12);
+  --md-typeset-kbd-accent-color:  hsla(0, 0%, 94.118%, 0.2);
+  --md-typeset-kbd-border-color:  hsla(0, 0%, 12.549%, 1);
+
+  --md-typeset-table-color:       hsla(0, 0%, 96%, 0.12);
+  --md-typeset-table-color--light:hsla(0, 0%, 96%, 0.035);
+
+  --md-footer-bg-color:           hsla(0, 0%, 6.275%, 0.87);    /* #101010 */
+  --md-footer-bg-color--dark:     hsla(0, 0%, 4%, 1);
+
+  --md-typeset-a-color: var(--phyphox-orange);
+}
+
+/* ------------------------------------------------------------- swagger ---- */
+
+/* The API reference renders in an iframe with Swagger UI's own stylesheet, so
+ * it does not inherit any of the above. Only the frame around it is ours. */
+.swagger-ui-container,
+iframe[src*="swagger"] {
+  color-scheme: light;
+}
