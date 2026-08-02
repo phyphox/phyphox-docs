@@ -73,7 +73,7 @@ The module has no attributes, but several outputs, which are all optional and de
 
 *batteryLevel*
 :   *output*
-:   *as* required
+:   *as* not required
 
 Current battery level of the device that runs phyphox.
 

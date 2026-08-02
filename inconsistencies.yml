@@ -740,3 +740,52 @@
     author wrote. This is the same shape as
     input-output-component-validation, one level down, and would be settled by
     the same decision.
+
+- id: analysis-outputs-assigned-by-position
+  title: iOS assigns some analysis outputs by position, ignoring the as attribute
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Maps every output to its slot by the as attribute, which the mapping table
+      marks required for average/stddev and for loess/yi1 and loess/yi2
+      (PhyphoxFile.java, ioBlockParser).
+    ios: >-
+      average looks for as="std" - not the documented "stddev" - and otherwise
+      takes the first output as the average and any later one as the standard
+      deviation ("if output.asString == \"std\" || avg != nil").
+      loess never looks at output names at all, reading outputs[0], outputs[1]
+      and outputs[2] as yi0, yi1 and yi2
+      (AverageAnalysis.swift, LoessAnalysis.swift).
+  summary: >-
+    Two analysis modules assign their outputs by document order on iOS rather
+    than by the as attribute, and one of them does not even recognise the
+    documented name. Writing average's outputs in the order stddev-then-average -
+    which Android accepts and maps correctly, and which the documentation
+    permits since both carry as - silently swaps the two values on iOS. The
+    experiment runs, the graph is plotted, and the standard deviation is shown as
+    the mean. loess behaves the same way for its three interpolation outputs.
+
+    Found by confirming each of the 52 iOS analysis modules against Android's
+    mapping table. These two were the only name-level mismatches; the other 48
+    agree.
+
+- id: ios-missing-wifisignalstrength
+  title: The info module's wifiSignalStrength output is missing on iOS
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Implements it as an output of the info analysis module
+      (PhyphoxFile.java, analysisBlockParser, case "info").
+    ios: >-
+      InfoAnalysis handles only batteryLevel and systemVolume; there is no
+      wifiSignalStrength output (InfoAnalysis.swift).
+  summary: >-
+    Unlike most gaps of this kind, this one is reachable today. The info module
+    and this output arrived in file format 1.19, which iOS declares support for,
+    so an experiment using it loads on iOS and simply never fills the buffer -
+    no error, no indication. The module's other three Android-only outputs
+    (batteryVoltage, batteryCurrent, batteryTemperature) are different: they are
+    1.20 and the documentation states plainly that they are Android-only, so
+    those are a deliberate platform limitation rather than an omission.

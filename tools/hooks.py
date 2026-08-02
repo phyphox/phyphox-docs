@@ -286,6 +286,11 @@ def _check_spec(entries):
                 holders.append(element["outputs"])
             if isinstance(element.get("slot_constraints"), dict):
                 holders.append(element["slot_constraints"])
+            # individual analysis slots may carry their own agreement
+            for key in ("inputs", "outputs"):
+                if isinstance(element.get(key), list):
+                    holders += [x for x in element[key]
+                                if isinstance(x, dict) and x.get("agreement")]
             for h in holders:
                 where = f"{fn}: {element['name']}/{h.get('name', '<outputs>')}"
                 ref = h.get("inconsistency")

@@ -409,6 +409,37 @@ further than the first grep suggested:
   converts it into a shared permanently-empty buffer before the module sees it, which is
   exactly Android's semantics.
 
+### Per-module confirmation of the iOS side
+
+The slot table above is Android's. Confirming it against iOS meant reading all 52 modules
+rather than inferring from a pattern. **48 agree**; four did not, and two of those are real.
+
+**`average` — silently swapped values.** Android maps the outputs by name and the
+documentation gives the standard deviation as `stddev`, `as` required. iOS looks for `"std"`
+and otherwise falls back to position:
+
+    if output.asString == "std" || avg != nil { std = output } else { avg = output }
+
+So the documented name has no effect on iOS, and writing the outputs in the order
+stddev-then-average — which Android accepts and maps correctly — puts the mean in the
+standard deviation's buffer and vice versa. The experiment runs and the graph is plotted.
+
+**`loess`** does the same for its three interpolation outputs, reading `outputs[0..2]`
+positionally and never looking at their names, where Android requires `as` on `yi1` and
+`yi2`. Both are recorded as `analysis-outputs-assigned-by-position`.
+
+**`info`** turned out to be two different things. `wifiSignalStrength` is documented since
+file format **1.19**, which iOS declares support for, and is simply not implemented there —
+so an experiment using it loads and silently never fills the buffer. That is reachable today,
+unlike the 1.20 gaps, and is recorded separately. The module's three battery outputs are 1.20
+*and* documented "(Only available on Android.)", so those are a deliberate platform limit.
+
+**`power`** was a false positive: iOS does not match `exponent` by name, but with `base` as its
+priority key the two-input case resolves correctly whichever order they appear in.
+
+One documentation error fell out of the same pass: `info/batteryLevel` is documented as
+requiring `as`, where Android's table has `asRequired = false`. Corrected.
+
 ### Revised projection
 
 Four blocks are now modelled — `input`, `views`, `output` and `analysis` — leaving

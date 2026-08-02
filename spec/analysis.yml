@@ -411,6 +411,11 @@ elements:
         as_required: true
         min: 0
         max: 1
+        agreement: divergent
+        inconsistency: analysis-outputs-assigned-by-position
+        note: >-
+          iOS looks for as="std" and otherwise takes whichever output comes
+          second, so the documented name has no effect there.
 
   - name: binning
     parent: analysis
@@ -952,6 +957,8 @@ elements:
         as_required: true
         min: 0
         max: 1
+        agreement: divergent
+        inconsistency: ios-missing-wifisignalstrength
       - name: systemVolume
         as_required: true
         min: 0
@@ -960,14 +967,23 @@ elements:
         as_required: true
         min: 0
         max: 1
+        agreement: platform
+        platforms: [android]
+        since: "1.20"
       - name: batteryCurrent
         as_required: true
         min: 0
         max: 1
+        agreement: platform
+        platforms: [android]
+        since: "1.20"
       - name: batteryTemperature
         as_required: true
         min: 0
         max: 1
+        agreement: platform
+        platforms: [android]
+        since: "1.20"
 
   - name: integrate
     parent: analysis
@@ -1092,11 +1108,15 @@ elements:
         min: 0
         max: unlimited
         repeat_offset: 0
+        agreement: divergent
+        inconsistency: analysis-outputs-assigned-by-position
       - name: yi2
         as_required: true
         min: 0
         max: unlimited
         repeat_offset: 0
+        agreement: divergent
+        inconsistency: analysis-outputs-assigned-by-position
 
   - name: log
     parent: analysis
