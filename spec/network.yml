@@ -1,0 +1,183 @@
+# The <network> block, modelled completely.
+#
+# Sources compared for every entry below:
+#   Android  PhyphoxFile.java: networkBlockParser, networkConnectionBlockParser
+#                                                              (b4564695)
+#   iOS      Serialization/Handlers/NetworkElementHandler.swift (a0643729)
+#   docs     docs/file-format/network-connections.md
+#
+# `agreement:` records what that comparison found. See README.md.
+
+block: network
+since: "1.11"
+summary: >-
+  Connections to a service on the local network or the internet, sending values
+  from data containers and writing responses back into others.
+
+elements:
+
+  - name: network
+    parent: phyphox
+    since: "1.11"
+    summary: Container for the experiment's network connections.
+    attributes: []
+    children: [connection]
+
+  - name: connection
+    parent: network
+    since: "1.11"
+    summary: One service the experiment talks to.
+    children: [send, receive]
+    attributes:
+      - name: id
+        type: string
+        summary: >-
+          Identifies the connection so a button's trigger tag can fire it.
+        agreement: agreed
+      - name: privacy
+        type: string
+        summary: >-
+          URL of a privacy policy for the service. Shown to the user before any
+          data leaves the device.
+        agreement: agreed
+      - name: address
+        type: string
+        required: true
+        summary: Address of the service.
+        agreement: agreed
+      - name: service
+        type: enum
+        values: [http/get, http/post, mqtt/csv, mqtt/json, mqtts/csv, mqtts/json]
+        summary: >-
+          Which protocol to speak. The mqtts variants are TLS and are Android
+          only - see the inconsistency.
+        agreement: divergent
+        inconsistency: network-mqtts-android-only
+      - name: conversion
+        type: enum
+        values: [none, csv, json]
+        summary: How to interpret the response before writing it to containers.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: discovery
+        type: enum
+        values: [http]
+        summary: How to find the service on the local network, if it is not at a fixed address.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: discoveryAddress
+        type: string
+        summary: Address queried by the discovery method.
+        agreement: agreed
+      - name: autoConnect
+        type: boolean
+        default: false
+        summary: >-
+          Connect without asking the user. Only for a service the experiment
+          author controls, since it sends data without confirmation.
+        agreement: agreed
+      - name: interval
+        type: float
+        default: 0.0
+        unit: s
+        summary: >-
+          How often to contact the service. 0 means only when triggered by a
+          button.
+        agreement: agreed
+      - name: receiveTopic
+        type: string
+        summary: MQTT topic subscribed to. For the mqtt and mqtts services.
+        agreement: agreed
+      - name: sendTopic
+        type: string
+        summary: >-
+          MQTT topic published to. Required by mqtt/json and mqtts/json; use
+          mqtt/csv if nothing is to be sent.
+        agreement: agreed
+      - name: persistence
+        type: boolean
+        default: false
+        summary: Whether the MQTT session is persistent.
+        agreement: divergent
+        inconsistency: network-mqtts-android-only
+      - name: username
+        type: string
+        summary: Username for the TLS MQTT services. Required by them.
+        agreement: divergent
+        inconsistency: network-mqtts-android-only
+      - name: password
+        type: string
+        summary: Password for the TLS MQTT services. Required by them.
+        agreement: divergent
+        inconsistency: network-mqtts-android-only
+
+  - name: send
+    parent: connection
+    since: "1.11"
+    summary: One value or set of values sent to the service.
+    text: >-
+      Name of a data container, a metadata identifier, or empty for time,
+      depending on type.
+    attributes:
+      - name: id
+        type: string
+        required: true
+        summary: Key under which the value appears in the request.
+        agreement: agreed
+      - name: type
+        type: enum
+        values: [buffer, meta, time]
+        default: buffer
+        summary: >-
+          Whether the text names a data container, a metadata identifier (see
+          the network-connections page for the vocabulary), or the element sends
+          the current time.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: datatype
+        type: string
+        summary: >-
+          How the value is encoded in the request, where the service allows a
+          choice. Passed through by both apps to the service implementation
+          rather than interpreted by the parser.
+        agreement: agreed
+      - name: keep
+        type: boolean
+        default: false
+        summary: >-
+          Whether the data container keeps its contents after being sent.
+        agreement: agreed
+      - name: clear
+        type: boolean
+        default: true
+        deprecated: true
+        superseded_by: keep
+        summary: Deprecated in file format 1.17. clear=true corresponds to keep=false.
+        agreement: agreed
+
+  - name: receive
+    parent: connection
+    since: "1.11"
+    summary: One value taken from the response and written to a data container.
+    text: Name of the data container to write to.
+    attributes:
+      - name: id
+        type: string
+        required: true
+        summary: Key to read from the response.
+        agreement: agreed
+      - name: append
+        type: boolean
+        default: false
+        summary: Append to the container rather than replacing its contents.
+        agreement: agreed
+      - name: clear
+        type: boolean
+        default: true
+        deprecated: true
+        superseded_by: append
+        summary: Deprecated in file format 1.17. clear=true corresponds to append=false.
+        agreement: agreed

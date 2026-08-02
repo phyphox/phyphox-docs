@@ -188,6 +188,16 @@ def _check_spec(entries):
         return
 
     problems = []
+    # A block's root element is modelled in its own file, so <phyphox> naming
+    # `input` or `analysis` as a child is satisfied across files.
+    block_roots = set()
+    for fn in sorted(os.listdir(SPEC_DIR)):
+        if fn.endswith(".yml") and fn != "rules.yml":
+            with open(os.path.join(SPEC_DIR, fn)) as f:
+                doc = yaml.safe_load(f) or {}
+            for e in doc.get("elements") or []:
+                if e.get("parent") == "phyphox":
+                    block_roots.add(e["name"])
     rules_path = os.path.join(SPEC_DIR, "rules.yml")
     rule_ids = set()
     if os.path.exists(rules_path):
@@ -253,6 +263,8 @@ def _check_spec(entries):
                 if child == "output" and element.get("outputs"):
                     continue
                 if child == "input" and element.get("inputs"):
+                    continue
+                if element["name"] == "phyphox" and child in block_roots:
                     continue
                 problems.append(f"{fn}: {element['name']} declares child "
                                 f"'{child}' but no such element is modelled")

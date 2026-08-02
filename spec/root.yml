@@ -1,0 +1,332 @@
+# The root <phyphox> element and the blocks that describe the experiment itself
+# rather than its behaviour: translations, data containers, export and events.
+#
+# Sources compared for every entry below:
+#   Android  PhyphoxFile.java: phyphoxBlockParser, translationsBlockParser,
+#            translationBlockParser, dataContainersBlockParser,
+#            exportBlockParser, setBlockParser, eventsBlockParser  (b4564695)
+#   iOS      Serialization/Handlers/PhyphoxElementHandler.swift and the
+#            DataContainers, Translations, Export and Events handlers (a0643729)
+#   docs     docs/file-format/index.md
+#
+# `agreement:` records what that comparison found. See README.md.
+
+block: root
+since: "1.0"
+summary: >-
+  What the experiment is, as opposed to what it does: its title and category,
+  the icon and description shown in the collection, its translations, the data
+  containers everything else refers to, and how data is exported.
+
+elements:
+
+  - name: phyphox
+    since: "1.0"
+    summary: The root element. Everything else lives inside it.
+    children: [title, state-title, category, icon, color, description, link,
+               translations, data-containers, input, output, analysis, views,
+               export, network, events]
+    attributes:
+      - name: version
+        type: string
+        required: true
+        summary: >-
+          File format version as major.minor. An app refuses a file declaring a
+          version newer than it supports, which is what gates every feature
+          added to the format.
+        agreement: agreed
+      - name: locale
+        type: string
+        summary: >-
+          Language the strings outside the translations block are written in.
+          Without it they are assumed to be English.
+        agreement: agreed
+      - name: isLink
+        type: boolean
+        default: false
+        since: "1.13"
+        summary: >-
+          Marks a collection entry that only links to an external page rather
+          than being a runnable experiment.
+        agreement: agreed
+        note: >-
+          Android reads this in ExperimentList/AssetExperimentLoader rather than
+          in the file parser, which is why a search of PhyphoxFile.java alone
+          suggests it is iOS-only.
+      - name: appleBan
+        type: boolean
+        default: false
+        summary: Hides the experiment from the collection on Apple platforms.
+        agreement: platform
+        platforms: [ios]
+        note: >-
+          Read nowhere in the Android source. Undocumented; the name suggests
+          App Store compliance, which is inherently one-sided.
+
+  - name: title
+    parent: phyphox
+    since: "1.0"
+    summary: Title of the experiment, in the base language.
+    text: The title. Keep it short.
+    attributes: []
+
+  - name: state-title
+    parent: phyphox
+    since: "1.5"
+    summary: >-
+      Title the user gave when saving the state of an experiment. Present only
+      in saved states, not in distributed experiments.
+    text: The saved-state title.
+    attributes: []
+
+  - name: category
+    parent: phyphox
+    since: "1.0"
+    summary: >-
+      Category the experiment is grouped under. Should be translated, since the
+      app groups by the localised value.
+    text: The category name.
+    attributes: []
+
+  - name: icon
+    parent: phyphox
+    since: "1.0"
+    summary: Icon shown in the collection.
+    text: Up to three characters, or a base64-encoded image.
+    attributes:
+      - name: format
+        type: enum
+        values: [string, base64]
+        default: string
+        summary: Whether the text is characters or an encoded image.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  - name: color
+    parent: phyphox
+    since: "1.0"
+    summary: >-
+      Base colour of the experiment, used behind the icon and for the category
+      label.
+    text: A six-digit hex value or a named colour.
+    attributes: []
+
+  - name: description
+    parent: phyphox
+    since: "1.0"
+    summary: >-
+      Description shown in the collection. The first line appears in the list,
+      so it should say what the experiment measures.
+    text: The description. Leading and trailing whitespace is stripped per line.
+    attributes: []
+
+  - name: link
+    parent: phyphox
+    since: "1.0"
+    summary: >-
+      A link shown as a button under the description. Several may be given.
+    text: The URL.
+    attributes:
+      - name: label
+        type: string
+        translatable: true
+        summary: Text on the button.
+        agreement: agreed
+      - name: highlight
+        type: boolean
+        default: false
+        summary: >-
+          Also show the link in the experiment menu, for something as important
+          as instructions.
+        agreement: agreed
+
+  - name: translations
+    parent: phyphox
+    since: "1.0"
+    summary: Container for the translations of everything shown to the user.
+    attributes: []
+    children: [translation]
+
+  - name: translation
+    parent: translations
+    since: "1.0"
+    summary: All translations for one language.
+    children: [title, category, description, link, string]
+    attributes:
+      - name: locale
+        type: string
+        required: true
+        summary: Two-character ISO language code.
+        agreement: agreed
+
+  - name: string
+    parent: translation
+    since: "1.0"
+    summary: Translation of one string used elsewhere in the experiment.
+    text: The translated text.
+    attributes:
+      - name: original
+        type: string
+        required: true
+        summary: The string to replace, exactly as written elsewhere in the file.
+        agreement: agreed
+
+  # The localised counterparts of the elements above. Same names, same meaning,
+  # inside a translation rather than at the root.
+  - name: title
+    parent: translation
+    since: "1.0"
+    summary: Localised title, replacing the one in the base language.
+    text: The translated title.
+    attributes: []
+
+  - name: category
+    parent: translation
+    since: "1.0"
+    summary: >-
+      Localised category. The app groups experiments by this value, so an
+      untranslated category puts the experiment in a separate group.
+    text: The translated category.
+    attributes: []
+
+  - name: description
+    parent: translation
+    since: "1.0"
+    summary: Localised description.
+    text: The translated description.
+    attributes: []
+
+  - name: link
+    parent: translation
+    since: "1.0"
+    summary: Localised link, replacing the one with the same label.
+    text: The URL.
+    attributes:
+      - name: label
+        type: string
+        summary: Text on the button, in this language.
+        agreement: agreed
+      - name: highlight
+        type: boolean
+        default: false
+        summary: Also show the link in the experiment menu.
+        agreement: agreed
+
+  - name: data-containers
+    parent: phyphox
+    since: "1.0"
+    summary: Declares the buffers every other block reads from and writes to.
+    attributes: []
+    children: [container]
+
+  - name: container
+    parent: data-containers
+    since: "1.0"
+    summary: One named buffer.
+    text: The buffer name, as referred to everywhere else.
+    attributes:
+      - name: size
+        type: integer
+        default: 1
+        summary: >-
+          Capacity in values. A full buffer discards its oldest value. 0 means
+          it grows without limit.
+        agreement: agreed
+      - name: init
+        type: string
+        summary: >-
+          Values the buffer starts with, comma-separated. Also what it returns
+          to when cleared.
+        agreement: agreed
+      - name: static
+        type: boolean
+        default: false
+        summary: Keeps the buffer's contents when the user clears data.
+        agreement: agreed
+      - name: type
+        type: enum
+        values: [buffer]
+        default: buffer
+        summary: >-
+          Reserved for future container types. Only "buffer" is valid.
+        agreement: divergent
+        inconsistency: container-type-unvalidated
+      - name: clearGroup
+        type: string
+        translatable: true
+        since: "1.20"
+        summary: >-
+          Exempts the buffer from the trash button and offers this name as a
+          group the user may clear instead, so settings and calibration data
+          survive clearing measurements. Several containers may share a group.
+          The special value "_" is never offered, making the buffer unclearable.
+          Since the name is translatable, translated group names must stay
+          distinct from one another.
+        agreement: divergent
+        inconsistency: control-clear-groups
+
+  - name: export
+    parent: phyphox
+    since: "1.0"
+    summary: >-
+      Groups data containers into the sets offered when the user exports data.
+    attributes: []
+    children: [set]
+
+  - name: set
+    parent: export
+    since: "1.0"
+    summary: One sheet or file of the export.
+    children: [data]
+    attributes:
+      - name: name
+        type: string
+        translatable: true
+        required: true
+        summary: Name of the set, used as the sheet or file name.
+        agreement: agreed
+
+  - name: data
+    parent: set
+    since: "1.0"
+    summary: One column of the set.
+    text: Name of the data container to export.
+    attributes:
+      - name: name
+        type: string
+        translatable: true
+        required: true
+        summary: Column title in the exported file.
+        agreement: agreed
+
+  - name: events
+    parent: phyphox
+    since: "1.12"
+    summary: >-
+      Start and pause events recorded with a saved experiment state, so that
+      timestamps can be related to the real world. Written by the app rather
+      than by hand, and intended to be replaced by a proper state format.
+    attributes: []
+    children: [start, pause]
+
+  - name: start
+    parent: events
+    since: "1.12"
+    summary: The experiment was started.
+    attributes: &event_attributes
+      - name: experimentTime
+        type: float
+        default: -1.0
+        summary: Seconds since the measurement first started, excluding pauses.
+        agreement: agreed
+      - name: systemTime
+        type: string
+        summary: Milliseconds since the Unix epoch.
+        agreement: agreed
+
+  - name: pause
+    parent: events
+    since: "1.12"
+    summary: The experiment was paused.
+    attributes: *event_attributes

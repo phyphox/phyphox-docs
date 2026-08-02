@@ -37,6 +37,8 @@ DOCS = os.path.join(ROOT, "docs", "file-format")
 PAIRS = {
     "input.yml": ["input.md", "bluetooth-low-energy.md"],
     "views.yml": ["views.md"],
+    "network.yml": ["network-connections.md"],
+    "root.yml": ["index.md"],
     "output.yml": ["output.md", "bluetooth-low-energy.md"],
     "analysis.yml": ["analysis/index.md", "analysis/basic-math.md",
                      "analysis/trigonometric-functions.md", "analysis/statistics.md",
@@ -69,6 +71,10 @@ EXPECTED_UNDOCUMENTED = {
     # TODO: document when the bluetooth block is modelled. Implemented by both
     # apps; the decimal separator for the string conversion.
     "decimalPoint",
+    # Root attributes neither page describes. isLink is in the version history
+    # for 1.1.9 and is implemented on both, so it wants documenting; appleBan is
+    # iOS-only App Store housekeeping and arguably should not be.
+    "isLink", "appleBan",
 }
 
 OTHER_BLOCK = {}

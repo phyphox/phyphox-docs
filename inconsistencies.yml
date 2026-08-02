@@ -162,14 +162,24 @@
   status: open
   affects:
     android: >-
-      Reads clearGroup1, clearGroup2, ... and clears only those groups
+      Implements the feature. Data containers carry a clearGroup attribute
+      (PhyphoxFile.java, dataContainersBlockParser) and the remote interface
+      reads clearGroup1, clearGroup2, ... to clear only those groups
       (RemoteServer.java, handleControl(), case "clear").
     ios: >-
-      Ignores the parameters and always clears everything
-      (ExperimentWebServer.swift, "self.delegate!.clearData()" takes no arguments).
+      Does not implement the feature at all. DataContainersElementHandler does
+      not declare the clearGroup attribute, so it is silently dropped when the
+      file is parsed, and the remote interface ignores the parameters and always
+      clears everything (ExperimentWebServer.swift, "self.delegate!.clearData()"
+      takes no arguments).
   summary: >-
     Clear groups let an experiment keep calibration data or settings when the user
-    clears measurement data. Android honours them over the remote interface; iOS
+    clears measurement data. The divergence is wider than the remote interface:
+    iOS does not read the clearGroup attribute on data containers either, so the
+    feature is absent in the app itself and not only over the API. It arrived in
+    file format 1.20, so the version gate covers a file declaring 1.20 - but an
+    experiment declaring an older version and using the attribute is accepted by
+    both, and protects its calibration data on one platform only. Android honours them over the remote interface; iOS
     silently clears everything instead, which destroys exactly the data the
     feature exists to protect. The iOS app also does not yet serve the clearGroups
     list its web interface needs, and its phyphox-webinterface submodule still
@@ -793,3 +803,49 @@
     a request for the battery level on Android and ignored on iOS. The
     inconsistency is small, but it is in the parser rather than the format: the
     documented behaviour is what both should do.
+
+- id: network-mqtts-android-only
+  title: The TLS MQTT services exist only on Android
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Accepts service="mqtts/csv" and service="mqtts/json", together with the
+      username and password attributes they require and the persistence
+      attribute, which also applies to mqtt/json
+      (PhyphoxFile.java, networkBlockParser).
+    ios: >-
+      Accepts http/get, http/post, mqtt/csv and mqtt/json only, and throws
+      "Unkown network service" for anything else. It does not declare username,
+      password or persistence at all
+      (NetworkElementHandler.swift).
+  summary: >-
+    An experiment talking to an MQTT broker over TLS works on Android and fails
+    to load on iOS. The failure is at least loud - iOS names the service it does
+    not know - but it means an experiment written for a broker requiring
+    encrypted transport is Android-only, which for anything sending measurements
+    over the internet is the case that matters most. None of it is documented:
+    mqtts appears nowhere in the documentation, nor do username, password or
+    persistence, so an author has no way to learn that the option exists or that
+    it is one-sided. Present on Android since 2021.
+
+- id: container-type-unvalidated
+  title: The type attribute of a data container is validated only on Android
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Reads type and throws "Unknown container type" unless it is "buffer",
+      which is the only value defined; the attribute exists for future container
+      types (PhyphoxFile.java, dataContainersBlockParser).
+    ios: >-
+      Does not declare the attribute, so any value is accepted and ignored
+      (DataContainersElementHandler.swift).
+  summary: >-
+    A data container declared with a type other than "buffer" is refused by
+    Android and silently accepted by iOS. The practical exposure today is nil,
+    since no other type exists, but the attribute is reserved precisely so that
+    one can be added later - at which point a file using a new container type
+    would load on iOS and behave as though it were an ordinary buffer. Same
+    family as input-invalid-enum-handling, which is decided, and would be settled
+    by applying that rule here.

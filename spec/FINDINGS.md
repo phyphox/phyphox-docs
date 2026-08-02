@@ -453,11 +453,51 @@ for `wifiSignalStrength`, "Only applies to LiDAR on iOS devices" for `depth/smoo
 `:` lines and skipped the prose, twice. `tools/spec_vs_docs.py` compares names and cannot catch
 this; only reading can.
 
+### The last two blocks, and the format is covered
+
+`network.yml` (4 elements, 22 attributes) and `root.yml` (23 elements, 22 attributes) complete
+the format. **128 elements and 302 attributes across six blocks, 78% agreed.**
+
+Three findings, and one near-miss that says something about the tooling.
+
+**TLS MQTT is Android-only and undocumented.** `service="mqtts/csv"` and `"mqtts/json"`, with
+the `username`, `password` and `persistence` attributes they need, exist on Android and have
+since 2021. iOS accepts four services and throws "Unkown network service" for anything else —
+a loud failure, which is the good kind, but it means an experiment talking to a broker that
+requires encrypted transport is Android-only. None of it appears in the documentation, so an
+author has no way to learn either that the option exists or that it is one-sided.
+
+**`container/type` is validated only on Android**, which throws for anything but `"buffer"`
+where iOS ignores the attribute. No exposure today, since no other type exists — but the
+attribute is reserved precisely so one can be added, at which point a file using a new type
+would load on iOS and behave as an ordinary buffer.
+
+**`appleBan`** is an iOS-only root attribute, read nowhere in the Android source and
+documented nowhere. Marked `platform`.
+
+The near-miss: `isLink` looked iOS-only by the same test, and is not. Android reads it in
+`ExperimentList/AssetExperimentLoader`, nowhere near the file parser. That is the fourth
+attribute found outside the parser that reads its block — after `decimalPoint` in the BLE
+conversions, `cycles` in the analysis factory, and the map-colour loop. **An attribute absent
+from a block parser means nothing on its own.**
+
+### What the documentation cross-check caught that reading did not
+
+`clearGroup` on `<container>`. I modelled the root block from both parsers and missed it
+entirely; `tools/spec_vs_docs.py` reported it against `index.md` immediately.
+
+It matters more than a missed attribute usually would. `clearGroup` is what exempts
+calibration data from the trash button, and iOS does not read it — so the divergence already
+recorded as `control-clear-groups`, which had been about the remote interface ignoring
+`clearGroup1..n`, is in fact wider: **the feature is absent in the iOS app itself, not only
+over the API.** The entry has been corrected to say so.
+
+That is the strongest argument yet for the cross-check existing. Reading two parsers tells you
+what they do; only a third source tells you what is missing from both readings.
+
 ### Revised projection
 
-Four blocks are now modelled — `input`, `views`, `output` and `analysis` — leaving
-`network-connections` and the small root block. 101 elements, 249 attributes and 194 named
-analysis slots, leaving roughly 80,
+All six blocks are modelled: 128 elements, 302 attributes and 194 named analysis slots, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 
