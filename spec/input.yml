@@ -307,13 +307,6 @@ elements:
         inconsistency: input-enum-case-sensitivity
         rules: [enum-case-insensitive, enum-invalid-value]
 
-      - name: threshold
-        type: float
-        default: 0.5
-        summary: Threshold for the threshold analyser.
-        agreement: divergent
-        inconsistency: input-one-sided-attributes
-
     outputs:
       attribute: component
       required_component: true
@@ -370,20 +363,33 @@ elements:
         agreement: agreed
       - name: address
         type: string
-        summary: Connect only to a device with this hardware address.
-        agreement: divergent
-        inconsistency: input-one-sided-attributes
+        summary: >-
+          Connect only to the device with this hardware address. **Using this
+          attribute makes the experiment Android-only**: iOS gives no access to
+          BLE hardware addresses, so the criterion cannot be honoured there.
+        agreement: platform
+        platforms: [android]
+        inconsistency: ble-address-ios-must-reject
       - name: id
         type: string
-        summary: Identifier for referring to this device from elsewhere.
-        agreement: divergent
-        inconsistency: input-one-sided-attributes
+        translatable: true
+        summary: >-
+          Names the device for the user during scanning, and groups entries:
+          bluetooth elements sharing an id refer to one device, so the user is
+          asked to pick it only once even across input and output blocks.
+        agreement: agreed
       - name: mtu
         type: integer
         default: 0
-        summary: Requested MTU for the connection.
-        agreement: divergent
-        inconsistency: input-one-sided-attributes
+        since: "1.9"
+        summary: Requests a specific MTU. Fails on Android before 5.0.
+        agreement: platform
+        platforms: [android]
+        note: >-
+          iOS has no way to control the MTU and always requests the maximum, so
+          the attribute is accepted and ignored there. Documented as such on the
+          Bluetooth page, so this is a deliberate platform difference rather than
+          an omission.
 
   - name: output
     parent: bluetooth

@@ -511,24 +511,20 @@
   status: open
   affects:
     android: >-
-      Reads camera/aeFPSTarget, camera/threshold, bluetooth/address and
-      bluetooth/mtu; does not read depth/smooth or bluetooth/id.
+      Reads camera/aeFPSTarget; does not read depth/smooth.
     ios: >-
-      Reads depth/smooth and bluetooth/id; declares bluetooth/mtu in its
-      attribute list but never uses the value; does not read camera/aeFPSTarget,
-      camera/threshold or bluetooth/address.
+      Reads depth/smooth; does not read camera/aeFPSTarget.
   summary: >-
-    Decided case by case: unlike the three other questions the input block raised,
-    this one does not reduce to a single rule, because each attribute needs its
-    own answer about whether the feature should exist on both platforms or is
-    genuinely one-sided. Six attributes in the input block are honoured by one app
-    and ignored by the other, with nothing in the file to say so. An experiment using them behaves
-    differently on the two platforms without any error, which is the hardest kind
-    of difference for an author to notice. These are distinct from genuinely
-    platform-specific attributes such as sensor/nameFilter, where the underlying
-    capability exists on only one system; here the feature is not obviously
-    impossible on either side and the omission looks accidental. Each needs a
-    decision: implement, or document as platform-specific.
+    Two attributes of the input block are honoured by one app and ignored by the
+    other, with nothing in the file to say so. camera/aeFPSTarget sets the frame
+    rate the prioritizeFramerate exposure strategy aims for, and is read only by
+    Android; depth/smooth smooths the depth data and is read only by iOS. Each
+    needs its own answer about whether the feature should exist on both platforms
+    or is genuinely one-sided. Four further attributes were originally listed here
+    and have since been resolved: bluetooth/id is in fact read by both,
+    bluetooth/mtu is a documented platform limitation, bluetooth/address is
+    covered by ble-address-ios-must-reject, and camera/threshold by
+    android-unofficial-attributes.
 
 - id: input-output-component-validation
   title: Validation of the component attribute on input outputs
@@ -570,17 +566,15 @@
   status: open
   affects:
     android: >-
-      Reads graph/interpolateMapColors and edit/editable
-      (PhyphoxFile.java, viewBlockParser).
+      Reads graph/interpolateMapColors (PhyphoxFile.java, viewBlockParser).
     ios: >-
-      Reads neither (GraphViewElementHandler.swift, EditViewElementHandler.swift).
+      Does not (GraphViewElementHandler.swift).
   summary: >-
-    Two attributes of the views block are read by Android and ignored by iOS.
-    interpolateMapColors blends between the stops of a map graph's colour scale
-    rather than stepping between them, and is simply newer than the iOS
-    implementation. editable decides whether the user may change the value in an
-    edit field. Both are ordinary parity gaps, decided case by case like
-    input-one-sided-attributes.
+    graph/interpolateMapColors blends between the stops of a map graph's colour
+    scale rather than stepping between them. Android reads it, iOS does not - an
+    ordinary parity gap, the feature simply being newer than the iOS
+    implementation. edit/editable was originally listed here too and is now
+    covered by android-unofficial-attributes.
 
 - id: views-map-color-limit
   title: How many stops a map graph's colour scale may have
@@ -641,3 +635,58 @@
     that declares an older version and uses the construct anyway, which fails
     with a confusing parse error instead. Implementing the picker on iOS and
     dropping the calibration attributes resolves both.
+
+- id: ble-address-ios-must-reject
+  title: The BLE address attribute is Android-only, and iOS should say so
+  area: file-format
+  status: decided
+  canonical: >-
+    address is an Android-only scan criterion, because iOS gives no access to a
+    BLE device's hardware address and the criterion therefore cannot be honoured
+    there. That is a platform limitation and stands. What must change is the
+    failure mode: iOS should reject an experiment using the attribute with a
+    clear error rather than accepting the file and connecting to whatever device
+    happens to match the remaining criteria. The documentation must state plainly
+    that using address makes an experiment Android-only.
+  affects:
+    android: >-
+      Reads address and uses it as a scan criterion
+      (PhyphoxFile.java, inputBlockParser, case "bluetooth").
+    ios: >-
+      Does not declare the attribute at all, so it is silently dropped and the
+      device is chosen by the remaining criteria
+      (InputElementHandler.swift, BluetoothElementHandler).
+  summary: >-
+    An experiment that pins a Bluetooth connection to one hardware address works
+    as intended on Android and silently connects to a different device on iOS,
+    which is worse than not working: the experiment appears to run and produces
+    data from the wrong source. Unlike most entries here the fix is not to bring
+    the platforms into line - the capability genuinely does not exist on iOS -
+    but to make the incompatibility explicit, in the parser and in the
+    documentation.
+
+- id: android-unofficial-attributes
+  title: Attributes in the Android parser that are not part of the format
+  area: file-format
+  status: decided
+  canonical: >-
+    Neither is part of the phyphox file format, and both should be removed from
+    the Android parser rather than specified or ported. camera/threshold belongs
+    to a planned but untested feature that was carried into the app with the rest
+    of its implementation; edit/editable makes little sense for an element whose
+    purpose is user input and is not believed to be used by any experiment. Both
+    are absent from the specification for that reason.
+  affects:
+    android: >-
+      Accepts camera/threshold (default 0.5, passed to the camera's threshold
+      analyser) and edit/editable (default true)
+      (PhyphoxFile.java, inputBlockParser and viewBlockParser).
+    ios: >-
+      Accepts neither.
+  summary: >-
+    Two attributes exist only because implementation reached the parser ahead of
+    a decision to ship the feature. They are documented nowhere, unlikely to be
+    used by any experiment, and are being removed. Recorded rather than quietly
+    dropped so that the removal is traceable and so that anyone finding them in
+    the Android source knows they are not part of the format. Worth a search of
+    the experiment collection before the removal lands.

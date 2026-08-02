@@ -629,13 +629,6 @@ elements:
         default: 0.0
         summary: Value the field starts with.
         agreement: agreed
-      - name: editable
-        type: boolean
-        default: true
-        summary: Whether the user may change the value.
-        agreement: divergent
-        inconsistency: views-one-sided-attributes
-
   - name: output
     parent: edit
     since: "1.0"

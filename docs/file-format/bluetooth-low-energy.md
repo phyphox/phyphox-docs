@@ -74,6 +74,9 @@ name
 uuid
 :   This is the UUID of a service advertised by the device. Note that even if the device advertises a short 16-bit UUID according to the Bluetooth specification (for example 0x1812 for a Human Interface Device service), you need to specify the 128-bit version (in this case 00001812-0000-1000-8000-00805f9b34fb) using the base-UUID 0000xxxx-0000-1000-8000-00805f9b34fb.
 
+address
+:   The hardware address of the device, as a scan criterion. **Using this attribute makes your experiment Android-only.** iOS gives apps no access to the hardware address of a BLE device, so the criterion cannot be honoured there - do not use it unless an Android-only experiment is what you want. Prefer *name* or *uuid*, which work on both platforms.
+
 id
 :   The id entry combines two functions to manage multiple BLE devices in one experiment. It acts as a string shown to the user to identify the use of a device during scanning (for example, if two sensor boxes are used, the could be labeled as "wheel" and "distance" if one is attached to a wheel and the other one measures distance). For this purpose the text is translatable. The second function is that phyphox treats devices with the same ID as a single device, so multiple bluetooth entries (even input and output blocks) can refer to the same device without asking the user twice to pick it from a scan.
 

@@ -51,6 +51,20 @@ IGNORE_ATTRS = {"version"}
 # covers the bluetooth element of the input block AND of the output block. Until
 # every block is modelled, constructs belonging to an unmodelled one look like
 # gaps. List them here and delete the entry when that block is modelled.
+# Attributes the spec models that the documentation deliberately does not
+# describe. Keeping them listed means the "undocumented" report stays actionable
+# instead of becoming noise everyone skims past.
+EXPECTED_UNDOCUMENTED = {
+    # superseded draft of the spectroscopy feature, to be removed - see
+    # graph-output-data-picker
+    "calibrationMode", "calibrationParameter",
+    # the docs describe the colour scale generically as mapColor[n]
+    "mapColor8", "mapColor9",
+    # TODO: document when the bluetooth block is modelled. Implemented by both
+    # apps; the decimal separator for the string conversion.
+    "decimalPoint",
+}
+
 OTHER_BLOCK = {
     # <input char="..." conversion="...">: the bluetooth element of <output>,
     # which writes to a device. Belongs to output.yml, not yet written.
@@ -133,7 +147,7 @@ def main():
         # an attribute documented on one page and absent from another is not
         # undocumented.
         spec_attrs = {a for v in spec.values() for a in v}
-        undocumented = sorted(spec_attrs - documented)
+        undocumented = sorted(spec_attrs - documented - EXPECTED_UNDOCUMENTED)
         if undocumented:
             print(f"  in {fn} but documented on none of its pages:")
             for a in undocumented:

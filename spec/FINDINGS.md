@@ -98,7 +98,7 @@ size of `input`, and the block least like it.
 
 | | `input` | `views` | both |
 |---|---|---|---|
-| attributes | 52 | 135 | 187 |
+| attributes | 52 | 134 | 185 |
 | agree — state it and move on | 67% | **84%** | 79% |
 | need a decision | 29% | 16% | 20% |
 
@@ -225,9 +225,36 @@ conversion classes outward, not from the element that names them.
 The check now runs as part of `mkdocs build --strict`, in the direction that matters:
 documented-but-not-modelled fails the build.
 
+### What the maintainer's review of those four attributes changed
+
+Reviewing the undocumented attributes settled more than the four:
+
+| attribute | outcome |
+|---|---|
+| `bluetooth/address` | Android-only by platform limitation, and now documented with a plain warning that using it makes an experiment Android-only. iOS must **reject** the file rather than silently connect to a different device. |
+| `camera/threshold` | An untested planned feature that reached the parser ahead of the decision to ship it. Not part of the format; removed from the spec, to be removed from the parser. |
+| `edit/editable` | Makes little sense on an element whose purpose is user input, and is believed unused. Same treatment. |
+| `bluetooth/output/decimalPoint` | A plain documentation gap, to be filled when the bluetooth block is modelled. |
+
+Checking `address` prompted a re-read of the whole bluetooth element, which turned up two more
+of my own errors:
+
+- **`bluetooth/id` is read by Android too.** I had recorded it as iOS-only from a coarse grep
+  over the wrong line range. It is documented, meaningful — it groups entries so the user
+  picks a device once — and implemented on both.
+- **`bluetooth/mtu` is a documented platform difference**, not an omission. The Bluetooth page
+  already says it is "ignored on iOS which has no method to control the MTU size and always
+  requests the maximum". Reclassified from `divergent` to `platform`.
+
+So of the six attributes originally in `input-one-sided-attributes`, **four were wrong or
+resolvable and two remain** — `camera/aeFPSTarget` and `depth/smooth`.
+`views-one-sided-attributes` is down to one, `interpolateMapColors`. The category that looked
+like it would scale with attributes has largely evaporated on inspection, which shifts the
+projection further towards "a few rules and a short tail".
+
 ### Revised projection
 
-262 documented attributes; 187 now modelled — **71% of the format**, leaving roughly 80,
+262 documented attributes; 185 now modelled — **71% of the format**, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 
@@ -245,5 +272,8 @@ which is the opposite of what a pessimistic estimate would predict.
 2. ~~Model `views` next.~~ Done, and it confirmed the estimate rather than breaking it.
    `bluetooth-low-energy` (74 attributes) is the largest untouched block and the next
    worthwhile test, since its conversion machinery is unlike anything modelled so far.
-3. Only then write the generator. Generating reference pages from a spec that is still
+3. Document `bluetooth/output/decimalPoint` while modelling that block — implemented by both
+   apps, described nowhere. `EXPECTED_UNDOCUMENTED` in `tools/spec_vs_docs.py` carries the
+   reminder.
+4. Only then write the generator. Generating reference pages from a spec that is still
    changing shape wastes the generator twice.
