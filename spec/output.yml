@@ -1,0 +1,315 @@
+# The <output> block, modelled completely.
+#
+# Sources compared for every entry below:
+#   Android  PhyphoxFile.java: outputBlockParser, AudioOutputPluginBlockParser,
+#            FlashlightBlockParser, and the bluetooth io parser        (b4564695)
+#            Bluetooth/ConversionsOutput.java, ConversionsConfig.java
+#   iOS      Serialization/Handlers/OutputElementHandler.swift         (a0643729)
+#   docs     docs/file-format/output.md, bluetooth-low-energy.md
+#
+# `agreement:` records what that comparison found. See README.md.
+#
+# Note on <bluetooth>: the element appears in BOTH the input and the output
+# block and they are different elements. The one here writes buffer values to a
+# device; the one in input.yml reads from it. They share the device-matching
+# attributes and the config child, and differ in everything else - this one has
+# no mode, rate or subscribeOnStart, and its data child is <input> rather than
+# <output>.
+
+block: output
+since: "1.0"
+summary: >-
+  Hardware the experiment drives: the speaker, the flashlight, and Bluetooth
+  devices written to rather than read from.
+
+elements:
+
+  - name: output
+    parent: phyphox
+    since: "1.0"
+    summary: Container for all hardware outputs.
+    attributes: []
+    children: [audio, bluetooth, flashlight]
+
+  # ------------------------------------------------------------------ audio --
+  - name: audio
+    parent: output
+    since: "1.0"
+    summary: The speaker.
+    children: [input, tone, noise]
+    attributes:
+      - name: rate
+        type: integer
+        default: 48000
+        unit: Hz
+        summary: Sample rate of the generated signal.
+        agreement: agreed
+      - name: loop
+        type: boolean
+        default: false
+        summary: Repeat the buffer instead of playing it once.
+        agreement: agreed
+      - name: normalize
+        type: boolean
+        default: false
+        summary: Normalise the amplitude of all inputs.
+        agreement: agreed
+
+  - name: input
+    parent: audio
+    since: "1.0"
+    summary: >-
+      Feeds a data container or a constant into the audio output, either as the
+      waveform itself or as a parameter of the tone or noise generator preceding
+      it.
+    text: Name of a data container, or a literal number when type is value.
+    attributes:
+      - name: parameter
+        type: enum
+        values: [pan, amplitude, duration, frequency]
+        summary: >-
+          Which parameter of the preceding generator this input drives.
+          `frequency` applies to `tone` only. Omitted when the input supplies the
+          waveform directly.
+        agreement: agreed
+      - name: type
+        type: enum
+        values: [buffer, value]
+        default: buffer
+        summary: Whether the text names a data container or is a literal value.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  - name: tone
+    parent: audio
+    since: "1.0"
+    summary: A tone generator. Its parameters come from the input elements after it.
+    attributes:
+      - name: waveform
+        type: enum
+        values: [sine, square, sawtooth]
+        default: sine
+        summary: Shape of the generated wave.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  - name: noise
+    parent: audio
+    since: "1.0"
+    summary: A noise generator. Its parameters come from the input elements after it.
+    attributes: []
+
+  # -------------------------------------------------------------- flashlight --
+  - name: flashlight
+    parent: output
+    since: "1.20"
+    summary: >-
+      The camera flash, usable as a lamp or a stroboscope. Most phones cannot
+      switch faster than about 25 ms, so high frequencies or duty cycles far from
+      0.5 may not be reproduced accurately.
+    children: [input]
+    attributes: []
+    agreement: divergent
+    inconsistency: ios-behind-on-format-1-20
+
+  - name: input
+    parent: flashlight
+    since: "1.20"
+    summary: Drives one parameter of the flashlight.
+    text: Name of a data container, or a literal number when type is value.
+    attributes:
+      - name: parameter
+        type: enum
+        required: true
+        values: [intensity, frequency, dutycycle]
+        summary: >-
+          `intensity` is the brightness from 0 to 1, and how many levels a phone
+          supports varies - older ones may only manage on and off. `frequency`
+          above 0 turns the light into a stroboscope. `dutycycle` runs from 0
+          (always off) to 1 (always on).
+        agreement: divergent
+        inconsistency: ios-behind-on-format-1-20
+      - name: type
+        type: enum
+        values: [buffer, value]
+        default: buffer
+        summary: Whether the text names a data container or is a literal value.
+        agreement: divergent
+        inconsistency: ios-behind-on-format-1-20
+
+  # -------------------------------------------------------------- bluetooth --
+  - name: bluetooth
+    parent: output
+    since: "1.7"
+    summary: >-
+      A Bluetooth Low Energy device written to. Distinct from the bluetooth
+      element of the input block, which reads from one.
+    children: [input, config]
+    attributes:
+      - name: id
+        type: string
+        translatable: true
+        summary: >-
+          Names the device for the user during scanning, and groups entries:
+          bluetooth elements sharing an id refer to one device, across input and
+          output blocks alike, so the user picks it only once.
+        agreement: agreed
+      - name: name
+        type: string
+        summary: Connect only to a device whose name contains this text.
+        agreement: agreed
+      - name: uuid
+        type: string
+        summary: Connect only to a device advertising this service UUID.
+        agreement: agreed
+      - name: autoConnect
+        type: boolean
+        default: false
+        summary: Connect to the first match without showing a scan dialog.
+        agreement: agreed
+      - name: address
+        type: string
+        summary: >-
+          Connect only to the device with this hardware address. **Using this
+          attribute makes the experiment Android-only**, exactly as in the input
+          block.
+        agreement: platform
+        platforms: [android]
+        inconsistency: ble-address-ios-must-reject
+      - name: mtu
+        type: integer
+        default: 0
+        since: "1.9"
+        summary: Requests a specific MTU. Fails on Android before 5.0.
+        agreement: platform
+        platforms: [android]
+        note: >-
+          iOS has no way to control the MTU and always requests the maximum.
+
+  - name: input
+    parent: bluetooth
+    since: "1.7"
+    summary: >-
+      Writes the values of a data container to a characteristic, converting them
+      to bytes.
+    text: Name of the data container.
+    attributes:
+      - name: char
+        type: string
+        required: true
+        summary: UUID of the characteristic to write.
+        agreement: agreed
+      - name: conversion
+        type: string
+        required: true
+        summary: >-
+          Name of the conversion turning numbers into bytes. See the conversion
+          vocabulary at the end of this file.
+        agreement: agreed
+      - name: offset
+        type: integer
+        default: 0
+        summary: Byte offset within the characteristic to write at.
+        agreement: agreed
+      - name: keep
+        type: boolean
+        default: true
+        summary: >-
+          Whether the data container keeps its contents after being written.
+          False clears it, so each value is sent once.
+        agreement: agreed
+
+  - name: config
+    parent: bluetooth
+    since: "1.7"
+    summary: >-
+      A constant written to a characteristic once after connecting, typically to
+      enable a sensor or set an acquisition rate.
+    text: The value to write, interpreted by the conversion.
+    attributes:
+      - name: char
+        type: string
+        required: true
+        summary: UUID of the characteristic to write.
+        agreement: agreed
+      - name: conversion
+        type: string
+        required: true
+        summary: Conversion turning the element's text into bytes.
+        agreement: agreed
+
+# The conversion vocabulary, shared by the bluetooth elements of both blocks.
+#
+# Worth recording how this was established, because the obvious method fails.
+# Android resolves a conversion by REFLECTION: it looks for a declared class of
+# that name taking an XmlPullParser - which then reads its own attributes - and
+# falls back to a declared static method of the same name. So the vocabulary is
+# the set of declared classes and methods of ConversionsInput/Output/Config, and
+# an attribute like decimalPoint appears nowhere in the block parser at all.
+# iOS uses a ConversionFunction enum plus a switch for the three names that are
+# not simple numeric conversions.
+#
+# Compared name by name, all three vocabularies agree exactly.
+
+conversions:
+  numeric: &numeric
+    - uInt8
+    - int8
+    - uInt16LittleEndian
+    - uInt16BigEndian
+    - int16LittleEndian
+    - int16BigEndian
+    - uInt24LittleEndian
+    - uInt24BigEndian
+    - int24LittleEndian
+    - int24BigEndian
+    - uInt32LittleEndian
+    - uInt32BigEndian
+    - int32LittleEndian
+    - int32BigEndian
+    - float32LittleEndian
+    - float32BigEndian
+    - float64LittleEndian
+    - float64BigEndian
+
+  input:
+    summary: Bytes from a characteristic to numbers, for a bluetooth input.
+    agreement: agreed
+    functions: *numeric
+    extra:
+      - name: singleByte
+        summary: Synonym for uInt8.
+      - name: string
+        summary: >-
+          Parses the bytes as text. Takes decimalPoint, offset, repeating and
+          length.
+      - name: formattedString
+        summary: >-
+          Parses the bytes as text and selects one field. Takes separator, label
+          and index.
+
+  output:
+    summary: Numbers to bytes, for a bluetooth output.
+    agreement: agreed
+    functions: *numeric
+    extra:
+      - name: singleByte
+        summary: Synonym for uInt8.
+      - name: string
+        summary: Formats the value as text.
+      - name: byteArray
+        summary: Writes the buffer contents as raw bytes.
+
+  config:
+    summary: The text of a config element to bytes.
+    agreement: agreed
+    functions: *numeric
+    extra:
+      - name: singleByte
+        summary: Synonym for uInt8.
+      - name: string
+        summary: Writes the text as-is.
+      - name: hexadecimal
+        summary: Parses the text as hexadecimal.

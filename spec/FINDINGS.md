@@ -310,9 +310,42 @@ to attributes with `type: enum`. Metadata identifiers are element *text*, so the
 reach them, and both parsers are strict there. Whether it should be extended is an open
 question, not an established divergence.
 
+### The output block, and Bluetooth: the reflection hazard was smaller than feared
+
+`output.yml` covers the block and, with it, the Bluetooth surface that spans both blocks —
+`<bluetooth>` appears in `input` and `output` and they are *different elements*, sharing the
+device-matching attributes and the `config` child but nothing else.
+
+The block itself is small: 10 elements, 20 attributes. The interesting part is how the
+conversion vocabulary had to be established. **Android resolves a conversion by reflection** —
+it looks for a declared class of that name taking an `XmlPullParser`, which then reads its own
+attributes, and falls back to a declared static method of the same name. So the vocabulary is
+the set of declared classes and methods of `ConversionsInput`/`Output`/`Config`, and an
+attribute such as `decimalPoint` appears nowhere in the block parser. iOS uses a
+`ConversionFunction` enum plus a switch for the three names that are not simple numeric
+conversions.
+
+Compared name by name: **all three vocabularies agree exactly, 21 names each.** The block with
+the most alarming mechanism turned out to have the most agreement in its core. Worth stating,
+because the expectation going in was the opposite.
+
+Two findings did come out of it:
+
+- **The flashlight output does not exist on iOS at all** — no handler, no mention anywhere in
+  the source. It is a file format 1.20 feature, so it joins `ios-behind-on-format-1-20`, and
+  it is the largest single item there: an element, its `input` child and three parameters.
+- `address` and `mtu` are Android-only on the output `<bluetooth>` exactly as on the input
+  one, so the decisions already taken cover both.
+
+The tooling needed one fix: a documentation page can describe more than one block, and
+comparing `bluetooth-low-energy.md` against each spec file separately reported each block's
+constructs as missing from the other. Pages are now compared against the *union* of the specs
+that claim them, which also let the last `OTHER_BLOCK` exception go.
+
 ### Revised projection
 
-262 documented attributes; 185 now modelled — **71% of the format**, leaving roughly 80,
+262 documented attributes; 206 across three blocks now modelled — **around 79% of
+the format**, with `analysis`, `network-connections` and the root block left, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 

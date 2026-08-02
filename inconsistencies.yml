@@ -653,8 +653,10 @@
       butterworth and imagedecode.
     ios: >-
       Declares 1.19 (latestSupportedFileVersion in PhyphoxElementHandler.swift)
-      and implements none of them; ExperimentAnalysisFactory.classMap has neither
-      analysis module.
+      and implements none of them. ExperimentAnalysisFactory.classMap has neither
+      analysis module, and OutputElementHandler registers only audio and
+      bluetooth as children of the output block - there is no flashlight handler
+      and no mention of the flashlight anywhere in the iOS source.
   summary: >-
     Two attributes introduced with file format 1.20 exist only on Android:
     camera/aeFPSTarget, the target frame rate for the prioritizeFramerate

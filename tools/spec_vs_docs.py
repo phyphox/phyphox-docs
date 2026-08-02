@@ -37,6 +37,7 @@ DOCS = os.path.join(ROOT, "docs", "file-format")
 PAIRS = {
     "input.yml": ["input.md", "bluetooth-low-energy.md"],
     "views.yml": ["views.md"],
+    "output.yml": ["output.md", "bluetooth-low-energy.md"],
 }
 
 # Placeholders and unrelated elements that appear inside the skeletons.
@@ -65,11 +66,7 @@ EXPECTED_UNDOCUMENTED = {
     "decimalPoint",
 }
 
-OTHER_BLOCK = {
-    # <input char="..." conversion="...">: the bluetooth element of <output>,
-    # which writes to a device. Belongs to output.yml, not yet written.
-    ("bluetooth-low-energy.md", "input"): {"char", "conversion"},
-}
+OTHER_BLOCK = {}
 
 FENCE = re.compile(r"```(?:xml)?\n(.*?)```", re.S)
 TAG = re.compile(r"<([a-zA-Z][\w\-]*)((?:\s+[\w\-]+\s*=\s*\"[^\"]*\")*)")
@@ -117,12 +114,26 @@ def from_spec(fn):
 
 def main():
     total = 0
-    for fn, pages in sorted(PAIRS.items()):
-        spec = from_spec(fn)
-        documented = set()
+    # A documentation page can describe more than one block - bluetooth-low-energy.md
+    # covers the bluetooth element of both input and output - so a page is
+    # compared against the union of the specs that claim it, not against each in
+    # turn. Comparing individually reports each block's constructs as missing
+    # from the other.
+    pages_to_specs = {}
+    for fn, pages in PAIRS.items():
         for page in pages:
+            pages_to_specs.setdefault(page, []).append(fn)
+
+    for page, fns in sorted(pages_to_specs.items()):
+        spec = {}
+        for fn in fns:
+            for el, attrs in from_spec(fn).items():
+                spec.setdefault(el, set()).update(attrs)
+        documented = set()
+        for _ in (page,):
             doc_els, doc_terms = from_docs(page)
-            print(f"\n=== {fn}  vs  {page} " + "=" * (46 - len(fn) - len(page)))
+            label = "+".join(fns)
+            print(f"\n=== {label}  vs  {page} " + "=" * max(4, 46 - len(label) - len(page)))
 
             missing_el = sorted(set(doc_els) - set(spec) - IGNORE_ELEMENTS)
             if missing_el:
@@ -148,8 +159,8 @@ def main():
         # undocumented.
         spec_attrs = {a for v in spec.values() for a in v}
         undocumented = sorted(spec_attrs - documented - EXPECTED_UNDOCUMENTED)
-        if undocumented:
-            print(f"  in {fn} but documented on none of its pages:")
+        if undocumented and len(PAIRS.get(fns[0], [])) == 1:
+            print(f"  in {'+'.join(fns)} but not named on {page}:")
             for a in undocumented:
                 print(f"     {a}")
 
