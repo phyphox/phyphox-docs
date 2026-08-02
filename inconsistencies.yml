@@ -444,3 +444,93 @@
     <img> tag regardless, but any other client - one saving the file, or
     deciding how to render it from the header - sees a generic binary blob from
     Android and a typed image from iOS.
+
+- id: input-invalid-enum-handling
+  title: What happens when an enumerated attribute has an invalid value
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Refuses the file. sensor/rateStrategy throws "Invalid rate strategy.",
+      camera/aeStrategy throws "Unknown aeStrategy: ..." and camera/feature
+      throws "Unknown feature name: ..." (PhyphoxFile.java, inputBlockParser).
+    ios: >-
+      Silently substitutes the default. rateStrategy uses "try?" and falls
+      through to the version-dependent default, aeStrategy uses
+      "(try? ...) ?? .mean", and CameraFeature's own init returns .PHOTOMETRIC
+      for anything it does not recognise (InputElementHandler.swift).
+  summary: >-
+    A typo in an enumerated attribute stops the experiment loading on Android and
+    is ignored on iOS, where the experiment then runs with different settings
+    than its author wrote. The silent path is the more dangerous one: an author
+    testing only on iOS cannot tell that the attribute had no effect, and the
+    file will not load at all for their Android users. This is one decision, not
+    three - whatever is chosen should apply to every enumerated attribute in the
+    format.
+
+- id: input-enum-case-sensitivity
+  title: Case sensitivity of enumerated attribute values
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Lowercases the value before matching for depth/mode and camera/feature, so
+      mode="Closest" is accepted (PhyphoxFile.java, inputBlockParser).
+    ios: >-
+      Matches the raw string, so mode="Closest" fails to parse - throwing for
+      depth/mode, and silently falling back to photometric for camera/feature
+      (InputElementHandler.swift).
+  summary: >-
+    The same file is accepted by one app and not the other purely because of
+    capitalisation. Note that Android is not consistent with itself either: it
+    lowercases depth/mode and camera/feature but not sensor/rateStrategy or
+    camera/aeStrategy, which use valueOf and a case-sensitive switch. Like
+    input-invalid-enum-handling this wants a single rule for the whole format
+    rather than an answer per attribute.
+
+- id: input-one-sided-attributes
+  title: Attributes only one app acts on
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Reads camera/aeFPSTarget, camera/threshold, bluetooth/address and
+      bluetooth/mtu; does not read depth/smooth or bluetooth/id.
+    ios: >-
+      Reads depth/smooth and bluetooth/id; declares bluetooth/mtu in its
+      attribute list but never uses the value; does not read camera/aeFPSTarget,
+      camera/threshold or bluetooth/address.
+  summary: >-
+    Six attributes in the input block are honoured by one app and ignored by the
+    other, with nothing in the file to say so. An experiment using them behaves
+    differently on the two platforms without any error, which is the hardest kind
+    of difference for an author to notice. These are distinct from genuinely
+    platform-specific attributes such as sensor/nameFilter, where the underlying
+    capability exists on only one system; here the feature is not obviously
+    impossible on either side and the omission looks accidental. Each needs a
+    decision: implement, or document as platform-specific.
+
+- id: input-output-component-validation
+  title: Validation of the component attribute on input outputs
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Checks the component name against the list allowed for that input and
+      refuses the file if it does not match, enforces minimum and maximum counts
+      per component, and requires the attribute where the mapping is ambiguous
+      (PhyphoxFile.java, ioBlockParser with an ioMapping table per input).
+    ios: >-
+      Accepts any component name and any number of outputs; the handler stores
+      whatever it finds and defaults a missing component attribute to the string
+      "output", which matches no input's component list. Unrecognised components
+      are dropped later without an error (InputElementHandler.swift,
+      SensorOutputElementHandler).
+  summary: >-
+    A misspelled component - "acc" for "abs", say - is a load error on Android
+    and silently produces an experiment with an empty buffer on iOS. The same
+    applies to a missing required output: Android insists that an audio input has
+    an "out" component and a depth input a "z", iOS does not. This is the single
+    largest structural difference found while modelling the input block, and it
+    affects every input, output and view element in the format rather than one
+    attribute.

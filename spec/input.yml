@@ -1,0 +1,441 @@
+# The <input> block, modelled completely.
+#
+# Sources compared for every entry below:
+#   Android  PhyphoxFile.java, inputBlockParser        (phyphox-android b4564695)
+#   iOS      InputElementHandler.swift                 (phyphox-ios     a0643729)
+#   editor   src/blocks/input/*.ts                     (where a block exists)
+#   docs     docs/file-format/input.md
+#
+# `agreement:` records what that comparison found. See README.md.
+
+block: input
+since: "1.0"
+summary: >-
+  Hardware the experiment reads: sensors, the microphone, GPS, the camera and
+  Bluetooth devices. Each child element maps components of one source onto
+  data containers.
+
+elements:
+
+  # ------------------------------------------------------------------ input --
+  - name: input
+    parent: phyphox
+    since: "1.0"
+    summary: Container for all hardware inputs.
+    attributes: []
+    children: [sensor, audio, location, depth, camera, bluetooth]
+
+  # ----------------------------------------------------------------- sensor --
+  - name: sensor
+    parent: input
+    since: "1.0"
+    summary: A sensor built into the device.
+    children: [output]
+    attributes:
+      - name: type
+        type: enum
+        required: true
+        values: [accelerometer, linear_acceleration, gravity, gyroscope,
+                 magnetic_field, pressure, light, proximity, temperature,
+                 humidity, attitude, custom]
+        summary: Which sensor to read.
+        agreement: agreed
+
+      - name: rate
+        type: float
+        default: 0.0
+        unit: Hz
+        summary: >-
+          Requested acquisition rate. 0 means as fast as the device delivers.
+          Both apps store the reciprocal internally, so a rate of 0 is kept as 0
+          rather than becoming an infinite period.
+        agreement: agreed
+
+      - name: rateStrategy
+        type: enum
+        values: [auto, request, generate, limit]
+        default:
+          - since: "1.14"
+            value: auto
+          - value: limit
+        summary: How to reconcile the requested rate with what the device offers.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+
+      - name: average
+        type: boolean
+        default: false
+        summary: Average readings between outputs instead of picking one.
+        agreement: agreed
+
+      - name: stride
+        type: integer
+        default: 1
+        summary: Use only every n-th reading.
+        agreement: agreed
+
+      - name: ignoreUnavailable
+        type: boolean
+        default: false
+        summary: >-
+          Load the experiment even if the device has no such sensor, instead of
+          refusing the file.
+        agreement: agreed
+
+      - name: nameFilter
+        type: string
+        summary: >-
+          Select a specific sensor by name where a device exposes several of the
+          same type.
+        agreement: platform
+        platforms: [android]
+        note: >-
+          iOS declares the attribute so that a file using it still parses, and
+          then ignores it - the comment in InputElementHandler.swift says it is
+          "only part of the file format for Android sensors". CoreMotion exposes
+          no equivalent choice, so this is a genuine platform difference.
+
+      - name: typeFilter
+        type: integer
+        summary: Select a sensor by Android sensor type constant.
+        agreement: platform
+        platforms: [android]
+        note: Same as nameFilter; the value is an Android platform constant.
+
+    outputs:
+      required_component: true
+      components:
+        - {name: x, summary: First component.}
+        - {name: y, summary: Second component.}
+        - {name: z, summary: Third component.}
+        - {name: t, summary: Timestamp, seconds since the measurement started.}
+        - {name: abs, summary: Magnitude of the vector.}
+        - {name: accuracy, summary: Device-reported accuracy, where available.}
+      agreement: divergent
+      inconsistency: input-output-component-validation
+
+  # ------------------------------------------------------------------ audio --
+  - name: audio
+    parent: input
+    since: "1.0"
+    summary: The microphone.
+    children: [output]
+    attributes:
+      - name: rate
+        type: integer
+        default: 48000
+        unit: Hz
+        summary: Sampling rate.
+        agreement: agreed
+      - name: append
+        type: boolean
+        default: false
+        summary: Append to the buffer instead of replacing its contents.
+        agreement: agreed
+    outputs:
+      required_component: false
+      components:
+        - {name: out, required: true, summary: The recorded samples.}
+        - {name: rate, summary: The rate actually achieved.}
+      agreement: divergent
+      inconsistency: input-output-component-validation
+
+  # --------------------------------------------------------------- location --
+  - name: location
+    parent: input
+    since: "1.0"
+    summary: GPS.
+    children: [output]
+    attributes: []
+    outputs:
+      required_component: true
+      components:
+        - {name: lat, summary: Latitude.}
+        - {name: lon, summary: Longitude.}
+        - {name: z, summary: Altitude above mean sea level.}
+        - {name: zwgs84, summary: Altitude above the WGS84 ellipsoid.}
+        - {name: v, summary: Speed over ground.}
+        - {name: dir, summary: Direction of travel.}
+        - {name: t, summary: Timestamp.}
+        - {name: accuracy, summary: Horizontal accuracy.}
+        - {name: zAccuracy, summary: Vertical accuracy.}
+        - {name: status, summary: Fix status.}
+        - {name: satellites, summary: Number of satellites in view.}
+      agreement: divergent
+      inconsistency: input-output-component-validation
+
+  # ------------------------------------------------------------------ depth --
+  - name: depth
+    parent: input
+    since: "1.14"
+    summary: Depth camera (LiDAR or time-of-flight).
+    children: [output]
+    attributes:
+      - name: mode
+        type: enum
+        values: [closest, weighted, average]
+        default: closest
+        summary: How to reduce the depth values in the selected region to one number.
+        agreement: divergent
+        inconsistency: input-enum-case-sensitivity
+
+      - name: x1
+        type: float
+        default: 0.4
+        summary: >-
+          Left edge of the region of interest, as a fraction of the frame. Both
+          apps convert the four edges from the user's coordinate system to the
+          camera's, so the stored values are not the ones written here.
+        agreement: agreed
+      - name: x2
+        type: float
+        default: 0.6
+        summary: Right edge of the region of interest.
+        agreement: agreed
+      - name: y1
+        type: float
+        default: 0.4
+        summary: Top edge of the region of interest.
+        agreement: agreed
+      - name: y2
+        type: float
+        default: 0.6
+        summary: Bottom edge of the region of interest.
+        agreement: agreed
+
+      - name: smooth
+        type: boolean
+        default: true
+        summary: Smooth the depth data.
+        agreement: divergent
+        inconsistency: input-one-sided-attributes
+
+    outputs:
+      required_component: false
+      components:
+        - {name: z, required: true, summary: Depth.}
+        - {name: t, summary: Timestamp.}
+      agreement: divergent
+      inconsistency: input-output-component-validation
+
+  # ----------------------------------------------------------------- camera --
+  - name: camera
+    parent: input
+    since: "1.17"
+    summary: The camera, used photometrically or for spectroscopy.
+    children: [output]
+    attributes:
+      - name: x1
+        type: float
+        default: 0.4
+        summary: Left edge of the region of interest, as a fraction of the frame.
+        agreement: agreed
+      - name: x2
+        type: float
+        default: 0.6
+        summary: Right edge of the region of interest.
+        agreement: agreed
+      - name: y1
+        type: float
+        default: 0.4
+        summary: Top edge of the region of interest.
+        agreement: agreed
+      - name: y2
+        type: float
+        default: 0.6
+        summary: Bottom edge of the region of interest.
+        agreement: agreed
+
+      - name: auto_exposure
+        type: boolean
+        default: true
+        summary: Enable phyphox's own auto exposure, rather than the camera's.
+        agreement: agreed
+        note: >-
+          docs/file-format/input.md called this autoExposure, which no
+          implementation accepts. Android, iOS and the editor all read
+          auto_exposure. The page has been corrected.
+
+      - name: aeStrategy
+        type: enum
+        values: [mean, avoidOverexposure, avoidUnderexposure, prioritizeFramerate]
+        default: mean
+        summary: What phyphox's auto exposure should optimise for.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+
+      - name: aeFPSTarget
+        type: float
+        default: 0.0
+        since: "1.3"
+        summary: Frame rate the prioritizeFramerate strategy aims for.
+        agreement: divergent
+        inconsistency: input-one-sided-attributes
+
+      - name: locked
+        type: string
+        default: ""
+        summary: >-
+          Comma-separated camera settings to hold fixed, each optionally with a
+          value (`shutter_speed=1/500,iso=100`).
+        agreement: agreed
+        note: >-
+          Both accept the same syntax including the shutter-speed fraction form,
+          but they parse it in different places - iOS in the handler, Android
+          further downstream. Worth a conformance test rather than trust.
+
+      - name: feature
+        type: enum
+        values: [photometric, spectroscopy]
+        default: photometric
+        summary: Which analysis the camera input performs.
+        agreement: divergent
+        inconsistency: input-enum-case-sensitivity
+
+      - name: threshold
+        type: float
+        default: 0.5
+        summary: Threshold for the threshold analyser.
+        agreement: divergent
+        inconsistency: input-one-sided-attributes
+
+    outputs:
+      required_component: true
+      components:
+        - {name: t, summary: Timestamp.}
+        - {name: luma, summary: Luma of the region.}
+        - {name: luminance, summary: Luminance of the region.}
+        - {name: hue, summary: Hue.}
+        - {name: saturation, summary: Saturation.}
+        - {name: value, summary: Value, in the HSV sense.}
+        - {name: threshold, summary: Fraction of pixels above the threshold.}
+        - {name: shutterSpeed, summary: Shutter speed in use.}
+        - {name: iso, summary: ISO in use.}
+        - {name: aperture, summary: Aperture in use.}
+        - {name: pixelPosition, summary: Position within the spectrum.}
+      agreement: divergent
+      inconsistency: input-output-component-validation
+
+  # -------------------------------------------------------------- bluetooth --
+  - name: bluetooth
+    parent: input
+    since: "1.11"
+    summary: A Bluetooth Low Energy device.
+    children: [output, config]
+    attributes:
+      - name: name
+        type: string
+        summary: Connect only to a device advertising this name.
+        agreement: agreed
+      - name: uuid
+        type: string
+        summary: Connect only to a device advertising this service UUID.
+        agreement: agreed
+      - name: mode
+        type: enum
+        required: true
+        values: [notification, indication, poll]
+        summary: How data is obtained from the characteristic.
+        agreement: agreed
+      - name: rate
+        type: float
+        summary: Polling rate. Required, finite and positive when mode is poll.
+        agreement: agreed
+      - name: subscribeOnStart
+        type: boolean
+        default: false
+        summary: Subscribe when the measurement starts rather than on connect.
+        agreement: agreed
+      - name: autoConnect
+        type: boolean
+        default: false
+        summary: Connect without asking the user to pick a device.
+        agreement: agreed
+      - name: address
+        type: string
+        summary: Connect only to a device with this hardware address.
+        agreement: divergent
+        inconsistency: input-one-sided-attributes
+      - name: id
+        type: string
+        summary: Identifier for referring to this device from elsewhere.
+        agreement: divergent
+        inconsistency: input-one-sided-attributes
+      - name: mtu
+        type: integer
+        default: 0
+        summary: Requested MTU for the connection.
+        agreement: divergent
+        inconsistency: input-one-sided-attributes
+
+  - name: output
+    parent: bluetooth
+    since: "1.11"
+    summary: Maps a characteristic, or a value derived from one, onto a buffer.
+    attributes:
+      - name: char
+        type: string
+        required: true
+        summary: UUID of the characteristic to read.
+        agreement: agreed
+      - name: extra
+        type: enum
+        values: [time, none]
+        default: none
+        summary: >-
+          Write something other than characteristic data - currently only the
+          time at which data arrived. No conversion applies when set.
+        agreement: agreed
+      - name: conversion
+        type: string
+        summary: >-
+          Name of the conversion turning raw bytes into numbers. Required unless
+          extra is set.
+        agreement: agreed
+      - name: offset
+        type: integer
+        default: 0
+        summary: Bytes to skip before converting.
+        agreement: agreed
+      - name: repeating
+        type: integer
+        default: 0
+        summary: Stride at which the conversion repeats over the data.
+        agreement: agreed
+      - name: length
+        type: integer
+        summary: Bytes to convert. Unset means to the end.
+        agreement: agreed
+      - name: decimalPoint
+        type: string
+        summary: Decimal separator, for the string conversion.
+        agreement: agreed
+      - name: separator
+        type: string
+        summary: Field separator, for the formattedString conversion.
+        agreement: agreed
+      - name: label
+        type: string
+        summary: Field label to select, for the formattedString conversion.
+        agreement: agreed
+      - name: index
+        type: integer
+        default: 0
+        summary: Field index to select, for the formattedString conversion.
+        agreement: agreed
+
+  - name: config
+    parent: bluetooth
+    since: "1.11"
+    summary: Value written to a characteristic once on connecting.
+    attributes:
+      - name: char
+        type: string
+        required: true
+        summary: UUID of the characteristic to write.
+        agreement: agreed
+      - name: conversion
+        type: string
+        required: true
+        summary: Conversion turning the element's text into bytes.
+        agreement: agreed

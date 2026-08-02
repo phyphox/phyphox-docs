@@ -55,7 +55,7 @@ The bluetooth block defines an input from a Bluetooth Low Energy device. Please 
 **Available since phyphox file format 1.19 (phyphox 1.2.0)**
 
 ```xml
-<camera x1="FLOAT" x2="FLOAT" y1="FLOAT" y2="FLOAT" autoExposure="BOOLEAN" aeStrategy="STRING" aeFPSTarget="FLOAT" locked="STRING" feature="STRING">
+<camera x1="FLOAT" x2="FLOAT" y1="FLOAT" y2="FLOAT" auto_exposure="BOOLEAN" aeStrategy="STRING" aeFPSTarget="FLOAT" locked="STRING" feature="STRING">
     <output component="t">BUFFER</output>
     <output component="luma">BUFFER</output>
     <output component="luminance">BUFFER</output>
@@ -74,7 +74,7 @@ Get data from the phone's camera(s). At the time of phyphox file format 1.19 (ph
 
 When *feature* is set to "photometric" (the default if you omit this attribute), you can collect various photometric properties from a stream of camera frames. For each frame you will get a single value like luminance or hue. The coordinates x1, y1 and x2, y2 mark a rectangle from the camera image (ranging from 0 to 1 from one edge of the image to the other) that is taken into account to calculate the value.
 
-The remaining attributes control the exposure settings of the camera. *autoExposure* can enable or disable automatic exposure adjustments to adapt the brightness. This auto exposure does not use the phone's internal auto exposure, but is an implementation within phyphox that can be set to use a specific *aeStrategy*. These strategies determine if the the auto exposure should prefer framerate over the ideal exposure or if it should avoid overexposure more aggressively.
+The remaining attributes control the exposure settings of the camera. *auto_exposure* can enable or disable automatic exposure adjustments to adapt the brightness. This auto exposure does not use the phone's internal auto exposure, but is an implementation within phyphox that can be set to use a specific *aeStrategy*. These strategies determine if the the auto exposure should prefer framerate over the ideal exposure or if it should avoid overexposure more aggressively.
 
 The camera input is typically used together with a *camera-gui* view element (see view elements), which shows a preview and allows the user to adjust x1, x2, y1 and y2 along with auto exposure, exposure settings or zoom. In this case, the values set here are just the initial value.
 
@@ -127,7 +127,7 @@ x1, x2, y1, y2
 :   Sets the initial acquisition area, which can still be modified by the user. x1 and x2 describe the horizontal limits and y1 and y2 the vertical ones. The values are floating point values ranging from 0.0 to 1.0, with 0.0 refering to the left/top edge of the image and 1.0 to the right/bottom edge.
 :   *optional*, default: 0.4, 0.6, 0.4, 0.6
 
-autoExposure
+auto_exposure
 :   Determines whether auto exposure is enabled after loading the experiment
 :   *optional*, default: true
 
