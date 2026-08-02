@@ -101,6 +101,21 @@ builds; on Android it is the `AdditionalTag` names each view element accepts fro
 `ioBlockParser`, which are checked with an explicit `at.name.equals(...)` chain ending in
 "Unknown tag". Reading those two lists side by side gives the child set directly.
 
+### Extracting a list of cases from a parser
+
+Two independent traps, both hit while probing the analysis modules:
+
+* **Bound the class by brace depth, not by a byte window.** `analysisBlockParser` ends at line
+  3472; a fixed-size window ran past it and picked up `audio`, `bluetooth`, `data`,
+  `flashlight` and `set` from the parsers that follow.
+* **A `case "..."` is not necessarily an element or module name.** Inside the same class,
+  nested switches match *attribute values*: `sum` is a value of the `map` module's `zMode`,
+  and `linear`, `nearest`, `next`, `previous` are values of `interpolate`'s `method`.
+  Indentation separates the two levels reliably here; context (`= new`, `Mode.`) confirms it.
+
+Of twelve names that first looked like Android-only analysis modules, exactly two were —
+`butterworth` and `imagedecode`, both file format 1.20.
+
 ### Text content is part of the format
 
 Many child elements carry their meaning in their text rather than in an attribute: an

@@ -649,10 +649,12 @@
   affects:
     android: >-
       Declares file format 1.20 (PhyphoxFile.phyphoxFileVersion) and implements
-      camera/aeFPSTarget and graph/interpolateMapColors.
+      camera/aeFPSTarget, graph/interpolateMapColors and the analysis modules
+      butterworth and imagedecode.
     ios: >-
       Declares 1.19 (latestSupportedFileVersion in PhyphoxElementHandler.swift)
-      and implements neither.
+      and implements none of them; ExperimentAnalysisFactory.classMap has neither
+      analysis module.
   summary: >-
     Two attributes introduced with file format 1.20 exist only on Android:
     camera/aeFPSTarget, the target frame rate for the prioritizeFramerate
@@ -661,6 +663,11 @@
     disagreement about the format - iOS simply has not caught up. Note that this
     is invisible to users today, because iOS refuses a file declaring 1.20 with
     the normal "update the app" message; it becomes relevant the moment iOS moves
-    to 1.20 with these unimplemented. The data picker is the third 1.20 feature
-    missing on iOS and is tracked separately as graph-output-data-picker, because
-    it has a sharper failure mode.
+    to 1.20 with these unimplemented. Two analysis modules are missing for the
+    same reason: butterworth, which applies a Butterworth filter's transfer
+    function, and imagedecode, which decodes an encoded image into its dimensions
+    and pixel data. A missing analysis module is the sharpest form of this - an
+    experiment using one does not degrade, it fails to load - so they are worth
+    doing first when iOS moves to 1.20. The data picker is the remaining 1.20
+    feature missing on iOS and is tracked separately as graph-output-data-picker,
+    because it fails even on a file declaring an older version.
