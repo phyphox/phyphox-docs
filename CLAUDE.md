@@ -91,6 +91,34 @@ and the rules common to all modules.
 This structure is deliberately the one phase 3's generator should emit, so that generated pages can
 be diffed against the hand-written ones page by page.
 
+## The site makes no third-party requests
+
+Reading this site must not make a visitor's browser contact anyone but the host serving it. phyphox
+is used in classrooms, largely in Europe, by a publicly funded project — a documentation page is
+not a reason to hand anyone's IP address to a third party.
+
+Three defaults had to be turned off, and each would come back on its own:
+
+- **Google Fonts.** Material requests Roboto from `fonts.googleapis.com` on every page unless
+  `theme.font` is `false`. Any font *name* there reintroduces the request; the site uses the system
+  stack instead.
+- **GitHub stars.** With `repo_url` set, Material mounts a component on
+  `data-md-component="source"` that calls `api.github.com` per page view.
+  `overrides/partials/source.html` is a copy of the theme's partial with that attribute removed —
+  the link and icon stay, only the counts go. **It is a copy, so re-check it against the theme when
+  bumping mkdocs-material.**
+- **The Swagger validator badge.** Swagger UI posts the spec URL to `validator.swagger.io` by
+  default. `mkdocs-swagger-ui-tag` already defaults `validatorUrl` to `none`; do not set it to
+  anything else.
+
+`tools/hooks.py` enforces this in `on_post_build`: it walks the generated site and fails the build
+if any `<link>`, `<script>`, `<img>`, `<iframe>` or CSS `url()`/`@import` points at an absolute URL.
+Ordinary hyperlinks are fine — a visitor choosing to follow one is not the site phoning home — so
+`rel` values that describe a relationship without fetching (`canonical` and friends) are exempt.
+
+If a future feature genuinely needs an external asset, vendor it into `docs/assets` rather than
+relaxing the check.
+
 ## The inconsistency mechanism
 
 phyphox is implemented independently several times over — Android, iOS, the Blockly editor, the

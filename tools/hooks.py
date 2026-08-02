@@ -12,6 +12,8 @@ Responsibilities:
    cannot silently leave a page with a dangling warning.
 4. Apply the same check to the `x-phyphox-inconsistency` keys in the OpenAPI
    description, so the spec and the to-do list cannot drift either.
+5. Fail the build if the generated site would make a visitor's browser fetch
+   anything from a third party.
 """
 
 import os
@@ -209,3 +211,71 @@ def _render_list():
             if e.get("issue"):
                 out.append(f"[Tracking issue]({e['issue']})\n")
     return "\n".join(out)
+
+
+# --------------------------------------------------------------------------
+# No third-party requests
+# --------------------------------------------------------------------------
+#
+# Visitors must be able to read this site without their browser contacting
+# anyone but the host serving it. That is easy to lose by accident: Material
+# pulls Roboto from fonts.googleapis.com unless `font: false` is set, mounts a
+# component that calls api.github.com when repo_url is present, and Swagger UI
+# ships a validator badge that posts the spec URL to validator.swagger.io. All
+# three are switched off - this check is what stops them coming back unnoticed
+# on the next dependency bump.
+#
+# Only *automatic* fetches count. Ordinary hyperlinks are fine; a visitor
+# choosing to follow one is not the site phoning home.
+
+_RESOURCE_TAG = re.compile(
+    r"<(link|script|img|iframe|source|video|audio|embed|object)\b([^>]*)>", re.I)
+_URL_ATTR = re.compile(r"(?:src|href|data)\s*=\s*[\"']([^\"']+)[\"']", re.I)
+_REL_ATTR = re.compile(r"rel\s*=\s*[\"']([^\"']+)[\"']", re.I)
+_CSS_URL = re.compile(r"(?:url\(\s*[\"']?|@import\s+[\"'])(https?:)?//([^)\"'\s]+)")
+
+# rel values that describe a relationship without fetching anything.
+_NON_FETCHING_RELS = {"canonical", "alternate", "author", "license", "me",
+                      "nofollow", "noopener", "noreferrer"}
+
+
+def _is_absolute(url):
+    return url.startswith(("http://", "https://", "//"))
+
+
+def on_post_build(config, **kwargs):
+    site_dir = config["site_dir"]
+    offenders = []
+
+    for root, _, files in os.walk(site_dir):
+        for fn in files:
+            path = os.path.join(root, fn)
+            rel_path = os.path.relpath(path, site_dir)
+            if fn.endswith((".html", ".htm")):
+                with open(path, encoding="utf-8", errors="ignore") as f:
+                    text = f.read()
+                for m in _RESOURCE_TAG.finditer(text):
+                    tag, attrs = m.group(1).lower(), m.group(2)
+                    url = _URL_ATTR.search(attrs)
+                    if not url or not _is_absolute(url.group(1)):
+                        continue
+                    rel = _REL_ATTR.search(attrs)
+                    rels = set((rel.group(1) if rel else "").lower().split())
+                    if rels & _NON_FETCHING_RELS:
+                        continue
+                    offenders.append(f"{rel_path}: <{tag}> {url.group(1)}")
+            elif fn.endswith(".css"):
+                with open(path, encoding="utf-8", errors="ignore") as f:
+                    text = f.read()
+                for m in _CSS_URL.finditer(text):
+                    offenders.append(f"{rel_path}: css url() //{m.group(2)}")
+
+    if offenders:
+        shown = "\n".join(f"  {o}" for o in sorted(set(offenders))[:20])
+        more = len(set(offenders)) - 20
+        raise ValueError(
+            "The built site would make visitors' browsers fetch from a third "
+            "party:\n" + shown
+            + (f"\n  ... and {more} more" if more > 0 else "")
+            + "\n\nEverything the site needs must be served from the site "
+              "itself. See the 'No third-party requests' note in tools/hooks.py.")

@@ -20,6 +20,11 @@ python3 -m venv .venv
 .venv/bin/mkdocs build     # static HTML into site/
 ```
 
+The built site is fully self-contained: reading it makes a visitor's browser
+contact nothing but the host serving it. No web fonts, no analytics, no
+star-count lookups, no CDN. The build fails if that stops being true, so if you
+add something that pulls in an external asset, vendor the asset instead.
+
 CI builds with `--strict`, which turns broken internal links and unknown
 navigation entries into errors, so build that way before pushing:
 

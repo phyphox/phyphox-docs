@@ -1,0 +1,21 @@
+{#-
+  Overrides the theme's partial of the same name.
+
+  The only change is that `data-md-component="source"` is gone. Material mounts
+  a component on that attribute which fetches https://api.github.com/repos/...
+  on every page view, to show star and fork counts next to the repository link.
+  This site must not make visitors' browsers contact a third party, so the mount
+  point is removed; the link and icon are unaffected, only the counts disappear.
+
+  Keep this file in step with the theme's version when upgrading
+  mkdocs-material - it is a copy, not an extension.
+-#}
+<a href="{{ config.repo_url }}" title="{{ lang.t('source') }}" class="md-source">
+  <div class="md-source__icon md-icon">
+    {% set icon = config.theme.icon.repo or "fontawesome/brands/git-alt" %}
+    {% include ".icons/" ~ icon ~ ".svg" %}
+  </div>
+  <div class="md-source__repository">
+    {{ config.repo_name }}
+  </div>
+</a>

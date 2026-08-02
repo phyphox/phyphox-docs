@@ -21,6 +21,14 @@ validation:
 theme:
   name: material
   language: en
+  # overrides/partials/source.html drops the mount point Material uses to fetch
+  # star counts from api.github.com on every page view. See the file for why.
+  custom_dir: overrides
+  # Material otherwise pulls Roboto from fonts.googleapis.com on every page,
+  # which makes every visitor's browser contact Google. This site must not load
+  # anything from a third party, so the system font stack is used instead.
+  # Do not set this to a font name: any value here reintroduces the request.
+  font: false
   features:
     - navigation.instant
     - navigation.tracking
