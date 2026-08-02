@@ -188,6 +188,43 @@ modelled element its parent does not list, fails the build. Verified against the
 omission: deleting the `trigger` element while leaving it in `children:` is now an error.
 That check would have caught two of the three corrections in this section.
 
+### Cross-checking against the documentation
+
+The maintainer's suggestion, and it earned its place immediately.
+`tools/spec_vs_docs.py` mines the documentation pages for XML skeletons and definition-list
+terms and diffs them against the spec. The prose is not authoritative — it has now been
+caught three times naming an attribute no implementation accepts — but a **mismatch is a
+prompt to look again**, and it is the only check that can catch a construct that exists, is
+documented, and was simply not noticed while reading the source.
+
+It found two more documentation bugs of the `autoExposure` kind: `camera-gui` was documented
+as taking `showControls` (four places) where every implementation reads `show_controls`, and
+the graph skeleton had `logy` for `logY`. Both fixed. It also found that the spec described
+the component of an input output as a property rather than naming the `component` attribute
+it actually is.
+
+The reverse direction — in the spec, documented nowhere — turned up four attributes:
+
+| attribute | why it is missing |
+|---|---|
+| `bluetooth/address` | Android-only, already recorded as a divergence |
+| `camera/threshold` | Android-only, already recorded |
+| `edit/editable` | Android-only, already recorded |
+| `bluetooth/output/decimalPoint` | implemented on **both**, documented nowhere |
+
+Three of the four are Android-only attributes, which is a pattern worth noticing: **the
+attribute only one app implements tends to be the attribute nobody documented.** The fourth
+is a plain documentation gap.
+
+Finding `decimalPoint` also demonstrated the Bluetooth hazard before reaching that block.
+It appears nowhere in `PhyphoxFile.java`, because Android's BLE conversion classes read
+their own attributes straight from the parser inside `ConversionsInput.java`. Reading the
+block parser alone would have declared it iOS-only. The BLE block must be modelled from the
+conversion classes outward, not from the element that names them.
+
+The check now runs as part of `mkdocs build --strict`, in the direction that matters:
+documented-but-not-modelled fails the build.
+
 ### Revised projection
 
 262 documented attributes; 187 now modelled — **71% of the format**, leaving roughly 80,

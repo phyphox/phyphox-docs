@@ -18,6 +18,7 @@ Responsibilities:
 
 import os
 import re
+import sys
 
 import yaml
 
@@ -147,7 +148,33 @@ def on_config(config, **kwargs):
     _api_referenced = referenced
 
     _check_spec(entries)
+    _check_spec_against_docs()
     return config
+
+
+def _check_spec_against_docs():
+    """Fail if the documentation describes something the spec does not model.
+
+    The prose is not authoritative, but it is a third pair of eyes: every gap it
+    found in the views block was a real omission. Only this direction fails the
+    build - "in the spec, not in the docs" is usually the docs being behind.
+    """
+    import io
+    import contextlib
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    try:
+        import spec_vs_docs
+    except ImportError:
+        return
+    finally:
+        sys.path.pop(0)
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = spec_vs_docs.main()
+    if rc:
+        raise ValueError("the documentation describes constructs the spec does "
+                         "not model:\n" + buf.getvalue())
 
 
 def _check_spec(entries):

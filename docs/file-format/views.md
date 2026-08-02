@@ -159,7 +159,7 @@ format
 ## View-Element: graph
 
 ```xml
-<graph label="LABEL" aspectRatio="FLOAT" style="STYLE" partialUpdate="BOOLEAN" labelX="LABELX" labelY="LABELY" timeOnX="BOOLEAN" timeOnY="BOOLEAN" linearTime="BOOLEAN" systemTime="BOOLEAN" hideTimeMarkers="BOOLEAN" logX="BOOLEAN" logy="BOOLEAN" xPrecision="INTEGER" yPrecision="INTEGER" minX="0" maxX="0" minY="0" maxY="0" scaleMinX="auto" scaleMaxX="auto" scaleMinY="auto" scaleMaxY="auto" followX="false" lineWidth="1" color="orange" pickLabel="LABEL">
+<graph label="LABEL" aspectRatio="FLOAT" style="STYLE" partialUpdate="BOOLEAN" labelX="LABELX" labelY="LABELY" timeOnX="BOOLEAN" timeOnY="BOOLEAN" linearTime="BOOLEAN" systemTime="BOOLEAN" hideTimeMarkers="BOOLEAN" logX="BOOLEAN" logY="BOOLEAN" xPrecision="INTEGER" yPrecision="INTEGER" minX="0" maxX="0" minY="0" maxY="0" scaleMinX="auto" scaleMaxX="auto" scaleMinY="auto" scaleMaxY="auto" followX="false" lineWidth="1" color="orange" pickLabel="LABEL">
     <input axis="x">XBUFFER</input>
     <input axis="y">YBUFFER</input>
 </graph>
@@ -649,12 +649,12 @@ default
 **Available since phyphox file format 1.19 (phyphox 1.2.0)**
 
 ```xml
-<camera-gui label="LABEL" exposure_adjustment_level="INTEGER" showControls="STRING" grayscale="BOOLEAN" markOverexposure="COLOR" markUnderexposure="COLOR"/>
+<camera-gui label="LABEL" exposure_adjustment_level="INTEGER" show_controls="STRING" grayscale="BOOLEAN" markOverexposure="COLOR" markUnderexposure="COLOR"/>
 ```
 
 This is a preview and control for a camera input, showing a preview of the camera and allowing for selecting an acquisition area and several camera settings. Note that this only makes sense if you also use a camera input in the configuration.
 
-*exposure_adjustment_level* and *showControls* determine which controls are available to the user and when they are shown. In the default experiments of phyphox you typically see *exposure_adjustment_level="3"* and *showControls="full_view_only"*.
+*exposure_adjustment_level* and *show_controls* determine which controls are available to the user and when they are shown. In the default experiments of phyphox you typically see *exposure_adjustment_level="3"* and *show_controls="full_view_only"*.
 
 *grayscale* and the *markOverexposure* and *markUnderexposure* are modifiers that influence the look of the image to make it easier to use for some measurements.
 
@@ -662,7 +662,7 @@ exposure_adjustment_level
 :   This determines which controls are available to the user in three different levels of how much control over the exposure is possible: Level 1 only allows for changing the camera and zoom, but no control over exposure settings. Level 2 is a simplified exposure control, allowing the same as level 1 and adding a toggle to turn auto exposure on or off as well as a simple exposure value control, adjusting for a slight over or underexposure from the auto exposure result. Level 3 finally offers all controls, replacing the exposure value control from level 2 with shutter speed (exposure time), ISO and aperture and also showing the white balance control.
 :   *optional*, default: 1
 
-showControls
+show_controls
 :   This determines when controls are shown. This can assume the following values:
 
     never

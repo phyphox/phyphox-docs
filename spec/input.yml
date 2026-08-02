@@ -107,6 +107,7 @@ elements:
         note: Same as nameFilter; the value is an Android platform constant.
 
     outputs:
+      attribute: component
       required_component: true
       components:
         - {name: x, summary: First component.}
@@ -138,6 +139,7 @@ elements:
         summary: Append to the buffer instead of replacing its contents.
         agreement: agreed
     outputs:
+      attribute: component
       required_component: false
       components:
         - {name: out, required: true, summary: The recorded samples.}
@@ -154,6 +156,7 @@ elements:
     children: [output]
     attributes: []
     outputs:
+      attribute: component
       required_component: true
       components:
         - {name: lat, summary: Latitude.}
@@ -219,6 +222,7 @@ elements:
         inconsistency: input-one-sided-attributes
 
     outputs:
+      attribute: component
       required_component: false
       components:
         - {name: z, required: true, summary: Depth.}
@@ -311,6 +315,7 @@ elements:
         inconsistency: input-one-sided-attributes
 
     outputs:
+      attribute: component
       required_component: true
       components:
         - {name: t, summary: Timestamp.}

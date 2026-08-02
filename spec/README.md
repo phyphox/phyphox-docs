@@ -64,6 +64,17 @@ belong to any one block — how to treat an invalid enumerated value, whether en
 folds case, whether output components are validated. Answering those once is what keeps the
 decision count from growing with the attribute count.
 
+### The documentation is a third opinion, and it is checked
+
+`tools/spec_vs_docs.py` diffs the spec against the documentation pages and runs as part of
+`mkdocs build --strict`. Anything the docs describe that the spec does not model fails the
+build. The other direction is reported but tolerated — the docs are often behind, and being
+behind is not a modelling error.
+
+The prose is not a source: it has been caught three times naming an attribute no
+implementation accepts (`autoExposure`, `showControls`, `logy`). Its value is as an
+independent list of what exists.
+
 ### Child elements are checked, not trusted
 
 `tools/hooks.py` fails the build if an element declares a child in `children:` that is not
