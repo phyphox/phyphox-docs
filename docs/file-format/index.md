@@ -1,6 +1,13 @@
 # Phyphox file format
 
-*This page is highly technical. Most users will want [the visual experiment editor](../editor/index.md) instead.*
+!!! tip "There is a visual editor for this"
+
+    Experiment configurations do not have to be written by hand. The
+    [phyphox experiment editor](https://phyphox.org/editor) assembles them from
+    blocks in the browser and generates a QR code to get the result onto a
+    phone. The pages here describe the format it writes, which is what you need
+    if you want control over details the editor does not expose — or if you
+    simply prefer a text editor.
 
 This page is highly technical and meant for advanced users who want to control every minute detail of their experiment. On this page you will learn, how the phyphox file format works and how to create a phyphox experiment - all you need is a text editor. Some experience about the XML format is recommended.
 

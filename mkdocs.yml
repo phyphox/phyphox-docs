@@ -1,7 +1,7 @@
 site_name: phyphox documentation
 site_description: >-
-  Technical documentation for phyphox - the experiment file format, the
-  remote-interface API and the experiment editor.
+  Technical documentation for phyphox - the experiment file format and the
+  remote-interface API.
 site_url: https://phyphox.org/docs/
 repo_url: https://github.com/phyphox/phyphox-docs
 edit_uri: edit/main/docs/

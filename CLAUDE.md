@@ -21,7 +21,15 @@ contracts themselves.
 
 ## Scope — what belongs here and what does not
 
-This site covers **the app itself**: the file format, the remote interface and the editor.
+This site covers **the app itself**: the file format and the remote interface.
+
+The **experiment editor is not documented here**, only linked to at
+<https://phyphox.org/editor>. It is a tool for producing files in this format rather than part of
+the format, it carries its own context help, and the page that came across from the wiki was three
+paragraphs of link — so the landing page and the file-format index each carry a tip pointing at it
+and nothing more. If the editor ever needs real documentation, note that phase 5 makes it consume
+the format spec, so that documentation would belong with the spec rather than in a section of its
+own.
 
 It deliberately does **not** cover individual experiments, phone sensors, or specific Bluetooth
 devices. That material stays on the MediaWiki at phyphox.org/wiki, which remains live for it. The
@@ -121,8 +129,10 @@ auditability, not because it should run again:
   content** unless given `--force`. That guard exists because re-running silently discards every
   hand edit made since — it destroyed edits twice during the initial import.
 
-Of the wiki's 83 pages, 9 migrated. The rest are community content that stays on the wiki, apart
-from the archived pre-Blockly editor page, which is dropped entirely (`SKIP`).
+Of the wiki's 83 pages, 9 migrated and 8 survive — the editor page was dropped afterwards, see
+Scope. The rest are community content that stays on the wiki, apart from the archived pre-Blockly
+editor page, which was never imported at all (`SKIP`). `SECTIONS` still lists the editor page,
+because it records what the import did; do not prune it to match the current state.
 
 The wiki kept every release on one 66 KB "Version history" page. `split_version_history()` breaks
 it into `docs/reference/version-history/<version>.md`, leaving the intro and overview table on the
@@ -133,8 +143,8 @@ page, and relative links in the extracted body need an extra `../` because the p
 directory deeper.
 
 `tools/optimize_images.py` keeps `docs/assets` from accumulating camera-resolution photographs;
-run it after adding images. The directory is currently empty — every image on the wiki belonged to
-a community page — but the editor documentation will want screenshots eventually.
+run it after adding images. The directory is currently empty: every image on the wiki belonged to a
+community page, and this site has had no reason to add one since.
 
 `MIGRATION-REPORT.md` records per-page conversion notes and the wiki links that had no destination
 in the new structure. It is a review aid for the import, not living documentation; delete it once

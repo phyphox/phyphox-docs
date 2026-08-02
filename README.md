@@ -1,7 +1,7 @@
 # phyphox-docs
 
 The technical documentation for [phyphox](https://phyphox.org): the experiment
-file format, the remote-interface API and the experiment editor.
+file format and the remote-interface API.
 
 Built with [MkDocs](https://www.mkdocs.org/) and
 [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/), deployed as
@@ -40,7 +40,6 @@ docs/                   the pages themselves
     views.md            /
     analysis/           the analysis block, one page per module category
   remote-interface/     the REST API
-  editor/               the Blockly editor
   reference/            version history (one page per release),
                         known inconsistencies
 inconsistencies.yml     known divergences between the implementations
@@ -52,8 +51,12 @@ tools/optimize_images.py  keeps images in docs/assets from being committed
 
 ## Scope
 
-This site documents **the app itself**: the experiment file format, the remote
-interface, and the editor.
+This site documents **the app itself**: the experiment file format and the
+remote interface.
+
+The [experiment editor](https://phyphox.org/editor) is only linked to, not
+documented here — it is a tool for producing files in this format, and its own
+help is reachable from inside it.
 
 It deliberately does not cover individual experiments, phone sensors or specific
 Bluetooth devices. That material stays on the [phyphox wiki](https://phyphox.org/wiki),

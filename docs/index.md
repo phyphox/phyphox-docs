@@ -5,6 +5,14 @@ measuring instruments. What the app does in any given experiment is described
 entirely by an experiment configuration file — so anyone can write their own
 experiments, and this documentation exists to describe exactly how.
 
+!!! tip "You may not need to write XML at all"
+
+    Experiment configurations can be created visually with the
+    [phyphox experiment editor](https://phyphox.org/editor), which assembles
+    them from blocks in the browser and generates a QR code to get the result
+    onto a phone. This site documents the underlying format, which the editor
+    writes for you.
+
 ## Start here
 
 - **[The experiment file format](file-format/index.md)** — the XML format that
@@ -21,8 +29,8 @@ experiments, and this documentation exists to describe exactly how.
 
 - **[The remote interface](remote-interface/index.md)** — control a running
   experiment and stream its data over HTTP.
-- **[The experiment editor](editor/index.md)** — build experiments visually,
-  without writing XML by hand.
+- **[The experiment editor](https://phyphox.org/editor)** — build experiments
+  visually, without writing XML by hand.
 - **[Transferring experiments](transferring-experiments.md)** — getting an
   experiment onto a phone.
 
