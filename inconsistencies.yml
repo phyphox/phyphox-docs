@@ -673,3 +673,36 @@
     doing first when iOS moves to 1.20. The data picker is the remaining 1.20
     feature missing on iOS and is tracked separately as graph-output-data-picker,
     because it fails even on a file declaring an older version.
+
+- id: ios-hyperbolic-modules-compute-trig
+  title: sinh, cosh and tanh compute sin, cos and tan on iOS
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Correct. analysisBlockParser maps sinh, cosh and tanh to their own
+      implementations (PhyphoxFile.java).
+    ios: >-
+      Wrong. ExperimentAnalysisFactory.classMap contains
+      "sinh": SinAnalysis.self, "cosh": CosAnalysis.self and
+      "tanh": TanAnalysis.self, so each hyperbolic module runs the ordinary
+      trigonometric one. SinhAnalysis, CoshAnalysis and TanhAnalysis exist and
+      correctly call vvsinh, vvcosh and vvtanh, but are referenced nowhere
+      outside their own files.
+  summary: >-
+    An experiment using sinh, cosh or tanh produces silently wrong numbers on
+    iOS: it computes the ordinary trigonometric function instead. There is no
+    error, nothing in the interface to indicate it, and the result is plausible
+    enough to be mistaken for data. Because the substituted modules also honour
+    the deg attribute, sinh with deg="true" additionally converts the input from
+    degrees to radians before taking its sine, which the hyperbolic function
+    would never do.
+
+    This is not a disagreement about the format - all three modules are
+    documented and Android implements them correctly. It is recorded here rather
+    than fixed unilaterally only because that is the rule; there is no real
+    question about what the correct behaviour is.
+
+    No bundled experiment uses these modules, so the exposure is limited to
+    user-written and community experiments, which cannot be surveyed from here.
+    The fix is three lines in classMap and the correct classes already exist.
