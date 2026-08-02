@@ -58,6 +58,12 @@ plausible:
 | `undecided` | They differ and nobody has chosen. Also requires `inconsistency:`. |
 | `platform` | Deliberately one-sided, because the feature only exists on one platform. Requires `platforms:`. |
 
+Where the entry has been **decided**, the attribute also carries `rules:` naming the
+rule in `rules.yml` that settles it. `rules.yml` holds the questions that turned out not to
+belong to any one block — how to treat an invalid enumerated value, whether enum matching
+folds case, whether output components are validated. Answering those once is what keeps the
+decision count from growing with the attribute count.
+
 `platform` must not become a dumping ground for divergences nobody wants to think about.
 An attribute one parser silently ignores is `divergent`, not `platform`, unless there is a
 reason it *cannot* exist on the other side.

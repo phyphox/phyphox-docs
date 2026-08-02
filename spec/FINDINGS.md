@@ -27,6 +27,21 @@ Plus all 5 output-component sets, which diverge for the same single reason.
 | `input-invalid-enum-handling` — invalid enum value: refuse the file, or silently use the default? | 2 |
 | `input-enum-case-sensitivity` — is `mode="Closest"` the same as `mode="closest"`? | 2 |
 
+**Three of the four have since been decided** (2026-08-02), and are written up as
+format-wide rules in `rules.yml`:
+
+| question | decision |
+|---|---|
+| invalid enumerated value | Reject the file. Silent substitution is not permitted. |
+| enum case sensitivity | Match case-insensitively, so long as no allowed set collides once folded — none does. Keeps files that already work on Android working. |
+| output component validation | Validate names and counts, reject on mismatch. |
+
+The fourth, `input-one-sided-attributes`, is case by case: each of the six attributes needs
+its own answer about whether the feature should exist on both platforms.
+
+That the three decidable questions all turned out to be *format-wide* — and were answered in
+one exchange — is the strongest evidence for the estimate below.
+
 That ratio is the finding. Roughly one attribute in five raises a question, but **the
 questions repeat**. Three of the four are policy questions about the format as a whole, not
 about the `input` block, and answering them once resolves the same issue everywhere it
@@ -78,7 +93,9 @@ fourth opinion, not as input.
 
 ## Suggested sequence, if this goes ahead
 
-1. Decide the four questions above. Three are format-wide and unblock everything else.
+1. ~~Decide the four questions above.~~ Done for three; `input-one-sided-attributes` is
+   case by case and does not block modelling, since each attribute can carry `undecided`
+   until its turn comes.
 2. Model `output` (3 attributes) and `views` (100) next — `views` is the largest block and
    the least like `input`, so it will either confirm the estimate or break it early.
 3. Only then write the generator. Generating reference pages from a spec that is still

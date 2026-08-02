@@ -25,6 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(ROOT, "inconsistencies.yml")
 LIST_PAGE = "reference/known-inconsistencies.md"
 OPENAPI = os.path.join(ROOT, "docs", "remote-interface", "openapi.yaml")
+SPEC_DIR = os.path.join(ROOT, "spec")
 
 MARKER = re.compile(r"\{\{inconsistency:([a-z0-9-]+)\}\}")
 
@@ -144,7 +145,68 @@ def on_config(config, **kwargs):
     referenced = {ref for _, ref in _walk_extension(spec)}
     global _api_referenced
     _api_referenced = referenced
+
+    _check_spec(entries)
     return config
+
+
+def _check_spec(entries):
+    """Keep spec/ and inconsistencies.yml in step.
+
+    The format spec references divergences by id and the rules reference them
+    back; without this a renamed entry would leave either pointing at nothing,
+    and nobody reads three YAML files side by side often enough to notice.
+    """
+    if not os.path.isdir(SPEC_DIR):
+        return
+
+    problems = []
+    rules_path = os.path.join(SPEC_DIR, "rules.yml")
+    rule_ids = set()
+    if os.path.exists(rules_path):
+        with open(rules_path) as f:
+            doc = yaml.safe_load(f) or {}
+        for rule in doc.get("rules") or []:
+            rule_ids.add(rule["id"])
+            ref = rule.get("inconsistency")
+            if ref and ref not in entries:
+                problems.append(f"rules.yml: rule {rule['id']} names unknown "
+                                f"inconsistency {ref}")
+            elif ref and entries[ref].get("status") != "decided":
+                problems.append(
+                    f"rules.yml: rule {rule['id']} states settled behaviour but "
+                    f"{ref} is status '{entries[ref].get('status')}' - a rule may "
+                    f"only exist once the divergence has been decided")
+        for q in doc.get("open_questions") or []:
+            ref = q.get("inconsistency")
+            if ref and ref not in entries:
+                problems.append(f"rules.yml: open question names unknown "
+                                f"inconsistency {ref}")
+
+    for fn in sorted(os.listdir(SPEC_DIR)):
+        if not fn.endswith(".yml") or fn == "rules.yml":
+            continue
+        with open(os.path.join(SPEC_DIR, fn)) as f:
+            doc = yaml.safe_load(f) or {}
+        for element in doc.get("elements") or []:
+            holders = list(element.get("attributes") or [])
+            if element.get("outputs"):
+                holders.append(element["outputs"])
+            for h in holders:
+                where = f"{fn}: {element['name']}/{h.get('name', '<outputs>')}"
+                ref = h.get("inconsistency")
+                if h.get("agreement") in ("divergent", "undecided") and not ref:
+                    problems.append(f"{where}: agreement '{h['agreement']}' "
+                                    f"requires an inconsistency id")
+                if ref and ref not in entries:
+                    problems.append(f"{where}: unknown inconsistency {ref}")
+                for r in h.get("rules") or []:
+                    if r not in rule_ids:
+                        problems.append(f"{where}: unknown rule {r}")
+
+    if problems:
+        raise ValueError("spec/ is out of step with inconsistencies.yml:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 _api_referenced = set()

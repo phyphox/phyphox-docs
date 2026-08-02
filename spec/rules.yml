@@ -1,0 +1,107 @@
+# Rules that hold across the whole file format.
+#
+# The probe on the input block found that most questions raised while modelling
+# it were not about that block at all - they were about how parsers should behave
+# in general. Answering them once settles the same question wherever it appears,
+# which is why they live here rather than being repeated per attribute.
+#
+# Each rule names the inconsistency entry that recorded the divergence, so the
+# rule and the to-do list cannot drift apart.
+
+rules:
+
+  - id: enum-invalid-value
+    decided: 2026-08-02
+    inconsistency: input-invalid-enum-handling
+    summary: An enumerated attribute whose value is not allowed is an error.
+    rule: >-
+      A parser must reject the experiment file when an enumerated attribute
+      carries a value outside its allowed set. Silently substituting the default
+      is not permitted: it produces an experiment that differs from what its
+      author wrote, with nothing to indicate it, and the file will fail to load
+      for users on the other platform anyway.
+    applies_to: "every attribute with type: enum"
+    state:
+      android: >-
+        Already conforms for sensor/rateStrategy, camera/aeStrategy and
+        camera/feature.
+      ios: >-
+        Does not conform. rateStrategy uses `try?`, aeStrategy uses
+        `(try? ...) ?? .mean`, and CameraFeature's own `init?(rawValue:)` returns
+        .PHOTOMETRIC rather than nil for an unrecognised value, so it can never
+        signal failure - that initialiser has to change shape, not just its
+        default.
+
+  - id: enum-case-insensitive
+    decided: 2026-08-02
+    inconsistency: input-enum-case-sensitivity
+    summary: Enumerated values are matched without regard to case.
+    rule: >-
+      A parser folds case before matching an enumerated value, so `Closest` and
+      `closest` are the same value. This holds as long as no allowed set contains
+      two values differing only in case; none does today, and none may be
+      introduced. New enumerations should be all-lowercase by preference.
+    rationale: >-
+      Configurations in circulation already rely on this, because Android folds
+      case for depth/mode and camera/feature. Matching case-sensitively would
+      break files that work today, which is the opposite of what the strictness
+      in enum-invalid-value is for.
+    ordering: >-
+      Case folding happens BEFORE the rejection rule. A parser that rejects first
+      and folds second would refuse `mode="Closest"`, which is exactly the file
+      this rule exists to keep working.
+    applies_to: "every attribute with type: enum"
+    state:
+      android: >-
+        Conforms for depth/mode and camera/feature, which are lowercased before
+        matching. Does not conform for sensor/rateStrategy (Enum.valueOf) or
+        camera/aeStrategy (a case-sensitive switch) - so Android is currently
+        inconsistent with itself.
+      ios: >-
+        Does not conform anywhere; every enumerated value is matched against the
+        raw string.
+    check: >-
+      Before adding an enumeration to the spec, verify its values do not collide
+      once case-folded. Checked for the input block: 7 enumerated attributes, no
+      collisions, and only camera/aeStrategy uses values that are not already
+      all-lowercase.
+
+  - id: output-component-validation
+    decided: 2026-08-02
+    inconsistency: input-output-component-validation
+    summary: Component names and counts on outputs are validated, and a mismatch rejects the file.
+    rule: >-
+      A parser checks the `component` attribute of each output against the list
+      allowed for the element it belongs to, enforces the minimum and maximum
+      number of outputs per component, and rejects the file when either fails.
+      An output whose component the element does not define is an error, not
+      something to drop.
+    applies_to: >-
+      outputs of every input element, and by extension the same mapping mechanism
+      wherever it appears in the format.
+    state:
+      android: >-
+        Already conforms, via the ioMapping tables passed to ioBlockParser.
+      ios: >-
+        Does not conform. SensorOutputElementHandler accepts any component name,
+        defaults a missing one to the string "output" - which matches no
+        element's component list - and applies no counts. Unrecognised components
+        are dropped later without an error.
+    migration: >-
+      Making iOS strict can stop a file loading that loads there today. The
+      exposure is limited: any file Android accepts is already valid by this
+      rule, so only experiments written and tested on iOS alone are at risk, and
+      those are already misbehaving - a misspelled component gives them an empty
+      buffer. Worth a pass over the bundled experiment collection with the
+      stricter parser before the release that carries it.
+
+# Still open, deliberately. Unlike the three above, this one does not reduce to a
+# single rule: each attribute needs its own answer about whether the feature
+# should exist on both platforms or is genuinely one-sided.
+open_questions:
+  - inconsistency: input-one-sided-attributes
+    note: >-
+      Decided case by case. Six attributes in the input block are honoured by one
+      app and ignored by the other: camera/aeFPSTarget, camera/threshold,
+      bluetooth/address and bluetooth/mtu (Android only), depth/smooth and
+      bluetooth/id (iOS only).

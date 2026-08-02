@@ -6,7 +6,10 @@
 #   editor   src/blocks/input/*.ts                     (where a block exists)
 #   docs     docs/file-format/input.md
 #
-# `agreement:` records what that comparison found. See README.md.
+# `agreement:` records what that comparison found. See README.md. Where an entry
+# has since been decided, `rules:` names the rule in rules.yml that settles it -
+# so this file states the agreed behaviour of the format, not just the fact that
+# two apps disagree today.
 
 block: input
 since: "1.0"
@@ -61,6 +64,7 @@ elements:
         summary: How to reconcile the requested rate with what the device offers.
         agreement: divergent
         inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
 
       - name: average
         type: boolean
@@ -113,6 +117,7 @@ elements:
         - {name: accuracy, summary: Device-reported accuracy, where available.}
       agreement: divergent
       inconsistency: input-output-component-validation
+      rules: [output-component-validation]
 
   # ------------------------------------------------------------------ audio --
   - name: audio
@@ -139,6 +144,7 @@ elements:
         - {name: rate, summary: The rate actually achieved.}
       agreement: divergent
       inconsistency: input-output-component-validation
+      rules: [output-component-validation]
 
   # --------------------------------------------------------------- location --
   - name: location
@@ -163,6 +169,7 @@ elements:
         - {name: satellites, summary: Number of satellites in view.}
       agreement: divergent
       inconsistency: input-output-component-validation
+      rules: [output-component-validation]
 
   # ------------------------------------------------------------------ depth --
   - name: depth
@@ -178,6 +185,7 @@ elements:
         summary: How to reduce the depth values in the selected region to one number.
         agreement: divergent
         inconsistency: input-enum-case-sensitivity
+        rules: [enum-case-insensitive, enum-invalid-value]
 
       - name: x1
         type: float
@@ -217,6 +225,7 @@ elements:
         - {name: t, summary: Timestamp.}
       agreement: divergent
       inconsistency: input-output-component-validation
+      rules: [output-component-validation]
 
   # ----------------------------------------------------------------- camera --
   - name: camera
@@ -263,6 +272,7 @@ elements:
         summary: What phyphox's auto exposure should optimise for.
         agreement: divergent
         inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
 
       - name: aeFPSTarget
         type: float
@@ -291,6 +301,7 @@ elements:
         summary: Which analysis the camera input performs.
         agreement: divergent
         inconsistency: input-enum-case-sensitivity
+        rules: [enum-case-insensitive, enum-invalid-value]
 
       - name: threshold
         type: float
@@ -315,6 +326,7 @@ elements:
         - {name: pixelPosition, summary: Position within the spectrum.}
       agreement: divergent
       inconsistency: input-output-component-validation
+      rules: [output-component-validation]
 
   # -------------------------------------------------------------- bluetooth --
   - name: bluetooth

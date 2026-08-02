@@ -448,7 +448,14 @@
 - id: input-invalid-enum-handling
   title: What happens when an enumerated attribute has an invalid value
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Reject the file. An enumerated attribute carrying a value outside its allowed set
+    is an error, and the experiment must not load. Android already behaves this way;
+    iOS must stop substituting the default. Note that CameraFeature's init?(rawValue:)
+    on iOS returns .PHOTOMETRIC for anything unrecognised and so can never report
+    failure - it has to change shape, not just its fallback. See spec/rules.yml,
+    rule enum-invalid-value.
   affects:
     android: >-
       Refuses the file. sensor/rateStrategy throws "Invalid rate strategy.",
@@ -471,7 +478,17 @@
 - id: input-enum-case-sensitivity
   title: Case sensitivity of enumerated attribute values
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Enumerated values are matched case-insensitively, so mode="Closest" and
+    mode="closest" are the same. This keeps configurations working that already rely
+    on it, since Android folds case for depth/mode and camera/feature today. It holds
+    only as long as no allowed set contains two values differing only in case; none
+    does, and none may be introduced. Android must extend the folding to
+    sensor/rateStrategy and camera/aeStrategy, which it currently matches case
+    sensitively; iOS must fold everywhere. Case folding happens before the rejection
+    required by input-invalid-enum-handling, or the very files this rule protects
+    would be refused. See spec/rules.yml, rule enum-case-insensitive.
   affects:
     android: >-
       Lowercases the value before matching for depth/mode and camera/feature, so
@@ -501,8 +518,11 @@
       attribute list but never uses the value; does not read camera/aeFPSTarget,
       camera/threshold or bluetooth/address.
   summary: >-
-    Six attributes in the input block are honoured by one app and ignored by the
-    other, with nothing in the file to say so. An experiment using them behaves
+    Decided case by case: unlike the three other questions the input block raised,
+    this one does not reduce to a single rule, because each attribute needs its
+    own answer about whether the feature should exist on both platforms or is
+    genuinely one-sided. Six attributes in the input block are honoured by one app
+    and ignored by the other, with nothing in the file to say so. An experiment using them behaves
     differently on the two platforms without any error, which is the hardest kind
     of difference for an author to notice. These are distinct from genuinely
     platform-specific attributes such as sensor/nameFilter, where the underlying
@@ -513,7 +533,16 @@
 - id: input-output-component-validation
   title: Validation of the component attribute on input outputs
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Validate and reject. A parser checks each output's component attribute against
+    the list allowed for its element, enforces the minimum and maximum counts, and
+    refuses the file when either fails; an unrecognised component is an error rather
+    than something to drop. Android already conforms. iOS must implement it, which
+    can stop a file loading that loads there today - the exposure is limited to
+    experiments written and tested on iOS alone, which are already misbehaving, but
+    the bundled collection is worth a pass with the stricter parser before the
+    release that carries it. See spec/rules.yml, rule output-component-validation.
   affects:
     android: >-
       Checks the component name against the list allowed for that input and
