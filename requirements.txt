@@ -2,3 +2,11 @@
 mkdocs-material==9.7.7
 mkdocs-awesome-nav==3.3.0
 PyYAML==6.0.3
+
+# Renders docs/remote-interface/openapi.yaml. Vendors Swagger UI itself, so the
+# built site loads no scripts from a CDN.
+mkdocs-swagger-ui-tag==0.8.1
+
+# tools/hooks.py validates openapi.yaml during the build, so an invalid spec
+# fails `mkdocs build --strict` instead of producing a broken reference page.
+openapi-spec-validator==0.9.0

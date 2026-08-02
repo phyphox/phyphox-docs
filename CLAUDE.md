@@ -119,6 +119,45 @@ When adding an entry, cite where each behaviour was observed (file and symbol), 
 can re-verify rather than trust the file. Deciding the canonical behaviour is **the maintainer's
 call, not yours** — record the divergence with `status: open` and surface it; do not pick a winner.
 
+## The REST API is specified, not described
+
+`docs/remote-interface/openapi.yaml` is the source of truth for the remote-interface API. It was
+written by reading `RemoteServer.java` and `ExperimentWebServer.swift`, not by transcribing the
+prose page, and the header records the two revisions it was derived from. Three things consume it:
+
+- `docs/remote-interface/api-reference.md` renders it with Swagger UI (`mkdocs-swagger-ui-tag`,
+  which vendors its own copy — the built site loads nothing from a CDN);
+- `tools/hooks.py` validates it on every build, so an invalid spec fails `--strict` rather than
+  producing a broken reference page;
+- `tools/contract_test.py` validates live responses against its schemas.
+
+`docs/remote-interface/index.md` stays as the narrative introduction. When the two disagree the
+spec wins, and the prose should be corrected — it already carried one factual error (`countDown`
+documented in seconds when both apps have always sent milliseconds).
+
+Operations where the implementations diverge carry `x-phyphox-inconsistency: [id, …]`. The build
+fails if such an id is not in `inconsistencies.yml`, the same guarantee the `{{inconsistency:…}}`
+markers get. Do not describe a divergence in the spec's prose instead of recording it — the entry
+is what puts it on the to-do list.
+
+### The contract test
+
+`tools/contract_test.py` runs one set of requests against a running Android and a running iOS
+instance and diffs the responses. Two design points are worth keeping:
+
+- **It compares shape, not values.** Two phones cannot produce the same measurements, device names
+  or timestamps. What must match is keys, types, enum choices, status codes and content types.
+  Booleans *are* compared by value, because `{"result": true}` vs `false` is the entire answer of
+  `/control` — collapsing it to a type once hid the `control-set-infinity` divergence during
+  development. `VOLATILE` lists the paths exempted from this.
+- **Recorded divergences pass; unrecorded ones fail.** A probe names the inconsistency ids it
+  expects to trip. This is what makes the test usable against implementations known to disagree in
+  a dozen places: it reports the backlog and fails only on something new.
+
+`tools/fake_phyphox.py` serves both platforms' quirks locally so the script can be exercised
+without hardware. It is a fixture for testing the test — not a third implementation of phyphox, not
+authoritative, and always the thing that is wrong if it disagrees with an app.
+
 ## The wiki migration
 
 `tools/migrate_wiki.py` imported the old MediaWiki (83 pages, 109 uploaded files). It is kept for

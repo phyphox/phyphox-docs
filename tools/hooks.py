@@ -10,6 +10,8 @@ Responsibilities:
    to-do list can never drift from the inline warnings.
 3. Fail the build on a marker referencing an unknown id, so a renamed entry
    cannot silently leave a page with a dangling warning.
+4. Apply the same check to the `x-phyphox-inconsistency` keys in the OpenAPI
+   description, so the spec and the to-do list cannot drift either.
 """
 
 import os
@@ -20,6 +22,7 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(ROOT, "inconsistencies.yml")
 LIST_PAGE = "reference/known-inconsistencies.md"
+OPENAPI = os.path.join(ROOT, "docs", "remote-interface", "openapi.yaml")
 
 MARKER = re.compile(r"\{\{inconsistency:([a-z0-9-]+)\}\}")
 
@@ -84,6 +87,61 @@ def _admonition(entry, link_prefix=""):
 
     return (f'!!! {kind} "{heading}: {entry["title"]}"\n\n'
             + _indent("\n\n".join(body)) + "\n")
+
+
+def _walk_extension(node, path=""):
+    """Yield (json-pointer-ish path, id) for every x-phyphox-inconsistency."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == "x-phyphox-inconsistency":
+                for ref in (value if isinstance(value, list) else [value]):
+                    yield path, ref
+            else:
+                yield from _walk_extension(value, f"{path}/{key}")
+    elif isinstance(node, list):
+        for i, item in enumerate(node):
+            yield from _walk_extension(item, f"{path}[{i}]")
+
+
+def on_config(config, **kwargs):
+    """Check the OpenAPI description against inconsistencies.yml before building.
+
+    The spec marks the operations where the implementations disagree; without
+    this check a renamed or deleted entry would leave the spec pointing at
+    nothing, and nobody reads a YAML file closely enough to notice.
+    """
+    if not os.path.exists(OPENAPI):
+        return config
+
+    entries = _load()
+    with open(OPENAPI) as f:
+        spec = yaml.safe_load(f)
+
+    # An invalid spec means a wrong reference page, so fail the docs build on it
+    # rather than shipping whatever Swagger UI makes of a broken document.
+    try:
+        from openapi_spec_validator import validate as _validate_openapi
+    except ImportError:
+        raise ValueError(
+            "openapi-spec-validator is not installed, so openapi.yaml cannot be "
+            "checked. Install requirements.txt.")
+    _validate_openapi(spec)
+
+    unknown = [(where, ref) for where, ref in _walk_extension(spec)
+               if ref not in entries]
+    if unknown:
+        raise ValueError(
+            "openapi.yaml references unknown inconsistency ids:\n"
+            + "\n".join(f"  {where}: {ref}" for where, ref in unknown)
+            + f"\nKnown ids: {', '.join(sorted(entries))}")
+
+    referenced = {ref for _, ref in _walk_extension(spec)}
+    global _api_referenced
+    _api_referenced = referenced
+    return config
+
+
+_api_referenced = set()
 
 
 def on_page_markdown(markdown, page, config, files, **kwargs):

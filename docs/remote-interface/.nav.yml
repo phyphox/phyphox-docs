@@ -1,0 +1,5 @@
+# The narrative page introduces the API; the reference is generated from
+# openapi.yaml and is the authoritative description.
+nav:
+  - index.md
+  - api-reference.md

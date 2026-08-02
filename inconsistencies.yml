@@ -41,3 +41,267 @@
     app accepts GET only. The web interface bundled with both apps issues GET
     exclusively, so this does not affect normal use - but a script written against
     the Android behaviour will fail against iOS.
+
+- id: cors-header
+  title: Access-Control-Allow-Origin on every response
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Adds "Access-Control-Allow-Origin: *" to every response
+      (RemoteServer.java, respond()).
+    ios: >-
+      Sends no CORS header at all
+      (ExperimentWebServer.swift; GCDWebServer adds none by default).
+  summary: >-
+    A web page served from anywhere else can read the API of an Android phone but
+    not of an iPhone, because only Android sends a CORS header. This is invisible
+    to the bundled interface, which is served by the phone itself, but it decides
+    whether a browser-based client can work at all - so a tool built and tested
+    against Android fails against iOS with an opaque browser error.
+
+- id: get-no-parameters
+  title: /get without any parameters
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Returns 200 with an empty buffer object and a normal status object
+      (RemoteServer.java, getBufferRequests() returns an empty set).
+    ios: >-
+      Returns 400 with an empty body
+      (ExperimentWebServer.swift, "guard let queryString = request.url.query").
+  summary: >-
+    Requesting /get with no buffers - the natural way to poll only the experiment
+    status, for instance to watch for a session change - works on Android and
+    fails on iOS.
+
+- id: get-nonfinite-single-value
+  title: NaN and infinity in a single-value response
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Emits JSON null for a non-finite value in every update mode
+      (RemoteServer.java, buildBuffer()).
+    ios: >-
+      Emits JSON null in full and partial mode, but a JSON *string* ("nan",
+      "inf", "-inf") for a non-finite last value in single mode
+      (ExperimentWebServer.swift, "dict[\"buffer\"] = [String(v)]").
+  summary: >-
+    A buffer whose last value is NaN or infinite comes back as [null] from Android
+    and as ["nan"] from iOS. A client that parses the array as numbers throws on
+    iOS. Both platforms agree on null everywhere else, which is what makes this
+    easy to miss - it only shows up in single-value mode, and only once a
+    non-finite value occurs.
+
+- id: get-force-full-update
+  title: Which requests are upgraded to a full update after a clear
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      After data is cleared, the next /get upgrades *every* requested buffer to a
+      full update, whatever the request asked for
+      (RemoteServer.java, parseBufferRequest(), "value.equals(\"full\") || forceFullUpdate").
+    ios: >-
+      Upgrades only those buffers whose requested value is the literal string
+      "partial"
+      (ExperimentWebServer.swift, "value == \"full\" || (value == \"partial\" && self.forceFullUpdate)").
+  summary: >-
+    After the experiment data is cleared the server has to tell clients to discard
+    what they hold, which it does by answering the next request with a full
+    update. The two apps disagree on which requests get that treatment, and the
+    iOS condition only triggers for the undocumented literal value "partial",
+    which the bundled interface happens to send. A threshold-based client - the
+    form this API documents - is never told about the clear on iOS and keeps
+    stale data.
+
+- id: get-unknown-reference-buffer
+  title: Threshold referencing a buffer that does not exist
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Dereferences the missing buffer and throws, so the request fails with a
+      server error
+      (RemoteServer.java, buildBuffer(), "experiment.getBuffer(buffer.reference)"
+      may return null).
+    ios: >-
+      Returns 400
+      (ExperimentWebServer.swift, "guard let extraBuffer = self.experiment.buffers[extra]").
+  summary: >-
+    Asking for "?abc=42|nosuchbuffer" is rejected cleanly on iOS and crashes the
+    request handler on Android. Note that an unknown buffer in the *requested*
+    position is ignored by both, so only the reference position behaves this way.
+
+- id: control-clear-groups
+  title: Clear groups on /control?cmd=clear
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Reads clearGroup1, clearGroup2, ... and clears only those groups
+      (RemoteServer.java, handleControl(), case "clear").
+    ios: >-
+      Ignores the parameters and always clears everything
+      (ExperimentWebServer.swift, "self.delegate!.clearData()" takes no arguments).
+  summary: >-
+    Clear groups let an experiment keep calibration data or settings when the user
+    clears measurement data. Android honours them over the remote interface; iOS
+    silently clears everything instead, which destroys exactly the data the
+    feature exists to protect. The iOS app also does not yet serve the clearGroups
+    list its web interface needs, and its phyphox-webinterface submodule still
+    points at a revision from before the feature - so the divergence is currently
+    invisible in the bundled UI and will surface the moment that pointer is
+    bumped.
+
+- id: control-set-infinity
+  title: Writing an infinite value with cmd=set
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Rejects NaN only, so "value=Infinity" is parsed by Double.valueOf and
+      written to the buffer
+      (RemoteServer.java, handleControl(), case "set").
+    ios: >-
+      Rejects anything not finite, so infinity is refused with {"result": false}
+      (ExperimentWebServer.swift, "if !value.isFinite").
+  summary: >-
+    Both apps refuse to write NaN, because a buffer holds NaN when empty and
+    writing it explicitly is almost always a mistake. They disagree about
+    infinity, which Android accepts into the buffer and iOS rejects.
+
+- id: control-set-unknown-buffer
+  title: cmd=set naming a buffer that does not exist
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Dereferences the missing buffer and throws, so the request fails with a
+      server error
+      (RemoteServer.java, handleControl(), "experiment.getBuffer(buffer).append(v)").
+    ios: >-
+      Returns {"result": false}
+      (ExperimentWebServer.swift, "guard ... let buffer = self.experiment.buffers[bufferName]").
+  summary: >-
+    A typo in the buffer name gets a clean negative result on iOS and a failed
+    request on Android. The result field exists precisely to report this, so the
+    Android behaviour also loses the diagnostic.
+
+- id: control-trigger-out-of-range
+  title: cmd=trigger with an out-of-range element index
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Indexes the element list unchecked and throws, so the request fails with a
+      server error
+      (RemoteServer.java, handleControl(), case "trigger").
+    ios: >-
+      Bounds-checks the index, does nothing if it is out of range or names a
+      non-button element, and answers {"result": true} either way
+      (ExperimentWebServer.swift, "if (self.htmlId2ViewElement.count > elementIndex)").
+  summary: >-
+    Neither behaviour is right: Android fails the request, and iOS reports success
+    for a trigger it did not perform. A client cannot tell from either response
+    whether the element was actually activated.
+
+- id: export-invalid-format
+  title: /export with a format index that is out of range
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Range-checks the index and answers 200 with {"error": "Format out of
+      range."}; a missing or non-numeric format throws in Integer.parseInt and
+      fails the request
+      (RemoteServer.java, handleExport()).
+    ios: >-
+      Indexes the format list unchecked, so an out-of-range index traps and
+      terminates the app; a missing or non-numeric format is treated as index 0
+      (Excel)
+      (WebServerUtilities.swift, "exportTypes[Int(str) ?? 0].1").
+  summary: >-
+    "/export?format=99" is an error message on Android and a crash of the whole
+    app on iOS - reachable by anyone who can reach the phone, since the API has no
+    authentication. The two also differ on a missing format parameter, which
+    Android fails and iOS silently answers with an Excel file.
+
+- id: config-buffer-order
+  title: Order of the buffers array in /config
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Iterates an ordered list, so buffers appear in the order the experiment
+      declares them
+      (RemoteServer.java, handleConfig(), "experiment.dataBuffers").
+    ios: >-
+      Iterates a dictionary, so the order is unspecified and may change between
+      runs
+      (ExperimentWebServer.swift, "for (name, buffer) in self.experiment.buffers").
+  summary: >-
+    JSON arrays are ordered, so a client may reasonably read meaning into the
+    order of /config buffers. On Android it matches the experiment file; on iOS it
+    is arbitrary. Neither is documented, so the safe reading for now is that the
+    order means nothing - but the two should agree.
+
+- id: meta-sensors
+  title: Sensor metadata in /meta
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Adds a "sensors" object with one entry per sensor, each carrying name,
+      vendor, range, resolution, minDelay, maxDelay, power and version
+      (RemoteServer.java, handleMeta()).
+    ios: >-
+      Serves only the non-sensor metadata; no "sensors" key
+      (ExperimentWebServer.swift, "for metadata in Metadata.allNonSensorCases").
+  summary: >-
+    Android reports per-sensor metadata over /meta and iOS does not, even though
+    iOS models the same values (Metadata.sensor) and serves them to network
+    connections. A client cannot tell a phone without the data from a phone that
+    does not report it.
+
+- id: res-fallback
+  title: Fallback for resources not shipped with the experiment
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Looks in the experiment's resource folder, then falls back to the images
+      bundled with the app, matching the fallback of the image view element
+      (RemoteServer.java, handleRes()).
+    ios: >-
+      Looks only in the experiment's resource folder and otherwise reports
+      {"error": "Unknown file."}
+      (ExperimentWebServer.swift, "/res" handler).
+  summary: >-
+    An experiment that names a bundled image without shipping it renders in the
+    app on both platforms, but over the remote interface only on Android. iOS also
+    distinguishes a missing src parameter ("No file requested.") from an unknown
+    one, where Android reports the same message for both.
+
+- id: metadata-uniqueid-spelling
+  title: Spelling of the uniqueID metadata identifier
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Accepts "uniqueID"
+      (Metadata.java, "enum DeviceMetadata { uniqueID, ... }", resolved with
+      DeviceMetadata.valueOf, which is case sensitive).
+    ios: >-
+      Accepts "uniqueId"
+      (Metadata.swift, "case .uniqueId: return \"uniqueId\"").
+    wiki: >-
+      Documents "uniqueID".
+  summary: >-
+    The per-user identifier a network connection can send is spelled uniqueID on
+    Android and uniqueId on iOS, so an experiment that requests it works on
+    exactly one platform whichever spelling its author picks. Found while
+    comparing the /meta endpoints, which exclude the identifier on both platforms
+    and are therefore unaffected.

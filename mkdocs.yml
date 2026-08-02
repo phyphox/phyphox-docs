@@ -70,3 +70,10 @@ markdown_extensions:
 plugins:
   - search
   - awesome-nav
+  # Renders <swagger-ui src="..."/> tags. The plugin vendors Swagger UI itself,
+  # so the built site stays self-contained - no CDN at page load.
+  - swagger-ui-tag:
+      background: transparent
+      docExpansion: list
+      tryItOutEnabled: true
+      syntaxHighlightTheme: monokai

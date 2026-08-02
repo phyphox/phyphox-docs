@@ -1,0 +1,677 @@
+# The phyphox remote-interface API.
+#
+# This file is the source of truth for the REST API that both apps expose while
+# an experiment is running. It was derived by reading the two server
+# implementations, not the prose documentation:
+#
+#   Android  RemoteServer.java                 (phyphox-android b4564695, development)
+#   iOS      ExperimentWebServer.swift         (phyphox-ios     a0643729, development)
+#            WebServerUtilities.swift
+#
+# Where the two disagree, the divergence is recorded in ../../inconsistencies.yml
+# and referenced from here with `x-phyphox-inconsistency`. The docs build fails
+# if such a reference names an entry that does not exist. Do not resolve a
+# divergence by picking a behaviour and writing it down here — see the "Choosing
+# the canonical behaviour" rule in ../../CLAUDE.md.
+
+openapi: 3.1.1
+
+info:
+  title: phyphox remote interface
+  version: 1.0.0
+  summary: Control a running phyphox experiment and stream its data over HTTP.
+  description: |
+    When remote access is enabled, phyphox runs a small webserver on the phone. It
+    serves the bundled web interface and exposes this API for controlling the
+    running experiment and reading its data.
+
+    The API is not tied to the bundled web interface. It is meant to be usable
+    from your own software — to combine several phones into one measurement, to
+    drive phyphox from LabVIEW, MATLAB or a Python script, or to run it alongside
+    other lab equipment.
+
+    **There is no authentication.** Anyone who can reach the phone on the network
+    can read the data and start, stop and clear the measurement. Remote access is
+    off by default and has to be enabled per session by the user.
+
+    **The server is single-threaded and slow.** The bundled web interface
+    deliberately serialises its requests and delays the next one by 10 ms. Clients
+    should do the same rather than issuing requests in parallel.
+  license:
+    name: GNU GPL v3
+    identifier: GPL-3.0-only
+
+servers:
+  - url: http://{host}:{port}
+    description: A phone running phyphox with remote access enabled.
+    variables:
+      host:
+        default: 192.168.0.42
+        description: The address phyphox shows when remote access is enabled.
+      port:
+        default: "8080"
+        description: |
+          Android defaults to 8080. iOS tries 80 first and falls back to 8080, so
+          on iOS the port can usually be omitted. Both are configurable in the app
+          settings (`remoteAccessPort`).
+
+tags:
+  - name: interface
+    description: The bundled web interface. Not needed to control phyphox from your own code.
+  - name: data
+    description: Reading measurement data and experiment status.
+  - name: control
+    description: Starting, stopping and feeding values into the experiment.
+  - name: metadata
+    description: What experiment is running, on what device, and against which clock.
+
+paths:
+  /:
+    get:
+      tags: [interface]
+      summary: The bundled web interface
+      description: |
+        The remote interface itself: an HTML document with the JavaScript that
+        drives every other endpoint on this page. It is generated per experiment,
+        because it embeds the experiment's view layout.
+
+        Not relevant if you are writing your own client.
+      responses:
+        "200":
+          description: The web interface.
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /style.css:
+    get:
+      tags: [interface]
+      summary: Stylesheet for the bundled web interface
+      description: |
+        Generated per session, because the icons are substituted into it as
+        base64-encoded PNGs.
+      responses:
+        "200":
+          description: The stylesheet.
+          content:
+            text/css:
+              schema:
+                type: string
+
+  /logo:
+    get:
+      tags: [interface]
+      summary: The phyphox logo
+      responses:
+        "200":
+          description: A PNG image.
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+
+  /get:
+    get:
+      tags: [data]
+      summary: Read buffer data and experiment status
+      operationId: getData
+      description: |
+        Returns the contents of the requested buffers together with the current
+        status of the experiment. This is the endpoint you will poll.
+
+        **Buffers are named by the query parameters themselves.** There is no
+        fixed parameter list: every query parameter is read as the name of a
+        buffer, and its value says how much of that buffer to return.
+
+        | Value           | Meaning                                                        |
+        |-----------------|----------------------------------------------------------------|
+        | *(empty)*       | Only the last value. `updateMode` comes back as `single`.       |
+        | `full`          | The whole buffer. `updateMode` comes back as `full`.            |
+        | *number*        | Every value after the first one exceeding this threshold.       |
+        | *number*`\|`*ref* | As above, but the threshold applies to buffer *ref* instead.   |
+
+        So `/get?abc&def=full&ghi=42&jkl=23|mno` returns the last value of `abc`,
+        all of `def`, everything in `ghi` after the first value above 42, and the
+        values of `jkl` at the indices where `mno` exceeds 23. Note that `mno`
+        itself is not returned.
+
+        The threshold form is what makes polling cheap. Data usually has a
+        monotonic axis — time — so a client that already holds data up to t = 3
+        asks for `?time=3&value=3|time` and receives only what is new. Requesting
+        `full` every time works but transfers the whole buffer each poll.
+
+        Because values are transferred with about 8 significant digits, the
+        server nudges the threshold up by one unit in the last place before
+        comparing, so a value already delivered is not delivered again.
+
+        > The `|` **must be percent-encoded as `%7C`.** It is written plainly here
+        > for readability, but an unencoded `|` is not valid in a URL and not every
+        > HTTP client will fix it for you.
+
+        Buffer names that do not exist in the running experiment are skipped
+        rather than reported. The `session` field in the status is how a client
+        notices that the user switched experiments and its buffer names have gone
+        stale.
+      parameters:
+        - name: buffers
+          in: query
+          required: true
+          style: form
+          explode: true
+          description: |
+            One parameter per requested buffer, named after the buffer. See the
+            table above for the accepted values.
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+          examples:
+            lastValueOnly:
+              summary: Last value of two buffers
+              value: {accX: "", accY: ""}
+            everything:
+              summary: Whole buffer
+              value: {accX: "full"}
+            incremental:
+              summary: Only what is new, against a time axis
+              value: {t: "3", accX: "3|t"}
+      responses:
+        "200":
+          description: Buffer contents and experiment status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetResponse"
+      x-phyphox-inconsistency:
+        - get-no-parameters
+        - get-nonfinite-single-value
+        - get-unknown-reference-buffer
+        - get-force-full-update
+
+  /control:
+    get:
+      tags: [control]
+      summary: Start, stop, clear, or write a value
+      operationId: control
+      description: |
+        Sends a command to the running experiment. Always answers with
+        `{"result": true}` or `{"result": false}`; the response says whether the
+        command was accepted, not whether it has finished taking effect.
+
+        - `start` — begin measuring, or begin the countdown if timed run is on.
+        - `stop` — stop measuring.
+        - `clear` — discard buffered data, stopping the measurement if it is running.
+        - `set` — write a single value into a buffer. This is how the remote
+          interface implements edit fields.
+        - `trigger` — activate a view element by its index, as if the user had
+          tapped it. Used for buttons. The index is the `index` field of the
+          element in the view layout embedded in the web interface, counted across
+          all views of the experiment.
+      parameters:
+        - name: cmd
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [start, stop, clear, set, trigger]
+        - name: buffer
+          in: query
+          required: false
+          description: "`cmd=set`: the buffer to write to."
+          schema:
+            type: string
+        - name: value
+          in: query
+          required: false
+          description: |
+            `cmd=set`: the value to write. Must parse as a number and must not be
+            NaN; a buffer holds NaN when empty, so writing it explicitly is
+            treated as a mistake.
+          schema:
+            type: number
+        - name: element
+          in: query
+          required: false
+          description: "`cmd=trigger`: index of the view element to activate."
+          schema:
+            type: integer
+            minimum: 0
+        - name: clearGroup1
+          in: query
+          required: false
+          description: |
+            `cmd=clear`: restrict clearing to named clear groups. Numbered from 1
+            upward (`clearGroup1`, `clearGroup2`, …); the first gap ends the list.
+            Omit entirely to clear everything.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: |
+            Whether the command was accepted. Note that a rejected command also
+            answers 200 — check the `result` field, not the status code.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ControlResult"
+      x-phyphox-inconsistency:
+        - control-post
+        - control-clear-groups
+        - control-set-infinity
+        - control-set-unknown-buffer
+        - control-trigger-out-of-range
+
+  /export:
+    get:
+      tags: [data]
+      summary: Download all recorded data as a file
+      operationId: export
+      description: |
+        Runs the experiment's own export and returns the resulting file, with a
+        `Content-Disposition` header so a browser saves it under a sensible name.
+        The export sets and their column labels are fixed by the experiment; see
+        `/config`.
+
+        The format is selected by index into a fixed list, which is the same on
+        both platforms:
+
+        | Index | Format                          |
+        |-------|---------------------------------|
+        | 0     | Excel (`.xlsx`)                 |
+        | 1     | CSV (comma, decimal point)      |
+        | 2     | CSV (tabulator, decimal point)  |
+        | 3     | CSV (semicolon, decimal point)  |
+        | 4     | CSV (tabulator, decimal comma)  |
+        | 5     | CSV (semicolon, decimal comma)  |
+      parameters:
+        - name: format
+          in: query
+          required: true
+          description: Index into the format table above.
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 5
+      responses:
+        "200":
+          description: |
+            The exported file. Note that an out-of-range or missing format also
+            answers 200, with a JSON error object rather than a file.
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-phyphox-inconsistency:
+        - export-invalid-format
+
+  /config:
+    get:
+      tags: [metadata]
+      summary: What experiment is running
+      operationId: config
+      description: |
+        Describes the experiment currently loaded: how to identify it, what
+        buffers exist, where the data comes from and which buffers the author
+        considered worth exporting.
+
+        The `export` sets are the best starting point for a client. Every buffer
+        in the experiment appears in `buffers`, but many hold intermediate results
+        that are cleared or rewritten during analysis. The export sets were chosen
+        by the experiment's author as the data worth keeping.
+
+        Available since [phyphox 1.1.6](../reference/version-history/1.1.6.md).
+      responses:
+        "200":
+          description: The experiment configuration.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+      x-phyphox-inconsistency:
+        - config-buffer-order
+
+  /meta:
+    get:
+      tags: [metadata]
+      summary: Device and software information
+      operationId: meta
+      description: |
+        Returns the device metadata, the same set an experiment can send through a
+        network connection — see
+        [network connections](../file-format/network-connections.md#metadata) —
+        with one exception: `uniqueId` is never served here, because it is a
+        per-user identifier and this endpoint has no authentication.
+
+        Every value is a string, and a value that the platform cannot supply comes
+        back as the empty string rather than being omitted. Treat the key set as
+        open: it grows with the app, and it is not the same on both platforms.
+
+        Available since [phyphox 1.1.8](../reference/version-history/1.1.8.md).
+      responses:
+        "200":
+          description: Device metadata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meta"
+      x-phyphox-inconsistency:
+        - meta-sensors
+
+  /time:
+    get:
+      tags: [metadata]
+      summary: Map experiment time onto the system clock
+      operationId: time
+      description: |
+        Returns the start and pause events of the current measurement, each with
+        both clocks, so that sensor timestamps can be placed on a wall clock.
+
+        Sensor data is timestamped in *experiment time*: seconds since the
+        measurement first started, with pauses skipped. That comes from the
+        device's monotonic clock, which is not the system clock. On each event
+        phyphox reads both clocks back to back, so each entry pairs them to within
+        a few milliseconds — but the two clocks drift, and the system clock is
+        adjusted in the background by the operating system, so interpolating
+        between distant events is not reliable.
+
+        Available since [phyphox 1.1.8](../reference/version-history/1.1.8.md).
+      responses:
+        "200":
+          description: Time reference events, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeEvent"
+
+  /res:
+    get:
+      tags: [interface]
+      summary: Fetch a resource bundled with the experiment
+      operationId: res
+      description: |
+        Serves a file that came with the experiment — in practice, an image named
+        by an `image` view element. Only files the experiment actually references
+        are served; anything else is refused.
+      parameters:
+        - name: src
+          in: query
+          required: true
+          description: File name as written in the view element.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: |
+            The file. An unknown or missing name also answers 200, with a JSON
+            error object.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-phyphox-inconsistency:
+        - res-fallback
+
+components:
+  schemas:
+    GetResponse:
+      type: object
+      required: [buffer, status]
+      properties:
+        buffer:
+          type: object
+          description: |
+            One entry per requested buffer that exists. Buffers that do not exist
+            are silently absent.
+          additionalProperties:
+            $ref: "#/components/schemas/Buffer"
+        status:
+          $ref: "#/components/schemas/Status"
+
+    Buffer:
+      type: object
+      required: [size, updateMode, buffer]
+      properties:
+        size:
+          type: integer
+          description: |
+            The buffer's declared capacity — neither how much of it is filled nor
+            how many values this response carries.
+        updateMode:
+          type: string
+          enum: [full, partial, single]
+          description: |
+            Whether this response carries the whole buffer, the part of it that
+            passed the threshold, or only the last value.
+        buffer:
+          type: array
+          description: |
+            The values. `null` stands for a value that is NaN or infinite: such
+            values cannot be dropped, because a client pairing two buffers by
+            index relies on the indices lining up.
+          items:
+            type: [number, "null"]
+
+    Status:
+      type: object
+      required: [session, measuring, timedRun, countDown]
+      properties:
+        session:
+          type: string
+          description: |
+            Identifies the session. A change means the user switched experiments,
+            so previously requested buffer names and any data held by the client
+            should be discarded.
+        measuring:
+          type: boolean
+          description: Whether the experiment is currently running.
+        timedRun:
+          type: boolean
+          description: Whether the timed-run function is enabled.
+        countDown:
+          type: number
+          description: |
+            Milliseconds remaining on the timed run, or 0 when no countdown is
+            active. If `measuring` is true the measurement stops when it elapses;
+            otherwise it starts.
+
+    ControlResult:
+      type: object
+      required: [result]
+      properties:
+        result:
+          type: boolean
+          description: Whether the command was accepted.
+
+    Config:
+      type: object
+      required: [crc32, title, localTitle, category, localCategory, buffers, inputs, export]
+      properties:
+        crc32:
+          type: string
+          description: |
+            CRC32 of the whole experiment file as lowercase hex, which identifies
+            a specific configuration exactly. Not zero-padded.
+        title:
+          type: string
+          description: Title in the experiment's base language.
+        localTitle:
+          type: string
+          description: Title in the language currently displayed.
+        category:
+          type: string
+          description: Category in the experiment's base language.
+        localCategory:
+          type: string
+          description: Category in the language currently displayed.
+        buffers:
+          type: array
+          description: |
+            Every buffer in the experiment. Existing here is no promise of useful
+            content — see `export` for the buffers the author picked out.
+          items:
+            type: object
+            required: [name, size]
+            properties:
+              name:
+                type: string
+                description: Name to use in `/get`.
+              size:
+                type: integer
+                description: Declared capacity.
+        inputs:
+          type: array
+          description: |
+            The data sources feeding the experiment. Do not assume the named
+            buffers are safe to poll — an experiment may clear them during
+            analysis.
+          items:
+            $ref: "#/components/schemas/ConfigInput"
+        export:
+          type: array
+          description: The export sets defined by the experiment.
+          items:
+            type: object
+            required: [set, sources]
+            properties:
+              set:
+                type: string
+              sources:
+                type: array
+                items:
+                  type: object
+                  required: [label, buffer]
+                  properties:
+                    label:
+                      type: string
+                      description: Column title used in the exported file.
+                    buffer:
+                      type: string
+
+    ConfigInput:
+      type: object
+      required: [source]
+      properties:
+        source:
+          type: string
+          description: |
+            `audio` for the microphone, `location` for GPS, `bluetooth` for a BLE
+            device, or a sensor name as used in the file format.
+          examples: [audio, location, bluetooth, accelerometer, linear_acceleration,
+                     gravity, gyroscope, magnetic_field, pressure, light, proximity,
+                     temperature, humidity, attitude, custom]
+        outputs:
+          type: array
+          description: |
+            Which buffer each component of the source writes to, as one
+            single-entry object per component. Absent for `bluetooth`, whose
+            mapping is defined by the experiment rather than by the input.
+          items:
+            type: object
+            additionalProperties:
+              type: string
+
+    Meta:
+      type: object
+      description: |
+        Device metadata as string values. The key set is open and platform
+        dependent; the keys below are the ones both platforms serve.
+      additionalProperties:
+        type: string
+      properties:
+        sensors:
+          type: object
+          description: |
+            Per-sensor metadata, keyed by sensor name. Served by Android only —
+            see the inconsistency noted on this endpoint. Values are strings and
+            are empty where the platform cannot supply them; on Android their
+            meaning and accuracy vary by device.
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: string
+            properties:
+              name: {type: string}
+              vendor: {type: string}
+              range: {type: string}
+              resolution: {type: string}
+              minDelay: {type: string}
+              maxDelay: {type: string}
+              power: {type: string}
+              version: {type: string}
+        version:
+          type: string
+          description: phyphox version.
+        build:
+          type: string
+          description: phyphox build number.
+        fileFormat:
+          type: string
+          description: Highest file-format version this app can read.
+        deviceModel:
+          type: string
+        deviceBrand:
+          type: string
+        deviceBoard:
+          type: string
+        deviceManufacturer:
+          type: string
+        deviceBaseOS:
+          type: string
+        deviceCodename:
+          type: string
+        deviceRelease:
+          type: string
+        depthFrontSensor:
+          type: string
+        depthFrontResolution:
+          type: string
+        depthFrontRate:
+          type: string
+        depthBackSensor:
+          type: string
+        depthBackResolution:
+          type: string
+        depthBackRate:
+          type: string
+
+    TimeEvent:
+      type: object
+      required: [event, experimentTime, systemTime]
+      properties:
+        event:
+          type: string
+          enum: [START, PAUSE]
+          description: |
+            Whether the measurement started or paused. `CLEAR` exists internally
+            but never reaches this endpoint, because clearing also empties this
+            list.
+        experimentTime:
+          type: number
+          description: Seconds since the measurement first started, excluding pauses.
+        systemTime:
+          type: number
+          description: Seconds since the Unix epoch.
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          description: Human-readable reason. Not machine-readable; do not match on it.

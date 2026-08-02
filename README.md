@@ -40,14 +40,44 @@ docs/                   the pages themselves
     views.md            /
     analysis/           the analysis block, one page per module category
   remote-interface/     the REST API
+    index.md            introduction
+    openapi.yaml        OpenAPI 3.1 description - the source of truth
+    api-reference.md    renders openapi.yaml with Swagger UI
   reference/            version history (one page per release),
                         known inconsistencies
 inconsistencies.yml     known divergences between the implementations
-tools/hooks.py          MkDocs hooks (renders inconsistencies.yml)
+tools/hooks.py          MkDocs hooks (renders inconsistencies.yml, validates
+                        openapi.yaml)
+tools/contract_test.py  runs the same requests against a running Android and
+                        iOS phone and diffs the responses
+tools/fake_phyphox.py   local stand-ins for both apps, so the contract test can
+                        be exercised without hardware
 tools/migrate_wiki.py   one-shot import from the old MediaWiki
 tools/optimize_images.py  keeps images in docs/assets from being committed
                           at camera resolution
 ```
+
+## Checking the two apps against the spec
+
+`docs/remote-interface/openapi.yaml` describes the remote-interface API. To check that a real
+Android and a real iOS phone still agree with it and with each other, put both on the network,
+enable remote access, load **the same experiment** on both, and run:
+
+```bash
+.venv/bin/python tools/contract_test.py \
+    --android http://192.168.0.10:8080 \
+    --ios     http://192.168.0.11
+```
+
+It validates every response against the spec and diffs the two phones by shape — keys, types,
+status codes — not by values, which cannot match. Divergences already listed in
+`inconsistencies.yml` are reported and tolerated; anything else fails the run.
+
+Add `--allow-control` to include commands that change the experiment state, and `--allow-clear` to
+include clearing, which destroys measured data.
+
+Without phones, `python tools/fake_phyphox.py` serves stand-ins on ports 8111 and 8112 that
+reproduce both platforms' known behaviour, which is enough to exercise the script itself.
 
 ## Scope
 
