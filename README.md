@@ -32,6 +32,24 @@ navigation entries into errors, so build that way before pushing:
 .venv/bin/mkdocs build --strict
 ```
 
+## Deploying
+
+The site is **not** published from CI. `mkdocs build --strict` runs on every push
+and pull request as a check, and uploads the rendered site as a downloadable
+artifact, but nothing is deployed.
+
+Deployment is a manual step taken alongside a phyphox release, so that the
+documentation and the app it describes ship together:
+
+```bash
+.venv/bin/mkdocs build --strict
+rsync -avz --delete site/ <user>@phyphox.org:/var/www/docs/
+```
+
+`site_url` in `mkdocs.yml` is already set to `https://phyphox.org/docs/`; change
+it if the site moves, or search links and the sitemap will point at the wrong
+host.
+
 ## Layout
 
 ```

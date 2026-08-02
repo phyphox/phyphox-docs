@@ -1,0 +1,44 @@
+name: Build documentation
+
+# Checks only - nothing is published from CI. The site is deployed to
+# phyphox.org by hand, alongside a phyphox release; see README.md. GitHub Pages
+# is not an option anyway while this repository is private and the plan does not
+# include it, and a deploy job that cannot succeed is worse than none.
+#
+# `mkdocs build --strict` is not just a build. Via tools/hooks.py it also fails on
+#   - a broken internal link or heading anchor,
+#   - an invalid openapi.yaml,
+#   - an {{inconsistency:...}} marker or x-phyphox-inconsistency naming an id that
+#     is not in inconsistencies.yml,
+#   - anything in the generated site that would make a visitor's browser fetch
+#     from a third party.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: mkdocs build --strict
+
+      # Lets a reviewer download the rendered site from the run without anything
+      # being published. Retention is short because it is a preview, not a
+      # release artifact.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site/
+          retention-days: 7
