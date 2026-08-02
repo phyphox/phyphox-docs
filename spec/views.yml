@@ -14,6 +14,9 @@
 #  * label and visibility are accepted on every view element by both apps.
 #    Android reads them once before dispatching on the tag; iOS declares them in
 #    each handler. Same surface, different mechanics.
+#  * Several child elements carry their meaning in their TEXT, not in an
+#    attribute - an <output> names a buffer, a <trigger> names an id, a
+#    <map> carries the label to show. Those are recorded with `text:`.
 #  * Android additionally reads `unit` and `factor` before dispatching, so they
 #    are accepted syntactically on every element, but only `value` and `edit` do
 #    anything with them - which is also where iOS declares them. Modelled here as
@@ -175,12 +178,20 @@ elements:
         summary: Format specifier for the displayed number.
         agreement: agreed
 
+  - name: input
+    parent: value
+    since: "1.0"
+    summary: The data container whose last value is displayed. Exactly one required.
+    text: Name of the data container.
+    attributes: []
+
   - name: map
     parent: value
     since: "1.0"
     summary: >-
       Replaces a range of values with a fixed text, so a number can be shown as
       a word.
+    text: The text to show when the value falls in this range.
     attributes:
       - name: min
         type: float
@@ -625,12 +636,19 @@ elements:
         agreement: divergent
         inconsistency: views-one-sided-attributes
 
+  - name: output
+    parent: edit
+    since: "1.0"
+    summary: The data container the entered value is written to.
+    text: Name of the data container.
+    attributes: []
+
   # ----------------------------------------------------------------- button --
   - name: button
     parent: view
     since: "1.0"
     summary: A button that copies values or triggers a network connection.
-    children: [input, output]
+    children: [input, output, map, trigger]
     attributes:
       - name: label
         type: string
@@ -645,6 +663,60 @@ elements:
         type: string
         summary: Data container supplying the button text at runtime.
         agreement: agreed
+
+  - name: input
+    parent: button
+    since: "1.0"
+    summary: >-
+      A source copied when the button is pressed. Pair each input with the
+      output at the same position.
+    text: Name of a data container, or a literal number when type is value.
+    attributes:
+      - name: type
+        type: enum
+        values: [buffer, value, empty]
+        default: buffer
+        summary: >-
+          Whether the text names a data container, is a literal value, or stands
+          for an empty buffer.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  - name: output
+    parent: button
+    since: "1.0"
+    summary: Where the input at the same position is copied to.
+    text: Name of the data container.
+    attributes: []
+
+  - name: map
+    parent: button
+    since: "1.0"
+    summary: >-
+      Changes the button's label depending on the value of the container named
+      by dynamicLabel, the same mechanism the value element uses.
+    text: The label to show when the value falls in this range.
+    attributes:
+      - name: min
+        type: float
+        default: -Infinity
+        summary: Lower bound of the range, inclusive.
+        agreement: agreed
+      - name: max
+        type: float
+        default: Infinity
+        summary: Upper bound of the range, inclusive.
+        agreement: agreed
+
+  - name: trigger
+    parent: button
+    since: "1.8"
+    summary: >-
+      Fires the process carrying this id when the button is pressed. Network
+      connections are currently the only thing that can be triggered.
+    text: The id to trigger.
+    attributes: []
 
   # ----------------------------------------------------------------- toggle --
   - name: toggle
@@ -667,6 +739,13 @@ elements:
         default: 0.0
         summary: State the switch starts in.
         agreement: agreed
+
+  - name: output
+    parent: toggle
+    since: "1.19"
+    summary: The data container receiving 0 or 1 as the switch is toggled.
+    text: Name of the data container.
+    attributes: []
 
   # ----------------------------------------------------------------- slider --
   - name: slider
@@ -727,12 +806,31 @@ elements:
         summary: Colour of the slider.
         agreement: agreed
 
+  - name: output
+    parent: slider
+    since: "1.19"
+    summary: >-
+      The data container receiving the slider's value. A normal slider takes one
+      output with no value attribute; a range slider takes two, one for each
+      handle.
+    text: Name of the data container.
+    attributes:
+      - name: value
+        type: enum
+        values: [lowerValue, upperValue]
+        summary: >-
+          Which handle of a range slider this output follows. Omitted for a
+          normal slider.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
   # --------------------------------------------------------------- dropdown --
   - name: dropdown
     parent: view
     since: "1.19"
     summary: A menu of predefined values.
-    children: [output, mapping]
+    children: [output, map]
     attributes:
       - name: label
         type: string
@@ -753,21 +851,30 @@ elements:
         summary: Colour of the menu.
         agreement: agreed
 
-  - name: mapping
+  - name: output
+    parent: dropdown
+    since: "1.19"
+    summary: The data container receiving the value of the chosen entry.
+    text: Name of the data container.
+    attributes: []
+
+  - name: map
     parent: dropdown
     since: "1.19"
     summary: One entry of the menu, mapping a value to the text shown for it.
+    text: The option text shown to the user. Translatable.
     attributes:
       - name: value
         type: float
         default: 0.0
         summary: Value written to the data container when this entry is chosen.
         agreement: agreed
-      - name: replacement
-        type: string
-        translatable: true
-        summary: Text shown for this entry. Defaults to the value itself.
-        agreement: agreed
+    note: >-
+      iOS's handler declares a `replacement` attribute alongside `value`, but
+      never reads it - the option text comes from the element's text on both
+      platforms, which is also what the documentation shows. Not a divergence,
+      just a dead declaration; worth removing so it is not mistaken for part of
+      the format.
 
   # ------------------------------------------------------------------ image --
   - name: image

@@ -93,12 +93,12 @@ fourth opinion, not as input.
 
 ## The `views` block confirms the estimate
 
-`views.yml` models the second block: 18 elements, 132 attributes — two and a half times the
+`views.yml` models the second block: 27 elements, 135 attributes — two and a half times the
 size of `input`, and the block least like it.
 
 | | `input` | `views` | both |
 |---|---|---|---|
-| attributes | 52 | 132 | 184 |
+| attributes | 52 | 135 | 187 |
 | agree — state it and move on | 67% | **84%** | 79% |
 | need a decision | 29% | 16% | 20% |
 
@@ -163,9 +163,34 @@ belongs to** — `calibrationParameter` was filed under `input` when it is an `o
 attribute. Neither error would have been caught by any check in the repo; both were caught by
 the maintainer knowing the feature existed.
 
+### A third correction: child elements were declared but not modelled
+
+`children:` lists were written on every view element, but only three child elements were
+actually modelled. Nine were missing, including the button's `trigger` tag — the mechanism
+that fires a network connection, in the format since 1.8 — and every plain `<output>` and
+`<input>` that names a buffer.
+
+Two related errors came out of the same pass. The dropdown's entries are `<map>`, not
+`<mapping>` as modelled; and their text was recorded as a `replacement` attribute, which iOS
+declares but never reads and which is in neither Android nor the documentation. The option
+label is the element's text.
+
+That last one exposed a gap in the schema itself: it had no way to say that an element's
+**text** carries meaning, which is true of `output`, `input`, `trigger` and `map` alike.
+There is now a `text:` key.
+
+`views.yml` grew from 18 elements to 27 and from 132 attributes to 135 — the attribute count
+barely moved, which is the point: the missing surface was structural, not attributive, and
+counting attributes would never have revealed it.
+
+**The build now checks this.** An element declaring a child that is not modelled, or a
+modelled element its parent does not list, fails the build. Verified against the exact
+omission: deleting the `trigger` element while leaving it in `children:` is now an error.
+That check would have caught two of the three corrections in this section.
+
 ### Revised projection
 
-262 documented attributes; 184 now modelled — **70% of the format**, leaving roughly 80,
+262 documented attributes; 187 now modelled — **71% of the format**, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 

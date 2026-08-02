@@ -188,7 +188,31 @@ def _check_spec(entries):
             continue
         with open(os.path.join(SPEC_DIR, fn)) as f:
             doc = yaml.safe_load(f) or {}
-        for element in doc.get("elements") or []:
+        elements = doc.get("elements") or []
+
+        # Child elements must actually be modelled. Declaring `children: [...]`
+        # and stopping there is how the graph data picker and the button's
+        # trigger tag went missing - the name was written down, the element
+        # behind it never was, and nothing complained.
+        modelled = {(e.get("parent"), e["name"]) for e in elements}
+        for element in elements:
+            for child in element.get("children") or []:
+                if (element["name"], child) in modelled:
+                    continue
+                # input elements describe their outputs with the `outputs:` key
+                # instead of a child element, which is the same thing said once.
+                if child == "output" and element.get("outputs"):
+                    continue
+                problems.append(f"{fn}: {element['name']} declares child "
+                                f"'{child}' but no such element is modelled")
+            parent = element.get("parent")
+            if parent:
+                owner = next((e for e in elements if e["name"] == parent), None)
+                if owner is not None and element["name"] not in (owner.get("children") or []):
+                    problems.append(f"{fn}: {parent}/{element['name']} is modelled "
+                                    f"but not listed in {parent}'s children")
+
+        for element in elements:
             holders = list(element.get("attributes") or [])
             if element.get("outputs"):
                 holders.append(element["outputs"])

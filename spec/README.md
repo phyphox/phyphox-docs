@@ -64,6 +64,16 @@ belong to any one block — how to treat an invalid enumerated value, whether en
 folds case, whether output components are validated. Answering those once is what keeps the
 decision count from growing with the attribute count.
 
+### Child elements are checked, not trusted
+
+`tools/hooks.py` fails the build if an element declares a child in `children:` that is not
+modelled, or models an element whose parent does not list it. Both directions matter: the
+graph data picker and the button's `trigger` tag were both lost by writing a name into
+`children:` and stopping there.
+
+That check cannot tell you a child exists in the first place — only the parsers can. See
+below.
+
 ### Enumerate child elements from both parsers, not one
 
 The first pass at `views.yml` gave `graph` the single child `input`, missing `output`
@@ -74,6 +84,19 @@ parser and compare, rather than assuming the obvious ones are all there are.
 
 The same pass filed `calibrationParameter` under `input` when it belongs to `output`. When a
 handler declares several private `Attribute` enums, check which one each belongs to.
+
+A reliable way to enumerate them on iOS is the `childHandlers` dictionary each handler
+builds; on Android it is the `AdditionalTag` names each view element accepts from
+`ioBlockParser`, which are checked with an explicit `at.name.equals(...)` chain ending in
+"Unknown tag". Reading those two lists side by side gives the child set directly.
+
+### Text content is part of the format
+
+Many child elements carry their meaning in their text rather than in an attribute: an
+`<output>` names a buffer, a `<trigger>` names an id, a `<map>` carries the label to display.
+Record that with `text:`. A model that only lists attributes silently loses it — the
+dropdown's option labels were briefly modelled as a `replacement` attribute, which iOS
+declares but never reads and which appears nowhere in the documentation.
 
 ### Verifying a one-sided attribute
 
