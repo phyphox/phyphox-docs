@@ -6,6 +6,23 @@
 #            ExperimentAnalysisFactory.swift and Analysis/Modules/*  (a0643729)
 #   docs     docs/file-format/analysis/*.md
 #
+# Each slot below records, from Android's ioMapping table:
+#
+#   as_required   whether the `as` attribute must name this slot. Android's
+#                 default is true; an unnamed tag is only ever matched to a slot
+#                 with as_required false. 104 of the 194 slots require it.
+#   min / max     how many tags may fill the slot. max: unlimited is Android's
+#                 maxCount = 0.
+#   allows_value  whether type="value" is accepted for this input slot.
+#   allows_empty  whether type="empty" is accepted. Only three slots do.
+#   repeat_offset present when the slot is part of a repeating cycle, so several
+#                 groups of inputs can be given in order.
+#
+# These are Android's constraints. **iOS does not enforce them**: it matches the
+# `as` names it knows, falls back to document order for the rest, and applies no
+# per-slot restriction on type or on how many tags fill a slot. See
+# analysis-slot-constraints-unenforced.
+#
 # How the two sides express a module's inputs and outputs differs, and only
 # Android states it declaratively. Android gives every module an ioMapping
 # table naming each slot, whether the `as` attribute is required for it, how
@@ -90,9 +107,14 @@ common:
 
 elements:
 
+  # Every module below inherits the slot constraints described in the header.
+  # They are recorded once here rather than on each of the 54 modules.
   - name: analysis
     parent: phyphox
     since: "1.0"
+    slot_constraints:
+      agreement: divergent
+      inconsistency: analysis-slot-constraints-unenforced
     summary: Container for the analysis modules, executed in document order.
     children: [abs, acos, add, append, asin, atan, atan2, autocorrelation, average, binning, butterworth, const, cos, cosh, count, crosscorrelation, differentiate, divide, eventstream, fft, first, formula, gausssmooth, gcd, if, imagedecode, info, integrate, interpolate, lcm, loess, log, map, match, max, min, movingaverage, multiply, periodicity, power, ramp, rangefilter, reduce, round, sin, sinh, sort, split, subrange, subtract, tan, tanh, threshold, timer]
     attributes:
@@ -168,9 +190,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: abs    # required
+      - name: abs
+        as_required: false
+        min: 1
+        max: 1
 
   - name: acos
     parent: analysis
@@ -184,9 +214,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: acos    # required
+      - name: acos
+        as_required: false
+        min: 1
+        max: 1
 
   - name: add
     parent: analysis
@@ -196,9 +234,18 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: summand    # required, repeatable, literal value allowed
+      - name: summand
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: sum    # required
+      - name: sum
+        as_required: false
+        min: 1
+        max: 1
 
   - name: append
     parent: analysis
@@ -208,9 +255,18 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required, repeatable, literal value allowed, empty allowed
+      - name: in
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: true
+        allows_empty: true
+        repeat_offset: 0
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: asin
     parent: analysis
@@ -224,9 +280,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: asin    # required
+      - name: asin
+        as_required: false
+        min: 1
+        max: 1
 
   - name: atan
     parent: analysis
@@ -240,9 +304,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: atan    # required
+      - name: atan
+        as_required: false
+        min: 1
+        max: 1
 
   - name: atan2
     parent: analysis
@@ -257,10 +329,23 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: y    # required, literal value allowed
-      - name: x    # required, literal value allowed
+      - name: y
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: x
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: atan2    # required
+      - name: atan2
+        as_required: false
+        min: 1
+        max: 1
 
   - name: autocorrelation
     parent: analysis
@@ -270,12 +355,38 @@ elements:
     attributes: []
     inputs:
       - name: x
-      - name: y    # required
-      - name: minX    # literal value allowed
-      - name: maxX    # literal value allowed
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: minX
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: maxX
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
       - name: y
+        as_required: true
+        min: 0
+        max: 1
       - name: x
+        as_required: true
+        min: 0
+        max: 1
 
   - name: average
     parent: analysis
@@ -285,10 +396,21 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: buffer    # required
+      - name: buffer
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
       - name: average
+        as_required: false
+        min: 0
+        max: 1
       - name: stddev
+        as_required: true
+        min: 0
+        max: 1
 
   - name: binning
     parent: analysis
@@ -300,12 +422,33 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required
-      - name: x0    # literal value allowed
-      - name: dx    # literal value allowed
+      - name: in
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: x0
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: dx
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: binStarts    # required
-      - name: binCounts    # required
+      - name: binStarts
+        as_required: false
+        min: 1
+        max: 1
+      - name: binCounts
+        as_required: false
+        min: 1
+        max: 1
 
   - name: butterworth
     parent: analysis
@@ -315,13 +458,41 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: y    # required
-      - name: x    # required
-      - name: n    # required, literal value allowed
-      - name: cutoff    # required, literal value allowed
-      - name: cutoffLow    # literal value allowed
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: n
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: cutoff
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: cutoffLow
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: filtered    # required
+      - name: filtered
+        as_required: false
+        min: 1
+        max: 1
 
   - name: const
     parent: analysis
@@ -330,10 +501,23 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # literal value allowed
-      - name: length    # literal value allowed
+      - name: value
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: length
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: cos
     parent: analysis
@@ -347,9 +531,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: cos    # required
+      - name: cos
+        as_required: false
+        min: 1
+        max: 1
 
   - name: cosh
     parent: analysis
@@ -359,9 +551,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: cosh    # required
+      - name: cosh
+        as_required: false
+        min: 1
+        max: 1
 
   - name: count
     parent: analysis
@@ -371,9 +571,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: buffer    # required
+      - name: buffer
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
-      - name: count    # required
+      - name: count
+        as_required: false
+        min: 1
+        max: 1
 
   - name: crosscorrelation
     parent: analysis
@@ -382,9 +590,18 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required
+      - name: in
+        as_required: false
+        min: 2
+        max: 2
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: differentiate
     parent: analysis
@@ -394,9 +611,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required
+      - name: in
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: divide
     parent: analysis
@@ -406,10 +631,24 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: dividend    # required, literal value allowed
-      - name: divisor    # required, repeatable, literal value allowed
+      - name: dividend
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: divisor
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: quotient    # required
+      - name: quotient
+        as_required: false
+        min: 1
+        max: 1
 
   - name: eventstream
     parent: analysis
@@ -424,17 +663,59 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: data    # required
-      - name: threshold    # literal value allowed
-      - name: distance    # literal value allowed
-      - name: index    # literal value allowed
-      - name: skip    # literal value allowed
-      - name: last    # literal value allowed
+      - name: data
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: threshold
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: distance
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: index
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: skip
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: last
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
       - name: events
+        as_required: true
+        min: 0
+        max: 1
       - name: index
+        as_required: true
+        min: 0
+        max: 1
       - name: skip
+        as_required: true
+        min: 0
+        max: 1
       - name: last
+        as_required: true
+        min: 0
+        max: 1
 
   - name: fft
     parent: analysis
@@ -444,11 +725,27 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: re    # required
+      - name: re
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
       - name: im
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
       - name: re
+        as_required: false
+        min: 0
+        max: 1
       - name: im
+        as_required: true
+        min: 0
+        max: 1
 
   - name: first
     parent: analysis
@@ -458,9 +755,19 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, repeatable
+      - name: value
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: first    # required, repeatable
+      - name: first
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
 
   - name: formula
     parent: analysis
@@ -471,9 +778,18 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: in    # repeatable
+      - name: in
+        as_required: false
+        min: 0
+        max: unlimited
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: gausssmooth
     parent: analysis
@@ -486,9 +802,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: in    # required
+      - name: in
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: gcd
     parent: analysis
@@ -498,9 +822,18 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 2
+        max: 2
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: gcd    # required
+      - name: gcd
+        as_required: false
+        min: 1
+        max: 1
 
   - name: if
     parent: analysis
@@ -523,12 +856,35 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: a    # required, literal value allowed
-      - name: b    # required, literal value allowed
-      - name: true    # literal value allowed, empty allowed
-      - name: false    # literal value allowed, empty allowed
+      - name: a
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: b
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: true
+        as_required: false
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: true
+      - name: false
+        as_required: false
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: true
     outputs:
-      - name: result    # required
+      - name: result
+        as_required: false
+        min: 1
+        max: 1
 
   - name: imagedecode
     parent: analysis
@@ -539,16 +895,45 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required
+      - name: in
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
       - name: width
+        as_required: true
+        min: 0
+        max: 1
       - name: height
+        as_required: true
+        min: 0
+        max: 1
       - name: r
+        as_required: true
+        min: 0
+        max: 1
       - name: g
+        as_required: true
+        min: 0
+        max: 1
       - name: b
+        as_required: true
+        min: 0
+        max: 1
       - name: a
+        as_required: true
+        min: 0
+        max: 1
       - name: luma
+        as_required: true
+        min: 0
+        max: 1
       - name: luminance
+        as_required: true
+        min: 0
+        max: 1
 
   - name: info
     parent: analysis
@@ -560,11 +945,29 @@ elements:
     attributes: []
     outputs:
       - name: batteryLevel
+        as_required: false
+        min: 0
+        max: 1
       - name: wifiSignalStrength
+        as_required: true
+        min: 0
+        max: 1
       - name: systemVolume
+        as_required: true
+        min: 0
+        max: 1
       - name: batteryVoltage
+        as_required: true
+        min: 0
+        max: 1
       - name: batteryCurrent
+        as_required: true
+        min: 0
+        max: 1
       - name: batteryTemperature
+        as_required: true
+        min: 0
+        max: 1
 
   - name: integrate
     parent: analysis
@@ -574,9 +977,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required
+      - name: in
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: interpolate
     parent: analysis
@@ -592,11 +1003,30 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
     inputs:
-      - name: x    # required
-      - name: y    # required
-      - name: xi    # required, literal value allowed
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: xi
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: out    # required, repeatable
+      - name: out
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
 
   - name: lcm
     parent: analysis
@@ -606,9 +1036,18 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 2
+        max: 2
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: lcm    # required
+      - name: lcm
+        as_required: false
+        min: 1
+        max: 1
 
   - name: loess
     parent: analysis
@@ -618,14 +1057,46 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: x    # required
-      - name: y    # required
-      - name: d    # required, literal value allowed
-      - name: xi    # required, literal value allowed
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: d
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: xi
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: yi0    # required, repeatable
-      - name: yi1    # repeatable
-      - name: yi2    # repeatable
+      - name: yi0
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
+      - name: yi1
+        as_required: true
+        min: 0
+        max: unlimited
+        repeat_offset: 0
+      - name: yi2
+        as_required: true
+        min: 0
+        max: unlimited
+        repeat_offset: 0
 
   - name: log
     parent: analysis
@@ -636,9 +1107,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: log    # required
+      - name: log
+        as_required: false
+        min: 1
+        max: 1
 
   - name: map
     parent: analysis
@@ -652,19 +1131,73 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: mapWidth    # required, literal value allowed
-      - name: minX    # required, literal value allowed
-      - name: maxX    # required, literal value allowed
-      - name: mapHeight    # required, literal value allowed
-      - name: minY    # required, literal value allowed
-      - name: maxY    # required, literal value allowed
-      - name: x    # required, literal value allowed
-      - name: y    # required, literal value allowed
-      - name: z    # literal value allowed
+      - name: mapWidth
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: minX
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: maxX
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: mapHeight
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: minY
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: maxY
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: z
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: x    # required
-      - name: y    # required
-      - name: z    # required
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+      - name: z
+        as_required: true
+        min: 1
+        max: 1
 
   - name: match
     parent: analysis
@@ -674,9 +1207,19 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required, repeatable
+      - name: in
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: out    # required, repeatable
+      - name: out
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
 
   - name: max
     parent: analysis
@@ -690,11 +1233,32 @@ elements:
         agreement: agreed
     inputs:
       - name: x
-      - name: y    # required
-      - name: threshold    # literal value allowed
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: threshold
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
       - name: max
+        as_required: true
+        min: 0
+        max: 1
       - name: position
+        as_required: true
+        min: 0
+        max: 1
 
   - name: min
     parent: analysis
@@ -708,11 +1272,32 @@ elements:
         agreement: agreed
     inputs:
       - name: x
-      - name: y    # required
-      - name: threshold    # literal value allowed
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: threshold
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
       - name: min
+        as_required: true
+        min: 0
+        max: 1
       - name: position
+        as_required: true
+        min: 0
+        max: 1
 
   - name: movingaverage
     parent: analysis
@@ -726,10 +1311,23 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: data    # required
-      - name: width    # literal value allowed
+      - name: data
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: width
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: data    # required
+      - name: data
+        as_required: false
+        min: 1
+        max: 1
 
   - name: multiply
     parent: analysis
@@ -739,9 +1337,18 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: factor    # required, repeatable, literal value allowed
+      - name: factor
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: product    # required
+      - name: product
+        as_required: false
+        min: 1
+        max: 1
 
   - name: periodicity
     parent: analysis
@@ -751,15 +1358,51 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: x    # required
-      - name: y    # required
-      - name: dx    # required, literal value allowed
-      - name: overlap    # literal value allowed
-      - name: min    # literal value allowed
-      - name: max    # literal value allowed
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: dx
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: overlap
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: min
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: max
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
       - name: time
+        as_required: true
+        min: 0
+        max: 1
       - name: period
+        as_required: true
+        min: 0
+        max: 1
 
   - name: power
     parent: analysis
@@ -769,10 +1412,23 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: base    # required, literal value allowed
-      - name: exponent    # required, literal value allowed
+      - name: base
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: exponent
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: power    # required
+      - name: power
+        as_required: false
+        min: 1
+        max: 1
 
   - name: ramp
     parent: analysis
@@ -781,11 +1437,29 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: start    # required, literal value allowed
-      - name: stop    # required, literal value allowed
-      - name: length    # literal value allowed
+      - name: start
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: stop
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: length
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: out    # required
+      - name: out
+        as_required: false
+        min: 1
+        max: 1
 
   - name: rangefilter
     parent: analysis
@@ -795,11 +1469,33 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: in    # required, repeatable
-      - name: min    # repeatable, literal value allowed
-      - name: max    # repeatable, literal value allowed
+      - name: in
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
+      - name: min
+        as_required: true
+        min: 0
+        max: unlimited
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 1
+      - name: max
+        as_required: true
+        min: 0
+        max: unlimited
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 2
     outputs:
-      - name: out    # required, repeatable
+      - name: out
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
 
   - name: reduce
     parent: analysis
@@ -822,12 +1518,33 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: factor    # required, literal value allowed
-      - name: x    # required
+      - name: factor
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: x
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
       - name: y
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
     outputs:
       - name: x
+        as_required: true
+        min: 0
+        max: 1
       - name: y
+        as_required: true
+        min: 0
+        max: 1
 
   - name: round
     parent: analysis
@@ -846,9 +1563,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: round    # required
+      - name: round
+        as_required: false
+        min: 1
+        max: 1
 
   - name: sin
     parent: analysis
@@ -862,9 +1587,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: sin    # required
+      - name: sin
+        as_required: false
+        min: 1
+        max: 1
 
   - name: sinh
     parent: analysis
@@ -874,9 +1607,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: sinh    # required
+      - name: sinh
+        as_required: false
+        min: 1
+        max: 1
 
   - name: sort
     parent: analysis
@@ -889,9 +1630,19 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: in    # required, repeatable
+      - name: in
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: out    # required, repeatable
+      - name: out
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
 
   - name: split
     parent: analysis
@@ -901,12 +1652,33 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: data    # required
-      - name: index    # literal value allowed
-      - name: overlap    # literal value allowed
+      - name: data
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: index
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: overlap
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
       - name: out1
+        as_required: false
+        min: 0
+        max: 1
       - name: out2
+        as_required: false
+        min: 0
+        max: 1
 
   - name: subrange
     parent: analysis
@@ -916,12 +1688,37 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: from    # literal value allowed
-      - name: to    # literal value allowed
-      - name: length    # literal value allowed
-      - name: in    # required, repeatable
+      - name: from
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: to
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: length
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: in
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: false
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: out    # required, repeatable
+      - name: out
+        as_required: false
+        min: 1
+        max: unlimited
+        repeat_offset: 0
 
   - name: subtract
     parent: analysis
@@ -931,10 +1728,24 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: minuend    # required, literal value allowed
-      - name: subtrahend    # required, repeatable, literal value allowed
+      - name: minuend
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
+      - name: subtrahend
+        as_required: false
+        min: 1
+        max: unlimited
+        allows_value: true
+        allows_empty: false
+        repeat_offset: 0
     outputs:
-      - name: difference    # required
+      - name: difference
+        as_required: false
+        min: 1
+        max: 1
 
   - name: tan
     parent: analysis
@@ -948,9 +1759,17 @@ elements:
         summary: See the module description.
         agreement: agreed
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: tan    # required
+      - name: tan
+        as_required: false
+        min: 1
+        max: 1
 
   - name: tanh
     parent: analysis
@@ -960,9 +1779,17 @@ elements:
     children: [input, output]
     attributes: []
     inputs:
-      - name: value    # required, literal value allowed
+      - name: value
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: tanh    # required
+      - name: tanh
+        as_required: false
+        min: 1
+        max: 1
 
   - name: threshold
     parent: analysis
@@ -977,10 +1804,28 @@ elements:
         agreement: agreed
     inputs:
       - name: x
-      - name: y    # required
-      - name: threshold    # literal value allowed
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: y
+        as_required: true
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: threshold
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: true
+        allows_empty: false
     outputs:
-      - name: position    # required
+      - name: position
+        as_required: false
+        min: 1
+        max: 1
 
   - name: timer
     parent: analysis
@@ -996,5 +1841,11 @@ elements:
         agreement: agreed
     outputs:
       - name: out
+        as_required: false
+        min: 0
+        max: 1
       - name: offset1970
+        as_required: true
+        min: 0
+        max: 1
 

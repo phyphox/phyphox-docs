@@ -370,6 +370,45 @@ not an angle. It looked like a fault in the tooling. It was the tooling being ri
 something surprising. That is now the third time a wrong-looking extraction result has been
 correct, against a consistent instinct to assume my own error first.
 
+### The slot constraints, which the first pass reduced to comments
+
+The first version of `analysis.yml` recorded the slot *names* and put a few of their
+properties in YAML **comments** — so they were neither machine-readable nor complete. It also
+dropped `asRequired` entirely, which matters more than anything else on that list.
+
+Re-extracted properly, with Android's defaults applied rather than only the fields each
+`ioMapping` sets explicitly, all 194 slots now carry:
+
+| field | meaning | count |
+|---|---|---|
+| `as_required` | the `as` attribute must name this slot; an unnamed tag is never matched to it | **104 of 194** |
+| `min` / `max` | how many tags may fill it (`unlimited` is Android's `maxCount = 0`) | — |
+| `allows_value` | whether `type="value"` is accepted | 37 refuse it |
+| `allows_empty` | whether `type="empty"` is accepted | only 3 accept it |
+| `repeat_offset` | the slot belongs to a repeating group | 25 |
+
+Two of those defaults are traps. `asRequired` defaults to **true**, so a slot is
+`as`-required unless a module explicitly says otherwise — the opposite of what the sparse
+Java initialisers suggest at a glance. And `maxCount = 0` means *no maximum*, not *none
+allowed*, which the first pass had recorded as "repeatable" and conflated with
+`repeatableOffset`.
+
+**Android enforces all four; iOS enforces none.** It matches the `as` names each module knows,
+falls back to document order, and applies no per-slot restriction on type or count. So a file
+that omits a required `as` is refused by Android with a precise message and accepted by iOS,
+which assigns positionally and runs an experiment computing something other than what its
+author wrote. Recorded as `analysis-slot-constraints-unenforced` — the same shape as
+`input-output-component-validation` one level down, and settled by the same decision.
+
+Two things checked along the way that turned out **not** to be divergences, both after reading
+further than the first grep suggested:
+
+- `if` looked as though iOS required `as` and threw otherwise. It falls back positionally and
+  only throws on a fifth input. Agrees with Android.
+- `type="empty"` looked unimplemented on iOS, since no module matches `.empty`. The factory
+  converts it into a shared permanently-empty buffer before the module sees it, which is
+  exactly Android's semantics.
+
 ### Revised projection
 
 Four blocks are now modelled — `input`, `views`, `output` and `analysis` — leaving

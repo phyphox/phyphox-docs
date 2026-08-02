@@ -284,6 +284,8 @@ def _check_spec(entries):
             # slot names, which carries no agreement of its own.
             if isinstance(element.get("outputs"), dict):
                 holders.append(element["outputs"])
+            if isinstance(element.get("slot_constraints"), dict):
+                holders.append(element["slot_constraints"])
             for h in holders:
                 where = f"{fn}: {element['name']}/{h.get('name', '<outputs>')}"
                 ref = h.get("inconsistency")

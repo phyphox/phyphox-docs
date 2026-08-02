@@ -709,3 +709,34 @@
     No bundled experiment uses these modules, so the exposure is limited to
     user-written and community experiments, which cannot be surveyed from here.
     The fix is three lines in classMap and the correct classes already exist.
+
+- id: analysis-slot-constraints-unenforced
+  title: Per-slot constraints on analysis module inputs and outputs
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Every module carries an ioMapping table stating, per slot, whether the `as`
+      attribute is required, how many tags may fill it, whether type="value" is
+      accepted and whether type="empty" is. All four are enforced, and a file
+      breaking any of them is refused with a specific message - "The non-mapped
+      input could not be matched", "A maximum of n inputs was expected for X",
+      "Value-type not allowed for input X" (PhyphoxFile.java, ioBlockParser).
+    ios: >-
+      Matches the `as` names each module knows about, falls back to document
+      order for anything unnamed, and applies no per-slot restriction. There is
+      no equivalent of the mapping table; each module checks only what its own
+      code happens to need, typically that its two or three essential inputs are
+      present (Analysis/Modules/*.swift).
+  summary: >-
+    Android states four constraints per input and output slot of every analysis
+    module and enforces all of them; iOS enforces none. Of the 194 slots across
+    54 modules, 104 require the `as` attribute, 37 refuse a literal value, three
+    accept the empty type and 25 belong to a repeating group. A file that omits a
+    required `as`, gives a slot more tags than it allows, or passes a literal
+    where a data container is expected is refused by Android with a precise
+    error, and accepted by iOS - which then assigns inputs positionally and
+    produces an experiment that runs but computes something other than what its
+    author wrote. This is the same shape as
+    input-output-component-validation, one level down, and would be settled by
+    the same decision.
