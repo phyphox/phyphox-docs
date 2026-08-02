@@ -27,6 +27,16 @@ What it checks
 By default only read-only endpoints are used. Pass --allow-control to include
 start/stop/set/trigger, which change the state of the experiment, and
 --allow-clear to include clearing, which destroys measured data.
+
+Two things learned from the first run against real phones:
+
+* **Start and stop a measurement on both devices first.** Buffer contents and the
+  /time event list are state, not contract; an empty buffer next to a full one is
+  tolerated, but a device that has never measured makes several probes
+  uninformative.
+* **Run --allow-control last, and clear afterwards.** control.set.infinity leaves
+  a non-finite value in a buffer on Android, which then shows up as a null in
+  every later /get and looks like a fresh divergence.
 """
 
 import argparse
@@ -72,7 +82,8 @@ def build_probes(buffer_name):
     b = buffer_name
     probes = [
         Probe("config", "/config", schema="Config"),
-        Probe("meta", "/meta", schema="Meta", relates_to=["meta-sensors"]),
+        Probe("meta", "/meta", schema="Meta",
+              relates_to=["meta-sensors", "meta-missing-value-representation"]),
         Probe("time", "/time"),
 
         Probe("get.single", "/get", {b: ""}, schema="GetResponse"),
@@ -88,11 +99,12 @@ def build_probes(buffer_name):
         Probe("get.no.parameters", "/get",
               relates_to=["get-no-parameters"]),
         Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"},
-              relates_to=["get-unknown-reference-buffer"]),
+              relates_to=["get-unknown-reference-buffer", "cors-error-paths"]),
         Probe("export.bad.format", "/export", {"format": "99"},
               expect_json=False, relates_to=["export-invalid-format"]),
         Probe("export.missing.format", "/export",
-              expect_json=False, relates_to=["export-invalid-format"]),
+              expect_json=False,
+              relates_to=["export-invalid-format", "cors-error-paths"]),
         Probe("res.missing.src", "/res",
               relates_to=["res-fallback"]),
         Probe("res.unknown.src", "/res", {"src": "nosuchfile___.png"},
@@ -219,6 +231,43 @@ def flatten(node, prefix=""):
     return sorted(out)
 
 
+def diff_shapes(a, b, path=""):
+    """Differences between two shapes, ignoring what is merely state.
+
+    An **empty array is treated as compatible with any array.** Two phones are
+    never in the same measurement state - one may have been started and the other
+    not - and an empty buffer or an empty event list says nothing about the
+    contract, only that nothing has happened yet. Comparing them as different
+    shapes buried the real findings under five spurious failures on the first run
+    against real devices.
+    """
+    here = path or "."
+    if isinstance(a, dict) and isinstance(b, dict):
+        if "<array of>" in a and "<array of>" in b:
+            ea, eb = a["<array of>"], b["<array of>"]
+            if not ea or not eb:          # no data on one side: nothing to compare
+                return []
+            out = []
+            for extra in sorted(set(map(repr, ea)) - set(map(repr, eb))):
+                out.append(f"android only: {here}[]: {extra}")
+            for extra in sorted(set(map(repr, eb)) - set(map(repr, ea))):
+                out.append(f"ios only:     {here}[]: {extra}")
+            return out
+        out = []
+        for k in sorted(set(a) | set(b)):
+            sub = f"{path}.{k}" if path else k
+            if k not in b:
+                out += [f"android only: {ln}" for ln in flatten(a[k], sub)]
+            elif k not in a:
+                out += [f"ios only:     {ln}" for ln in flatten(b[k], sub)]
+            else:
+                out += diff_shapes(a[k], b[k], sub)
+        return out
+    if a != b:
+        return [f"{here}: android={a} ios={b}"]
+    return []
+
+
 # ------------------------------------------------------------------ the run
 
 def load_spec():
@@ -291,14 +340,31 @@ def run(args):
     if args.allow_clear:
         probes += clearing
 
+    skip = {n.strip() for n in args.skip.split(",") if n.strip()}
+    unknown_skips = skip - {p.name for p in probes}
+    if unknown_skips:
+        sys.exit(f"--skip names no such probe: {', '.join(sorted(unknown_skips))}")
+    if skip:
+        probes = [p for p in probes if p.name not in skip]
+        print(f"skipping: {', '.join(sorted(skip))}\n")
+
     failures, expected_diffs = [], []
     cors_seen = {name: set() for name in targets}
+    # A probe can kill the app it is aimed at - export-invalid-format does
+    # exactly that on iOS. Once a target has stopped answering, every later
+    # probe against it "diverges", which buries the one real finding under a
+    # page of noise. So notice it and stop.
+    died_after = {}
 
     for probe in probes:
+        if died_after:
+            break
         results = {}
         for name, base in targets.items():
             r = fetch(probe.url(base))
             if r.get("transport_error"):
+                if name not in died_after:
+                    died_after[name] = probe.name
                 # Not automatically a failure: an app that traps on a bad request
                 # answers nothing at all, and that is exactly what
                 # export-invalid-format describes. Let it take part in the diff.
@@ -339,13 +405,7 @@ def run(args):
         if a["content_type"] != i["content_type"]:
             diffs.append(f"content-type: android={a['content_type']} "
                          f"ios={i['content_type']}")
-        if a["shape"] != i["shape"]:
-            only_a = set(flatten(a["shape"])) - set(flatten(i["shape"]))
-            only_i = set(flatten(i["shape"])) - set(flatten(a["shape"]))
-            for line in sorted(only_a):
-                diffs.append(f"android only: {line}")
-            for line in sorted(only_i):
-                diffs.append(f"ios only:     {line}")
+        diffs += diff_shapes(a["shape"], i["shape"])
 
         if not diffs:
             continue
@@ -364,12 +424,15 @@ def run(args):
     # that is inconsistent with *itself* is a separate, unrecorded problem.
     for name, values in cors_seen.items():
         if len(values) > 1:
-            failures.append(f"{name}: sends the CORS header on some endpoints "
-                            f"and not others - that is not a platform "
-                            f"difference, it is a bug in {name}.")
-    if len(targets) == 2 and all(len(v) == 1 for v in cors_seen.values()):
-        a_cors = next(iter(cors_seen["android"]))
-        i_cors = next(iter(cors_seen["ios"]))
+            expected_diffs.append((
+                Probe(f"server.cors.{name}", "/", relates_to=["cors-error-paths"]),
+                [f"{name} sends the CORS header on some endpoints and not others"]))
+    if len(targets) == 2:
+        # "ever sends it" rather than "always sends it", so a platform that is
+        # internally inconsistent (see cors-error-paths) is still compared with
+        # the other one.
+        a_cors = any(cors_seen["android"])
+        i_cors = any(cors_seen["ios"])
         if a_cors != i_cors:
             expected_diffs.append((
                 Probe("server.cors", "/", relates_to=["cors-header"]),
@@ -387,6 +450,17 @@ def run(args):
     resolved = sorted(probed_ids - seen_ids)
 
     # --------------------------------------------------------------- report
+    if died_after:
+        for name, probe_name in died_after.items():
+            print(f"*** {name} stopped answering during probe '{probe_name}'.\n")
+            print(f"    The app has most likely crashed - phyphox serves this API\n"
+                  f"    in-process, so a trap takes the whole app down and the\n"
+                  f"    socket with it.\n")
+            print(f"    Restart phyphox on the {name} device, then re-run with\n"
+                  f"      --skip {probe_name}\n"
+                  f"    to get through the remaining probes.\n")
+        print("    Probing stopped here; results below cover only what ran.\n")
+
     if resolved:
         print("Recorded divergences that did NOT show up in this run:\n")
         for i in resolved:
@@ -424,6 +498,9 @@ def main():
                    help="also probe start/stop/set/trigger (changes experiment state)")
     p.add_argument("--allow-clear", action="store_true",
                    help="also probe cmd=clear (DESTROYS measured data)")
+    p.add_argument("--skip", default="",
+                   help="comma-separated probe names to leave out, e.g. after one "
+                        "of them has been found to crash an app")
     args = p.parse_args()
     if not args.android and not args.ios:
         p.error("give at least one of --android / --ios")

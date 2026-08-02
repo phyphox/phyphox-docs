@@ -81,6 +81,10 @@ def _admonition(entry, link_prefix=""):
             table.append(f"| {IMPL_LABEL.get(impl, impl)} | {cell} |")
         body.append("\n".join(table))
 
+    if entry.get("verified"):
+        body.append("*Observed on real devices: "
+                    + " ".join(entry["verified"].split()) + "*")
+
     if entry.get("issue"):
         body.append(f"[Tracking issue]({entry['issue']})")
 
@@ -208,6 +212,9 @@ def _render_list():
                     out.append(f"| {IMPL_LABEL.get(impl, impl)} | "
                                f"{' '.join(behaviour.split())} |")
                 out.append("")
+            if e.get("verified"):
+                out.append("*Observed on real devices: "
+                           + " ".join(e["verified"].split()) + "*\n")
             if e.get("issue"):
                 out.append(f"[Tracking issue]({e['issue']})\n")
     return "\n".join(out)

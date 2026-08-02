@@ -8,6 +8,12 @@
 #   iOS      ExperimentWebServer.swift         (phyphox-ios     a0643729, development)
 #            WebServerUtilities.swift
 #
+# It has since been checked against running devices with tools/contract_test.py:
+# Android 1.2.1-beta2 (build 1020102) and iOS 1.2.0 (build 17272), both serving
+# linear_accelerometer.phyphox. That run corrected two things this file got wrong
+# from reading alone - see the Meta schema - and turned up two divergences the
+# source reading had missed.
+#
 # Where the two disagree, the divergence is recorded in ../../inconsistencies.yml
 # and referenced from here with `x-phyphox-inconsistency`. The docs build fails
 # if such a reference names an entry that does not exist.
@@ -355,9 +361,13 @@ paths:
         with one exception: `uniqueId` is never served here, because it is a
         per-user identifier and this endpoint has no authentication.
 
-        Every value is a string, and a value that the platform cannot supply comes
-        back as the empty string rather than being omitted. Treat the key set as
-        open: it grows with the app, and it is not the same on both platforms.
+        Treat the key set as open: it grows with the app, and it is not the same
+        on both platforms.
+
+        **A value the platform cannot supply is not reported as an empty string.**
+        Android omits the key entirely, iOS sends JSON `null` — so a client must
+        handle a key being absent *and* being null, and must not assume that a key
+        seen on one device exists on another.
 
         Available since [phyphox 1.1.8](../reference/version-history/1.1.8.md).
       responses:
@@ -595,63 +605,65 @@ components:
         Device metadata as string values. The key set is open and platform
         dependent; the keys below are the ones both platforms serve.
       additionalProperties:
-        type: string
+        type: [string, "null"]
       properties:
         sensors:
           type: object
           description: |
             Per-sensor metadata, keyed by sensor name. Served by Android only —
-            see the inconsistency noted on this endpoint. Values are strings and
-            are empty where the platform cannot supply them; on Android their
-            meaning and accuracy vary by device.
+            see the inconsistency noted on this endpoint. Note the capitalised
+            keys, which differ from the lowercase spelling used elsewhere for
+            these concepts; the flat identifiers a network connection sends
+            (`accelerometerName` and so on) are capitalised the same way. On
+            Android the meaning and accuracy of these values vary by device.
           additionalProperties:
             type: object
             additionalProperties:
-              type: string
+              type: [string, "null"]
             properties:
-              name: {type: string}
-              vendor: {type: string}
-              range: {type: string}
-              resolution: {type: string}
-              minDelay: {type: string}
-              maxDelay: {type: string}
-              power: {type: string}
-              version: {type: string}
+              Name: {type: [string, "null"]}
+              Vendor: {type: [string, "null"]}
+              Range: {type: [string, "null"]}
+              Resolution: {type: [string, "null"]}
+              MinDelay: {type: [string, "null"]}
+              MaxDelay: {type: [string, "null"]}
+              Power: {type: [string, "null"]}
+              Version: {type: [string, "null"]}
         version:
-          type: string
+          type: [string, "null"]
           description: phyphox version.
         build:
-          type: string
+          type: [string, "null"]
           description: phyphox build number.
         fileFormat:
-          type: string
+          type: [string, "null"]
           description: Highest file-format version this app can read.
         deviceModel:
-          type: string
+          type: [string, "null"]
         deviceBrand:
-          type: string
+          type: [string, "null"]
         deviceBoard:
-          type: string
+          type: [string, "null"]
         deviceManufacturer:
-          type: string
+          type: [string, "null"]
         deviceBaseOS:
-          type: string
+          type: [string, "null"]
         deviceCodename:
-          type: string
+          type: [string, "null"]
         deviceRelease:
-          type: string
+          type: [string, "null"]
         depthFrontSensor:
-          type: string
+          type: [string, "null"]
         depthFrontResolution:
-          type: string
+          type: [string, "null"]
         depthFrontRate:
-          type: string
+          type: [string, "null"]
         depthBackSensor:
-          type: string
+          type: [string, "null"]
         depthBackResolution:
-          type: string
+          type: [string, "null"]
         depthBackRate:
-          type: string
+          type: [string, "null"]
 
     TimeEvent:
       type: object

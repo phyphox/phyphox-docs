@@ -20,6 +20,9 @@
 #              android, ios, editor, arduino, micropython, wiki.
 #   since      optional: format version or app version the divergence appeared in
 #   issue      optional: URL of the tracking issue
+#   verified   optional: when and against which builds the divergence was
+#              actually observed on hardware, as opposed to read out of the
+#              source. Absence means nobody has checked on a device.
 #   summary    reader-facing explanation, one short paragraph. Required.
 #
 # Keep entries factual and cite where the behaviour was observed, so the next
@@ -53,6 +56,12 @@
     ios: >-
       Sends no CORS header at all
       (ExperimentWebServer.swift; GCDWebServer adds none by default).
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     A web page served from anywhere else can read the API of an Android phone but
     not of an iPhone, because only Android sends a CORS header. This is invisible
@@ -71,6 +80,12 @@
     ios: >-
       Returns 400 with an empty body
       (ExperimentWebServer.swift, "guard let queryString = request.url.query").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     Requesting /get with no buffers - the natural way to poll only the experiment
     status, for instance to watch for a session change - works on Android and
@@ -130,6 +145,12 @@
     ios: >-
       Returns 400
       (ExperimentWebServer.swift, "guard let extraBuffer = self.experiment.buffers[extra]").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     Asking for "?abc=42|nosuchbuffer" is rejected cleanly on iOS and crashes the
     request handler on Android. Note that an unknown buffer in the *requested*
@@ -168,6 +189,12 @@
     ios: >-
       Rejects anything not finite, so infinity is refused with {"result": false}
       (ExperimentWebServer.swift, "if !value.isFinite").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     Both apps refuse to write NaN, because a buffer holds NaN when empty and
     writing it explicitly is almost always a mistake. They disagree about
@@ -185,6 +212,12 @@
     ios: >-
       Returns {"result": false}
       (ExperimentWebServer.swift, "guard ... let buffer = self.experiment.buffers[bufferName]").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     A typo in the buffer name gets a clean negative result on iOS and a failed
     request on Android. The result field exists precisely to report this, so the
@@ -203,6 +236,12 @@
       Bounds-checks the index, does nothing if it is out of range or names a
       non-button element, and answers {"result": true} either way
       (ExperimentWebServer.swift, "if (self.htmlId2ViewElement.count > elementIndex)").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     Neither behaviour is right: Android fails the request, and iOS reports success
     for a trigger it did not perform. A client cannot tell from either response
@@ -223,6 +262,12 @@
       terminates the app; a missing or non-numeric format is treated as index 0
       (Excel)
       (WebServerUtilities.swift, "exportTypes[Int(str) ?? 0].1").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     "/export?format=99" is an error message on Android and a crash of the whole
     app on iOS - reachable by anyone who can reach the phone, since the API has no
@@ -260,6 +305,12 @@
     ios: >-
       Serves only the non-sensor metadata; no "sensors" key
       (ExperimentWebServer.swift, "for metadata in Metadata.allNonSensorCases").
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
   summary: >-
     Android reports per-sensor metadata over /meta and iOS does not, even though
     iOS models the same values (Metadata.sensor) and serves them to network
@@ -305,3 +356,56 @@
     exactly one platform whichever spelling its author picks. Found while
     comparing the /meta endpoints, which exclude the identifier on both platforms
     and are therefore unaffected.
+
+- id: meta-missing-value-representation
+  title: How /meta reports a value the device cannot supply
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Omits the key entirely. JSONObject.put() with a null value removes the
+      key, so e.g. depthFrontResolution and depthFrontRate are simply absent on a
+      device without a depth sensor (RemoteServer.java, handleMeta()).
+    ios: >-
+      Includes the key with a JSON null, e.g. "deviceBoard": null,
+      "depthBackRate": null (ExperimentWebServer.swift, "/meta" handler).
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
+  summary: >-
+    A client cannot tell "this device has no such value" from "this app version
+    does not report it", because the two platforms express the first case
+    differently and neither uses the empty string. Observed on real devices: an
+    Android phone omitted depthFrontResolution, depthFrontRate,
+    depthBackResolution and depthBackRate; an iPhone sent null for those plus
+    deviceBaseOS, deviceBoard, deviceCodename and deviceManufacturer.
+
+- id: cors-error-paths
+  title: Android drops the CORS header on requests that throw
+  area: remote-interface
+  status: open
+  affects:
+    android: >-
+      Adds "Access-Control-Allow-Origin: *" in respond(), which an unhandled
+      exception never reaches - jlhttp then serves its own text/html error page
+      without the header. Confirmed on a device: /export with no format and
+      /get with an unknown reference buffer both answer without CORS, while every
+      successful endpoint includes it (RemoteServer.java).
+    ios: >-
+      Sends no CORS header anywhere, so the distinction does not arise.
+  verified: >-
+    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
+    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS WebServer sources are identical
+    on master and development, so the store build behaves as the
+    development branch here.
+  summary: >-
+    Android's CORS support is inconsistent with itself: successful responses
+    carry the header and requests that raise an exception do not. A browser
+    client therefore cannot read the error, and sees an opaque CORS failure
+    instead of the status code - the case where a useful message matters most.
+    Distinct from cors-header, which is about iOS having no CORS at all; fixing
+    that one would not fix this.
