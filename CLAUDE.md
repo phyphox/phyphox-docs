@@ -309,6 +309,23 @@ Three fields exist for the split between what the spec records and what a reader
   one, what to search for next time. **Never rendered.** Reader-facing detail that belongs beside an
   attribute goes in `remark:`, so the distinction has to be made deliberately.
 
+### Code blocks come in two kinds
+
+A **skeleton** is generated and shows the surface — every attribute that may appear. Its
+placeholders are uppercase and name the kind of value that goes in the blank: `STRING`, `INTEGER`,
+`FLOAT`, `BOOLEAN`, `COLOR`, and `BUFFER`/`TEXT` for element content. Uppercase means "replace
+this". Anything lowercase inside a skeleton is a literal to type verbatim — the slot and component
+names, `component="hue"`, `as="threshold"` — so the case tells the reader which is which.
+
+An **example** is hand-written and shows a real, valid configuration that can be pasted into an
+experiment. It never contains an uppercase placeholder.
+
+Enumerated attributes get a type like everything else, not their list of choices: spelling them out
+reads well for `type="buffer/value"` and runs to 128 characters for `sensor`'s `type`, and
+collapsing past a length threshold put `scaleMinX="auto/extend/fixed"` next to
+`rateStrategy="STRING"` for no visible reason. The values belong in the attribute list under the
+skeleton, where there is room to explain them.
+
 `value_notes:` describes the values of an enumerated attribute and renders as a nested definition
 list — the shape the hand-written pages used for `aeStrategy` and the audio parameters.
 `undocumented: intentionally` keeps an attribute out of the output while the spec still models it;

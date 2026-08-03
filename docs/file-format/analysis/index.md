@@ -63,11 +63,6 @@ optimization
 
 ## Analysis modules in general
 
-```xml
-<input type="TYPE" as="AS">BUFFER/VALUE</input>
-<output as="AS">BUFFER</output>
-```
-
 Almost all analysis modules take inputs and write their results to an output buffer. All inputs and outputs are defined as *input* and *output* tags within the analysis module. While the output always has to be a data-container, the input may also be a floating point value which can be defined by setting the attribute *type* to *value*. If *type* is not set, it defaults to *buffer* and the given name has to match a data-container. Additionally, the input may be set to the *type* *empty*, which is similar to *value* but represents a constant empty buffer. This only makes sense and is supported for few modules and will be noted there.
 
 Both, inputs and outputs, can be given a specific function by the *as* attribute. For many modules this attribute can be omitted if it is obvious. For example the *add* module takes an arbitrary number of inputs in an arbitrary order (a+b equals b+a), but the *subtract* module needs an explicit mapping for the *minuend* and the *subtrahend* (a-b does not equal b-a). Similarly, a single output does not need to be mapped, while multiple outputs (for example value and position of a maximum in the *max* module) need to be mapped.
@@ -121,6 +116,8 @@ output-tag
     clear (deprecated in file format 1.17)
     :   *false* will mean, that the buffer retains its data (from another module writing to this buffer or from the previous analysis run) and new data is appended. *true* will clear the buffer first. Note that this attribute has been deprecated with file format 1.17 (phyphox 1.1.13) and should be repalced with the more intuitive append attribute. clear=true corresponds to append=false.
     :   *optional*, default: *true*
+
+{{spec:analysis/phyphox/analysis|common}}
 
 ## List of analysis modules
 

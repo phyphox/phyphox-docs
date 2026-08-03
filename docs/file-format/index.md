@@ -130,41 +130,29 @@ The translations block may hold one or more *translation* (note: singular) block
 
 ### Block: translation
 
-Each translation block holds all the translations for a single language. The attribute
+Each translation block holds all the translations for a single language.
 
-locale
-:   Defines the two-character iso language code for the translations within this language block. (for example "de" for German or "fr" for French)
-:   *required*
+{{spec:root/translations/translation|attributes}}
 
 **Tag: title**
 
-```xml
-<title>TITLE</title>
-```
-
 Localized version of the title tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the title will be replaced by this entry.
+
+{{spec:root/translation/title}}
 
 **Tag: category**
 
-```xml
-<category>CATEGORY</category>
-```
+Localized version of the category tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the category will be replaced by this entry. Note that phyphox will group experiments by the localized version of the category.
 
-Localized version of the category tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the title will be replaced by this entry. Note that phyphox will group experiments by the localized version of the category.
+{{spec:root/translation/category}}
 
 **Tag: description**
 
-```xml
-<description>DESCRIPTION</description>
-```
+Localized version of the description tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the description will be replaced by this entry.
 
-Localized version of the description tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the title will be replaced by this entry.
+{{spec:root/translation/description}}
 
 **Tag: link**
-
-```xml
-<link label="LABEL">URL</link>
-```
 
 This is the localized version of the link-Tag. For example, if you link to a Demo video in English with
 
@@ -178,17 +166,13 @@ you can link to a German version in the translation block with
 <link label="Demo">http://site.org/my/german/video</link>
 ```
 
+{{spec:root/translation/link}}
+
 **Tag: string**
 
-```xml
-<string original="ORIGINAL">TRANSLATION</string>
-```
+Use the string-tag to translate any string shown to the user besides the title, description or category. If the text of a label, view etc. matches the string given in *original*, phyphox will display the tag's text instead. Of course, this only applies if the user's locale matches the translation locale.
 
-Use the string-tag to translate any string shown to the user besides the title, description or category. If the text of a label, view etc. matches the string in ORIGINAL, phyphox will display TRANSLATION instead. (Of course, this only applies if the user's locale matches the translation locale.)
-
-original
-:   The string which should be translated with TRANSLATION. This has to be an exact match.
-:   *required*
+{{spec:root/translation/string}}
 
 ## Block: data-containers
 

@@ -32,6 +32,30 @@ Three things this buys beyond removing duplication:
   * **Skeletons match the spec.** The hand-written camera skeleton named a
     component `apertue` and omitted two others; nobody had reason to notice.
 
+Two kinds of code block, and they must not blur
+-----------------------------------------------
+
+A **skeleton** is generated and shows the surface: every attribute that may
+appear on an element. Nobody copies one. Its placeholders are uppercase and
+name the kind of value that goes in the blank - `STRING`, `INTEGER`, `FLOAT`,
+`BOOLEAN`, `COLOR`, and `BUFFER` or `TEXT` for element content. Uppercase means
+"replace this".
+
+Inside a skeleton, anything lowercase is a literal to type verbatim: the slot
+and component names, `component="hue"`, `as="threshold"`. So a skeleton
+legitimately mixes the two, and the case tells a reader which is which.
+
+An **example** is hand-written and shows a real, valid configuration. Every
+value in it is real and the whole block can be pasted into an experiment. An
+example never contains an uppercase placeholder.
+
+Enumerated attributes get a type like everything else, not their list of
+choices. Spelling the choices out reads well for `type="buffer/value"` and
+runs to 128 characters for sensor's `type`; collapsing past a threshold put
+`scaleMinX="auto/extend/fixed"` next to `rateStrategy="STRING"` for no reason
+a reader could see. The values belong in the attribute list under the
+skeleton, where there is room to explain them.
+
 Marker syntax
 -------------
 
@@ -40,6 +64,8 @@ Marker syntax
     {{spec:BLOCK/PARENT/NAME|attributes}}
     {{spec:BLOCK/PARENT/NAME|slots}}    input/output slots or components alone
     {{spec:BLOCK/NAME}}                 a root element, which has no parent
+    {{spec:BLOCK/PARENT/NAME|common}}   the block's shared attributes, from
+                                        `common:` rather than from the element
 
 BLOCK is the spec file (`input`, `views`, `analysis`, ...). PARENT and NAME are
 the element's `parent:` and `name:`. All three are needed because neither pair
@@ -454,13 +480,17 @@ def _components(element, mapping, spec, state):
 # ---------------------------------------------------------------- skeleton --
 
 def _attr_placeholder(attr):
-    if attr.get("type") == "enum" and attr.get("values"):
-        joined = "/".join(str(v) for v in attr["values"])
-        # Spelling the choices out in the skeleton is the useful thing to do
-        # when there are two or three of them and unreadable when there are six.
-        if len(joined) <= 24:
-            return joined
-        return "STRING"
+    """A skeleton names the kind of value that goes in the blank, never a value.
+
+    Enumerated attributes spelled their choices out at first, and collapsed to
+    STRING once the list grew past a threshold - which put
+    `scaleMinX="auto/extend/fixed"` next to `rateStrategy="STRING"` for no
+    reason a reader could see. Spelling them out always is not an option
+    either: sensor's type has twelve values and runs to 128 characters on one
+    line. So the skeleton carries types only, at every size, and the allowed
+    values appear in the attribute list directly below it, where they are
+    formatted and explained rather than crammed into an attribute value.
+    """
     return PLACEHOLDER.get(attr.get("type"), "STRING")
 
 
@@ -537,9 +567,43 @@ def render_skeleton(element, spec, block, max_children=12):
 
 # ------------------------------------------------------------------ render --
 
+COMMON_LABEL = {
+    "module_attributes": ("Attributes accepted by every module",
+                          None),
+    "input_attributes": ("Attributes accepted by every `<input>`", "input"),
+    "output_attributes": ("Attributes accepted by every `<output>`", "output"),
+}
+
+
+def render_common(block, spec, state):
+    """The attributes a block states once rather than on each of its modules.
+
+    The analysis block accepts `cycles` on all 53 modules and `as`, `type`,
+    `keep` and `append` on all of their inputs and outputs; `common:` records
+    them once. Before this they were described only in the prose of
+    analysis/index.md, and the slot tables pointed at them with nothing to
+    point at.
+    """
+    parts = []
+    for group, items in (spec.common.get(block) or {}).items():
+        if not items:
+            continue
+        label, tag = COMMON_LABEL.get(group, (group.replace("_", " "), None))
+        parts.append(f"**{label}**")
+        if tag:
+            attrs = " ".join(f'{a["name"]}="{_attr_placeholder(a)}"'
+                             for a in items if not a.get("deprecated"))
+            parts.append(f"```xml\n<{tag} {attrs}>BUFFER</{tag}>\n```")
+        parts.append("\n\n".join(_attribute(a, spec, state) for a in items))
+    return "\n\n".join(parts)
+
+
 def render_element(block, parent, name, spec, state, mode=None):
     element = spec.get(block, parent, name)
     parts = []
+
+    if mode == "common":
+        return render_common(block, spec, state)
 
     if mode in (None, "xml"):
         parts.append(render_skeleton(element, spec, block))
