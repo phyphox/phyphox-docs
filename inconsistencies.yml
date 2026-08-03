@@ -1013,7 +1013,14 @@
 - id: gausssmooth-nonpositive-sigma
   title: A gausssmooth module with sigma of zero or less
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A sigma of zero or less is not a valid width, and both apps should refuse
+    to load the file, naming the attribute. Neither current behaviour is
+    right: substituting the default hides the mistake behind a plausible
+    result, and using the value produces NaN for every output. Note that this
+    is about a value that is *present* and invalid - omitting the attribute
+    keeps the documented default of 3, which both apps already do.
   affects:
     android: >-
       Parses the attribute with a sentinel default of 0 and applies it only if
