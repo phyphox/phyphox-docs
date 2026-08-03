@@ -660,8 +660,9 @@
     android: >-
       Declares file format 1.20 (PhyphoxFile.phyphoxFileVersion) and implements
       camera/aeFPSTarget, graph/interpolateMapColors, the clearGroup attribute on
-      data containers, the whole flashlight output element, and the analysis
-      modules butterworth and imagedecode.
+      data containers, the visibility attribute on every view element, the whole
+      flashlight output element, and the analysis modules butterworth and
+      imagedecode.
     ios: >-
       Declares 1.19 (latestSupportedFileVersion in PhyphoxElementHandler.swift)
       and implements none of them. ExperimentAnalysisFactory.classMap has neither
@@ -682,6 +683,15 @@
     and pixel data. A missing analysis module is the sharpest form of this - an
     experiment using one does not degrade, it fails to load - so they are worth
     doing first when iOS moves to 1.20.
+
+    Conditional visibility is a partial case worth singling out. iOS already
+    implements the visibility attribute for info, value, graph, edit, button,
+    toggle, slider, dropdown, camera-gui and depth-gui, so most of the work is
+    done - but not for separator, whose handler does not declare the attribute at
+    all, nor for image, whose handler reads it while ExperimentImageView ignores
+    it. Those two will silently stay visible when iOS moves to 1.20 unless they
+    are finished with the rest. The bundled tone_generator experiment already
+    relies on separator visibility, in eight places.
 
     Two larger items sit in the same list. The flashlight output element does not
     exist on iOS at all - no handler, no mention in the source - which is an
@@ -865,26 +875,3 @@
     would load on iOS and behave as though it were an ordinary buffer. Same
     family as input-invalid-enum-handling, which is decided, and would be settled
     by applying that rule here.
-
-- id: separator-visibility-ignored-on-ios
-  title: The visibility attribute of a separator is honoured only on Android
-  area: file-format
-  status: open
-  affects:
-    android: >-
-      Reads visibility before dispatching on the tag and passes it to every view
-      element, the separator included, so the separator appears and disappears
-      with the named data container
-      (PhyphoxFile.java, viewBlockParser, case "separator").
-    ios: >-
-      SeparatorViewElementHandler declares only color and height, so the
-      attribute is dropped when the file is parsed and the separator is always
-      shown (SeparatorViewElementHandler.swift).
-  summary: >-
-    A separator with a visibility attribute vanishes and reappears on Android and
-    is permanently visible on iOS. The bundled tone_generator experiment relies
-    on it: eight of its separators carry visibility, so its layout differs
-    between the platforms today. Found by validating the shipped experiment
-    collection against the specification, not by reading the parsers - the
-    attribute is easy to miss on the Android side because it is read once for all
-    view elements rather than in the separator's own branch.

@@ -567,15 +567,24 @@ draws lines, while iOS's `GraphStyle(rawValue:) ?? .lines` substitutes lines out
 one-character fix in the file, but it has to happen before the rule ships — and it is exactly
 the kind of thing that only a validation run finds.
 
-**A live layout divergence in a bundled experiment.** `tone_generator.phyphox` puts
-`visibility` on eight separators. Android honours it, because it reads `visibility` once for
-every view element before dispatching on the tag; iOS's separator handler declares only
-`color` and `height`, so the attribute is dropped and those separators are always shown. The
-experiment looks different on the two platforms today. Recorded as
-`separator-visibility-ignored-on-ios`, and the attribute is now in the spec.
+**A gap in conditional visibility, though not the one first reported.**
+`tone_generator.phyphox` puts `visibility` on eight separators, and iOS's separator handler
+declares only `color` and `height`. The first write-up called that a live layout divergence.
+It is not: `visibility` is a **file format 1.20** attribute, that experiment declares 1.20,
+and iOS supports 1.19 — so iOS refuses the whole file today and nothing differs. The same
+check that settled the data picker earlier would have caught it, and I did not run it.
 
-Note how that one hid: on Android the attribute is not in the separator's own branch, so
-reading that branch — which is what I did — shows `height` and `color` and nothing else.
+What is real is narrower and only bites later. iOS has already implemented conditional
+visibility for info, value, graph, edit, button, toggle, slider, dropdown, camera-gui and
+depth-gui — most of the work. It is missing for exactly two elements: **separator**, whose
+handler does not declare the attribute at all, and **image**, whose handler reads it while
+`ExperimentImageView` never uses it. Both will silently stay visible when iOS moves to 1.20
+unless they are finished with the rest. Folded into `ios-behind-on-format-1-20` rather than
+kept as its own entry.
+
+Note how the separator case hid from the parser reading: on Android `visibility` is read once
+for every view element before dispatching on the tag, so reading the separator's own branch —
+which is what I did — shows `height` and `color` and nothing else.
 
 **Stale files, harmless.** 18 experiments still carry `optimization="true"` on `<analysis>`,
 an attribute *removed in file format 1.10* and ignored by both parsers ever since. Two carry

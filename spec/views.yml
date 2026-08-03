@@ -54,6 +54,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container whose value decides whether the view is shown.
         agreement: agreed
 
@@ -70,6 +71,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
@@ -108,9 +110,13 @@ elements:
     attributes:
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: divergent
-        inconsistency: separator-visibility-ignored-on-ios
+        inconsistency: ios-behind-on-format-1-20
+        note: >-
+          iOS does not declare this on the separator at all, where it implements
+          it for most other view elements - see the 1.20 list.
       - name: height
         type: float
         default: 0.1
@@ -135,6 +141,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
@@ -223,6 +230,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: labelX
@@ -598,6 +606,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: signed
@@ -656,6 +665,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: dynamicLabel
@@ -731,6 +741,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: default
@@ -760,6 +771,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: minValue
@@ -838,6 +850,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: default
@@ -891,8 +904,13 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: ios-behind-on-format-1-20
+        note: >-
+          iOS parses this on the image element but ExperimentImageView never uses
+          it, so the image stays visible - see the 1.20 list.
       - name: scale
         type: float
         default: 1.0
@@ -928,6 +946,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: exposure_adjustment_level
@@ -976,6 +995,7 @@ elements:
         agreement: agreed
       - name: visibility
         type: string
+        since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: aspectRatio
