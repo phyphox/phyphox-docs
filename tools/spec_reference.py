@@ -505,6 +505,15 @@ def render_skeleton(element, spec, block, max_children=12):
         inner = "TEXT" if sub.get("text") else ""
         if sub.get("children") or isinstance(sub.get("outputs"), (dict, list)):
             inner = inner or "..."
+        # Spelling out every child's attributes is right for <audio>, with
+        # three children, and useless for <view>, with twelve - the whole
+        # views block would arrive as one 60-line skeleton. Past a handful of
+        # children the skeleton's job is to show what may appear, and each
+        # child has its own reference section anyway.
+        if len(element.get("children") or []) > 3:
+            body.append(f"    <{child} />" if not inner
+                        else f"    <{child}>{inner}</{child}>")
+            continue
         tag = _open_tag(child, sub.get("attributes") or [], width=74)
         body.extend(f"    {line}" for line in tag.split("\n")[:-1])
         body.append(f'    {tag.split(chr(10))[-1]}{inner}</{child}>')
@@ -594,8 +603,9 @@ def main():
         print(__doc__)
         return 0
     if args[0] == "--list":
-        for block, parent, name in sorted(spec.elements):
-            print(f"{block}/{parent}/{name}")
+        for key in sorted(spec.elements,
+                          key=lambda k: tuple(str(p) for p in k)):
+            print("/".join(str(p) for p in key))
         return 0
     state = PageState("../")
     for arg in args:

@@ -48,6 +48,9 @@ elements:
                dropdown, image, camera-gui, depth-gui]
     attributes:
       - name: label
+        description: >-
+          The name identifying this view. Will be translated if a
+          matching translation string is defined.
         type: string
         translatable: true
         summary: Name shown in the view selector.
@@ -65,27 +68,46 @@ elements:
     summary: Static text.
     attributes:
       - name: label
+        description: >-
+          The text to be displayed to the user
         type: string
         translatable: true
         summary: The text to display.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
+        description: >-
+          The text color as six-digit RGB hex value or a named
+          choice from the phyphox [Colors](colors.md)
         since: "1.7"
         type: color
         summary: Text colour.
         agreement: agreed
       - name: size
+        description: >-
+          Sets the font size of the info element as a factor to the
+          default size. Hence, the default is 1.
         since: "1.8"
         type: float
         default: 1.0
         summary: Font size, relative to the default.
         agreement: agreed
       - name: align
+        description: >-
+          Can be set to left (default), center or right. The
+          alignment of the text. (Note, that phyphox does not yet
+          support RTL languages, but this attribute is designed to
+          be reverse in such cases.)
         since: "1.8"
         type: enum
         values: [left, right, center]
@@ -95,12 +117,20 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: bold
+        description: >-
+          If set to true, the text will be displayed using a bold
+          font. (We cannot guarantee, that the combination of bold
+          and italic is available on every device.)
         since: "1.8"
         type: boolean
         default: false
         summary: Bold text.
         agreement: agreed
       - name: italic
+        description: >-
+          If set to true, the text will be displayed using an italic
+          font. (We cannot guarantee, that the combination of bold
+          and italic is available on every device.)
         since: "1.8"
         type: boolean
         default: false
@@ -123,11 +153,17 @@ elements:
           iOS does not declare this on the separator at all, where it implements
           it for most other view elements - see the 1.20 list.
       - name: height
+        description: >-
+          The height of the separator in text line heights
         type: float
         default: 0.1
         summary: Height relative to the default element height.
         agreement: agreed
       - name: color
+        description: >-
+          The color of the whole (rectangular) element as six-digit
+          RGB hex value or a named choice from the phyphox
+          [Colors](colors.md)
         type: color
         summary: Fill colour. Defaults to the background, making it invisible.
         agreement: agreed
@@ -140,53 +176,86 @@ elements:
     children: [input, map]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Text shown before the value.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
+        description: >-
+          The text color as six-digit RGB hex value or a named
+          choice from the phyphox [Colors](colors.md)
         since: "1.7"
         type: color
         summary: Text colour.
         agreement: agreed
       - name: size
+        description: >-
+          The size of the displayed value relative to the default
+          font size. Label and unit will stay at their original
+          size.
         since: "1.2"
         type: float
         default: 1.0
         summary: Font size, relative to the default.
         agreement: agreed
       - name: precision
+        description: >-
+          The number of digits after the decimal point.
         type: integer
         default: 2
         summary: Digits after the decimal point.
         agreement: agreed
       - name: scientific
+        description: >-
+          If set to true, the value will be displayed in scientific
+          notation (1.0e-3 instead of 0.001)
         type: boolean
         default: false
         summary: Use scientific notation.
         agreement: agreed
       - name: unit
+        description: >-
+          A unit to be displayed after the value
         type: string
         translatable: true
         summary: Unit appended to the value.
         agreement: agreed
       - name: factor
+        description: >-
+          A factor to be applied to the value before displaying it.
+          This is usually used for unit conversion. Example: The
+          data is in meter, but should be displayed in cm. The
+          factor would be 0.01
         type: float
         default: 1.0
         summary: The value is multiplied by this before display.
         agreement: agreed
       - name: positiveUnit
+        description: >-
+          Replace the regular unit with this if the value is
+          positive.
         since: "1.19"
         type: string
         translatable: true
         summary: Unit used when the value is positive, overriding unit.
         agreement: agreed
       - name: negativeUnit
+        description: >-
+          Replace the regular unit with this if the value is
+          negative.
         since: "1.19"
         type: string
         translatable: true
@@ -195,6 +264,31 @@ elements:
           displayed without its sign.
         agreement: agreed
       - name: format
+        value_notes:
+          float: >-
+            Show a simple decimal value, with significant digits,
+            scientific notation and so on as defined by the other
+            attributes.
+          degree-minutes: >-
+            Split the decimal part of the value off and show it
+            separately in minutes (parts of 60). The output is
+            formatted as degrees and minutes, and the attribute
+            precision affects the minutes part in this format.
+            Example: 42.385 becomes 42° 23.1'
+          degree-minutes-seconds: >-
+            Split the decimal part of the value off and show it
+            separately in minutes (parts of 60) and seconds (parts
+            of 3600). The output is formatted as degrees, minutes
+            and seconds, and the attribute precision affects the
+            seconds part in this format. Example: 42.385 becomes
+            42° 23' 6"
+          ascii: >-
+            Convert all values in the data container to their
+            ASCII character representation and show them as text.
+            Non-integer values and those outside the range
+            [32,125] will be skipped.
+        description: >-
+          Choose alternative formats to show the value.
         type: string
         summary: Format specifier for the displayed number.
         agreement: agreed
@@ -233,39 +327,57 @@ elements:
     children: [input, output]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Title above the graph.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: labelX
+        description: >-
+          The label of the x axis
         since: "1.7"
         type: string
         translatable: true
         summary: Label of the x axis.
         agreement: agreed
       - name: labelY
+        description: >-
+          The label of the y axis
         since: "1.7"
         type: string
         translatable: true
         summary: Label of the y axis.
         agreement: agreed
       - name: labelZ
+        description: >-
+          The label of the z axis
         type: string
         translatable: true
         summary: Label of the z axis, for map styles.
         agreement: agreed
       - name: unitX
+        description: >-
+          The unit of the x axis
         since: "1.7"
         type: string
         translatable: true
         summary: Unit of the x axis.
         agreement: agreed
       - name: unitY
+        description: >-
+          The unit of the y axis
         since: "1.7"
         type: string
         translatable: true
@@ -277,47 +389,89 @@ elements:
         summary: Unit of the z axis.
         agreement: agreed
       - name: unitYperX
+        description: >-
+          An explicit unit for slopes, if not set, phyphox will use
+          "unitY / unitX".
         since: "1.10"
         type: string
         translatable: true
         summary: Unit shown for the slope when the user measures on the graph.
         agreement: agreed
       - name: timeOnX
+        description: >-
+          If set to true, the x data needs to be time data in
+          seconds relative to the first start of the experiment.
+          This allows to mark start/pause events and to switch to a
+          system time scale (i.e. absolute date and time) on the x
+          axis.
         since: "1.12"
         type: boolean
         default: false
         summary: Treat x values as timestamps and label the axis as a clock.
         agreement: agreed
       - name: timeOnY
+        description: >-
+          If set to true, the y data needs to be time data in
+          seconds relative to the first start of the experiment.
+          This allows to mark start/pause events and to switch to a
+          system time scale (i.e. absolute date and time) on the y
+          axis.
         since: "1.12"
         type: boolean
         default: false
         summary: Treat y values as timestamps.
         agreement: agreed
       - name: systemTime
+        description: >-
+          If set to true, time axes will start as a system time
+          scale (they can always be switched by the user).
         since: "1.12"
         type: boolean
         default: false
         summary: Show absolute system time rather than time since the start.
         agreement: agreed
       - name: linearTime
+        description: >-
+          If set to true, the time on each axis is interpreted as
+          "linear" time, which is identical to "experiment" time
+          with the difference that the time stamp increases even
+          when phyphox is paused. This especially allows to plot
+          data from external sources that have their own internal
+          clock. In these cases you can use the timer module to get
+          a reference time to shift data from an external clock
+          appropriately. If the graph is shown with system time on
+          the axis, all data is shown, but if the axis is set to
+          experiment time, the data points with linear time
+          corresponding to times during which phyphox was paused
+          will be hidden. If linearTime is set to false, experiment
+          time (the default) is expected.
         since: "1.12"
         type: boolean
         default: false
         summary: Ignore pauses when converting experiment time to a clock.
         agreement: agreed
       - name: hideTimeMarkers
+        description: >-
+          If set to true, no red markers are shown to indicate times
+          at which the experiment was stopped.
         since: "1.14"
         type: boolean
         default: false
         summary: Do not mark starts and pauses on a time axis.
         agreement: agreed
       - name: aspectRatio
+        description: >-
+          The ratio of the total width of this element to its total
+          height in the view, including labels and axes.
         type: float
         default: 2.5
         summary: Width divided by height.
         agreement: agreed
       - name: style
+        description: >-
+          If set to *dots*, the graph will not connect the values
+          with lines. See below for additional styles introduced
+          with file format 1.7 (phyphox 1.1.0).
         since: "1.7"
         type: enum
         values: [lines, dots, hbars, vbars, map]
@@ -331,64 +485,117 @@ elements:
           format accepts - it exists only so the remote interface can identify
           the third buffer of a map. Not part of the format.
       - name: partialUpdate
+        description: >-
+          If set to true, this allows optimizations which only work
+          if the data is appended with increasing x values. A
+          typical example is sensor data: Only few new values are
+          added and each data point has a greater timestamp than the
+          previous one. In such cases this should be set to true as
+          it allows the web interface to only transfer these new
+          datapoints.
         type: boolean
         default: false
         summary: Send only new data to the remote interface rather than the whole buffer.
         agreement: agreed
       - name: history
+        description: >-
+          **Deprecation warning**: This feature has been marked as
+          depricated and will be removed soon. Please implement it
+          in phyphox analysis logic by using additional
+          data-containers and copying the shown graph into these on
+          each update. This has several advantages like being able
+          to export the history data and better control over its
+          style. Original description: The number of graphs to be
+          shown. 1 means, that the current data is shown. n means,
+          that n graphs are shown, with n-1 graphs containing the
+          data from the previous update. This attribute only makes
+          sense, when the whole graph is replaced on each analysis
+          cycle and can be used to compare the previous n results
+          within a single graph. **Deprecated since phyphox file
+          format 1.15 (phyphox 1.1.12))**
         since: "1.15"
         type: integer
         default: 1
         summary: Number of past datasets to keep on screen.
         agreement: agreed
       - name: lineWidth
+        description: >-
+          Width of the graph line relative to the default width
         type: float
         default: 1.0
         summary: Line or dot size, relative to the default.
         agreement: agreed
       - name: color
+        description: >-
+          Color of the graph line as six-digit RGB hex value or a
+          named choice from the phyphox [Colors](colors.md)
         type: color
         summary: Colour of the first dataset.
         agreement: agreed
       - name: logX
+        description: >-
+          If set to true, the x axis will be on a logarithmic scale
         type: boolean
         default: false
         summary: Logarithmic x axis.
         agreement: agreed
       - name: logY
+        description: >-
+          If set to true, the y axis will be on a logarithmic scale
         type: boolean
         default: false
         summary: Logarithmic y axis.
         agreement: agreed
       - name: logZ
+        description: >-
+          If set to true, the x axis will be on a logarithmic scale
         type: boolean
         default: false
         summary: Logarithmic z axis.
         agreement: agreed
       - name: xPrecision
+        description: >-
+          The number of significant digits on the x axis.
         since: "1.2"
         type: integer
         default: -1
         summary: Digits on the x axis. -1 picks automatically.
         agreement: agreed
       - name: yPrecision
+        description: >-
+          The number of significant digits on the y axis.
         since: "1.2"
         type: integer
         default: -1
         summary: Digits on the y axis.
         agreement: agreed
       - name: zPrecision
+        description: >-
+          The number of significant digits on the z axis.
         type: integer
         default: -1
         summary: Digits on the z axis.
         agreement: agreed
       - name: suppressScientificNotation
+        description: >-
+          If set to true, phyphox will never use scientific notation
+          like 2e-5 instead of 0.00002. This also changes the
+          behavior of xPrecision and yPrecision to refer to decimal
+          digits instead of significant digits. Please make sure
+          that this works well with your measured data as forcing
+          non-scientific notation can lead to extreme numbers in
+          some edge cases.
         since: "1.19"
         type: boolean
         default: false
         summary: Never label axes in scientific notation.
         agreement: agreed
       - name: scaleMinX
+        description: >-
+          Method to scale the minimum of the x axis. auto always
+          scales this value to the minimum of the data set. extend
+          scales to the historic minimum. fixed sets the minimum to
+          minX.
         type: enum
         values: [auto, extend, fixed]
         default: auto
@@ -397,6 +604,11 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMaxX
+        description: >-
+          Method to scale the maximum of the x axis. auto always
+          scales this value to the maximum of the data set. extend
+          scales to the historic maximum. fixed sets the minimum to
+          maxX.
         type: enum
         values: [auto, extend, fixed]
         default: auto
@@ -405,6 +617,11 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMinY
+        description: >-
+          Method to scale the minimum of the y axis. auto always
+          scales this value to the minimum of the data set. extend
+          scales to the historic minimum. fixed sets the minimum to
+          minY.
         type: enum
         values: [auto, extend, fixed]
         default: auto
@@ -413,6 +630,11 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMaxY
+        description: >-
+          Method to scale the maximum of the y axis. auto always
+          scales this value to the maximum of the data set. extend
+          scales to the historic maximum. fixed sets the minimum to
+          maxY.
         type: enum
         values: [auto, extend, fixed]
         default: auto
@@ -421,6 +643,11 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMinZ
+        description: >-
+          Method to scale the minimum of the z axis. auto always
+          scales this value to the minimum of the data set. extend
+          scales to the historic minimum. fixed sets the minimum to
+          minZ.
         type: enum
         values: [auto, extend, fixed]
         default: auto
@@ -429,6 +656,11 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMaxZ
+        description: >-
+          Method to scale the maximum of the z axis. auto always
+          scales this value to the maximum of the data set. extend
+          scales to the historic maximum. fixed sets the minimum to
+          maxZ.
         type: enum
         values: [auto, extend, fixed]
         default: auto
@@ -437,47 +669,76 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: minX
+        description: >-
+          Lowest value on the x axis. Only applied if scaleMinX =
+          fixed
         type: float
         default: 0.0
         summary: Lower x bound, used when scaleMinX is fixed or extend.
         agreement: agreed
       - name: maxX
+        description: >-
+          Highest value on the x axis. Only applied if scaleMaxX =
+          fixed
         type: float
         default: 0.0
         summary: Upper x bound.
         agreement: agreed
       - name: minY
+        description: >-
+          Lowest value on the y axis. Only applied if scaleMinY =
+          fixed
         type: float
         default: 0.0
         summary: Lower y bound.
         agreement: agreed
       - name: maxY
+        description: >-
+          Highest value on the y axis. Only applied if scaleMaxY =
+          fixed
         type: float
         default: 0.0
         summary: Upper y bound.
         agreement: agreed
       - name: minZ
+        description: >-
+          Lowest value on the z axis. Only applied if scaleMinZ =
+          fixed
         type: float
         default: 0.0
         summary: Lower z bound.
         agreement: agreed
       - name: maxZ
+        description: >-
+          Highest value on the z axis. Only applied if scaleMaxZ =
+          fixed
         type: float
         default: 0.0
         summary: Upper z bound.
         agreement: agreed
       - name: followX
+        description: >-
+          If set to true, the graph follows new data with a fixed x
+          axis scale. This is the same as selecting "follow new"
+          data from the zoom dialog. The width of the x axis has to
+          be defined by setting minX and maxX. Setting followX
+          overrides scaleMinX and scaleMaxX and also forces
+          partialUpdate to true.
         since: "1.15"
         type: boolean
         default: false
         summary: Keep the newest data in view by scrolling the x axis.
         agreement: agreed
       - name: mapWidth
+        description: >-
+          Number of data points per line.
         type: integer
         default: 0
         summary: Width in points of the lattice built for a map style.
         agreement: agreed
       - name: showColorScale
+        description: >-
+          Show or hide the color scale above the color plot
         since: "1.19"
         type: boolean
         default: true
@@ -527,6 +788,13 @@ elements:
         agreement: divergent
         inconsistency: views-map-color-limit
       - name: interpolateMapColors
+        description: >-
+          Interpolate area between data points. If disabled, phyphox
+          expects the datapoints to be aligned on an even spaced
+          rectangular grid and will show each datapoint as a
+          rectangular "pixel" centered on the data point's x/y
+          coordinate. Default behavior is to assign colors to the
+          data point coordinates and interpolate colors inbetween.
         type: boolean
         default: true
         summary: Blend between the colour scale stops instead of stepping between them.
@@ -544,6 +812,10 @@ elements:
         agreement: divergent
         inconsistency: graph-output-data-picker
       - name: pickLabel
+        description: >-
+          Rename the "Pick data" button to show to the user the
+          purpose of the data picker (see data picker feature
+          below).
         type: string
         translatable: true
         since: "1.20"
@@ -628,48 +900,79 @@ elements:
     children: [output]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Text shown before the field.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: signed
+        description: >-
+          If set to *false* the user may not enter negative numbers.
         type: boolean
         default: true
         summary: Allow negative values.
         agreement: agreed
       - name: decimal
+        description: >-
+          If set to *false* the user may not enter decimal (i.e.
+          non-integer) numbers.
         type: boolean
         default: true
         summary: Allow a decimal point.
         agreement: agreed
       - name: min
+        description: >-
+          The minimum value allowed. Disable by not setting this
+          attribute. **Available from phyphox file format 1.1
+          (phyphox 1.0.2)**.
         since: "1.1"
         type: float
         default: -Infinity
         summary: Smallest value accepted.
         agreement: agreed
       - name: max
+        description: >-
+          The maximum value allowed. Disable by not setting this
+          attribute. **Available from phyphox file format 1.1
+          (phyphox 1.0.2)**.
         since: "1.1"
         type: float
         default: Infinity
         summary: Largest value accepted.
         agreement: agreed
       - name: unit
+        description: >-
+          A unit to be displayed after the value
         type: string
         translatable: true
         summary: Unit shown after the field.
         agreement: agreed
       - name: factor
+        description: >-
+          A factor to be applied to the value before displaying it.
+          This is usually used for unit conversion. Example: The
+          data is in meter, but should be displayed in cm. The
+          factor would be 0.01
         type: float
         default: 1.0
         summary: The entered value is multiplied by this before being stored.
         agreement: agreed
       - name: default
+        description: >-
+          The default value of the edit box. The experiment will
+          start with this value.
         type: float
         default: 0.0
         summary: Value the field starts with.
@@ -684,21 +987,34 @@ elements:
   # ----------------------------------------------------------------- button --
   - name: button
     parent: view
-    since: "1.0"
+    since: "1.3"
     summary: A button that copies values or triggers a network connection.
     children: [input, output, map, trigger]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Text on the button.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: dynamicLabel
+        description: >-
+          A buffer (data-container) that controls the label of the
+          button. The last value in this buffer is compared to the
+          map tags in the button element and the first matching map
+          tag determines the button's label.
         type: string
         summary: Data container supplying the button text at runtime.
         agreement: agreed
@@ -765,16 +1081,26 @@ elements:
     children: [output]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Text beside the switch.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: default
+        description: >-
+          The value with which the associated buffer should start.
         type: float
         default: 0.0
         summary: State the switch starts in.
@@ -795,41 +1121,70 @@ elements:
     children: [output]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Text beside the slider.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: minValue
+        description: >-
+          Value for a handle at the lower end of the slider.
         type: float
         default: 0.0
         summary: Value at the left end.
         agreement: agreed
       - name: maxValue
+        description: >-
+          Value for a handle at the upper end of the slider.
         type: float
         default: 1.0
         summary: Value at the right end.
         agreement: agreed
       - name: stepSize
+        description: >-
+          Determines the minimum distance between to values that can
+          be selected with the slider. This is always relative to
+          minValue, so a stepSize of 0.2 and a minValue of 0.1 will
+          force the user to pick 0.1, 0.3, 0.5, etc.
         type: float
         default: 1.0
         summary: Granularity of the slider.
         agreement: agreed
       - name: default
+        description: >-
+          The value with which the associated buffer should start.
+          (Does not work in range slider mode. Use the init property
+          of the data containers instead.)
         type: float
         default: 0.0
         summary: Value the slider starts at.
         agreement: agreed
       - name: precision
+        description: >-
+          The number of decimal places shown in the field with the
+          current vlaue
         type: integer
         default: 2
         summary: Digits shown for the current value.
         agreement: agreed
       - name: type
+        description: >-
+          Can either be "normal" or "range". Normal is a slider
+          representing a single value, while "range" is a range
+          slider with two handles that allow picking a lower and an
+          upper value.
         type: enum
         values: [normal, range]
         default: normal
@@ -838,6 +1193,10 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: showValue
+        description: >-
+          Show a title and the current value above the slider. If
+          turned off, the title is also hidden, making the slider
+          very thin and compact.
         type: boolean
         default: true
         summary: Display the current value beside the slider.
@@ -874,16 +1233,26 @@ elements:
     children: [output, map]
     attributes:
       - name: label
+        description: >-
+          A label for this element
         type: string
         translatable: true
         summary: Text beside the menu.
         agreement: agreed
       - name: visibility
+        description: >-
+          Points to a data container that determines visibility of
+          this element. If the data container has no elements or its
+          last element is invalid (NaN), zero or less than zero,
+          this view element will be hidden. If its last element is
+          larger than zero, the view element will be visible.
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: default
+        description: >-
+          The value with which the associated buffer should start.
         type: float
         default: 0.0
         summary: Value selected initially.
@@ -925,6 +1294,9 @@ elements:
     summary: A picture shipped with the experiment.
     attributes:
       - name: src
+        description: >-
+          The file name of the image that should be displayed.
+          (Relative to the resource folder.)
         type: string
         required: true
         summary: >-
@@ -942,11 +1314,21 @@ elements:
           iOS parses this on the image element but ExperimentImageView never uses
           it, so the image stays visible - see the 1.20 list.
       - name: scale
+        description: >-
+          Scales the size of the image. By default (scale="1.0") the
+          image is shown in full width. The factor is relative to
+          this, so scale="0.5" sets it to half the width of the
+          view.
         type: float
         default: 1.0
         summary: Size relative to the available width.
         agreement: agreed
       - name: darkFilter
+        description: >-
+          A filter that should be applied to the image if the
+          interface of phyphox is in dark mode. Currently, there are
+          two options: **none** leaves the image as is. **invert**
+          inverts the colors of the image.
         type: enum
         values: [none, invert]
         default: none
@@ -955,6 +1337,11 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: lightFilter
+        description: >-
+          A filter that should be applied to the image if the
+          interface of phyphox is in light mode. Currently, there
+          are two options: **none** leaves the image as is.
+          **invert** inverts the colors of the image.
         type: enum
         values: [none, invert]
         default: none
@@ -966,7 +1353,7 @@ elements:
   # ------------------------------------------------------------- camera-gui --
   - name: camera-gui
     parent: view
-    since: "1.17"
+    since: "1.19"
     summary: Live camera preview with the selected region and exposure controls.
     attributes:
       - name: label
@@ -980,6 +1367,19 @@ elements:
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: exposure_adjustment_level
+        description: >-
+          This determines which controls are available to the user
+          in three different levels of how much control over the
+          exposure is possible: Level 1 only allows for changing the
+          camera and zoom, but no control over exposure settings.
+          Level 2 is a simplified exposure control, allowing the
+          same as level 1 and adding a toggle to turn auto exposure
+          on or off as well as a simple exposure value control,
+          adjusting for a slight over or underexposure from the auto
+          exposure result. Level 3 finally offers all controls,
+          replacing the exposure value control from level 2 with
+          shutter speed (exposure time), ISO and aperture and also
+          showing the white balance control.
         type: integer
         default: 1
         summary: >-
@@ -991,19 +1391,40 @@ elements:
           outside 1..3 to the basic level, so both start at basic. Modelled as 1
           because that is the value that means what the default does.
       - name: grayscale
+        description: >-
+          Show a grayscale image instead of colors
         type: boolean
         default: false
         summary: Show the preview without colour.
         agreement: agreed
       - name: markOverexposure
+        description: >-
+          Overexposed parts of the image are replaced by the given
+          color
         type: color
         summary: Colour used to highlight overexposed pixels. Unset disables it.
         agreement: agreed
       - name: markUnderexposure
+        description: >-
+          Underexposed parts of the image are replaced by the given
+          colour.
         type: color
         summary: Colour used to highlight underexposed pixels. Unset disables it.
         agreement: agreed
       - name: show_controls
+        value_notes:
+          never: >-
+            Controls are never shown; the element is only a
+            preview, with the option to select the measurement
+            area.
+          full_view_only: >-
+            Controls are only shown after the preview has been
+            tapped and maximized.
+          always: >-
+            Controls are available even when only a small preview
+            is shown.
+        description: >-
+          Determines when the camera controls are shown.
         type: enum
         values: [always, full_view_only, never]
         default: full_view_only

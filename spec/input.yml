@@ -610,7 +610,7 @@ elements:
   # ----------------------------------------------------------------- camera --
   - name: camera
     parent: input
-    since: "1.17"
+    since: "1.19"
     summary: The camera, used photometrically or for spectroscopy.
     children: [output]
     attributes:
