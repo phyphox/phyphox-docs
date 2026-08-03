@@ -46,22 +46,37 @@ elements:
         default: false
         since: "1.13"
         summary: >-
-          Marks a collection entry that only links to an external page rather
-          than being a runnable experiment.
+          Marks a collection entry that is not a runnable experiment but a
+          redirect: selecting it sends the user to the page named by its link
+          rather than opening an experiment.
         agreement: agreed
         note: >-
-          Android reads this in ExperimentList/AssetExperimentLoader rather than
-          in the file parser, which is why a search of PhyphoxFile.java alone
-          suggests it is iOS-only.
+          Absent from Android's main parser by design, and this is worth knowing
+          before reading anything into it. iOS uses one parser for both the
+          collection and a running experiment, so it handles the attribute
+          there. Android has two: the full parser in PhyphoxFile.java and a
+          minimal one that only builds the experiment list. Because isLink means
+          the file is never opened as an experiment, the full parser never sees
+          it, and only the list parser
+          (ExperimentList/datasource/AssetExperimentLoader.java) implements it.
+          Searching PhyphoxFile.java alone therefore suggests it is iOS-only,
+          which it is not.
       - name: appleBan
         type: boolean
         default: false
         summary: Hides the experiment from the collection on Apple platforms.
         agreement: platform
         platforms: [ios]
+        undocumented: intentionally
         note: >-
-          Read nowhere in the Android source. Undocumented; the name suggests
-          App Store compliance, which is inherently one-sided.
+          Exists because an App Store review once required a particular
+          experiment to be disabled, on the grounds that it was dangerous to the
+          hardware. Years later an Apple representative agreed in conversation
+          that the objection had been unfounded and suggested quietly re-enabling
+          it to see whether anyone objected; nobody did. So the attribute is
+          currently unused, and is kept for the next time something similar
+          happens. Deliberately left out of the documentation, and Android has no
+          reason to read it.
 
   - name: title
     parent: phyphox
@@ -264,7 +279,10 @@ elements:
           Since the name is translatable, translated group names must stay
           distinct from one another.
         agreement: divergent
-        inconsistency: control-clear-groups
+        inconsistency: ios-behind-on-format-1-20
+        note: >-
+          A 1.20 feature, not yet on iOS. The remote-interface half is tracked
+          separately as control-clear-groups.
 
   - name: export
     parent: phyphox

@@ -460,26 +460,37 @@ the format. **128 elements and 302 attributes across six blocks, 78% agreed.**
 
 Three findings, and one near-miss that says something about the tooling.
 
-**TLS MQTT is Android-only and undocumented.** `service="mqtts/csv"` and `"mqtts/json"`, with
-the `username`, `password` and `persistence` attributes they need, exist on Android and have
-since 2021. iOS accepts four services and throws "Unkown network service" for anything else —
-a loud failure, which is the good kind, but it means an experiment talking to a broker that
-requires encrypted transport is Android-only. None of it appears in the documentation, so an
-author has no way to learn either that the option exists or that it is one-sided.
+**TLS MQTT is an unofficial addition, not a divergence to close.** `mqtts/csv` and
+`mqtts/json`, with the `username`, `password` and `persistence` attributes they need, were
+contributed by a user for Android alone in 2021, have no iOS counterpart and are barely
+tested — so the feature is not considered complete, which is why it is undocumented. Removed
+from the specification and recorded, so that anyone finding `mqtts` in the parser or in an
+experiment file knows what it is. iOS throwing "Unkown network service" is the right
+behaviour for something unfinished.
 
-**`container/type` is validated only on Android**, which throws for anything but `"buffer"`
-where iOS ignores the attribute. No exposure today, since no other type exists — but the
-attribute is reserved precisely so one can be added, at which point a file using a new type
-would load on iOS and behave as an ordinary buffer.
+**`container/type` should be checked by iOS**, which currently ignores it where Android throws
+for anything but `"buffer"`. Decided. No exposure today, but the attribute is reserved so a
+further type can be added, and a parser that ignores it would silently treat a new type as an
+ordinary buffer.
 
-**`appleBan`** is an iOS-only root attribute, read nowhere in the Android source and
-documented nowhere. Marked `platform`.
+**`appleBan`** is iOS-only and *intentionally* undocumented — not an oversight. It exists
+because an App Store review once required a specific experiment to be disabled as dangerous
+to the hardware; years later an Apple representative agreed the objection had been unfounded
+and suggested quietly re-enabling it, which nobody objected to. It is unused today and kept
+for the next such occasion. The rationale is recorded on the attribute, since it is exactly
+the kind of thing that looks like a bug to whoever finds it next.
 
-The near-miss: `isLink` looked iOS-only by the same test, and is not. Android reads it in
-`ExperimentList/AssetExperimentLoader`, nowhere near the file parser. That is the fourth
-attribute found outside the parser that reads its block — after `decimalPoint` in the BLE
-conversions, `cycles` in the analysis factory, and the map-colour loop. **An attribute absent
-from a block parser means nothing on its own.**
+The near-miss: `isLink` looked iOS-only by the same test, and is not — but the *reason* is
+more interesting than the fact. **Android has two parsers**: the full one in
+`PhyphoxFile.java`, used when an experiment is opened, and a minimal one that builds the
+collection list. iOS uses a single parser for both. `isLink` marks an entry that redirects to
+a web page instead of running, so the full parser never sees such a file and has no reason to
+implement the attribute — only the list parser does. Not an omission, an architecture.
+
+That is a third distinct reason an attribute can be absent from the parser you are reading,
+after dynamically built names and attributes read by the class that consumes them.
+`decimalPoint`, `cycles` and the map-colour loop were the others. **An attribute absent from a
+block parser means nothing on its own.**
 
 ### What the documentation cross-check caught that reading did not
 

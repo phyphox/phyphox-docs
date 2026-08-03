@@ -659,8 +659,9 @@
   affects:
     android: >-
       Declares file format 1.20 (PhyphoxFile.phyphoxFileVersion) and implements
-      camera/aeFPSTarget, graph/interpolateMapColors and the analysis modules
-      butterworth and imagedecode.
+      camera/aeFPSTarget, graph/interpolateMapColors, the clearGroup attribute on
+      data containers, the whole flashlight output element, and the analysis
+      modules butterworth and imagedecode.
     ios: >-
       Declares 1.19 (latestSupportedFileVersion in PhyphoxElementHandler.swift)
       and implements none of them. ExperimentAnalysisFactory.classMap has neither
@@ -680,9 +681,17 @@
     function, and imagedecode, which decodes an encoded image into its dimensions
     and pixel data. A missing analysis module is the sharpest form of this - an
     experiment using one does not degrade, it fails to load - so they are worth
-    doing first when iOS moves to 1.20. The data picker is the remaining 1.20
-    feature missing on iOS and is tracked separately as graph-output-data-picker,
-    because it fails even on a file declaring an older version.
+    doing first when iOS moves to 1.20.
+
+    Two larger items sit in the same list. The flashlight output element does not
+    exist on iOS at all - no handler, no mention in the source - which is an
+    element, its input child and three parameters. And clearGroup, the attribute
+    that exempts calibration data from the trash button, is unread on iOS, so the
+    feature is absent in the app and not only over the remote interface; its
+    API half is tracked as control-clear-groups. The data picker is the remaining
+    1.20 feature missing on iOS and is tracked separately as
+    graph-output-data-picker, because it fails even on a file declaring an older
+    version.
 
 - id: ios-hyperbolic-modules-compute-trig
   title: sinh, cosh and tanh compute sin, cos and tan on iOS
@@ -804,10 +813,18 @@
     inconsistency is small, but it is in the parser rather than the format: the
     documented behaviour is what both should do.
 
-- id: network-mqtts-android-only
-  title: The TLS MQTT services exist only on Android
+- id: network-mqtts-unofficial
+  title: The TLS MQTT services are an unofficial Android-only addition
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    mqtts/csv and mqtts/json are not part of the phyphox file format. They were
+    contributed by a user for Android alone, have no iOS counterpart and are
+    barely tested, so the feature is not considered complete. They are
+    undocumented for that reason and are absent from the specification. Whether
+    to finish them - which would mean an iOS implementation and documentation -
+    or to remove them is open; what is settled is that they are not something an
+    experiment author should rely on today.
   affects:
     android: >-
       Accepts service="mqtts/csv" and service="mqtts/json", together with the
@@ -821,13 +838,12 @@
       (NetworkElementHandler.swift).
   summary: >-
     An experiment talking to an MQTT broker over TLS works on Android and fails
-    to load on iOS. The failure is at least loud - iOS names the service it does
-    not know - but it means an experiment written for a broker requiring
-    encrypted transport is Android-only, which for anything sending measurements
-    over the internet is the case that matters most. None of it is documented:
-    mqtts appears nowhere in the documentation, nor do username, password or
-    persistence, so an author has no way to learn that the option exists or that
-    it is one-sided. Present on Android since 2021.
+    to load on iOS, which names the service it does not know - a loud failure,
+    and the right one for something that was never finished. The services, and
+    the username, password and persistence attributes they need, arrived on
+    Android in 2021 as a user contribution and stopped there. Recorded rather
+    than left in the source unremarked, so that anyone finding mqtts in the
+    Android parser or in an experiment file knows what it is.
 
 - id: container-type-unvalidated
   title: The type attribute of a data container is validated only on Android

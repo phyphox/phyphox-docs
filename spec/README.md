@@ -132,6 +132,18 @@ divergence, because the note lives in the paragraph *below* the term rather than
 `info/wifiSignalStrength` ("Only available on Android."). `tools/spec_vs_docs.py` compares
 names only and cannot catch this; the description has to be read.
 
+### Android has two parsers; iOS has one
+
+`PhyphoxFile.java` is Android's full parser, used when an experiment is opened. A separate,
+minimal parser under `ExperimentList/datasource/` builds the collection list. iOS uses one
+parser for both. So an attribute that only matters before an experiment is opened may be
+absent from `PhyphoxFile.java` by design — `isLink`, which marks a collection entry that
+redirects to a web page rather than running, is implemented only in the list parser, because
+the full parser never sees such a file.
+
+That is a third reason an attribute can be missing from the parser you are reading, after
+dynamic names and attributes read by the class that consumes them.
+
 ### Verifying a one-sided attribute
 
 Before recording an attribute as read by only one app, check *how* the other parser names

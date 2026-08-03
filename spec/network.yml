@@ -47,12 +47,13 @@ elements:
         agreement: agreed
       - name: service
         type: enum
-        values: [http/get, http/post, mqtt/csv, mqtt/json, mqtts/csv, mqtts/json]
-        summary: >-
-          Which protocol to speak. The mqtts variants are TLS and are Android
-          only - see the inconsistency.
-        agreement: divergent
-        inconsistency: network-mqtts-android-only
+        values: [http/get, http/post, mqtt/csv, mqtt/json]
+        summary: Which protocol to speak.
+        agreement: agreed
+        note: >-
+          Android additionally accepts mqtts/csv and mqtts/json, TLS variants
+          contributed by a user without an iOS counterpart. They are not part of
+          the format - see network-mqtts-unofficial.
       - name: conversion
         type: enum
         values: [none, csv, json]
@@ -96,22 +97,6 @@ elements:
           MQTT topic published to. Required by mqtt/json and mqtts/json; use
           mqtt/csv if nothing is to be sent.
         agreement: agreed
-      - name: persistence
-        type: boolean
-        default: false
-        summary: Whether the MQTT session is persistent.
-        agreement: divergent
-        inconsistency: network-mqtts-android-only
-      - name: username
-        type: string
-        summary: Username for the TLS MQTT services. Required by them.
-        agreement: divergent
-        inconsistency: network-mqtts-android-only
-      - name: password
-        type: string
-        summary: Password for the TLS MQTT services. Required by them.
-        agreement: divergent
-        inconsistency: network-mqtts-android-only
 
   - name: send
     parent: connection
