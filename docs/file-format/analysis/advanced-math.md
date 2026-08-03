@@ -4,147 +4,37 @@
 
 This module will calculate the autocorrelation. It takes at least one input buffer *y*, but can take a second input *x* as well. If *x* is omitted, it will be filled with indices. Additionally, single value inputs *minX* and *maxX* can be set as well. These limit the x range over which the autocorrelation is calculated to improve performance. The module will return as many values as provided by the input buffer and fill the output buffer *y* with the normalized autocorrelation of the *y* input buffer. The *x* output buffer will be filled with the relative *x* of the autocorrelation based on the *x* input buffer.
 
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*minX*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*maxX*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-<!-- -->
-
-*y*
-:   *output*
-:   *as* required
-
-*x*
-:   *output*
-:   *as* required
+{{spec:analysis/analysis/autocorrelation}}
 
 ## butterworth
 
-**Available since phyphox file format 1.20 (phyphox 1.2.1)**
-
 This module represents the transfer function of a Butterworth filter. It takes the order *n* and (upper) *cutoff* frequency as inputs and acts as a low pass. Optionally, you can also provide a lower cutoff frequency as *cutoffLow*, in which case it acts as a bandpass. The *x* input needs to provide frequencies for each data point of the *y* input. Frequencies are taken as absolute values for the filter. Note that this is only the transfer function, so you want to use it together with the *fft* module.
 
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*n*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*cutoff*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*cutoffLow*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-<!-- -->
-
-*filtered*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/butterworth}}
 
 ## crosscorrelation
 
 This module will calculate a crosscorrelation of two inputs. It will only calculate the part of the crosscorrelation for which the smaller buffer is entirely covered by the larger one. So with one input buffer of size n and one input of size m it will return exactly abs(m-n) values. If you need the crosscorrelation of two buffers of similar size, you will need to pad one of them with zeros first.
 
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: Exactly two
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/crosscorrelation}}
 
 ## differentiate
 
 Performs a simple differentiation of a single input by calculating the difference of consecutive elements. It will write the result to the output buffer with exactly one value less than there are values in the input buffer.
 
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: Exactly one
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/differentiate}}
 
 ## fft
 
 This module will perform a fast fourier transform of a complex input and will write the complex result to the output buffers. For input and output the complex data is defined by two buffers *re* and *im* corresponding to the real and imaginary part. The *imaginary* buffer is optional and will be filled with zeros if omitted. This module will return as many values as provided by the input buffer.
 
-*re*
-:   *input*
-:   *as* not required
-:   Number of inputs: Exactly one
-
-*im*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-<!-- -->
-
-*re*
-:   *output*
-:   *as* not required
-
-*im*
-:   *output*
-:   *as* required
+{{spec:analysis/analysis/fft}}
 
 ## gausssmooth
 
 This module will smooth the data provided from the only input. The data of each point will be calculated from neighbouring points with a gaussian distribution. The width of this distribution can be controlled by the attribute *sigma* and is interpreted in terms of value indices. This module will output as many values as there are values in the input buffer.
 
-*sigma*
-:   *attribute*
-:   *optional*, default: 3.0
-
-<!-- -->
-
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: Exactly one
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/gausssmooth}}
 
 ## interpolate
 
@@ -152,55 +42,13 @@ Interpolate input data. It takes x and y values from the source data and a buffe
 
 Note that both, x and xi need to be monotic (i.e. ordered).
 
-*method*
-:   *attribute*
-:   *optional*, default: linear
-:   can be *previous*, *next*, *nearest* or *linear*
-
-<!-- -->
-
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   Source data x values
-
-<!-- -->
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   Source data y values
-
-<!-- -->
-
-*xi*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   x values at which output should be calculated
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/interpolate}}
 
 ## integrate
 
 Performs a simple integration of a single input by summing all elements and returning each step of the summation as a value. It will write as many values as there are values in the input buffer. So, if the input is a three-value array \[v1, v2, v3\], the output will be \[v1, v1+v2, v1+v2+v3\].
 
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: Exactly one
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/integrate}}
 
 ## loess
 
@@ -208,56 +56,7 @@ Smooths data using locally estimated scatterplot smoothing (LOESS) aka local reg
 
 Optionally, you can use three outputs to directly get the local fit parameters yi0, yi1 and yi2 to the function y(x) = yi0 + yi1 \* x + yi2 \* x². In this formula, the axis for x is shifted such that x=0 is in place of the evaluated position xi. If the input is position data versus time, these parameters are great estimates for a (smoothed) position, the momentary velocity and the momentary acceleration. Note, that if you describe the location as a function of time from an initial location, velocity and acceleration, you would have the formula y(t) = y0 + v\*t + 1/2 a\*t², so if you want to extract location y0, velocity v and acceleration a from the fit parameters, you need to multiply the yi2 by two as yi2 = a/2.
 
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   Source data x values
-
-<!-- -->
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   Source data y values
-
-<!-- -->
-
-*d*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   Width of the tri-cubic weighting window
-
-<!-- -->
-
-*xi*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-:   x values at which output should be calculated
-
-<!-- -->
-
-*yi0*
-:   *output*
-:   *as* not required
-:   Default output that corresponds to a smoothed curve.
-
-<!-- -->
-
-*yi1*
-:   *output*
-:   *as* required
-:   Linear parameter of the fit (i.e. velocity for position data).
-
-<!-- -->
-
-*yi2*
-:   *output*
-:   *as* required
-:   Square parameter of the fit (i.e. acceleration for position data).
+{{spec:analysis/analysis/loess}}
 
 ## periodicity
 
@@ -269,42 +68,4 @@ The algorithm expects the autocorrelation to be periodic. It looks for the first
 
 While all parameters are defined in samples, the resulting output *time* will be in units of the input *x*.
 
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*dx*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*overlap*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*min*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*max*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-<!-- -->
-
-*time*
-:   *output*
-:   *as* required
-
-*period*
-:   *output*
-:   *as* required
+{{spec:analysis/analysis/periodicity}}

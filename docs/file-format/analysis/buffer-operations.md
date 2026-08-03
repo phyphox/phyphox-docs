@@ -4,38 +4,15 @@
 
 This module appends all the values of the input buffers to a single output buffer. The order of the buffers will match the order their values appear in the output buffer. This module will return as many value as the sum of the input buffer sizes.
 
-*in*
-:   *input*
-:   *as* not required
-:   *type="empty"* allowed
-:   Number of inputs: At least one
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/append}}
 
 ## count
 
-**Available since phyphox file format 1.2 (phyphox 1.0.3)**
-
 Returns the number of values in the input buffer
 
-*buffer*
-:   *input*
-:   *as* not required
-:   Number of inputs: Exactly one
-
-<!-- -->
-
-*count*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/count}}
 
 ## eventstream
-
-**Available since phyphox file format 1.18 (phyphox 1.1.16)**
 
 This is a convenient and faster substitute for stopwatch implementations like it is used in the acoustic stopwatch. The idea is to detect events in a stream of data according to a given criterion and the index of each event within the input data stream is written to the output. The eventstream module also has multiple matching inputs and outputs to keep track of the status between multiple iterations of the analysis cycle.
 
@@ -47,9 +24,7 @@ The output is mainly *events* which will hold the indices of detected events. Ad
 
 The criterion is set by the attribute "mode" determining whether raw values, derivatives or absolutes are used for triggering:
 
-*mode*
-:   *attribute*
-:   *optional*, determines the criterion for an event:
+{{spec:analysis/analysis/eventstream}}
 
     *mode="above"*
     :   triggers if a raw value of the data stream is greater than the threshold
@@ -77,85 +52,11 @@ The criterion is set by the attribute "mode" determining whether raw values, der
 
 <!-- -->
 
-*data*
-:   *input*
-:   *as* required
-:   Number of inputs: At least one
-
-<!-- -->
-
-*threshold*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none, defaults to 0
-
-<!-- -->
-
-*distance*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none, defaults to 0
-
-<!-- -->
-
-*index*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none, defaults to 0
-
-<!-- -->
-
-*skip*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none, defaults to 0
-
-<!-- -->
-
-*last*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none, defaults to NaN
-
-<!-- -->
-
-*events*
-:   *output*
-:   *as* required
-
-<!-- -->
-
-*index*
-:   *output*
-:   *as* required
-
-<!-- -->
-
-*skip*
-:   *output*
-:   *as* required
-
-<!-- -->
-
-*last*
-:   *output*
-:   *as* required
-
 ## first
 
 Retrieves the first entry of each buffer and appends it to each output buffer.
 
-*value*
-:   *input*
-:   *as* not required
-:   Number of inputs: At least one
-
-<!-- -->
-
-*first*
-:   *output*
-:   *as* not required
-:   **Multiple may be defined!**
+{{spec:analysis/analysis/first}}
 
 ## match
 
@@ -163,21 +64,9 @@ This module takes multiple inputs and match valid values to the same number of o
 
 If for example input1 provides \[1, 2, NaN, 4, 5\] and input2 provides \[11, +Inf, 13, 14\], the result will be \[1, 4\] for output1 and \[11, 14\] for output2. The other value pairs (more than two inputs are allowed though) were filtered as one of both inputs was infinite, not a number ("NaN") or just did not have any more values.
 
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: At least one
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
-:   **Multiple may be defined!**
+{{spec:analysis/analysis/match}}
 
 ## map
-
-**Available since phyphox file format 1.7 (phyphox 1.1.0)**
 
 This module takes three buffers representing x, y and z data. The data may be scattered across randomly and may be unordered. This module will be given ranges as well as a desired number of values along x and y and then rearrange the x, y, z data into a grid that is suitable to be displayed in a color map plot.
 
@@ -200,73 +89,7 @@ This module takes three buffers representing x, y and z data. The data may be sc
 
 The example above takes xData, yData and zData and creates a grid of 100 by 100 data points covering x values from 0 to 10 and y values from 1 to 2.
 
-*zMode*
-:   *attribute*
-:   *optional*, determines how the z data is produced from the input points, *average* averages all z values in a grid point, *count* counts the number of values (no z data has to be provided here) for each point and "sum" adds up all z values of a grid point, default: average
-
-<!-- -->
-
-*mapWidth*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*minX*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*maxX*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*mapHeight*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*minY*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*maxY*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*z*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none.
-
-<!-- -->
-
-*x*
-:   *output*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*y*
-:   *output*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*z*
-:   *output*
-:   *as* required
-:   Number of inputs: Exactly one.
+{{spec:analysis/analysis/map}}
 
 ## max
 
@@ -276,30 +99,7 @@ If you want to find multiple local maxima, you can set the attribute "multiple" 
 
 This module will return exactly one value per call if multiple is deactivated (default).
 
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*threshold*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-<!-- -->
-
-*max*
-:   *output*
-:   *as* required
-
-*position*
-:   *output*
-:   *as* required
+{{spec:analysis/analysis/max}}
 
 ## min
 
@@ -309,30 +109,7 @@ If you want to find multiple local minima, you can set the attribute "multiple" 
 
 This module will return exactly one value per call if multiple is deactivated (default).
 
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*threshold*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-<!-- -->
-
-*min*
-:   *output*
-:   *as* required
-
-*position*
-:   *output*
-:   *as* required
+{{spec:analysis/analysis/min}}
 
 ## rangefilter
 
@@ -356,31 +133,9 @@ In the following example in1 will trigger the filter if not in the range of 0 an
 </rangefilter>
 ```
 
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: At least one
-
-*min*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none per *in* input. This always refers to the previously defined *in* buffer.
-
-*max*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none per *in* input. This always refers to the previously defined *in* buffer.
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
-:   **Multiple may be defined!**
+{{spec:analysis/analysis/rangefilter}}
 
 ## reduce
-
-**Available since phyphox file format 1.7 (phyphox 1.1.0)**
 
 This module takes a buffer with multiple values and reduces the number of items by a given (integer) factor. It distinguishes between x and y values and allows for different strategies like summing or averaging values which fall into a single value. A factor smaller than 1 can be used to inflate the size, but in this case the module will simply duplicate each item, so each item occurs round(1/factor) times.
 
@@ -394,46 +149,7 @@ This module takes a buffer with multiple values and reduces the number of items 
 </reduce>
 ```
 
-*averageX*
-:   *attribute*
-:   *optional*, x values will be averaged to produce x output values, default: false
-
-*averageY*
-:   *attribute*
-:   *optional*, y values will be averaged to produce y output values, default: false
-
-*sumY*
-:   *attribute*
-:   *optional*, the y output values will be the sum of the original y value, default: false
-
-<!-- -->
-
-*factor*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none.
-
-<!-- -->
-
-*x*
-:   *output*
-:   *as* required
-:   Number of inputs: Exactly one.
-
-*y*
-:   *output*
-:   *as* required
-:   Number of inputs: One or none.
+{{spec:analysis/analysis/reduce}}
 
 ## sort
 
@@ -441,37 +157,13 @@ This module takes at least one input and sorts it. Values in additional inputs w
 
 The number of values returned matches the number of values in the shortest buffer.
 
-*descending*
-:   *attribute*
-:   *optional*, default: false
-
-<!-- -->
-
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: At least one
-:   The first input will determine the order of all values
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/sort}}
 
 ## split
 
-**Available since phyphox file format 1.18 (phyphox 1.1.16)**
-
 Takes *data* as input and splits it into two buffers at the given *index*. A third parameter *overlap* allows to set a number of elements from before the split index that will also end up in the second buffer. *index* defaults to the length of the input data if not given, i.e. the entire input is returned as the first output without any splitting, which only makes sense in combination with an overlap, for example to take all data from a buffer associated with the input from a sensor and setting "overlap" such that a certain number of values is retained as a starting point for the next iteration.
 
-*data*
-:   *input*
-:   *as* required
-:   Number of inputs: At least one
-:   The buffer that should be split and sent to the outputs
-
-<!-- -->
+{{spec:analysis/analysis/split}}
 
 *index*
 :   *as* required
@@ -486,18 +178,6 @@ Takes *data* as input and splits it into two buffers at the given *index*. A thi
 :   Number of elements that should be sent to both outputs. This does not change the output to the first output buffer, but sends values before *index* also to the second output.
 
 <!-- -->
-
-*out1*
-:   *output*
-:   *as* not required
-:   Buffer that receives the first part of the original data.
-
-<!-- -->
-
-*out2*
-:   *output*
-:   *as* not required
-:   Buffer that receives the second part of the original data.
 
 ## subrange
 
@@ -514,38 +194,7 @@ This module takes multiple inputs and returns all values within a given index ra
 </subrange>
 ```
 
-*from*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none. Defaults to 0
-
-<!-- -->
-
-*to*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none. Defaults to length of input
-
-<!-- -->
-
-*length*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none. Defaults to length of input, supersedes *to*
-
-<!-- -->
-
-*in*
-:   *input*
-:   *as* not required
-:   Number of inputs: At least one
-
-<!-- -->
-
-*out*
-:   *output*
-:   *as* not required
-:   **Multiple may be defined!**
+{{spec:analysis/analysis/subrange}}
 
 ## threshold
 
@@ -555,29 +204,4 @@ You can also define the attribute *falling* as true to search for a crossing fro
 
 This module will return exactly one value per call.
 
-*falling*
-:   *attribute*
-:   *optional*, default: false
-
-<!-- -->
-
-*x*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none
-
-*y*
-:   *input*
-:   *as* required
-:   Number of inputs: Exactly one
-
-*threshold*
-:   *input*
-:   *as* required
-:   Number of inputs: One or none (defaults to 0.0)
-
-<!-- -->
-
-*position*
-:   *output*
-:   *as* not required
+{{spec:analysis/analysis/threshold}}

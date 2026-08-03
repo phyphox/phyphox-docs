@@ -271,6 +271,10 @@ def _render_value(value):
         return f"`{str(value).lower()}`"
     if value == "":
         return "empty"
+    # Some defaults are described rather than stated - "the length of the
+    # input". Setting those in code voice suggests they are a literal.
+    if isinstance(value, str) and " " in value:
+        return value
     return f"`{value}`"
 
 
@@ -373,7 +377,10 @@ def render_slots(element, spec, state, block):
                      else ("allowed" if slot.get("allows_value") else "no"))
             if slot.get("allows_empty"):
                 value += ", `type=\"empty\"` allowed"
-            rows.append(f"| `{slot['name']}` | {_count(slot)} | "
+            count = _count(slot)
+            if slot.get("default") is not None:
+                count += f", defaults to {_render_value(slot['default'])}"
+            rows.append(f"| `{slot['name']}` | {count} | "
                         f"{'yes' if slot.get('as_required', True) else 'no'} | "
                         f"{value} |")
             if slot.get("repeat_offset"):

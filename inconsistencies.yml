@@ -1009,3 +1009,28 @@
     would load on iOS and behave as though it were an ordinary buffer. Same
     family as input-invalid-enum-handling, which is decided, and would be settled
     by applying that rule here.
+
+- id: gausssmooth-nonpositive-sigma
+  title: A gausssmooth module with sigma of zero or less
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Parses the attribute with a sentinel default of 0 and applies it only if
+      it is positive (PhyphoxFile.java, case "gausssmooth"); anything else
+      leaves the constructor's sigma of 3. The documented default of 3 is
+      therefore what you get for sigma="0", sigma="-1" and for omitting the
+      attribute alike.
+    ios: >-
+      Takes the attribute verbatim, defaulting to 3 only when it is absent
+      (GaussSmoothAnalysis.swift). sigma="0" makes the kernel's normalisation
+      divide by zero, so the module writes NaN for every value; a negative
+      sigma gives a zero-width kernel.
+  summary: >-
+    Both apps default the smoothing width to 3 when the attribute is omitted,
+    which is what the documentation says. They differ on a value that is
+    present but not positive: Android treats it as "not set" and smooths with
+    sigma 3, while iOS uses it and produces NaN for every output value at
+    sigma="0". A file written this way is almost certainly a mistake, but it
+    fails in two different ways and one of them is silent - the graph simply
+    has no data.

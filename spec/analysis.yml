@@ -435,12 +435,14 @@ elements:
         allows_value: false
         allows_empty: false
       - name: x0
+        default: 0
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: dx
+        default: 1
         as_required: true
         min: 0
         max: 1
@@ -676,30 +678,35 @@ elements:
         allows_value: false
         allows_empty: false
       - name: threshold
+        default: 0
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: distance
+        default: 0
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: index
+        default: 0
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: skip
+        default: 0
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: last
+        default: "NaN"
         as_required: true
         min: 0
         max: 1
@@ -804,9 +811,14 @@ elements:
     children: [input, output]
     attributes:
       - name: sigma
+        description: >-
+          Width of the gaussian distribution used to smooth the
+          data, in terms of value indices.
+        default: 3.0
         type: float
         summary: See the module description.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: gausssmooth-nonpositive-sigma
     inputs:
       - name: in
         as_required: false
@@ -1027,6 +1039,7 @@ elements:
     children: [input, output]
     attributes:
       - name: method
+        default: linear
         type: enum
         values: [nearest, previous, next, linear]
         summary: See the module description.
@@ -1162,9 +1175,23 @@ elements:
     children: [input, output]
     attributes:
       - name: zMode
-        type: string
+        description: >-
+          Determines how the z data is produced from the input
+          points.
+        value_notes:
+          average: >-
+            Averages all z values falling into a grid point.
+          count: >-
+            Counts the number of values for each grid point. No z
+            data has to be provided in this mode.
+          sum: >-
+            Adds up all z values of a grid point.
+        default: average
+        type: enum
+        values: [average, count, sum]
         summary: See the module description.
         agreement: agreed
+        rules: [enum-case-insensitive]
     inputs:
       - name: mapWidth
         as_required: true
@@ -1342,6 +1369,13 @@ elements:
     children: [input, output]
     attributes:
       - name: dropIncomplete
+        description: >-
+          Determines whether values are emitted for which fewer than
+          width previous elements are available. With dropIncomplete
+          set to true the module outputs n-width+1 values for an
+          input of n data values; with it set to false it outputs
+          exactly n values.
+        default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
@@ -1353,6 +1387,7 @@ elements:
         allows_value: false
         allows_empty: false
       - name: width
+        default: 10
         as_required: true
         min: 0
         max: 1
@@ -1541,14 +1576,24 @@ elements:
     children: [input, output]
     attributes:
       - name: averageX
+        description: >-
+          x values will be averaged to produce x output values.
+        default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
       - name: averageY
+        description: >-
+          y values will be averaged to produce y output values.
+        default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
       - name: sumY
+        description: >-
+          The y output values will be the sum of the original y
+          values.
+        default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
@@ -1694,6 +1739,7 @@ elements:
         allows_value: false
         allows_empty: false
       - name: index
+        default: "the number of values in the data buffer"
         as_required: true
         min: 0
         max: 1
@@ -1724,18 +1770,21 @@ elements:
     attributes: []
     inputs:
       - name: from
+        default: 0
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: to
+        default: "the length of the input"
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: length
+        default: "the length of the input; supersedes to"
         as_required: true
         min: 0
         max: 1
@@ -1834,6 +1883,10 @@ elements:
     children: [input, output]
     attributes:
       - name: falling
+        description: >-
+          Search for a crossing from larger to smaller values
+          instead of the other way round.
+        default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
@@ -1851,6 +1904,7 @@ elements:
         allows_value: false
         allows_empty: false
       - name: threshold
+        default: 0.0
         as_required: true
         min: 0
         max: 1
@@ -1871,6 +1925,7 @@ elements:
     children: [output]
     attributes:
       - name: linearTime
+        default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
