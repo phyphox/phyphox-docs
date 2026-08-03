@@ -506,6 +506,48 @@ over the API.** The entry has been corrected to say so.
 That is the strongest argument yet for the cross-check existing. Reading two parsers tells you
 what they do; only a third source tells you what is missing from both readings.
 
+### Checking completeness instead of asserting it
+
+The blocks were modelled by reading both parsers, which is exactly the process that has been
+wrong repeatedly. `tools/spec_vs_ios.py` now checks the result independently: iOS declares its
+accepted surface unusually plainly — an `enum Attribute` per handler, children registered by
+name — so walking that from the root element gives an inventory of the format that does not
+depend on my having read the right lines.
+
+It found one **real structural error**: `<input>` under `<tone>` and `<noise>` in the audio
+output. The spec had modelled `input` only under `<audio>`, conflating the direct waveform
+source (no `parameter`) with the generator parameter inputs (`parameter`, `type`) — three
+elements collapsed into one. Corrected, and `frequency` is now recorded as applying to `tone`
+only, which `noise` does not accept.
+
+Everything else it reported was my own extraction, and each false finding taught the tool
+something:
+
+- **Class bodies must be brace-matched.** A regex ending at the first `\n}` runs past the end
+  of a class into the next. That produced `experimentTime` on `<events>` and `stride` on a
+  bluetooth output, both belonging to neighbouring classes.
+- **Class names are not unique.** `OutputElementHandler.swift` declares its *own* private
+  `AudioElementHandler` and `BluetoothElementHandler`, with the same names as the input
+  block's. Merging them made the output audio appear to take `append` and the output bluetooth
+  to take `mode`, `rate` and `subscribeOnStart`. Keys are now file-qualified.
+- **`childHandlers` maps names to variables, not classes**, which has to be resolved through
+  the `let x = SomeHandler()` bindings — until that was handled the walk reached 16 pairs
+  instead of 75.
+
+The equivalent sweep on the Android side — every `getXAttribute` call in the root,
+translations, export, events, data-containers and network parsers, diffed against the spec —
+reported nothing missing.
+
+Five attributes are declared by an iOS handler and never read: `stride` on a bluetooth output,
+`replacement` on a dropdown map, `clear` on the audio generator inputs, `mtu`, and a copy of
+its child's enum on `<events>`. They are listed in the tool rather than modelled — in the
+source, but not part of the format.
+
+One piece of latitude worth knowing: iOS accepts any `<events>` child whose name matches a
+`TimeMappingEvent`, which includes `<clear>`, where Android switches on the documented `start`
+and `pause`. No file should contain a clear event, since clearing empties the list before it
+can be written, so this is looseness rather than a divergence.
+
 ### Revised projection
 
 All six blocks are modelled: 128 elements, 302 attributes and 194 named analysis slots, leaving roughly 80,

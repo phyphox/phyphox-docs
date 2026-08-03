@@ -55,23 +55,20 @@ elements:
         summary: Normalise the amplitude of all inputs.
         agreement: agreed
 
+  # <input> appears at two levels and means different things. Directly under
+  # <audio> it is the waveform itself; inside <tone> or <noise> it drives one
+  # parameter of that generator. Android handles all three with the same code,
+  # distinguishing them by whether `parameter` is set and whether a generator is
+  # open; iOS registers a separate handler under each.
   - name: input
     parent: audio
     since: "1.0"
     summary: >-
-      Feeds a data container or a constant into the audio output, either as the
-      waveform itself or as a parameter of the tone or noise generator preceding
-      it.
-    text: Name of a data container, or a literal number when type is value.
+      The waveform, written to the speaker at the end of each analysis pass.
+      Values run from -1 to +1 and the buffer's length sets the duration. Only
+      one direct source is supported.
+    text: Name of the data container holding the waveform.
     attributes:
-      - name: parameter
-        type: enum
-        values: [pan, amplitude, duration, frequency]
-        summary: >-
-          Which parameter of the preceding generator this input drives.
-          `frequency` applies to `tone` only. Omitted when the input supplies the
-          waveform directly.
-        agreement: agreed
       - name: type
         type: enum
         values: [buffer, value]
@@ -83,23 +80,60 @@ elements:
 
   - name: tone
     parent: audio
-    since: "1.0"
-    summary: A tone generator. Its parameters come from the input elements after it.
+    since: "1.10"
+    summary: >-
+      A parametric tone generator, driven by the input elements inside it. Each
+      tone tracks the phase of its wave so that changing the frequency does not
+      click. Several are allowed.
+    children: [input]
     attributes:
       - name: waveform
         type: enum
         values: [sine, square, sawtooth]
         default: sine
+        since: "1.19"
         summary: Shape of the generated wave.
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
+
+  - name: input
+    parent: tone
+    since: "1.10"
+    summary: Drives one parameter of the tone generator.
+    text: Name of a data container, or a literal number when type is value.
+    attributes: &plugin_input
+      - name: parameter
+        type: enum
+        values: [pan, amplitude, duration, frequency]
+        summary: >-
+          Which parameter this input drives. Only `tone` accepts `frequency`.
+        agreement: agreed
+      - name: type
+        type: enum
+        values: [buffer, value]
+        default: buffer
+        summary: Whether the text names a data container or is a literal value.
         agreement: divergent
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: noise
     parent: audio
-    since: "1.0"
-    summary: A noise generator. Its parameters come from the input elements after it.
+    since: "1.10"
+    summary: >-
+      A white-noise generator, driven by the input elements inside it. Only one
+      is supported.
+    children: [input]
     attributes: []
+
+  - name: input
+    parent: noise
+    since: "1.10"
+    summary: >-
+      Drives one parameter of the noise generator. `frequency` does not apply.
+    text: Name of a data container, or a literal number when type is value.
+    attributes: *plugin_input
 
   # -------------------------------------------------------------- flashlight --
   - name: flashlight

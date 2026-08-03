@@ -327,6 +327,12 @@ elements:
       than by hand, and intended to be replaced by a proper state format.
     attributes: []
     children: [start, pause]
+    note: >-
+      iOS accepts any child whose name matches a TimeMappingEvent, which includes
+      <clear> as well as <start> and <pause>; Android switches on the two the
+      documentation names. No file should contain a clear event - the event list
+      is emptied when data is cleared, so it never survives to be written - so
+      this is latitude on the iOS side rather than a divergence in the format.
 
   - name: start
     parent: events
