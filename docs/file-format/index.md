@@ -51,75 +51,55 @@ The phyphox format is based on xml. The entire experiment is encapsulated within
 
 ## Block: phyphox
 
-The entire experiment is defined within the phyphox block. It has a single attribute, which is the version of the file format (not the version of the app). If the file format changes in future version, this version number will increase. If phyphox (the app) encounters a file version newer than what it can read, it will not load the file but ask the user to update the app.
+The entire experiment is defined within the phyphox block. Its most important attribute is the version of the file format - not the version of the app. If the file format changes in a future version, this version number will increase. If phyphox (the app) encounters a file version newer than what it can read, it will not load the file but ask the user to update the app.
 
-**Tag: Title**
+{{spec:root/phyphox}}
 
-```xml
-<title>TITLE</title>
-```
+**Tag: title**
 
 The title of the experiment. This is just a simple string. Try to keep it short and concise.
 
-**Tag: State-Title**
+{{spec:root/phyphox/title}}
 
-**Available since phyphox file format 1.5 (phyphox 1.0.7)**
+**Tag: state-title**
 
-```xml
-<state-title>TITLE</state-title>
-```
+This should not be used for an experiment which will be distributed. This tag contains the title given by the user when saving the state of an experiment. If this is set, the app will show this experiment in the saved-states section.
 
-This should not be used for a experiment, which will be distributed. This tag contains the title given by the user when saving the state of an experiment. If this is set, the app will show this experiment in the saved-states section.
+{{spec:root/phyphox/state-title}}
 
 **Tag: category**
-
-```xml
-<category>CATEGORY</category>
-```
 
 The category of the experiment. This is just a simple string used by the app to group the experiments. Try to keep it short and concise.
 
 Note that this can and *should* be translated if you use translations (see below) as the app uses the localized version of this string and cannot match your experiment to the default group if the category is given in a different language.
 
+{{spec:root/phyphox/category}}
+
 **Tag: icon**
 
-```xml
-<icon format="FORMAT">ICON</icon>
-```
+The icon of the experiment. We recommend a small PNG with few colors; there are various web-based tools to create a base64-encoded PNG from a PNG file.
 
-The icon of the experiment. The attribute *format* controls whether *ICON* is just a string or a base64 encoded image. If it is a string, phyphox will take the first three characters (using fewer characters is ok) and create a simple icon with these. If it is a base64-encoded image, phyphox will decode it and display the image.
-
-We recommend to use a small PNG with few colors as an icon. There are various web-based tools to create a base64-encoded PNG from a PNG file.
-
-format
-:   Can be *string* or *base64* and controls whether the icon should be interpreted as a string or as a base64 encoded image.
-:   *optional*, default: *string*
+{{spec:root/phyphox/icon}}
 
 **Tag: color**
-
-```xml
-<color>COLOR</color>
-```
 
 The base color for the experiment. This is used as a background of the icon (if a text-based icon is used or if it has a transparent background) and for the label of the category. If a category contains experiments with different colors, the most common color is used.
 
 Color can be defined as a 6-digit hex value or as one of the named [Colors](colors.md).
 
-**Tag: description**
+{{spec:root/phyphox/color}}
 
-```xml
-<description>DESCRIPTION</description>
-```
+**Tag: description**
 
 A description of the experiment. The first line should be a very short information of what the experiment does as this line will be shown in the experiment list. Any white spaces at the beginning and end of DESCRIPTION as well as in each line will be stripped.
 
+{{spec:root/phyphox/description}}
+
 **Tag: link**
 
-```xml
-<link label="LABEL" highlight="false">URL</link>
-```
+A link-Tag defines a link to some resource on the web. You may have multiple link tags in your phyphox file and they will be listed as a button each under the experiment description. When the user pushes the button, he will be redirected to the URL (usually in a web browser, but it might be a specific app for a specific URL - for example Youtube links usually open in the Youtube-App in Android).
 
-A link-Tag defines a link to some resource on the web. You may have multiple link tags in your phyphox file and they will be listed as a button each under the experiment description. When the user pushes the button, he will be redirected to the URL (usually in a web browser, but it might be a specific app for a specific URL - for example Youtube links usually open in the Youtube-App in Android). If the attribute *highlight* is set to true, the link will also be featured in the experiment menu. (Note, that the highlight attribute is meant to highlight especially relevant links, like instructions for the experiment. Its actual implementation, i.e. the way a link is "highlighted" might change in newer versions.)
+{{spec:root/phyphox/link}}
 
 ## Block: translations
 
@@ -228,36 +208,9 @@ In data-containers all buffers are defined. Any input (sensors, microphone) writ
 
 ### Tag: container
 
-```xml
-<container size="INTEGER" init="FLOAT" static="BOOLEAN" clearGroup="STRING">NAME</container>
-```
+The container tag defines the name of a single data container.
 
-The container tag defines the name of a single data container. For now, the only container type is buffer, so the attribute *type* can be left out - It is only there for future new container types.
-
-The *buffer* type is a queue of a fixed length. New data is appended until the buffer is full. If data is appended to a full buffer, old data is removed from the other end. Any module reading from the buffer will receive the whole data set. However, if the module only requires a single value, it may access the last added value directly.
-
-The size can be set by the *size* attribute, which defaults to 1.
-
-Infinite buffers are allowed and can be achieved by setting size to zero. However, you should be careful when using this. Never keep filling an infinite buffer if it is the base for complex analysis as this will lead to extreme load when the experiment runs for a long period. Also, infinite buffers are not allowed to hold the recording from an audio input.
-
-type
-:   The only type supported right now is *buffer*. This attribute can be ignored for now, but other container types may be added in the future.
-:   *optional*, default: *buffer*
-
-size
-:   The size of the data-container. For the buffer type this is the number of values, the buffer can hold.
-:   *optional*, default: 1
-
-static
-:   If set to true, the content of this buffer should only be written once. Analysis modules writing to this buffer will not execute if all output buffers are static to improve performance. This should be set if the content does not depend on measured data.
-:   *optional*, default: false
-
-init, **Available since phyphox file format 1.3 (phyphox 1.0.4)**
-:   If set, the buffer will be initialized with the given value when loading the experiment as well as when clearing the data. If not set, the buffer will start empty. Since file format 1.5 (phyphox 1.0.7) you can also separate multiple values by comma to initialize a buffer with multiple values.
-
-clearGroup, **Available since phyphox file format 1.20 (phyphox 1.2.1)**
-:   If set, the buffer will not be cleared automatically when the user presses the trash symbol. Instead, the string assigned to *clearGroup* will be shown as an option that the user can select. This is particularly usefull if the experiment contains settings or calibration data that should be preserved when measured data is deleted. Multiple data containers can be assigned to the same *clearGroup*. Also, the string assigned to the *clearGroup* can be translated. Take care when using multiple clear groups that are translated as the translated name will then be used to address the groups, so the translated names have to be distinct. If you want to prevent users from ever deleting specific buffers, you can assign the special clearGroup "\_" (only an underscore), which will never be offered for the user to pick for clearing.
-:   *optional*, default: no set (will always be cleared through the trash button)
+{{spec:root/data-containers/container}}
 
 ## Block: input
 
@@ -338,15 +291,9 @@ The set block will define a group of data-containers to be exported. The attribu
 
 **Tag: data**
 
-```xml
-<data name="NAME">BUFFER</data>
-```
+Within each set, you can define multiple data entries. Each of them maps a data-container to a name displayed to the user.
 
-Within each set, you can define multiple data enties. Each of them maps a data-container to a name displayed to the user. Usually, this name is the column title corresponding to the data in the exported file.
-
-name
-:   A name describing the data
-:   *required*
+{{spec:root/set/data}}
 
 ## Block: network
 

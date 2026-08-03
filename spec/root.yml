@@ -110,6 +110,12 @@ elements:
     text: Up to three characters, or a base64-encoded image.
     attributes:
       - name: format
+        description: >-
+          Controls whether the element's text is interpreted as a
+          string or as a base64-encoded image. From a string phyphox
+          takes the first three characters - fewer is fine - and
+          draws a simple icon with them. A base64 image is decoded
+          and displayed; a small PNG with few colours works best.
         type: enum
         values: [string, base64]
         default: string
@@ -144,11 +150,19 @@ elements:
     text: The URL.
     attributes:
       - name: label
+        description: >-
+          The text on the button offered under the experiment
+          description.
         type: string
         translatable: true
         summary: Text on the button.
         agreement: agreed
       - name: highlight
+        description: >-
+          If set to true, the link is also featured in the
+          experiment menu. This is meant for especially relevant
+          links such as instructions for the experiment; how a link
+          is "highlighted" may change in later versions.
         type: boolean
         default: false
         summary: >-
@@ -242,6 +256,16 @@ elements:
     text: The buffer name, as referred to everywhere else.
     attributes:
       - name: size
+        description: >-
+          The size of the data container. For the buffer type this
+          is the number of values the buffer can hold. A buffer is a
+          queue of fixed length: new data is appended until it is
+          full, and then old data is removed from the other end.
+          Setting the size to zero makes the buffer infinite, which
+          needs care - never keep filling an infinite buffer that is
+          the base for complex analysis, as the load grows without
+          bound as the experiment runs. An infinite buffer is also
+          not allowed to hold the recording from an audio input.
         type: integer
         default: 1
         summary: >-
@@ -249,17 +273,33 @@ elements:
           it grows without limit.
         agreement: agreed
       - name: init
+        description: >-
+          If set, the buffer is initialized with the given value
+          when the experiment is loaded and whenever the data is
+          cleared. If not set, the buffer starts empty. Since file
+          format 1.5 several values may be given, separated by
+          commas, to initialize a buffer with more than one value.
         type: string
         summary: >-
           Values the buffer starts with, comma-separated. Also what it returns
           to when cleared.
         agreement: agreed
       - name: static
+        description: >-
+          If set to true, the content of this buffer should only be
+          written once. Analysis modules writing to this buffer will
+          not execute if all their output buffers are static, which
+          improves performance. Set it when the content does not
+          depend on measured data.
         type: boolean
         default: false
         summary: Keeps the buffer's contents when the user clears data.
         agreement: agreed
       - name: type
+        description: >-
+          The only type supported right now is buffer. This
+          attribute can be ignored for now, but other container
+          types may be added in the future.
         type: enum
         values: [buffer]
         default: buffer
@@ -268,6 +308,18 @@ elements:
         agreement: divergent
         inconsistency: container-type-unvalidated
       - name: clearGroup
+        description: >-
+          If set, the buffer is not cleared automatically when the
+          user presses the trash symbol. Instead the string assigned
+          to clearGroup is offered as an option the user can select.
+          This is particularly useful for settings or calibration
+          data that should survive deleting the measurement. Several
+          data containers can share a clearGroup, and the string can
+          be translated - take care that translated names stay
+          distinct, since it is the translated name that addresses
+          the group. Assigning the special clearGroup "_" (a single
+          underscore) means the buffer is never offered for clearing
+          at all.
         type: string
         translatable: true
         since: "1.20"
@@ -299,6 +351,11 @@ elements:
     children: [data]
     attributes:
       - name: name
+        description: >-
+          Shown to the user when they pick which sets to export, and
+          often represented in the exported file - a CSV export
+          produces a ZIP with one file per set, an Excel export one
+          sheet per set.
         type: string
         translatable: true
         required: true
@@ -312,6 +369,9 @@ elements:
     text: Name of the data container to export.
     attributes:
       - name: name
+        description: >-
+          A name describing the data. This is usually the column
+          title corresponding to the data in the exported file.
         type: string
         translatable: true
         required: true

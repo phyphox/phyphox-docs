@@ -27,60 +27,17 @@ You need to provide a URL that points to a privacy policy that tells the user ho
 
 ### General syntax
 
-The network connections are defined in a network block in the document root as follows:
+The network connections are defined in a network block in the document root:
 
-```xml
- <network>
-    ...
-    <connection id="..." privacy="..." service="..." address="..." conversion="..." discovery="..." discoveryAddress="..." autoConnect="true/false" interval="...">
-        ...
-        <send id="..." type="buffer/meta/time" keep="true/false">...</send>
-        ...
-        <receive id="..." append="true/false">...</receive>
-        ...
-    </connection>
-    ...
- </network>
-```
+{{spec:network/phyphox/network|xml}}
 
-Let's start with the attributes of the network connection tag:
+{{spec:network/network/connection}}
 
-id
-:   This id is not required, but it can be used to identify the connection from other elements. For example, a [button view element](views.md#view-element-button) can use this id in a trigger block to trigger the connection.
+The send and receive tags within the connection tag define which data should be sent and received. Each entry has an id with varying meanings.
 
-privacy
-:   A URL to a privacy policy for your experiment.
+{{spec:network/connection/send}}
 
-service
-:   A name from the list of Network services below, defining the service (protocol) for the connection
-
-address
-:   An address for the service. This is typically a fixed IP address or URL, but its meaning may vary depending on the service and it might work differently in combination with different discovery methods (see below)
-
-conversion
-:   A name from the list of response conversions below. This defines how the data stream from the network service is interpreted and converted into numbers that can be used in phyphox.
-
-discovery
-:   A method to discover possible network services, so they can be checked before connection or picked by the user. (See below)
-
-discoveryAddress
-:   The meaning of this address depends on the discoveryService. For example it could be a URL with wild cards an address from which to request a list of servers or filter for mDNS entries.
-
-autoConnect
-:   If set to true, phyphox will connect to the first viable service (address or from the discovery method). If set to false, options from the discovery method will be presented to the user for selection.
-
-interval
-:   If set to a value larger than 0, this defines an interval in seconds at which the connection is triggered periodically.
-
-The send and receive tags within the connection tag define, which data should be send and received. Each entry has an id with varying meanings. For send tags, the meaning of the id depends on the network service and is usually used as a label that is attached to the data for the remote server. For receive tags, the id is interpreted by the response conversion function and determines which part of the converted response should be used.
-
-Send tags usually contain a buffer name. Data from this buffer is sent using the network service, but it depends on the network service whether only the last value or the entire buffer (array) is submitted. Optionally, a keep attribute can be set to false (default is true in contrast to the behavior in analysis modules). If set to false, the buffer will be cleared after the data has been sent, allowing to easily stream data without duplicates. (Note that just like the corresponding attribute in analysis modules, the clear attribute has been deprecated and replaced with keep in phyphox 1.1.13 (file format 1.17))
-
-Alternatively, the attribute "type" can be used to switch from the default type="buffer" to type="meta". In this case, the name in the send tag is not a buffer, but a label that identifies a specific text string of metadata (see list below).
-
-Finally, the type="time" allows for sending the current system time (in seconds since 1970) and possibly time reference events (depending on the data format). This type does not require any content within the tag, so *<send id="x" type="time" />* is sufficient. Compact data formats (like GET-parameters of http) will only send the current timestamp, but complex dataformats (like JSON) can also include a list of start/pause events with matching experiment time (seconds since first start of the experiment, skipping pauses) and system time (seconds since 1970) for precise time conversions. (**Available since phyphox 1.1.8 (file format 1.12)**)
-
-Receive tags can only have a buffer name inside them and can set the append attribute. If set to false, the phyphox buffer will be cleared before the received data is written to it. If set to true (default), new data is simply appended. (Note that just like the corresponding attribute in analysis modules, the clear attribute has been deprecated and replaced with append in phyphox 1.1.13 (file format 1.17))
+{{spec:network/connection/receive}}
 
 ### Metadata
 

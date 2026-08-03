@@ -30,22 +30,37 @@ elements:
     children: [send, receive]
     attributes:
       - name: id
+        description: >-
+          This id is not required, but it can be used to identify
+          the connection from other elements. For example, a button
+          view element can use this id in a trigger block to trigger
+          the connection.
         type: string
         summary: >-
           Identifies the connection so a button's trigger tag can fire it.
         agreement: agreed
       - name: privacy
+        description: >-
+          A URL to a privacy policy for your experiment.
         type: string
         summary: >-
           URL of a privacy policy for the service. Shown to the user before any
           data leaves the device.
         agreement: agreed
       - name: address
+        description: >-
+          An address for the service. This is typically a fixed IP
+          address or URL, but its meaning may vary depending on the
+          service and it might work differently in combination with
+          different discovery methods.
         type: string
         required: true
         summary: Address of the service.
         agreement: agreed
       - name: service
+        description: >-
+          A name from the list of network services below, defining
+          the service (protocol) for the connection.
         type: enum
         values: [http/get, http/post, mqtt/csv, mqtt/json]
         summary: Which protocol to speak.
@@ -55,6 +70,11 @@ elements:
           contributed by a user without an iOS counterpart. They are not part of
           the format - see network-mqtts-unofficial.
       - name: conversion
+        description: >-
+          A name from the list of response conversions below. This
+          defines how the data stream from the network service is
+          interpreted and converted into numbers that can be used in
+          phyphox.
         type: enum
         values: [none, csv, json]
         summary: How to interpret the response before writing it to containers.
@@ -62,6 +82,9 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: discovery
+        description: >-
+          A method to discover possible network services, so they
+          can be checked before connection or picked by the user.
         type: enum
         values: [http]
         summary: How to find the service on the local network, if it is not at a fixed address.
@@ -69,10 +92,20 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: discoveryAddress
+        description: >-
+          The meaning of this address depends on the discovery
+          method. For example it could be a URL with wildcards, an
+          address from which to request a list of servers, or a
+          filter for mDNS entries.
         type: string
         summary: Address queried by the discovery method.
         agreement: agreed
       - name: autoConnect
+        description: >-
+          If set to true, phyphox will connect to the first viable
+          service, at the given address or from the discovery
+          method. If set to false, options from the discovery method
+          will be presented to the user for selection.
         type: boolean
         default: false
         summary: >-
@@ -80,6 +113,10 @@ elements:
           author controls, since it sends data without confirmation.
         agreement: agreed
       - name: interval
+        description: >-
+          If set to a value larger than 0, this defines an interval
+          in seconds at which the connection is triggered
+          periodically.
         type: float
         default: 0.0
         unit: s
@@ -107,11 +144,35 @@ elements:
       depending on type.
     attributes:
       - name: id
+        description: >-
+          The meaning of the id depends on the network service. It
+          is usually used as a label attached to the data for the
+          remote server.
         type: string
         required: true
         summary: Key under which the value appears in the request.
         agreement: agreed
       - name: type
+        value_notes:
+          buffer: >-
+            The text names a data container. Whether only the last
+            value or the whole array is submitted depends on the
+            network service.
+          meta: >-
+            The text is a metadata identifier rather than a data
+            container. See the list of identifiers below.
+          time: >-
+            Sends the current system time in seconds since 1970.
+            The tag needs no content, so <send id="x" type="time"
+            /> is sufficient. Compact data formats such as HTTP
+            GET parameters send only the current timestamp, while
+            richer ones such as JSON can also include the list of
+            start and pause events with matching experiment time
+            and system time, for precise time conversion.
+            Available since file format 1.12.
+        description: >-
+          Whether the tag sends the contents of a data container, a
+          piece of metadata, or the current time.
         type: enum
         values: [buffer, meta, time]
         default: buffer
@@ -131,13 +192,19 @@ elements:
         agreement: agreed
       - name: keep
         type: boolean
-        default: false
+        default: true
         summary: >-
           Whether the data container keeps its contents after being sent.
+        description: >-
+          Whether the data container keeps its contents after being sent. Set
+          it to false to clear the container once the data has gone out, which
+          is the easy way to stream data without duplicates. Note that the
+          default is the opposite of the one in analysis modules, where a value
+          is consumed unless you ask to keep it.
         agreement: agreed
       - name: clear
         type: boolean
-        default: true
+        default: false
         deprecated: true
         superseded_by: keep
         summary: Deprecated in file format 1.17. clear=true corresponds to keep=false.
@@ -150,18 +217,27 @@ elements:
     text: Name of the data container to write to.
     attributes:
       - name: id
+        description: >-
+          The id is interpreted by the response conversion function
+          and determines which part of the converted response is
+          used.
         type: string
         required: true
         summary: Key to read from the response.
         agreement: agreed
       - name: append
         type: boolean
-        default: false
+        default: true
         summary: Append to the container rather than replacing its contents.
+        description: >-
+          Whether received data is appended to the data container. Set it to
+          false to have the container cleared before the response is written to
+          it. Note that the default is the opposite of the one in analysis
+          modules.
         agreement: agreed
       - name: clear
         type: boolean
-        default: true
+        default: false
         deprecated: true
         superseded_by: append
         summary: Deprecated in file format 1.17. clear=true corresponds to append=false.

@@ -39,6 +39,7 @@ Marker syntax
     {{spec:BLOCK/PARENT/NAME|xml}}      the XML skeleton alone
     {{spec:BLOCK/PARENT/NAME|attributes}}
     {{spec:BLOCK/PARENT/NAME|slots}}    input/output slots or components alone
+    {{spec:BLOCK/NAME}}                 a root element, which has no parent
 
 BLOCK is the spec file (`input`, `views`, `analysis`, ...). PARENT and NAME are
 the element's `parent:` and `name:`. All three are needed because neither pair
@@ -46,6 +47,9 @@ identifies an element on its own: `<audio>` exists under both `<input>` and
 `<output>` and means different things, and `<config>` under `<bluetooth>` is
 modelled once per block. Keying elements by name alone, or by parent and name,
 is a mistake this project has made repeatedly - hence the full triple.
+
+An attribute marked `undocumented: intentionally` is modelled but never
+rendered - `appleBan` is the case it exists for.
 """
 
 import os
@@ -61,7 +65,9 @@ VERSION_TABLE = os.path.join(ROOT, "docs", "reference", "version-history",
 INCONSISTENCIES = os.path.join(ROOT, "inconsistencies.yml")
 LIST_PAGE = "reference/known-inconsistencies.md"
 
-MARKER = re.compile(r"\{\{spec:([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+)/"
+# {{spec:BLOCK/PARENT/NAME}}, or {{spec:BLOCK/NAME}} for a root element, which
+# has no parent - <phyphox> is the only one.
+MARKER = re.compile(r"\{\{spec:([a-zA-Z0-9_\-]+)/(?:([a-zA-Z0-9_\-]+)/)?"
                     r"([a-zA-Z0-9_\-]+)(?:\|([a-z]+))?\}\}")
 
 # Placeholder shown for an attribute value in a generated skeleton.
@@ -330,7 +336,12 @@ def _divergence_pointer(ref, spec, state):
 
 
 def render_attributes(element, spec, state):
-    attrs = element.get("attributes") or []
+    # `undocumented: intentionally` keeps an attribute out of the documentation
+    # while the spec still models it. appleBan is the case it exists for: iOS
+    # reads it, so a specification of the format has to record it, and it is
+    # App Store housekeeping that no experiment author should be reaching for.
+    attrs = [a for a in (element.get("attributes") or [])
+             if not a.get("undocumented")]
     if not attrs:
         return ""
     return "\n\n".join(_attribute(a, spec, state) for a in attrs)
@@ -461,7 +472,7 @@ def _open_tag(name, attrs, width=78):
     for.
     """
     pairs = [f'{a["name"]}="{_attr_placeholder(a)}"' for a in attrs
-             if not a.get("deprecated")]
+             if not a.get("deprecated") and not a.get("undocumented")]
     if not pairs:
         return f"<{name}>"
     indent = " " * (len(name) + 2)
@@ -612,7 +623,9 @@ def main():
         mode = None
         if "|" in arg:
             arg, mode = arg.split("|", 1)
-        block, parent, name = arg.split("/")
+        parts = arg.split("/")
+        block, name = parts[0], parts[-1]
+        parent = parts[1] if len(parts) == 3 else None
         print(render_element(block, parent, name, spec, state, mode))
         print()
     return 0
