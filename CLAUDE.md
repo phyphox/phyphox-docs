@@ -278,10 +278,65 @@ modules` and `Mb_mag.png`); it encodes anchors as dot-hex (`.28` for `(`); pando
 `[[Page]]` to `[Page](Page "wikilink")` *before* the script sees it, and leaves sized images as raw
 `<img>` HTML.
 
+## The file-format reference is generated
+
+`spec/*.yml` is the machine-readable model of the phyphox XML format — every element, attribute,
+type, allowed value, default and `since` version, with an `agreement:` field recording what the two
+parsers were found to do. `spec/README.md` describes its shape and the traps met while writing it.
+
+The reference sections of the file-format pages are **generated from it at build time**. A page
+carries a marker where its reference belongs:
+
+    {{spec:BLOCK/PARENT/NAME}}
+
+`tools/spec_reference.py` renders it and `tools/hooks.py` expands it during the build. Nothing is
+generated into the repository — the Markdown keeps the marker — so there is no second copy to keep
+in step and no generated file to edit by mistake. `|xml`, `|attributes` and `|slots` restrict the
+output to one part; a root element with no parent is named `{{spec:BLOCK/NAME}}`.
+
+**So an element's facts are edited in `spec/`, not on the page.** What stays hand-written is
+everything the spec does not know: how the two depth APIs differ, why "acceleration with g" is
+called that, the worked examples in the data-picker section. If you find yourself writing a
+default, a type or a version note into a page, it belongs in the spec instead.
+
+Three fields exist for the split between what the spec records and what a reader sees:
+
+- `summary:` — the one-liner the spec was written with. Kept short; used where a whole block has to
+  fit on one screen.
+- `description:` — the full documentation text, moved across from the pages during the conversion.
+  Rendered in preference to `summary:` where both exist.
+- `note:` — what was found while reading the parsers: source citations, why a divergence is not
+  one, what to search for next time. **Never rendered.** Reader-facing detail that belongs beside an
+  attribute goes in `remark:`, so the distinction has to be made deliberately.
+
+`value_notes:` describes the values of an enumerated attribute and renders as a nested definition
+list — the shape the hand-written pages used for `aeStrategy` and the audio parameters.
+`undocumented: intentionally` keeps an attribute out of the output while the spec still models it;
+`appleBan` is the case it exists for.
+
+Divergences place themselves: an attribute whose `agreement:` is `divergent` carries a pointer to
+its entry, and the first element on a page to reach a given entry emits the full admonition. Before
+this, fourteen file-format entries were recorded in `inconsistencies.yml` and not one appeared on a
+file-format page — the mechanism was there, the markers were never placed by hand.
+
+### What checks it
+
+- `tools/spec_vs_docs.py` diffs the spec against the pages and fails the build on anything the docs
+  describe that the spec does not model. It expands the markers first, so it still checks the
+  hand-written parts of a half-converted page. It can no longer be an independent opinion about the
+  parts that are generated — those agree with the spec by construction.
+- `tools/spec_vs_ios.py` walks the iOS handler tree from `<phyphox>` and reports any attribute iOS
+  declares that the spec does not model.
+- `tools/validate_experiments.py` validates real `.phyphox` files against the spec. Run it over
+  `phyphox-experiments` after changing the spec; a finding is as likely to be a spec error as a
+  file error.
+- `tools/hooks.py` checks the spec against `inconsistencies.yml`, that declared children are
+  modelled, that an attribute does not predate its element, and that slot names survived YAML.
+
 ## Roadmap
 
-This repo is phase 1 of a larger plan recorded in `../CLAUDE.md`. Later phases add an OpenAPI
-description of the REST API, a machine-readable specification of the XML format that generates both
-the reference pages and validators, and a conformance corpus run by all the implementations' test
-suites. Prose written now should assume the reference sections will eventually be **generated** —
-so avoid investing heavily in hand-written element/attribute tables that a generator will replace.
+This repo was phase 1 of a larger plan recorded in `../CLAUDE.md`. Phase 2 (the OpenAPI description
+of the REST API) and phase 3 (the format spec, and the reference pages generated from it) are done.
+What is left is phase 4 — generated validators, RELAX NG and Schematron, plus a conformance corpus
+run by the implementations' test suites — and phase 5, making the Blockly editor consume the spec
+instead of encoding the format a fifth time.

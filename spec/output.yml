@@ -271,10 +271,21 @@ elements:
       - name: keep
         type: boolean
         default: true
+        since: "1.19"
         summary: >-
           Whether the data container keeps its contents after being written.
           False clears it, so each value is sent once.
         agreement: agreed
+      - name: triggerId
+        type: string
+        since: "1.20"
+        summary: >-
+          Send this characteristic's data only when a button whose trigger tag
+          carries the same id has been pressed, rather than after every
+          analysis pass. Other inputs of the same device keep sending
+          periodically.
+        agreement: divergent
+        inconsistency: ios-behind-on-format-1-20
 
   - name: config
     parent: bluetooth

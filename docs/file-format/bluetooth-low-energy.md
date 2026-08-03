@@ -60,31 +60,9 @@ Both, input and output devices, can also define config settings for a characteri
 
 Whenever a BLE device is defined in phyphox, you will need to set up how it is matched against scan results. You can define a text that is compared to the name of the device and/or the UUID of an advertised service.
 
-```
-  ...
-    <bluetooth name="..." uuid="..." id="..." autoConnect="..." mtu="...">
-        ...
-    </bluetooth>
-  ...
-```
+The device-matching attributes are the same wherever a bluetooth element appears, in the input block and in the output block alike.
 
-name
-:   If this name is contained in the name of a device found while scanning, the device matches the criterium.
-
-uuid
-:   This is the UUID of a service advertised by the device. Note that even if the device advertises a short 16-bit UUID according to the Bluetooth specification (for example 0x1812 for a Human Interface Device service), you need to specify the 128-bit version (in this case 00001812-0000-1000-8000-00805f9b34fb) using the base-UUID 0000xxxx-0000-1000-8000-00805f9b34fb.
-
-address
-:   The hardware address of the device, as a scan criterion. **Using this attribute makes your experiment Android-only.** iOS gives apps no access to the hardware address of a BLE device, so the criterion cannot be honoured there - do not use it unless an Android-only experiment is what you want. Prefer *name* or *uuid*, which work on both platforms.
-
-id
-:   The id entry combines two functions to manage multiple BLE devices in one experiment. It acts as a string shown to the user to identify the use of a device during scanning (for example, if two sensor boxes are used, the could be labeled as "wheel" and "distance" if one is attached to a wheel and the other one measures distance). For this purpose the text is translatable. The second function is that phyphox treats devices with the same ID as a single device, so multiple bluetooth entries (even input and output blocks) can refer to the same device without asking the user twice to pick it from a scan.
-
-autoConnect
-:   If set to true (default false), phyphox will not show a scan dialog, but instead tries to connect to the first devices that matches the other criteria. You should only use this, if you can be sure that only a single matching device will be present, typically when you developed your own unique device.
-
-mtu
-:   Can be set to request a specific MTU size. This is ignored on iOS which has no method to control the MTU size and always requests the maximum. Note that this will always fail on all Android devices before Android 5.0. **Available since phyphox file format 1.9 (phyphox 1.1.5)**
+{{spec:input/input/bluetooth|attributes}}
 
 ### BLE as input
 
@@ -106,25 +84,9 @@ If data should be read from a BLE device and displayed in phyphox, the device sh
 
 When using the "bluetooth" tag within an "input" tag, values are read from the device and written to buffers specified in output tags (more on these below). Additionally, "config" tags can be used to set up the device by writing configuration values to the device after connecting.
 
-In addition to the device matching tags "name" and "uuid" (see above), there are tags to define how and when data is read from the device:
+In addition to the device-matching attributes above, these define how and when data is read from the device:
 
-mode
-:   Mode can have on of three values:
-
-    poll
-    :   phyphox requests new values at a rate given by the attribute "rate".
-
-    notification
-    :   New values are received when the device notifies that there is a new value. The characteristic needs to support notifications. For most devices, this mode should give the best results.
-
-    indication
-    :   New values are received when the device indicates that there is a new value. The characteristic needs to support indication, which is very uncommon for simple values. This setting is no longer relevant starting with phyphox 1.1.7 as it then auto-detects notification or indication regardless of which has been chosen here.
-
-rate
-:   This attribute is only used when the mode is set to "poll" and gives the rate in Hz at which new values are polled.
-
-subscribeOnStart
-:   Usually, phyphox subscribes to notifications as soon as a connection to the device has been established. This minimizes latencies when starting the measurement. However, some devices should react to a subscription by starting to send buffered data or triggering something in the experiment, so if this attribute is set to true, phyphox will subscribe to notifications only when the measurement is started. true or false, default: false
+{{spec:input/input/bluetooth}}
 
 ### BLE as output
 
@@ -162,6 +124,12 @@ input
 
 output
 :   Output tags can only be used in an input block. The name "input" of the outer block refers to phyphox as it represents a data input for phyphox, while the name "output" of the inner block refers to the BLE device, as it is the output of the device. This defines a buffer to which data is written from the device.
+
+{{spec:input/bluetooth/output}}
+
+{{spec:output/bluetooth/input}}
+
+{{spec:input/bluetooth/config}}
 
 All three types have to be connected to the UUID of a characteristic on the BLE device through its UUID. This is defined through the "char" attribute. On top of this, a range of conversion functions are available, which need to be defined through the attribute "conversion". These are different for input, output and config tags and may imply additional attributes. They are discussed separately below.
 

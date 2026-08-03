@@ -857,29 +857,71 @@ elements:
     children: [output, config]
     attributes:
       - name: name
+        description: >-
+          If this name is contained in the name of a device found
+          while scanning, the device matches the criterion.
         type: string
         summary: Connect only to a device advertising this name.
         agreement: agreed
       - name: uuid
+        description: >-
+          The UUID of a service advertised by the device. Note that
+          even if the device advertises a short 16-bit UUID
+          according to the Bluetooth specification - 0x1812 for a
+          Human Interface Device service, say - you need to specify
+          the 128-bit version, here
+          00001812-0000-1000-8000-00805f9b34fb, using the base UUID
+          0000xxxx-0000-1000-8000-00805f9b34fb.
         type: string
         summary: Connect only to a device advertising this service UUID.
         agreement: agreed
       - name: mode
+        value_notes:
+          poll: >-
+            phyphox requests new values at the rate given by the
+            rate attribute.
+          notification: >-
+            New values arrive when the device notifies that there
+            is one. The characteristic has to support
+            notifications. For most devices this mode gives the
+            best results.
+          indication: >-
+            New values arrive when the device indicates that there
+            is one. The characteristic has to support indication,
+            which is very uncommon for simple values. This setting
+            stopped mattering with phyphox 1.1.7, which
+            auto-detects notification or indication regardless of
+            what is chosen here.
         type: enum
         required: true
         values: [notification, indication, poll]
         summary: How data is obtained from the characteristic.
         agreement: agreed
       - name: rate
+        description: >-
+          Only used when the mode is poll; the rate in Hz at which
+          new values are requested.
         type: float
         summary: Polling rate. Required, finite and positive when mode is poll.
         agreement: agreed
       - name: subscribeOnStart
+        description: >-
+          Usually phyphox subscribes to notifications as soon as the
+          connection is established, which minimizes latency when
+          the measurement starts. Some devices, however, react to a
+          subscription by sending buffered data or triggering
+          something in the experiment; set this to true to have
+          phyphox subscribe only when the measurement starts.
         type: boolean
         default: false
         summary: Subscribe when the measurement starts rather than on connect.
         agreement: agreed
       - name: autoConnect
+        description: >-
+          If set to true, phyphox shows no scan dialog and connects
+          to the first device matching the other criteria. Only use
+          this when you can be sure a single matching device will be
+          present, typically for a device you built yourself.
         type: boolean
         default: false
         summary: Connect without asking the user to pick a device.
@@ -894,6 +936,15 @@ elements:
         platforms: [android]
         inconsistency: ble-address-ios-must-reject
       - name: id
+        description: >-
+          Combines two functions for managing several BLE devices in
+          one experiment. It is shown to the user to identify what a
+          device is for during scanning - two sensor boxes could be
+          labelled "wheel" and "distance" - and for that purpose it
+          is translatable. It also groups entries: phyphox treats
+          devices with the same id as one device, so several
+          bluetooth elements, across input and output blocks alike,
+          can refer to it without asking the user to pick it twice.
         type: string
         translatable: true
         summary: >-
@@ -902,6 +953,9 @@ elements:
           asked to pick it only once even across input and output blocks.
         agreement: agreed
       - name: mtu
+        description: >-
+          Requests a specific MTU size. Note that this always fails
+          on Android devices before Android 5.0.
         type: integer
         default: 0
         since: "1.9"
@@ -924,6 +978,8 @@ elements:
     text: Name of the data container receiving the converted values.
     attributes:
       - name: char
+        description: >-
+          UUID of the characteristic this tag reads from.
         type: string
         required: true
         summary: UUID of the characteristic to read.
@@ -981,6 +1037,8 @@ elements:
     text: The value to write, interpreted by the conversion.
     attributes:
       - name: char
+        description: >-
+          UUID of the characteristic this tag writes to.
         type: string
         required: true
         summary: UUID of the characteristic to write.

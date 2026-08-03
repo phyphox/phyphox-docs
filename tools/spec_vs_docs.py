@@ -57,27 +57,13 @@ IGNORE_ELEMENTS = {"phyphox", "views", "data-containers", "container", "input",
                    "description", "link", "color", "state-title"}
 IGNORE_ATTRS = {"version"}
 
-# Some documentation pages describe more than one block - bluetooth-low-energy.md
-# covers the bluetooth element of the input block AND of the output block. Until
-# every block is modelled, constructs belonging to an unmodelled one look like
-# gaps. List them here and delete the entry when that block is modelled.
 # Attributes the spec models that the documentation deliberately does not
-# describe. Keeping them listed means the "undocumented" report stays actionable
-# instead of becoming noise everyone skims past.
-EXPECTED_UNDOCUMENTED = {
-    # superseded draft of the spectroscopy feature, to be removed - see
-    # graph-output-data-picker
-    "calibrationMode", "calibrationParameter",
-    # the docs describe the colour scale generically as mapColor[n]
-    "mapColor8", "mapColor9",
-    # TODO: document when the bluetooth block is modelled. Implemented by both
-    # apps; the decimal separator for the string conversion.
-    "decimalPoint",
-    # Root attributes neither page describes. isLink is in the version history
-    # for 1.1.9 and is implemented on both, so it wants documenting; appleBan is
-    # iOS-only App Store housekeeping and arguably should not be.
-    "isLink", "appleBan",
-}
+# describe. Everything that used to be listed here is now generated onto its
+# page from the spec, which is what the list was waiting for. What remains is
+# the one attribute the spec models and deliberately never renders: appleBan
+# carries `undocumented: intentionally` and tools/spec_reference.py filters it
+# out.
+EXPECTED_UNDOCUMENTED = {"appleBan"}
 
 OTHER_BLOCK = {}
 
