@@ -171,6 +171,24 @@ def _sentence(text):
     return " ".join((text or "").split())
 
 
+def _text(entry):
+    """What the documentation shows for an attribute, slot or component.
+
+    `summary:` is the one-line statement the spec was written with, and it
+    stays that: short enough to scan a whole block in one screen, and what a
+    generated index or a validator message wants. `description:` is the full
+    documentation text, moved across from the hand-written pages, which is
+    usually several sentences and sometimes several paragraphs. Where both
+    exist the longer one is what a reader gets.
+    """
+    text = entry.get("description") or entry.get("summary") or ""
+    # A description written as a literal block may hold several paragraphs.
+    # Inside a definition-list item every line after the first has to be
+    # indented to stay part of it.
+    paragraphs = [_sentence(p) for p in re.split(r"\n\s*\n", text) if p.strip()]
+    return "\n\n    ".join(paragraphs)
+
+
 def _code_list(values):
     return ", ".join(f"`{v}`" for v in values)
 
@@ -257,7 +275,7 @@ def _render_value(value):
 
 
 def _attribute(attr, spec, state):
-    lines = [attr["name"], ":   " + _sentence(attr.get("summary"))]
+    lines = [attr["name"], ":   " + _text(attr)]
 
     if attr.get("deprecated"):
         superseded = attr.get("superseded_by")
@@ -386,7 +404,7 @@ def _components(element, mapping, spec, state):
                 else f" A tag without `{attribute}` fills the first component.")]
 
     for comp in mapping.get("components") or []:
-        entry = [comp["name"], ":   " + _sentence(comp.get("summary"))]
+        entry = [comp["name"], ":   " + _text(comp)]
         bits = []
         if comp.get("required"):
             bits.append("*required*")

@@ -36,6 +36,77 @@ elements:
     children: [output]
     attributes:
       - name: type
+        description: >-
+          Defines the sensor type to be used. Note that the somewhat
+          cumbersome names for "acceleration with g" and
+          "acceleration (without g)" have been chosen to aid
+          students in understanding the data given by these sensors,
+          while internally the names commonly used on Android are
+          kept.
+        value_notes:
+          accelerometer: >-
+            The accelerometer in m/s². This gives the earth's
+            acceleration when the device is resting. (Usually
+            named "acceleration with g" in phyphox)
+          linear_acceleration: >-
+            A virtual sensor giving the actual acceleration of the
+            device. Should report zero when the device is resting.
+            (Usually named "acceleration (without g)" in phyphox)
+          gravity: >-
+            A virtual sensor giving the gravitational acceleration
+            in the frame of reference of the device. This removes
+            the device motion from the accelerometer readings and
+            should therefore be approximately the difference of
+            accelerometer and linear_acceleration. (Depending on
+            the implementation on each device.) Available since
+            file format 1.15.
+          magnetic_field: >-
+            Readings from the magnetometer in µT.
+          gyroscope: >-
+            Readings from the gyroscope in rad/s.
+          pressure: >-
+            The air pressure from the barometer in hPa.
+          light: >-
+            The illuminance from the light sensor in lx.
+          proximity: >-
+            Distance from the proximity sensor in cm (most devices
+            only output 0 cm or 5 cm).
+          temperature: >-
+            Temperature. This is supposed to be ambient
+            temperature, but there is some fallback logic to find
+            any temperature reading from the device. This usually
+            represents the device temperature and cannot be used
+            for external temperature measurement. In °C. Available
+            since file format 1.7.
+          humidity: >-
+            Relative humidity in %. Available since file format
+            1.7.
+          attitude: >-
+            The orientation (absolute rotation) of the device as
+            calculated by the device's own algorithms. This uses
+            TYPE_ROTATION_VECTOR on Android and CMAttitude from
+            Core Motion on iOS, which (depending on the device)
+            fuses data from the accelerometer, gyroscope and
+            magnetometer to calculate the attitude of the device.
+            The result is given as a quaternion in a reference
+            system with y pointing towards magnetic North and z
+            pointing upwards (the Android coordinate system, iOS
+            attitude is converted to this system). The x, y and z
+            channels correspond to the last three components of
+            the quaternion (w, x, y, z) and w can be retrieved
+            through the abs channel. Available since file format
+            1.9.
+          custom: >-
+            Use typeFilter and/or nameFilter to use a sensor that
+            is not directly supported by phyphox. You can check
+            the device info (i menu on the main screen) to see
+            which sensors are available on your phone. Phyphox
+            will pick the first sensor with a type that matches
+            the typeFilter (if set) and a name that contains the
+            value of nameFilter (not case-sensitive, only if set).
+            Note that not all sensors will work properly with
+            phyphox, especially if they do not generate values but
+            events or states. Available since file format 1.19.
         type: enum
         required: true
         values: [accelerometer, linear_acceleration, gravity, gyroscope,
@@ -45,6 +116,13 @@ elements:
         agreement: agreed
 
       - name: rate
+        description: >-
+          The rate at which sensor data will be provided in Hz. A
+          value of 0.0 means "as fast as possible". Note that the
+          maximum rate of a sensor is device-specific and will limit
+          the rate that can be achieved. Both apps store the
+          reciprocal internally, so a rate of 0 is kept as 0 rather
+          than becoming an infinite period.
         type: float
         default: 0.0
         unit: Hz
@@ -55,6 +133,77 @@ elements:
         agreement: agreed
 
       - name: rateStrategy
+        value_notes:
+          auto: >-
+            Requests the target sensor rate directly from the
+            system like the strategy request. If the actual rate
+            provided by the system is more than 10% faster than
+            the requested rate, the strategy automatically
+            switches to generate, delivering the data points
+            exactly at the desired rate. This strategy prevents
+            duplicate data points as both strategies cannot be
+            faster than what the sensor provides, and it picks the
+            ideal method to get close to the target rate. However,
+            in cases when it has to switch to generate it is
+            susceptible to strong sampling effects when the target
+            rate is close to the actual sensor rate.
+          request: >-
+            The target rate set by rate is directly requested from
+            the system and the provided sensor data will be
+            provided as is. It depends on the system whether the
+            provided rate is close to the requested one; the
+            system might not be able to provide sensor data at
+            given rates or it might decide to provide a different
+            rate if the sensor data is shared with other apps.
+            This strategy is most likely to yield a rate that
+            strongly differs from the expected one, but as it will
+            not group or discard data points, it will not
+            introduce additional sampling or aliasing effects. For
+            the same reason, the average attribute has no effect.
+          generate: >-
+            The target rate is generated internally by phyphox
+            while requesting the highest possible rate from the
+            system. It is guaranteed to give data points at the
+            rate set by rate and can even exceed the sensor rate
+            (be careful not to waste performance with this). While
+            the resulting data points seem very easy to interpret
+            afterwards and while it makes it easy to synchronize
+            different sensors, this strategy can severely degrade
+            the recorded sensor data as data points might be
+            duplicated or discarded in unforeseen patterns. If the
+            target rate is close to the actual internal sensor
+            rate, this will very likely introduce additional
+            sampling effects like aliasing between the sensor's
+            sample rate and this target rate. Therefore, this
+            strategy is recommended for educational purposes to
+            simplify data analysis, but if you know how to analyze
+            data and want the best possible data quality, it is
+            highly recommended to use the request strategy
+            instead, as you can emulate the generate strategy in
+            your data analysis later but you could not go back to
+            the quality of request from generate data.
+          limit: >-
+            The maximum sensor rate is requested from the system
+            and the setting of rate is used as a limiter. More
+            precisely, phyphox generates a new data point whenever
+            the time interval from the last data point to the
+            latest sensor event exceeds 1/rate. The resulting rate
+            will always be close to but lower than the requested
+            rate and the actual rate strongly depends on the
+            actual sensor rate. This strategy is a compromise to
+            get close to a target rate without the strong
+            degradation introduced by the generate strategy, as it
+            usually leads to a similar number of sensor events per
+            actually generated data point. The downside is that
+            the data point rate may be quite different on
+            different devices if the target rate is in the range
+            of typical sensor rates. Note that this was the only
+            rate strategy before file format 1.14, and that this
+            is the default behaviour if your phyphox file targets
+            a file format before 1.14.
+        description: >-
+          Defines the strategy to achieve the rate set with the
+          attribute rate.
         since: "1.14"
         type: enum
         values: [auto, request, generate, limit]
@@ -68,12 +217,27 @@ elements:
         rules: [enum-invalid-value, enum-case-insensitive]
 
       - name: average
+        description: >-
+          If set to true, instead of just giving the latest reading
+          at the defined rate, the sensor data will be averaged over
+          a period of the rate. This only makes sense if a rate is
+          set which is lower than the maximum rate the device can
+          achieve.
         type: boolean
         default: false
         summary: Average readings between outputs instead of picking one.
         agreement: agreed
 
       - name: stride
+        description: >-
+          If stride is set to N, only every Nth data point generated
+          by the rateStrategy is used. Other data points are simply
+          discarded. A stride of 1 will use every data point, a
+          stride of 2 only every second, a stride of 3 only every
+          third and so on. This is mostly useful to achieve a very
+          specific data rate on a specific device that is an integer
+          fraction of the actual sensor rate, in order to avoid
+          additional aliasing effects from non-fractional rates.
         since: "1.14"
         type: integer
         default: 1
@@ -81,6 +245,14 @@ elements:
         agreement: agreed
 
       - name: ignoreUnavailable
+        description: >-
+          Allow the user to open and start the experiment even if
+          the sensor is not available. You will not receive any data
+          for that sensor if it is not available, and your
+          experiment should still work and make sense for the user
+          if this is the case. Without it, an experiment using a
+          sensor the device does not have notifies the user and
+          refuses to work.
         since: "1.8"
         type: boolean
         default: false
@@ -90,6 +262,11 @@ elements:
         agreement: agreed
 
       - name: nameFilter
+        description: >-
+          Selects a specific sensor by name where a device exposes
+          several of the same type, used with type="custom". Phyphox
+          picks the first sensor whose name contains this value,
+          which is not matched case-sensitively.
         since: "1.19"
         type: string
         summary: >-
@@ -107,6 +284,10 @@ elements:
           no equivalent choice, so this is a genuine platform difference.
 
       - name: typeFilter
+        description: >-
+          Selects a sensor by Android sensor type constant, used
+          with type="custom". Phyphox picks the first sensor whose
+          type matches.
         since: "1.19"
         type: integer
         summary: Select a sensor by Android sensor type constant.
@@ -118,12 +299,51 @@ elements:
       attribute: component
       required_component: true
       components:
-        - {name: x, summary: First component.}
-        - {name: y, summary: Second component.}
-        - {name: z, summary: Third component.}
-        - {name: t, summary: "Timestamp, seconds since the measurement started."}
-        - {name: abs, summary: Magnitude of the vector.}
-        - {name: accuracy, summary: "Device-reported accuracy, where available."}
+        - name: x
+          summary: >-
+            First component.
+          description: >-
+            First component of the sensor reading. Many sensors
+            (accelerometer, magnetometer, gyroscope) are 3D sensors writing
+            to x, y and z; 1D sensors such as the barometer and the light
+            sensor only fill x. You do not need to attach a data container
+            to every output.
+        - name: y
+          summary: >-
+            Second component.
+          description: >-
+            Second component of a 3D sensor reading.
+        - name: z
+          summary: >-
+            Third component.
+          description: >-
+            Third component of a 3D sensor reading.
+        - name: t
+          summary: >-
+            Timestamp, seconds since the measurement started.
+          description: >-
+            Experiment time of the reading, in seconds since the measurement
+            started.
+        - name: abs
+          since: "1.4"
+          summary: >-
+            Magnitude of the vector.
+          description: >-
+            The absolute value sqrt(x*x + y*y + z*z) of 3D sensor data. For
+            the attitude sensor this is the w component of the quaternion
+            instead.
+        - name: accuracy
+          since: "1.5"
+          summary: >-
+            Device-reported accuracy, where available.
+          description: >-
+            Information about the current accuracy. Typically -1 means that
+            the sensor is uncalibrated (which might be an error state), 0
+            means that uncalibrated raw data is presented (but this is
+            expected) and positive values represent accuracy in a way
+            specific to the sensor. This is currently only used by the
+            magnetometer, which encodes its accuracy as 1 low, 2 medium and
+            3 high.
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -136,12 +356,22 @@ elements:
     children: [output]
     attributes:
       - name: rate
+        description: >-
+          The recording rate in Hz. The default of 48 kHz is not
+          recommended to change if the experiment targets a wide
+          audience, since supported recording rates are very device
+          specific. The rate you set is not guaranteed either - read
+          the actual rate from the rate output and use that for any
+          calculation with a time base.
         type: integer
         default: 48000
         unit: Hz
         summary: Sampling rate.
         agreement: agreed
       - name: append
+        description: >-
+          Append data to the output data container instead of only
+          offering new data since the last analysis cycle.
         since: "1.16"
         type: boolean
         default: false
@@ -151,8 +381,24 @@ elements:
       attribute: component
       required_component: false
       components:
-        - {name: out, required: true, summary: The recorded samples.}
-        - {name: rate, since: "1.6", summary: The rate actually achieved.}
+        - name: out
+          required: true
+          summary: >-
+            The recorded samples.
+          description: >-
+            The recorded audio samples. This is the component a tag without
+            a component attribute fills.
+        - name: rate
+          since: "1.6"
+          summary: >-
+            The rate actually achieved.
+          description: >-
+            The rate the device actually recorded at, which is not
+            guaranteed to be the rate you requested. Use this for any
+            calculation with a time base. It is written independently of the
+            recording output - mostly when the rate changes, which normally
+            only happens if the audio setup changes - so do not clear this
+            data container while reading it.
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -168,17 +414,79 @@ elements:
       attribute: component
       required_component: true
       components:
-        - {name: lat, summary: Latitude.}
-        - {name: lon, summary: Longitude.}
-        - {name: z, summary: Altitude above mean sea level.}
-        - {name: zwgs84, summary: Altitude above the WGS84 ellipsoid.}
-        - {name: v, summary: Speed over ground.}
-        - {name: dir, summary: Direction of travel.}
-        - {name: t, summary: Timestamp.}
-        - {name: accuracy, summary: Horizontal accuracy.}
-        - {name: zAccuracy, summary: Vertical accuracy.}
-        - {name: status, summary: Fix status.}
-        - {name: satellites, summary: Number of satellites in view.}
+        - name: lat
+          summary: >-
+            Latitude.
+          description: >-
+            Latitude in degrees.
+        - name: lon
+          summary: >-
+            Longitude.
+          description: >-
+            Longitude in degrees.
+        - name: z
+          summary: >-
+            Altitude above mean sea level.
+          description: >-
+            Elevation in meters, using the EGM84 geoid as reference, that is
+            above sea level. Note that elevation provided by GPS is
+            generally rather imprecise.
+        - name: zwgs84
+          summary: >-
+            Altitude above the WGS84 ellipsoid.
+          description: >-
+            Same as z but taking the WGS84 ellipsoid as reference, that is
+            the coordinate system used by GPS. Note that the Android API
+            provides WGS84 ellipsoid elevation while the iOS API provides
+            EGM84 geoid elevation. Phyphox calculates the difference using a
+            port of GeographicLib's algorithm with a 30' resolution EGM84
+            dataset.
+        - name: v
+          summary: >-
+            Speed over ground.
+          description: >-
+            Speed in m/s, provided by the system based on consecutive GPS
+            fixes.
+        - name: dir
+          summary: >-
+            Direction of travel.
+          description: >-
+            Direction in degrees, counted from north towards east,
+            determined by the system along with the speed.
+        - name: t
+          summary: >-
+            Timestamp.
+          description: >-
+            Experiment time in seconds since the start of the experiment for
+            this location, as set by the operating system.
+        - name: accuracy
+          summary: >-
+            Horizontal accuracy.
+          description: >-
+            An estimate by the system of the horizontal accuracy in meters.
+        - name: zAccuracy
+          summary: >-
+            Vertical accuracy.
+          description: >-
+            An estimate by the system of the vertical accuracy in meters.
+            Not available on Android.
+        - name: status
+          summary: >-
+            Fix status.
+          description: >-
+            -1 means that GPS is unavailable (usually deactivated by the
+            user), 0 means that it is searching for a signal, 1 means that
+            it is active. 2 means active but with the altitude given above
+            the WGS84 ellipsoid instead of the geoid, which can happen with
+            very basic GPS implementations on some (mostly cheap) phones.
+            Note that this value is updated independently from the other
+            outputs.
+        - name: satellites
+          summary: >-
+            Number of satellites in view.
+          description: >-
+            Number of satellites used for this measurement. Not available on
+            iOS.
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -191,6 +499,23 @@ elements:
     children: [output]
     attributes:
       - name: mode
+        value_notes:
+          closest: >-
+            The data point with the smallest distance to the
+            camera.
+          weighted: >-
+            The weighted average, using the confidence data
+            provided by each API.
+          average: >-
+            The plain average of all data points in the area.
+        description: >-
+          Defines how all data points within the selected area are
+          aggregated into one depth value per frame. Note that
+          phyphox automatically drops the lowest confidence value,
+          and that lower confidences typically only appear at edges
+          and represent a small portion of most scenes; the
+          difference between average and weighted should therefore
+          be negligible in most situations.
         type: enum
         values: [closest, weighted, average]
         default: closest
@@ -200,6 +525,14 @@ elements:
         rules: [enum-case-insensitive, enum-invalid-value]
 
       - name: x1
+        description: >-
+          Left edge of the initial acquisition area, which the user
+          can still modify. The value is a floating point number
+          from 0.0 to 1.0, with 0.0 referring to the left/top edge
+          of the image and 1.0 to the right/bottom edge. Both apps
+          convert the four edges from the user's coordinate system
+          to the camera's, so the stored values are not the ones
+          written here.
         type: float
         default: 0.4
         summary: >-
@@ -208,16 +541,31 @@ elements:
           camera's, so the stored values are not the ones written here.
         agreement: agreed
       - name: x2
+        description: >-
+          Right edge of the initial acquisition area, which the user
+          can still modify. The value is a floating point number
+          from 0.0 to 1.0, with 0.0 referring to the left/top edge
+          of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.6
         summary: Right edge of the region of interest.
         agreement: agreed
       - name: y1
+        description: >-
+          Top edge of the initial acquisition area, which the user
+          can still modify. The value is a floating point number
+          from 0.0 to 1.0, with 0.0 referring to the left/top edge
+          of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.4
         summary: Top edge of the region of interest.
         agreement: agreed
       - name: y2
+        description: >-
+          Bottom edge of the initial acquisition area, which the
+          user can still modify. The value is a floating point
+          number from 0.0 to 1.0, with 0.0 referring to the left/top
+          edge of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.6
         summary: Bottom edge of the region of interest.
@@ -243,8 +591,18 @@ elements:
       attribute: component
       required_component: false
       components:
-        - {name: z, required: true, summary: Depth.}
-        - {name: t, summary: Timestamp.}
+        - name: z
+          required: true
+          summary: >-
+            Depth.
+          description: >-
+            The depth value aggregated over the selected area, one per
+            frame.
+        - name: t
+          summary: >-
+            Timestamp.
+          description: >-
+            Timestamp of the frame the depth value came from.
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -257,27 +615,52 @@ elements:
     children: [output]
     attributes:
       - name: x1
+        description: >-
+          Left edge of the initial acquisition area, which the user
+          can still modify. The value is a floating point number
+          from 0.0 to 1.0, with 0.0 referring to the left/top edge
+          of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.4
         summary: Left edge of the region of interest, as a fraction of the frame.
         agreement: agreed
       - name: x2
+        description: >-
+          Right edge of the initial acquisition area, which the user
+          can still modify. The value is a floating point number
+          from 0.0 to 1.0, with 0.0 referring to the left/top edge
+          of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.6
         summary: Right edge of the region of interest.
         agreement: agreed
       - name: y1
+        description: >-
+          Top edge of the initial acquisition area, which the user
+          can still modify. The value is a floating point number
+          from 0.0 to 1.0, with 0.0 referring to the left/top edge
+          of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.4
         summary: Top edge of the region of interest.
         agreement: agreed
       - name: y2
+        description: >-
+          Bottom edge of the initial acquisition area, which the
+          user can still modify. The value is a floating point
+          number from 0.0 to 1.0, with 0.0 referring to the left/top
+          edge of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.6
         summary: Bottom edge of the region of interest.
         agreement: agreed
 
       - name: auto_exposure
+        description: >-
+          Determines whether auto exposure is enabled after loading
+          the experiment. This is not the phone's internal auto
+          exposure but an implementation within phyphox, which
+          follows the strategy set by aeStrategy.
         type: boolean
         default: true
         summary: Enable phyphox's own auto exposure, rather than the camera's.
@@ -313,6 +696,14 @@ elements:
         rules: [enum-invalid-value, enum-case-insensitive]
 
       - name: aeFPSTarget
+        description: >-
+          Sets a target framerate when using aeStrategy
+          prioritizeFramerate. If this is not set,
+          prioritizeFramerate defaults to the shortest supported
+          frame duration (the inverse of the maximum framerate). If
+          it is set, the target FPS acts as a maximum exposure time
+          to at least achieve the set FPS. It does not prevent the
+          camera from going above the target FPS.
         type: float
         default: 0.0
         since: "1.20"
@@ -324,6 +715,26 @@ elements:
         inconsistency: ios-behind-on-format-1-20
 
       - name: locked
+        description: >-
+          A comma-separated list of camera settings to hold fixed,
+          which also blocks them in the camera-gui interface so the
+          user cannot change them. Each can also be set to a
+          specific value with an equals sign followed by a floating
+          point value, and fractions may be used: locked="iso"
+          prevents the user from changing the ISO value,
+          locked="iso=1600" also sets it, and
+          locked="iso=100,shutter_speed=1/240" locks the camera to
+          ISO 100 with an exposure time of 1/240 s. The available
+          locks are shutter_speed, iso, exposure, aperture and,
+          since file format 1.20, focus_distance. Be aware that the
+          same settings have very different results on different
+          phone models. Aperture is not supported on iOS, as no
+          iPhone has an adjustable aperture, and it is untested on
+          Android where it is also rare. exposure is the exposure
+          value used by the simplified exposure control of the
+          camera-gui element. focus_distance disables auto focus and
+          fixes the focus distance, given in meters, with zero
+          meaning focus at infinity.
         type: string
         default: ""
         summary: >-
@@ -336,6 +747,9 @@ elements:
           further downstream. Worth a conformance test rather than trust.
 
       - name: feature
+        description: >-
+          Determines the kind of camera analysis this input
+          performs.
         type: enum
         values: [photometric, spectroscopy]
         default: photometric
@@ -354,17 +768,72 @@ elements:
       attribute: component
       required_component: true
       components:
-        - {name: t, summary: Timestamp.}
-        - {name: luma, summary: Luma of the region.}
-        - {name: luminance, summary: Luminance of the region.}
-        - {name: hue, summary: Hue.}
-        - {name: saturation, summary: Saturation.}
-        - {name: value, summary: "Value, in the HSV sense."}
-        - {name: threshold, summary: Fraction of pixels above the threshold.}
-        - {name: shutterSpeed, summary: Shutter speed in use.}
-        - {name: iso, summary: ISO in use.}
-        - {name: aperture, summary: Aperture in use.}
-        - {name: pixelPosition, summary: Position within the spectrum.}
+        - name: t
+          summary: >-
+            Timestamp.
+          description: >-
+            Timestamp of the frame.
+        - name: luma
+          summary: >-
+            Luma of the region.
+          description: >-
+            Luma - non-linear brightness relative to the image's colour
+            range - of the selected area, in the range from 0 to 1.
+        - name: luminance
+          summary: >-
+            Luminance of the region.
+          description: >-
+            Relative luminance in arbitrary units. This is linearized (gamma
+            corrected) and adjusted for the exposure parameters such that
+            the value 1 represents a white image when the camera is set to
+            ISO 100, a shutter speed of 1/60 s and an aperture of f/1.
+        - name: hue
+          summary: >-
+            Hue.
+          description: >-
+            Hue according to the HSV colour model, ranging from 0 to 360
+            degrees. Note that this is a cyclic average of the pixels in the
+            selected area.
+        - name: saturation
+          summary: >-
+            Saturation.
+          description: >-
+            Saturation according to the HSV colour model, ranging from 0 to
+            1.
+        - name: value
+          summary: >-
+            Value, in the HSV sense.
+          description: >-
+            Value according to the HSV colour model, ranging from 0 to 1.
+        - name: threshold
+          summary: >-
+            Fraction of pixels above the threshold.
+          description: >-
+            Fraction of the pixels in the selected area above the threshold.
+        - name: shutterSpeed
+          summary: >-
+            Shutter speed in use.
+          description: >-
+            Shutter speed used to take this frame. Note that shutter speed,
+            aperture and ISO can change value even though it takes a few
+            more frames for them to take effect, either because the phone
+            ramps the values smoothly or because there is a delay between a
+            setting change and its execution.
+        - name: iso
+          summary: >-
+            ISO in use.
+          description: >-
+            ISO value used to take this frame.
+        - name: aperture
+          summary: >-
+            Aperture in use.
+          description: >-
+            Aperture used to take this frame.
+        - name: pixelPosition
+          summary: >-
+            Position within the spectrum.
+          description: >-
+            Position within the spectrum, for the spectroscopy feature.
         # Reached by iOS's handler (PhyphoxElementHandler.swift, buffer(for:
         # "wavelength")) and absent from Android's outputMapping table. It is
         # part of the same superseded calibration draft as calibrationMode and

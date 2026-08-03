@@ -71,7 +71,7 @@ A waveform composed from two tone generators and a noise generator, each driven 
 
 The bluetooth block defines an output to a Bluetooth Low Energy device. Please refer to the documentation on the [Bluetooth Low Energy](bluetooth-low-energy.md) interface in phyphox for details.
 
-{{spec:output/output/bluetooth}}
+{{spec:output/output/bluetooth|xml}}
 
 ## Output module: flashlight
 
