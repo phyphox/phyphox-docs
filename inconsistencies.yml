@@ -54,7 +54,13 @@
 - id: cors-header
   title: Access-Control-Allow-Origin on every response
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Every response from every endpoint carries Access-Control-Allow-Origin, on both
+    platforms. Android already does so for responses that reach respond(); iOS sends
+    none at all and must add it. Together with cors-error-paths this means the header
+    is present without exception, including on error responses - which is where a
+    browser client most needs to read the body.
   affects:
     android: >-
       Adds "Access-Control-Allow-Origin: *" to every response
@@ -359,7 +365,12 @@
 - id: config-buffer-order
   title: Order of the buffers array in /config
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    The order of the buffers array carries no meaning. Neither platform needs to
+    change; what is required is that the API description says so, so that no client
+    is written to depend on it. Android happens to list buffers in the order the
+    experiment declares them and iOS in an unspecified order, and both are valid.
   affects:
     android: >-
       Iterates an ordered list, so buffers appear in the order the experiment

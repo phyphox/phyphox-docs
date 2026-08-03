@@ -43,6 +43,13 @@ info:
     can read the data and start, stop and clear the measurement. Remote access is
     off by default and has to be enabled per session by the user.
 
+    Every response carries `Access-Control-Allow-Origin: *`, so a page served from
+    anywhere may read it — which is what makes a browser-based client possible at
+    all. See the inconsistencies noted on this page for where that is not yet
+    true.
+
+    Every endpoint accepts POST as well as GET.
+
     **The server is single-threaded and slow.** The bundled web interface
     deliberately serialises its requests and delays the next one by 10 ms. Clients
     should do the same rather than issuing requests in parallel.
@@ -550,6 +557,10 @@ components:
           description: |
             Every buffer in the experiment. Existing here is no promise of useful
             content — see `export` for the buffers the author picked out.
+
+            **The order carries no meaning.** One platform happens to list them in
+            the order the experiment declares them and the other in an unspecified
+            order; both are valid, so do not write a client that depends on it.
           items:
             type: object
             required: [name, size]
