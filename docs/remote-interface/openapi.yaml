@@ -474,9 +474,22 @@ components:
         buffer:
           type: array
           description: |
-            The values. `null` stands for a value that is NaN or infinite: such
-            values cannot be dropped, because a client pairing two buffers by
-            index relies on the indices lining up.
+            The values. `null` stands for a value that is NaN or infinite.
+
+            JSON has no representation for either, so `null` is what the format
+            offers, and the substitution is **lossy**: NaN, `+∞` and `−∞` all
+            arrive as `null` and cannot be told apart. The bundled web interface
+            converts every `null` back to NaN before plotting, which is the right
+            reading for the case that actually occurs — a buffer position with no
+            valid measurement.
+
+            Non-finite values cannot simply be dropped, because a client pairing
+            two buffers by index relies on the indices lining up.
+
+            Note the asymmetry with `/control?cmd=set`: that value arrives as a
+            query-string token rather than as JSON, so `Infinity` and `NaN` *can*
+            be written there. Both are rejected, partly for this reason — a value
+            the API cannot report back should not be accepted in the first place.
           items:
             type: [number, "null"]
 

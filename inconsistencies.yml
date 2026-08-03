@@ -31,7 +31,13 @@
 - id: control-post
   title: POST on /control
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Every endpoint accepts POST as well as GET. There is no reason to restrict them,
+    and a client that finds GET awkward - a long list of buffer names in a /get
+    query, for instance - should not have to work around it. Android accepts POST on
+    /control alone today; iOS accepts GET only. Note this widens the scope of the
+    entry, which was about /control.
   affects:
     android: >-
       Registers /control for both GET and POST
@@ -72,7 +78,12 @@
 - id: get-no-parameters
   title: /get without any parameters
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Allowed and successful. /get with no parameters returns 200 with an empty buffer
+    object and a normal status object, which is what Android does. Polling for status
+    alone - to notice a session change, for instance - is a reasonable thing for a
+    client to do, and there is nothing malformed about the request.
   affects:
     android: >-
       Returns 200 with an empty buffer object and a normal status object
@@ -94,7 +105,12 @@
 - id: get-nonfinite-single-value
   title: NaN and infinity in a single-value response
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    null, in every update mode. Android already behaves this way; iOS must stop
+    emitting the string "nan" in single-value mode. See the note on non-finite values
+    in the API description: JSON has no representation for NaN or infinity, so null
+    is what the format offers.
   affects:
     android: >-
       Emits JSON null for a non-finite value in every update mode
@@ -113,7 +129,14 @@
 - id: get-force-full-update
   title: Which requests are upgraded to a full update after a clear
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Upgrade every requested buffer, which is the safe option and what Android does.
+    After a clear the client's data is stale whatever it asked for, so telling it
+    only about buffers whose request used one particular value cannot be right - and
+    the value iOS keys on, the literal string "partial", is undocumented and happens
+    to be what the bundled interface sends. A threshold-based client, the form the
+    documentation teaches, is currently never told about the clear on iOS.
   affects:
     android: >-
       After data is cleared, the next /get upgrades *every* requested buffer to a
@@ -135,7 +158,16 @@
 - id: get-unknown-reference-buffer
   title: Threshold referencing a buffer that does not exist
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Reject a bad request cleanly; never let one reach an unhandled exception. A
+    malformed or out-of-range request must produce a documented status and body -
+    {"result": false} where the endpoint answers that way, an error object where it
+    answers that way - and must never fail the request with a server error, terminate
+    the app, or report success for something it did not do. Neither platform is
+    uniformly right today: Android throws where it should answer, and iOS answers
+    true for a trigger it did not perform. This is the same principle as
+    enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
       Dereferences the missing buffer and throws, so the request fails with a
@@ -159,7 +191,14 @@
 - id: control-clear-groups
   title: Clear groups on /control?cmd=clear
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Clear groups are a file format 1.20 feature and belong on both platforms.
+    iOS should implement them when it moves to 1.20 - the clearGroup attribute on
+    data containers first, then the clearGroups list the web interface needs and
+    the clearGroup<n> parameters on /control. Tracked here as well as under
+    ios-behind-on-format-1-20 because the remote-interface half is what a client
+    author sees.
   affects:
     android: >-
       Implements the feature. Data containers carry a clearGroup attribute
@@ -190,7 +229,13 @@
 - id: control-set-infinity
   title: Writing an infinite value with cmd=set
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Reject it. cmd=set accepts only finite values, as iOS already does; Android must
+    stop admitting Infinity through Double.valueOf. Note that accepting it produces a
+    value the API cannot report back: /get encodes every non-finite value as null,
+    so an infinity written into a buffer returns as null and is indistinguishable
+    from NaN.
   affects:
     android: >-
       Rejects NaN only, so "value=Infinity" is parsed by Double.valueOf and
@@ -213,7 +258,16 @@
 - id: control-set-unknown-buffer
   title: cmd=set naming a buffer that does not exist
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Reject a bad request cleanly; never let one reach an unhandled exception. A
+    malformed or out-of-range request must produce a documented status and body -
+    {"result": false} where the endpoint answers that way, an error object where it
+    answers that way - and must never fail the request with a server error, terminate
+    the app, or report success for something it did not do. Neither platform is
+    uniformly right today: Android throws where it should answer, and iOS answers
+    true for a trigger it did not perform. This is the same principle as
+    enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
       Dereferences the missing buffer and throws, so the request fails with a
@@ -236,7 +290,16 @@
 - id: control-trigger-out-of-range
   title: cmd=trigger with an out-of-range element index
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Reject a bad request cleanly; never let one reach an unhandled exception. A
+    malformed or out-of-range request must produce a documented status and body -
+    {"result": false} where the endpoint answers that way, an error object where it
+    answers that way - and must never fail the request with a server error, terminate
+    the app, or report success for something it did not do. Neither platform is
+    uniformly right today: Android throws where it should answer, and iOS answers
+    true for a trigger it did not perform. This is the same principle as
+    enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
       Indexes the element list unchecked and throws, so the request fails with a
@@ -260,7 +323,16 @@
 - id: export-invalid-format
   title: /export with a format index that is out of range
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Reject a bad request cleanly; never let one reach an unhandled exception. A
+    malformed or out-of-range request must produce a documented status and body -
+    {"result": false} where the endpoint answers that way, an error object where it
+    answers that way - and must never fail the request with a server error, terminate
+    the app, or report success for something it did not do. Neither platform is
+    uniformly right today: Android throws where it should answer, and iOS answers
+    true for a trigger it did not perform. This is the same principle as
+    enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
       Range-checks the index and answers 200 with {"error": "Format out of
@@ -306,7 +378,12 @@
 - id: meta-sensors
   title: Sensor metadata in /meta
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Android-only, by platform limitation rather than by choice. iOS offers no API
+    for per-sensor information such as model or manufacturer, so the values cannot be
+    supplied there. Combined with meta-missing-value-representation, this means the
+    sensors object is simply absent on iOS rather than present and empty.
   affects:
     android: >-
       Adds a "sensors" object with one entry per sensor, each carrying name,
@@ -330,7 +407,14 @@
 - id: res-fallback
   title: Fallback for resources not shipped with the experiment
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Android's behaviour, which is a recent fix and is planned for iOS as well: look
+    in the experiment's resource folder, then fall back to the images bundled with
+    the app, matching what the image view element does. The error message is
+    "Unknown file." in both cases; iOS should drop the separate "No file requested."
+    wording, since a client cannot act on the distinction and the API description
+    tells clients not to match on the text.
   affects:
     android: >-
       Looks in the experiment's resource folder, then falls back to the images
@@ -358,7 +442,12 @@
 - id: meta-missing-value-representation
   title: How /meta reports a value the device cannot supply
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Omit the key. Availability differs enormously between devices and platforms, and
+    answering with a mass of nulls misrepresents that as data. A client must expect
+    fields to be absent. Android already behaves this way; iOS should stop emitting
+    null entries.
   affects:
     android: >-
       Omits the key entirely. JSONObject.put() with a null value removes the
@@ -384,7 +473,13 @@
 - id: cors-error-paths
   title: Android drops the CORS header on requests that throw
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    Follows from the group A decision: once no request reaches an unhandled
+    exception, every response is produced by respond() and carries the CORS header.
+    Nothing separate needs doing, but the entry stays until that is true, because a
+    browser client seeing an opaque CORS failure instead of an error message is the
+    symptom that will be noticed first.
   affects:
     android: >-
       Adds "Access-Control-Allow-Origin: *" in respond(), which an unhandled
@@ -411,7 +506,13 @@
 - id: res-content-type
   title: Content-Type of a resource served by /res
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    application/octet-stream. phyphox should not attempt file-type detection: it
+    would mean depending on the host system's type database, which differs between
+    platforms and would introduce exactly the kind of divergence this list exists to
+    remove. The client is expected to determine what it received. Android already
+    behaves this way; iOS should stop deriving the type from the file extension.
   verified: >-
     Confirmed on hardware 2026-08-02 with the Roller Coaster experiment
     (crc32 31697a06) on Android 1.2.1-beta2 and iOS 1.2.0: both returned the
@@ -858,7 +959,13 @@
 - id: container-type-unvalidated
   title: The type attribute of a data container is validated only on Android
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    iOS should check the attribute and reject any value other than "buffer", as
+    Android already does. The attribute exists so that further container types
+    can be added later; a parser that ignores it would silently treat a future
+    type as an ordinary buffer, which is the failure the check exists to
+    prevent.
   affects:
     android: >-
       Reads type and throws "Unknown container type" unless it is "buffer",
