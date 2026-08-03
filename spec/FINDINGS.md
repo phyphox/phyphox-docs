@@ -548,6 +548,51 @@ One piece of latitude worth knowing: iOS accepts any `<events>` child whose name
 and `pause`. No file should contain a clear event, since clearing empties the list before it
 can be written, so this is looseness rather than a divergence.
 
+### Validating the specification against 132 real experiments
+
+The spec asserts several hundred facts derived from reading two parsers. `tools/validate_experiments.py`
+runs it over the shipped experiment collections — 67 files on Android, 65 on iOS — which tests
+all of them against real usage at once. **A finding is not automatically a bug in the file:**
+each one means the file is wrong or the spec is, and the second has been at least as likely.
+
+The result is a short list, which is itself the main outcome: the spec survives contact with
+132 files that were written by hand over a decade.
+
+**One shipped experiment would stop loading under a decision already taken.**
+`inclination.phyphox` writes `style="line"` on eight graphs, where the allowed value is
+`lines`. It renders correctly today on both platforms by two different accidents: Android maps
+the unknown string to `Style.unknown`, which falls through to `GL_LINE_STRIP` and therefore
+draws lines, while iOS's `GraphStyle(rawValue:) ?? .lines` substitutes lines outright. Under
+`enum-invalid-value`, decided as *reject the file*, that experiment fails to load. It is a
+one-character fix in the file, but it has to happen before the rule ships — and it is exactly
+the kind of thing that only a validation run finds.
+
+**A live layout divergence in a bundled experiment.** `tone_generator.phyphox` puts
+`visibility` on eight separators. Android honours it, because it reads `visibility` once for
+every view element before dispatching on the tag; iOS's separator handler declares only
+`color` and `height`, so the attribute is dropped and those separators are always shown. The
+experiment looks different on the two platforms today. Recorded as
+`separator-visibility-ignored-on-ios`, and the attribute is now in the spec.
+
+Note how that one hid: on Android the attribute is not in the separator's own branch, so
+reading that branch — which is what I did — shows `height` and `color` and nothing else.
+
+**Stale files, harmless.** 18 experiments still carry `optimization="true"` on `<analysis>`,
+an attribute *removed in file format 1.10* and ignored by both parsers ever since. Two carry
+`precision` on a separator and one a `unit` on a slider; neither element has ever had those.
+Nothing breaks, but they are worth sweeping if the collection is ever tidied.
+
+Four validator bugs had to be fixed before the signal was readable, and three shared one
+cause: **keying elements by name alone**. `<audio>` and `<bluetooth>` exist in both the input
+and output blocks with different rules, so the input block's constraints were being applied to
+the output block's elements. That is the same mistake that made the iOS handler scan report
+phantom attributes, and the same shape as the class-name collision in the Swift source. Keys
+are (parent, name) throughout now.
+
+The `if` module also has slots literally named `true` and `false`, which YAML had been reading
+as booleans since the analysis block was written. The build now rejects a non-string slot or
+attribute name.
+
 ### Revised projection
 
 All six blocks are modelled: 128 elements, 302 attributes and 194 named analysis slots, leaving roughly 80,

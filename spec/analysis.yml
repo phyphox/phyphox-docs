@@ -873,13 +873,13 @@ elements:
         max: 1
         allows_value: true
         allows_empty: false
-      - name: true
+      - name: "true"
         as_required: false
         min: 0
         max: 1
         allows_value: true
         allows_empty: true
-      - name: false
+      - name: "false"
         as_required: false
         min: 0
         max: 1

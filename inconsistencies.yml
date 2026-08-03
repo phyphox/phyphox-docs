@@ -865,3 +865,26 @@
     would load on iOS and behave as though it were an ordinary buffer. Same
     family as input-invalid-enum-handling, which is decided, and would be settled
     by applying that rule here.
+
+- id: separator-visibility-ignored-on-ios
+  title: The visibility attribute of a separator is honoured only on Android
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Reads visibility before dispatching on the tag and passes it to every view
+      element, the separator included, so the separator appears and disappears
+      with the named data container
+      (PhyphoxFile.java, viewBlockParser, case "separator").
+    ios: >-
+      SeparatorViewElementHandler declares only color and height, so the
+      attribute is dropped when the file is parsed and the separator is always
+      shown (SeparatorViewElementHandler.swift).
+  summary: >-
+    A separator with a visibility attribute vanishes and reappears on Android and
+    is permanently visible on iOS. The bundled tone_generator experiment relies
+    on it: eight of its separators carry visibility, so its layout differs
+    between the platforms today. Found by validating the shipped experiment
+    collection against the specification, not by reading the parsers - the
+    attribute is easy to miss on the Android side because it is read once for all
+    view elements rather than in the separator's own branch.

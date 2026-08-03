@@ -232,6 +232,22 @@ def _check_spec(entries):
         # trigger tag went missing - the name was written down, the element
         # behind it never was, and nothing complained.
         modelled = {(e.get("parent"), e["name"]) for e in elements}
+        # YAML 1.1 turns bare true/false/yes/no/on/off/null into non-strings.
+        # The `if` module has slots literally named "true" and "false", which
+        # were silently parsed as booleans until a validator tripped over them.
+        for element in elements:
+            for key in ("inputs", "outputs"):
+                for slot in (element.get(key) or []):
+                    if isinstance(slot, dict) and not isinstance(slot.get("name"), str):
+                        problems.append(
+                            f"{fn}: {element['name']}/{key} has a slot named "
+                            f"{slot.get('name')!r}, which YAML did not read as a "
+                            f"string - quote it")
+            for attr in element.get("attributes") or []:
+                if not isinstance(attr.get("name"), str):
+                    problems.append(f"{fn}: {element['name']} has an attribute named "
+                                    f"{attr.get('name')!r} - quote it")
+
         # An attribute cannot predate the element it belongs to. This is what
         # exposed aeFPSTarget being documented as file format 1.3 when the camera
         # element itself arrived in 1.17 - a copy-paste error in the prose that
