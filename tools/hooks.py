@@ -23,6 +23,7 @@ import sys
 import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TOOLS = os.path.join(ROOT, "tools")
 SOURCE = os.path.join(ROOT, "inconsistencies.yml")
 LIST_PAGE = "reference/known-inconsistencies.md"
 OPENAPI = os.path.join(ROOT, "docs", "remote-interface", "openapi.yaml")
@@ -46,6 +47,19 @@ IMPL_LABEL = {
 }
 
 _entries = None
+
+
+def _ensure_path():
+    """Make the sibling modules importable, and keep them importable.
+
+    MkDocs loads a hooks file by path with its own directory temporarily on
+    sys.path, and takes that entry away again once the module is imported. A
+    module-level insert guarded by "if not already there" therefore does
+    nothing - the directory is there at that moment and gone by the time a hook
+    actually runs. Ensuring it at each entry point is what survives that.
+    """
+    if TOOLS not in sys.path:
+        sys.path.append(TOOLS)
 
 
 def _load():
@@ -161,13 +175,11 @@ def _check_spec_against_docs():
     """
     import io
     import contextlib
-    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    _ensure_path()
     try:
         import spec_vs_docs
     except ImportError:
         return
-    finally:
-        sys.path.pop(0)
 
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
@@ -337,6 +349,31 @@ def _check_spec(entries):
 
 
 _api_referenced = set()
+_spec = None
+
+
+def _expand_spec(markdown, link_prefix, src):
+    """Expand {{spec:BLOCK/PARENT/NAME}} markers from spec/*.yml."""
+    global _spec
+    _ensure_path()
+    import spec_reference
+
+    if "{{spec:" not in markdown:
+        return markdown
+    if _spec is None:
+        _spec = spec_reference.Spec()
+    state = spec_reference.PageState(link_prefix)
+    try:
+        out = spec_reference.expand(markdown, _spec, state)
+    except KeyError as e:
+        raise ValueError(f"{src}: {e.args[0]}")
+    if "{{spec:" in out:
+        stray = re.findall(r"\{\{spec:[^}]*\}\}", out)
+        raise ValueError(
+            f"{src}: malformed reference marker(s) {stray}. The form is "
+            f"{{{{spec:BLOCK/PARENT/NAME}}}}, optionally with |xml, "
+            f"|attributes or |slots.")
+    return out
 
 
 def on_page_markdown(markdown, page, config, files, **kwargs):
@@ -348,6 +385,12 @@ def on_page_markdown(markdown, page, config, files, **kwargs):
 
     if src == LIST_PAGE:
         return markdown + "\n" + _render_list()
+
+    # Reference sections are generated from spec/. This runs first because the
+    # generated text emits {{inconsistency:...}} markers of its own, which the
+    # substitution below then expands - that is how a divergence recorded in
+    # the spec reaches the page it belongs on without anyone placing a marker.
+    markdown = _expand_spec(markdown, link_prefix, src)
 
     def expand(m):
         key = m.group(1)

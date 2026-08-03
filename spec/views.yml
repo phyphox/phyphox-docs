@@ -75,15 +75,18 @@ elements:
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
+        since: "1.7"
         type: color
         summary: Text colour.
         agreement: agreed
       - name: size
+        since: "1.8"
         type: float
         default: 1.0
         summary: Font size, relative to the default.
         agreement: agreed
       - name: align
+        since: "1.8"
         type: enum
         values: [left, right, center]
         default: left
@@ -92,11 +95,13 @@ elements:
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: bold
+        since: "1.8"
         type: boolean
         default: false
         summary: Bold text.
         agreement: agreed
       - name: italic
+        since: "1.8"
         type: boolean
         default: false
         summary: Italic text.
@@ -145,10 +150,12 @@ elements:
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
+        since: "1.7"
         type: color
         summary: Text colour.
         agreement: agreed
       - name: size
+        since: "1.2"
         type: float
         default: 1.0
         summary: Font size, relative to the default.
@@ -174,11 +181,13 @@ elements:
         summary: The value is multiplied by this before display.
         agreement: agreed
       - name: positiveUnit
+        since: "1.19"
         type: string
         translatable: true
         summary: Unit used when the value is positive, overriding unit.
         agreement: agreed
       - name: negativeUnit
+        since: "1.19"
         type: string
         translatable: true
         summary: >-
@@ -234,11 +243,13 @@ elements:
         summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: labelX
+        since: "1.7"
         type: string
         translatable: true
         summary: Label of the x axis.
         agreement: agreed
       - name: labelY
+        since: "1.7"
         type: string
         translatable: true
         summary: Label of the y axis.
@@ -249,11 +260,13 @@ elements:
         summary: Label of the z axis, for map styles.
         agreement: agreed
       - name: unitX
+        since: "1.7"
         type: string
         translatable: true
         summary: Unit of the x axis.
         agreement: agreed
       - name: unitY
+        since: "1.7"
         type: string
         translatable: true
         summary: Unit of the y axis.
@@ -264,31 +277,37 @@ elements:
         summary: Unit of the z axis.
         agreement: agreed
       - name: unitYperX
+        since: "1.10"
         type: string
         translatable: true
         summary: Unit shown for the slope when the user measures on the graph.
         agreement: agreed
       - name: timeOnX
+        since: "1.12"
         type: boolean
         default: false
         summary: Treat x values as timestamps and label the axis as a clock.
         agreement: agreed
       - name: timeOnY
+        since: "1.12"
         type: boolean
         default: false
         summary: Treat y values as timestamps.
         agreement: agreed
       - name: systemTime
+        since: "1.12"
         type: boolean
         default: false
         summary: Show absolute system time rather than time since the start.
         agreement: agreed
       - name: linearTime
+        since: "1.12"
         type: boolean
         default: false
         summary: Ignore pauses when converting experiment time to a clock.
         agreement: agreed
       - name: hideTimeMarkers
+        since: "1.14"
         type: boolean
         default: false
         summary: Do not mark starts and pauses on a time axis.
@@ -299,6 +318,7 @@ elements:
         summary: Width divided by height.
         agreement: agreed
       - name: style
+        since: "1.7"
         type: enum
         values: [lines, dots, hbars, vbars, map]
         default: lines
@@ -316,6 +336,7 @@ elements:
         summary: Send only new data to the remote interface rather than the whole buffer.
         agreement: agreed
       - name: history
+        since: "1.15"
         type: integer
         default: 1
         summary: Number of past datasets to keep on screen.
@@ -345,11 +366,13 @@ elements:
         summary: Logarithmic z axis.
         agreement: agreed
       - name: xPrecision
+        since: "1.2"
         type: integer
         default: -1
         summary: Digits on the x axis. -1 picks automatically.
         agreement: agreed
       - name: yPrecision
+        since: "1.2"
         type: integer
         default: -1
         summary: Digits on the y axis.
@@ -360,6 +383,7 @@ elements:
         summary: Digits on the z axis.
         agreement: agreed
       - name: suppressScientificNotation
+        since: "1.19"
         type: boolean
         default: false
         summary: Never label axes in scientific notation.
@@ -443,6 +467,7 @@ elements:
         summary: Upper z bound.
         agreement: agreed
       - name: followX
+        since: "1.15"
         type: boolean
         default: false
         summary: Keep the newest data in view by scrolling the x axis.
@@ -453,6 +478,7 @@ elements:
         summary: Width in points of the lattice built for a map style.
         agreement: agreed
       - name: showColorScale
+        since: "1.19"
         type: boolean
         default: true
         summary: Show the colour scale beside a map.
@@ -531,6 +557,7 @@ elements:
     parent: graph
     since: "1.0"
     summary: One dataset of a graph, naming the data container to plot.
+    text: Name of the data container to plot on this axis.
     attributes:
       - name: axis
         type: enum
@@ -561,6 +588,7 @@ elements:
       Configures the data picker: one button offered to the user when they pick a
       point on the maximised graph, writing a coordinate of that point into a
       data container. Any number may be given.
+    text: Name of the data container receiving the picked coordinate.
     attributes:
       - name: axis
         type: enum
@@ -620,11 +648,13 @@ elements:
         summary: Allow a decimal point.
         agreement: agreed
       - name: min
+        since: "1.1"
         type: float
         default: -Infinity
         summary: Smallest value accepted.
         agreement: agreed
       - name: max
+        since: "1.1"
         type: float
         default: Infinity
         summary: Largest value accepted.

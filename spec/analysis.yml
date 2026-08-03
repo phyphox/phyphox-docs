@@ -965,6 +965,10 @@ elements:
         max: 1
         agreement: platform
         platforms: [android]
+        remark: >-
+          Android only. iOS cannot obtain this metric and leaves the data
+          container empty rather than refusing the file, so the module's other
+          outputs stay usable.
         note: >-
           iOS cannot obtain this metric. It accepts the output and leaves the
           data container unfilled rather than refusing the file, which is

@@ -32,6 +32,8 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPEC = os.path.join(ROOT, "spec")
 DOCS = os.path.join(ROOT, "docs", "file-format")
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # spec file -> documentation pages describing the same block
 PAIRS = {
@@ -85,9 +87,37 @@ ATTR = re.compile(r"([\w\-]+)\s*=\s*\"[^\"]*\"")
 DEF_TERM = re.compile(r"^([A-Za-z_][\w\-]*)\s*$")
 
 
+_spec_cache = None
+
+
+def _rendered(page):
+    """The page as the build sees it, with {{spec:...}} markers expanded.
+
+    Once a page draws its reference section from the spec, its Markdown source
+    no longer names the attributes - so comparing the source would report every
+    generated attribute as undocumented, and would stop checking the parts of
+    the page that are still hand-written. Expanding first keeps this check
+    meaningful during the conversion, when a page is half generated.
+
+    What it can no longer be is an independent opinion: generated text agrees
+    with the spec by construction. Its remaining job is the unconverted prose,
+    which is where the omissions it has caught all came from.
+    """
+    global _spec_cache
+    md = open(os.path.join(DOCS, page), encoding="utf-8").read()
+    if "{{spec:" not in md:
+        return md
+    import spec_reference
+    if _spec_cache is None:
+        _spec_cache = spec_reference.Spec()
+    depth = page.count("/") + 1
+    return spec_reference.expand(
+        md, _spec_cache, spec_reference.PageState("../" * depth))
+
+
 def from_docs(page):
     """(elements -> attributes) from XML skeletons, plus all definition terms."""
-    md = open(os.path.join(DOCS, page), encoding="utf-8").read()
+    md = _rendered(page)
     elements = {}
     for fence in FENCE.findall(md):
         for m in TAG.finditer(fence):

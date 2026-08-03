@@ -55,6 +55,7 @@ elements:
         agreement: agreed
 
       - name: rateStrategy
+        since: "1.14"
         type: enum
         values: [auto, request, generate, limit]
         default:
@@ -73,12 +74,14 @@ elements:
         agreement: agreed
 
       - name: stride
+        since: "1.14"
         type: integer
         default: 1
         summary: Use only every n-th reading.
         agreement: agreed
 
       - name: ignoreUnavailable
+        since: "1.8"
         type: boolean
         default: false
         summary: >-
@@ -87,12 +90,16 @@ elements:
         agreement: agreed
 
       - name: nameFilter
+        since: "1.19"
         type: string
         summary: >-
           Select a specific sensor by name where a device exposes several of the
           same type.
         agreement: platform
         platforms: [android]
+        remark: >-
+          iOS accepts the attribute so that a file using it still loads, and
+          then ignores it: CoreMotion offers no equivalent choice.
         note: >-
           iOS declares the attribute so that a file using it still parses, and
           then ignores it - the comment in InputElementHandler.swift says it is
@@ -100,6 +107,7 @@ elements:
           no equivalent choice, so this is a genuine platform difference.
 
       - name: typeFilter
+        since: "1.19"
         type: integer
         summary: Select a sensor by Android sensor type constant.
         agreement: platform
@@ -113,9 +121,9 @@ elements:
         - {name: x, summary: First component.}
         - {name: y, summary: Second component.}
         - {name: z, summary: Third component.}
-        - {name: t, summary: Timestamp, seconds since the measurement started.}
+        - {name: t, summary: "Timestamp, seconds since the measurement started."}
         - {name: abs, summary: Magnitude of the vector.}
-        - {name: accuracy, summary: Device-reported accuracy, where available.}
+        - {name: accuracy, summary: "Device-reported accuracy, where available."}
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -134,6 +142,7 @@ elements:
         summary: Sampling rate.
         agreement: agreed
       - name: append
+        since: "1.16"
         type: boolean
         default: false
         summary: Append to the buffer instead of replacing its contents.
@@ -143,7 +152,7 @@ elements:
       required_component: false
       components:
         - {name: out, required: true, summary: The recorded samples.}
-        - {name: rate, summary: The rate actually achieved.}
+        - {name: rate, since: "1.6", summary: The rate actually achieved.}
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -222,6 +231,9 @@ elements:
           sceneDepth, that is, whether ARKit's own smoothing is used.
         agreement: platform
         platforms: [ios]
+        remark: >-
+          The setting chooses between two ARKit frame properties, so there is
+          nothing for Android to apply it to; it is accepted and ignored there.
         note: >-
           Android has no equivalent: the setting selects between two ARKit frame
           properties, so there is nothing for it to read. Documented as
@@ -280,6 +292,22 @@ elements:
         values: [mean, avoidOverexposure, avoidUnderexposure, prioritizeFramerate]
         default: mean
         summary: What phyphox's auto exposure should optimise for.
+        value_notes:
+          mean: >-
+            Aims for a mean luma of 0.5 over the selected area. Exposure times
+            shorter than the frame duration are preferred, so ISO is raised
+            first, but in a dark scene the exposure can go to 1/15 s, which
+            limits the frame rate considerably.
+          avoidUnderexposure: >-
+            Like mean, but brightens the image when individual pixels are
+            particularly dark, even if the mean luma then exceeds 0.5.
+          avoidOverexposure: >-
+            Like avoidUnderexposure, but darkens the image when bright pixels
+            approach overexposure.
+          prioritizeFramerate: >-
+            Like mean, but never exposes for longer than the frame duration at
+            the highest frame rate the camera supports, accepting
+            underexposure to keep that rate. See aeFPSTarget.
         agreement: divergent
         inconsistency: input-invalid-enum-handling
         rules: [enum-invalid-value, enum-case-insensitive]
@@ -312,6 +340,12 @@ elements:
         values: [photometric, spectroscopy]
         default: photometric
         summary: Which analysis the camera input performs.
+        value_notes:
+          photometric: >-
+            One value per frame - luma, luminance, hue, saturation or value -
+            averaged over the selected area.
+          spectroscopy: >-
+            A spectrum per frame, taken across the selected area.
         agreement: divergent
         inconsistency: input-enum-case-sensitivity
         rules: [enum-case-insensitive, enum-invalid-value]
@@ -325,12 +359,23 @@ elements:
         - {name: luminance, summary: Luminance of the region.}
         - {name: hue, summary: Hue.}
         - {name: saturation, summary: Saturation.}
-        - {name: value, summary: Value, in the HSV sense.}
+        - {name: value, summary: "Value, in the HSV sense."}
         - {name: threshold, summary: Fraction of pixels above the threshold.}
         - {name: shutterSpeed, summary: Shutter speed in use.}
         - {name: iso, summary: ISO in use.}
         - {name: aperture, summary: Aperture in use.}
         - {name: pixelPosition, summary: Position within the spectrum.}
+        # Reached by iOS's handler (PhyphoxElementHandler.swift, buffer(for:
+        # "wavelength")) and absent from Android's outputMapping table. It is
+        # part of the same superseded calibration draft as calibrationMode and
+        # calibrationParameter: iOS stores the buffer and never writes to it.
+        - name: wavelength
+          summary: >-
+            Part of the superseded calibration draft. Accepted by iOS and never
+            filled; the data picker replaces it.
+          deprecated: true
+          superseded_by: the data picker, configured by the graph's output tags
+          platforms: [ios]
       agreement: divergent
       inconsistency: input-output-component-validation
       rules: [output-component-validation]
@@ -394,6 +439,9 @@ elements:
         summary: Requests a specific MTU. Fails on Android before 5.0.
         agreement: platform
         platforms: [android]
+        remark: >-
+          iOS gives no control over the MTU and always requests the maximum, so
+          the attribute is accepted and ignored there.
         note: >-
           iOS has no way to control the MTU and always requests the maximum, so
           the attribute is accepted and ignored there. Documented as such on the
@@ -404,6 +452,7 @@ elements:
     parent: bluetooth
     since: "1.7"
     summary: Maps a characteristic, or a value derived from one, onto a buffer.
+    text: Name of the data container receiving the converted values.
     attributes:
       - name: char
         type: string
@@ -460,6 +509,7 @@ elements:
     parent: bluetooth
     since: "1.7"
     summary: Value written to a characteristic once on connecting.
+    text: The value to write, interpreted by the conversion.
     attributes:
       - name: char
         type: string

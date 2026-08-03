@@ -52,6 +52,7 @@ elements:
       - name: normalize
         type: boolean
         default: false
+        since: "1.10"
         summary: Normalise the amplitude of all inputs.
         agreement: agreed
 
@@ -106,8 +107,19 @@ elements:
       - name: parameter
         type: enum
         values: [pan, amplitude, duration, frequency]
-        summary: >-
-          Which parameter this input drives. Only `tone` accepts `frequency`.
+        summary: Which parameter of the generator this input drives.
+        value_notes:
+          pan: >-
+            Stereo position, from -1 (left) through 0 (centre) to +1 (right).
+            A centred signal plays at full amplitude on both channels, and
+            panning reduces the opposite channel rather than boosting the near
+            one. Available from file format 1.20.
+          amplitude: >-
+            Amplitude, from 0.0 (silent) to 1.0 (the loudest without clipping).
+          duration: Duration of the generated signal, in seconds.
+          frequency: >-
+            Frequency of the tone, in Hz. Only the tone generator uses this;
+            it does not apply to noise.
         agreement: agreed
       - name: type
         type: enum
@@ -158,11 +170,17 @@ elements:
         type: enum
         required: true
         values: [intensity, frequency, dutycycle]
-        summary: >-
-          `intensity` is the brightness from 0 to 1, and how many levels a phone
-          supports varies - older ones may only manage on and off. `frequency`
-          above 0 turns the light into a stroboscope. `dutycycle` runs from 0
-          (always off) to 1 (always on).
+        summary: Which parameter of the flashlight this input drives.
+        value_notes:
+          intensity: >-
+            Brightness, from 0 (off) to 1 (maximum). How many levels a phone
+            supports varies and older models may only manage on and off.
+            Defaults to 1.
+          frequency: >-
+            Strobe frequency. At 0 the light stays on constantly. Defaults to 0.
+          dutycycle: >-
+            Fraction of each strobe period the light is on, from 0 (always off)
+            to 1 (always on). Defaults to 0.5.
         agreement: divergent
         inconsistency: ios-behind-on-format-1-20
       - name: type
@@ -219,6 +237,9 @@ elements:
         summary: Requests a specific MTU. Fails on Android before 5.0.
         agreement: platform
         platforms: [android]
+        remark: >-
+          iOS gives no control over the MTU and always requests the maximum, so
+          the attribute is accepted and ignored there.
         note: >-
           iOS has no way to control the MTU and always requests the maximum.
 
