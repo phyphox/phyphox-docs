@@ -115,6 +115,7 @@ elements:
     slot_constraints:
       agreement: divergent
       inconsistency: analysis-slot-constraints-unenforced
+      rules: [output-component-validation]
     summary: Container for the analysis modules, executed in document order.
     children: [abs, acos, add, append, asin, atan, atan2, autocorrelation, average, binning, butterworth, const, cos, cosh, count, crosscorrelation, differentiate, divide, eventstream, fft, first, formula, gausssmooth, gcd, if, imagedecode, info, integrate, interpolate, lcm, loess, log, map, match, max, min, movingaverage, multiply, periodicity, power, ramp, rangefilter, reduce, round, sin, sinh, sort, split, subrange, subtract, tan, tanh, threshold, timer]
     attributes:

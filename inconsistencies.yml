@@ -854,7 +854,15 @@
 - id: analysis-slot-constraints-unenforced
   title: Per-slot constraints on analysis module inputs and outputs
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Validate and reject, by the rule already decided as output-component-validation,
+    whose scope is the mapping mechanism wherever it appears in the format. A parser
+    checks each analysis input and output against the module's slot table: whether
+    the as attribute is required for that slot, how many tags may fill it, and
+    whether a literal value or the empty type is permitted - and refuses the file
+    when any of them fails, rather than assigning positionally. Android already
+    conforms; iOS has no equivalent of the table and must gain one.
   affects:
     android: >-
       Every module carries an ioMapping table stating, per slot, whether the `as`
@@ -885,7 +893,15 @@
 - id: analysis-outputs-assigned-by-position
   title: iOS assigns some analysis outputs by position, ignoring the as attribute
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Settled by the same rule: an output whose as attribute names no slot of the
+    module is an error, not something to place by position. Two further points are
+    implementation detail rather than open questions. iOS must recognise the
+    documented name stddev on the average module - it currently looks for std, which
+    appears in neither Android nor the documentation - and loess must map its outputs
+    by name rather than reading outputs[0..2] in order. Neither is a question about
+    the format.
   affects:
     android: >-
       Maps every output to its slot by the as attribute, which the mapping table

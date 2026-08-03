@@ -81,12 +81,18 @@ rules:
       wherever it appears in the format.
     state:
       android: >-
-        Already conforms, via the ioMapping tables passed to ioBlockParser.
+        Already conforms, both for the component attribute of input-module
+        outputs and for the per-slot tables of every analysis module, all via the
+        ioMapping tables passed to ioBlockParser.
       ios: >-
-        Does not conform. SensorOutputElementHandler accepts any component name,
-        defaults a missing one to the string "output" - which matches no
-        element's component list - and applies no counts. Unrecognised components
-        are dropped later without an error.
+        Does not conform anywhere. SensorOutputElementHandler accepts any
+        component name, defaults a missing one to the string "output" - which
+        matches no element's component list - and applies no counts;
+        unrecognised components are dropped later without an error. The analysis
+        modules are the same one level down: each checks only what its own code
+        needs, so 104 slots that require the as attribute do not enforce it, 37
+        that refuse a literal value accept one, and two modules place their
+        outputs by position instead of by name.
     migration: >-
       Making iOS strict can stop a file loading that loads there today. The
       exposure is limited: any file Android accepts is already valid by this
