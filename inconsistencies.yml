@@ -670,7 +670,7 @@
 - id: graph-output-data-picker
   title: The output element of a graph means different things on the two apps
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     The data picker. A graph's output tags configure the data picker introduced
     in file format 1.20: each carries axis (x, xcal, y, ycal, z, zcal) and a
@@ -686,23 +686,18 @@
       carrying a label; DataOutput has a label field for exactly this
       (PhyphoxFile.java, viewBlockParser; ExpView.graphElement.setPickConfig).
     ios: >-
-      Does not implement the data picker at all. Its graph output handler reads
-      only calibrationParameter, and reads it with the required-attribute
-      accessor - so an output tag written for the data picker throws
-      missingAttribute and the whole experiment fails to parse, rather than the
-      picker simply being unavailable
-      (GraphViewElementHandler.swift, GraphOutputElementHandler).
+      Implements the data picker on the development branch since 2026-08: the
+      graph output handler reads axis and label, pickLabel renames the pick
+      tool, and the calibrationMode/calibrationParameter draft has been removed
+      (GraphViewElementHandler.swift, GraphOutputElementHandler,
+      ExperimentGraphView.swift).
   summary: >-
-    Both apps accept an output tag inside a graph and neither can read the
-    other's. Android uses it for the data picker; iOS uses it for a superseded
-    calibration draft whose calibrationParameter attribute is mandatory, so a
-    data-picker graph does not merely lose the feature on iOS - it stops the file
-    loading. In practice the version gate hides this today: the data picker
-    arrived in file format 1.20, iOS supports up to 1.19, so such a file is
-    refused with the normal "update the app" message. The sharp edge is a file
-    that declares an older version and uses the construct anyway, which fails
-    with a confusing parse error instead. Implementing the picker on iOS and
-    dropping the calibration attributes resolves both.
+    Both apps accepted an output tag inside a graph and neither could read the
+    other's. Android used it for the data picker; iOS used it for a superseded
+    calibration draft whose calibrationParameter attribute was mandatory, so a
+    data-picker graph did not merely lose the feature on iOS - it stopped the
+    file loading. iOS now implements the data picker and the calibration draft
+    is gone; this entry stays until the release carrying the fix has shipped.
 
 - id: ble-address-ios-must-reject
   title: The BLE address attribute is Android-only, and iOS should say so
@@ -810,10 +805,10 @@
     element, its input child and three parameters. And clearGroup, the attribute
     that exempts calibration data from the trash button, is unread on iOS, so the
     feature is absent in the app and not only over the remote interface; its
-    API half is tracked as control-clear-groups. The data picker is the remaining
-    1.20 feature missing on iOS and is tracked separately as
-    graph-output-data-picker, because it fails even on a file declaring an older
-    version.
+    API half is tracked as control-clear-groups. The data picker was tracked
+    separately as graph-output-data-picker, because it failed even on a file
+    declaring an older version; it has since been implemented on the iOS
+    development branch and that entry is now marked fixed.
 
 - id: ios-hyperbolic-modules-compute-trig
   title: sinh, cosh and tanh compute sin, cos and tan on iOS

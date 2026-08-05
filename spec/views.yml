@@ -801,16 +801,6 @@ elements:
         since: "1.20"
         agreement: divergent
         inconsistency: ios-behind-on-format-1-20
-      - name: calibrationMode
-        type: string
-        values: [xLinear]
-        deprecated: true
-        superseded_by: the data picker, configured by the graph's output tags
-        summary: >-
-          Draft of a guided calibration workflow, written for the spectroscopy
-          feature and since replaced. Not part of the format going forward.
-        agreement: divergent
-        inconsistency: graph-output-data-picker
       - name: pickLabel
         description: >-
           Rename the "Pick data" button to show to the user the
@@ -822,8 +812,7 @@ elements:
         summary: >-
           Renames the "Pick data" button, to say what picking is for. Part of the
           data picker, configured by the graph's output tags.
-        agreement: divergent
-        inconsistency: graph-output-data-picker
+        agreement: agreed
 
   - name: input
     parent: graph
@@ -872,25 +861,12 @@ elements:
           immediately, the user is prompted for a value, the point's coordinate
           goes to the plain output and the entered value to the `cal` one. That
           is how two points are mapped to reference values for a calibration.
-        agreement: divergent
-        inconsistency: graph-output-data-picker
+        agreement: agreed
       - name: label
         type: string
         translatable: true
         summary: Text of the button offered for this output once a point is picked.
-        agreement: divergent
-        inconsistency: graph-output-data-picker
-      - name: calibrationParameter
-        type: enum
-        values: [slope, intercept]
-        deprecated: true
-        superseded_by: the axis attribute of this element
-        summary: >-
-          Part of the superseded calibration draft. Required by iOS on every
-          graph output, which is what makes the two readings of this element
-          incompatible.
-        agreement: divergent
-        inconsistency: graph-output-data-picker
+        agreement: agreed
 
   # ------------------------------------------------------------------- edit --
   - name: edit
