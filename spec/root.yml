@@ -330,11 +330,7 @@ elements:
           The special value "_" is never offered, making the buffer unclearable.
           Since the name is translatable, translated group names must stay
           distinct from one another.
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
-        note: >-
-          A 1.20 feature, not yet on iOS. The remote-interface half is tracked
-          separately as control-clear-groups.
+        agreement: agreed
 
   - name: export
     parent: phyphox

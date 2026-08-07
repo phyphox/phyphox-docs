@@ -147,11 +147,7 @@ elements:
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
-        note: >-
-          iOS does not declare this on the separator at all, where it implements
-          it for most other view elements - see the 1.20 list.
+        agreement: agreed
       - name: height
         description: >-
           The height of the separator in text line heights
@@ -797,10 +793,12 @@ elements:
           data point coordinates and interpolate colors inbetween.
         type: boolean
         default: true
-        summary: Blend between the colour scale stops instead of stepping between them.
+        summary: >-
+          Interpolate the colors between the data points. If disabled, each data
+          point shows as a homogeneously colored rectangular "pixel" instead -
+          suited for displaying image data.
         since: "1.20"
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
+        agreement: agreed
       - name: pickLabel
         description: >-
           Rename the "Pick data" button to show to the user the
@@ -1044,8 +1042,9 @@ elements:
     parent: button
     since: "1.8"
     summary: >-
-      Fires the process carrying this id when the button is pressed. Network
-      connections are currently the only thing that can be triggered.
+      Fires the process carrying this id when the button is pressed. This
+      triggers network connections whose id matches and, since 1.20, bluetooth
+      output inputs whose triggerId matches.
     text: The id to trigger.
     attributes: []
 
@@ -1284,11 +1283,7 @@ elements:
         type: string
         since: "1.20"
         summary: Data container deciding whether the element is shown.
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
-        note: >-
-          iOS parses this on the image element but ExperimentImageView never uses
-          it, so the image stays visible - see the 1.20 list.
+        agreement: agreed
       - name: scale
         description: >-
           Scales the size of the image. By default (scale="1.0") the

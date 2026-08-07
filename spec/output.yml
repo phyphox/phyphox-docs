@@ -66,9 +66,12 @@ elements:
     since: "1.0"
     summary: >-
       The waveform, written to the speaker at the end of each analysis pass.
-      Values run from -1 to +1 and the buffer's length sets the duration. Only
-      one direct source is supported.
+      Values run from -1 to +1 and the buffer's length sets the duration. The
+      mono signal plays identically on both stereo channels and the element
+      takes no parameter inputs. Only one direct source is supported.
     text: Name of the data container holding the waveform.
+    agreement: divergent
+    inconsistency: audio-direct-input-stereo
     attributes:
       - name: type
         type: enum
@@ -157,8 +160,7 @@ elements:
       0.5 may not be reproduced accurately.
     children: [input]
     attributes: []
-    agreement: divergent
-    inconsistency: ios-behind-on-format-1-20
+    agreement: agreed
 
   - name: input
     parent: flashlight
@@ -181,15 +183,15 @@ elements:
           dutycycle: >-
             Fraction of each strobe period the light is on, from 0 (always off)
             to 1 (always on). Defaults to 0.5.
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
+        agreement: agreed
       - name: type
         type: enum
         values: [buffer, value]
         default: buffer
         summary: Whether the text names a data container or is a literal value.
         agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
 
   # -------------------------------------------------------------- bluetooth --
   - name: bluetooth
@@ -284,8 +286,7 @@ elements:
           carries the same id has been pressed, rather than after every
           analysis pass. Other inputs of the same device keep sending
           periodically.
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
+        agreement: agreed
 
   - name: config
     parent: bluetooth
@@ -378,4 +379,7 @@ conversions:
       - name: string
         summary: Writes the text as-is.
       - name: hexadecimal
-        summary: Parses the text as hexadecimal.
+        summary: >-
+          Parses the text as hexadecimal byte pairs. Spaces are stripped first,
+          any other non-hexadecimal character makes the result empty, and a
+          dangling digit of an odd-length text is ignored.

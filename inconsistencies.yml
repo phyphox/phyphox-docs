@@ -197,7 +197,7 @@
 - id: control-clear-groups
   title: Clear groups on /control?cmd=clear
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Clear groups are a file format 1.20 feature and belong on both platforms.
     iOS should implement them when it moves to 1.20 - the clearGroup attribute on
@@ -212,25 +212,21 @@
       reads clearGroup1, clearGroup2, ... to clear only those groups
       (RemoteServer.java, handleControl(), case "clear").
     ios: >-
-      Does not implement the feature at all. DataContainersElementHandler does
-      not declare the clearGroup attribute, so it is silently dropped when the
-      file is parsed, and the remote interface ignores the parameters and always
-      clears everything (ExperimentWebServer.swift, "self.delegate!.clearData()"
-      takes no arguments).
+      Implements the feature on the development branch since 2026-08: the
+      clearGroup attribute is parsed into the buffers
+      (DataContainersElementHandler, DataBuffer.clearGroup), a user clear spares
+      grouped buffers unless selected (Experiment.clear), the clear dialog
+      offers the groups, and the remote interface serves the clearGroups list
+      and honours the clearGroup<n> parameters on /control
+      (WebServerUtilities.swift, ExperimentWebServer.swift).
   summary: >-
     Clear groups let an experiment keep calibration data or settings when the user
-    clears measurement data. The divergence is wider than the remote interface:
-    iOS does not read the clearGroup attribute on data containers either, so the
-    feature is absent in the app itself and not only over the API. It arrived in
-    file format 1.20, so the version gate covers a file declaring 1.20 - but an
-    experiment declaring an older version and using the attribute is accepted by
-    both, and protects its calibration data on one platform only. Android honours them over the remote interface; iOS
-    silently clears everything instead, which destroys exactly the data the
-    feature exists to protect. The iOS app also does not yet serve the clearGroups
-    list its web interface needs, and its phyphox-webinterface submodule still
-    points at a revision from before the feature - so the divergence is currently
-    invisible in the bundled UI and will surface the moment that pointer is
-    bumped.
+    clears measurement data. iOS did not implement them at all - neither the
+    clearGroup attribute on data containers nor the clearGroup parameters of
+    /control, which it ignored while always clearing everything, destroying
+    exactly the data the feature exists to protect. Since 2026-08 the iOS
+    development branch implements both halves like Android; the entry stays until
+    the release carrying the fix ships.
 
 - id: control-set-infinity
   title: Writing an infinite value with cmd=set
@@ -757,7 +753,7 @@
 - id: ios-behind-on-format-1-20
   title: File format 1.20 features not yet implemented on iOS
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     These are ordinary features of file format 1.20 and belong on both platforms.
     iOS should implement them when it moves to 1.20; nothing about the format
@@ -771,44 +767,53 @@
       flashlight output element, and the analysis modules butterworth and
       imagedecode.
     ios: >-
-      Declares 1.19 (latestSupportedFileVersion in PhyphoxElementHandler.swift)
-      and implements none of them. ExperimentAnalysisFactory.classMap has neither
-      analysis module, and OutputElementHandler registers only audio and
-      bluetooth as children of the output block - there is no flashlight handler
-      and no mention of the flashlight anywhere in the iOS source.
+      The released app declares 1.19 (latestSupportedFileVersion in
+      PhyphoxElementHandler.swift); the development branch declares 1.20 and,
+      as of 2026-08, implements the complete list. The last item was triggerId
+      on the input elements of a bluetooth output block, now parsed
+      (BluetoothInputElementHandler in OutputElementHandler.swift) and wired
+      from the button press to the send pass (ExperimentBluetoothOutput), with
+      the same semantics as Android: a characteristic input carrying a
+      triggerId is skipped in the per-analysis send unless a button carrying
+      the matching trigger id has been pressed since the last pass.
   summary: >-
-    Two attributes introduced with file format 1.20 exist only on Android:
-    camera/aeFPSTarget, the target frame rate for the prioritizeFramerate
-    exposure strategy, and graph/interpolateMapColors, which blends between the
-    stops of a map graph's colour scale instead of stepping. Neither is a
-    disagreement about the format - iOS simply has not caught up. Note that this
-    is invisible to users today, because iOS refuses a file declaring 1.20 with
-    the normal "update the app" message; it becomes relevant the moment iOS moves
-    to 1.20 with these unimplemented. Two analysis modules are missing for the
-    same reason: butterworth, which applies a Butterworth filter's transfer
-    function, and imagedecode, which decodes an encoded image into its dimensions
-    and pixel data. A missing analysis module is the sharpest form of this - an
-    experiment using one does not degrade, it fails to load - so they are worth
-    doing first when iOS moves to 1.20.
+    The iOS development branch completed file format 1.20 in 2026-08; this
+    entry stays until the release carrying it ships, since the released iOS
+    app still declares 1.19 and refuses a 1.20 file with the normal "update
+    the app" message. The last item was triggerId on the inputs of a bluetooth
+    output, which restricts sending a characteristic to presses of a button
+    carrying the matching trigger id; it was not on the original list of this
+    entry and surfaced only through the spec work - a reminder that the list
+    here is not the authority, the spec's divergence markers are. It was
+    implemented on the iOS development branch in 2026-08, closing the list. camera/aeFPSTarget, the target frame rate for the
+    prioritizeFramerate exposure strategy, and graph/interpolateMapColors,
+    which turns off the color interpolation of a map graph to show each data
+    point as a flat pixel, were on this list until the iOS development branch
+    implemented both in 2026-08. The analysis modules
+    butterworth and imagedecode were the sharpest form of this - an experiment
+    using one does not degrade, it fails to load - until the iOS development
+    branch implemented both in 2026-08.
 
-    Conditional visibility is a partial case worth singling out. iOS already
-    implements the visibility attribute for info, value, graph, edit, button,
-    toggle, slider, dropdown, camera-gui and depth-gui, so most of the work is
-    done - but not for separator, whose handler does not declare the attribute at
-    all, nor for image, whose handler reads it while ExperimentImageView ignores
-    it. Those two will silently stay visible when iOS moves to 1.20 unless they
-    are finished with the rest. The bundled tone_generator experiment already
-    relies on separator visibility, in eight places.
+    Conditional visibility was a partial case on this list - iOS implemented the
+    attribute for most view elements but not for separator and image - until the
+    iOS development branch completed it for every element in 2026-08, together
+    with applying the initial buffer state at load. The remote-interface half
+    followed in the same push: iOS now embeds the same visibilityInput key in the
+    web interface's element configuration as Android and ships the current
+    phyphox-webinterface revision, which implements the hiding centrally.
 
-    Two larger items sit in the same list. The flashlight output element does not
-    exist on iOS at all - no handler, no mention in the source - which is an
-    element, its input child and three parameters. And clearGroup, the attribute
-    that exempts calibration data from the trash button, is unread on iOS, so the
-    feature is absent in the app and not only over the remote interface; its
-    API half is tracked as control-clear-groups. The data picker was tracked
-    separately as graph-output-data-picker, because it failed even on a file
-    declaring an older version; it has since been implemented on the iOS
-    development branch and that entry is now marked fixed.
+    Several items of the original list have been resolved on the iOS development
+    branch in 2026-08: the whole flashlight output element including the
+    photosensitivity warning and the thermal safeguard, the pan parameter on
+    audio tone and noise inputs (the divergence that surfaced around the direct
+    input while porting it is tracked as audio-direct-input-stereo), and
+    clearGroup, the attribute that exempts calibration data from the trash
+    button, now implemented in the app, its clear dialog and over the remote
+    interface (its API half was tracked as control-clear-groups, now fixed). The
+    data picker was tracked separately as graph-output-data-picker, because it
+    failed even on a file declaring an older version; it has since been
+    implemented on the iOS development branch and that entry is now marked
+    fixed.
 
 - id: ios-hyperbolic-modules-compute-trig
   title: sinh, cosh and tanh compute sin, cos and tan on iOS
@@ -1036,3 +1041,41 @@
     sigma="0". A file written this way is almost certainly a mistake, but it
     fails in two different ways and one of them is silent - the graph simply
     has no data.
+
+- id: audio-direct-input-stereo
+  title: Pan and stereo handling of the direct audio input
+  area: file-format
+  status: fixed
+  canonical: >-
+    The direct input plays its mono waveform duplicated at full amplitude to
+    both stereo channels, in the looped and the one-shot case alike - the
+    backwards-compatible reading of every file written before the stereo
+    conversion. It takes no parameter inputs: the undocumented pan support via
+    an input element nested inside the direct input element is to be removed
+    from Android, and its broken loop path fixed to write both interleaved
+    channels. iOS already behaves canonically.
+  affects:
+    android: >-
+      Behaves canonically on the development branch since 2026-08: the direct
+      input's plugin no longer accepts any parameter, so a nested input element
+      inside the direct input fails the file with a parse error, and both the
+      looped and the one-shot path write the mono sample to both interleaved
+      stereo channels (AudioOutput.java, AudioOutputPluginDirect).
+    ios: >-
+      The direct input takes no parameters - the parser reads only the buffer
+      name (AudioElementHandler, TextElementHandler) - and the engine plays the
+      waveform centred on both stereo channels in both the looped and the
+      one-shot case (AudioEngine.appendBufferToPlayback).
+  summary: >-
+    Both platforms play tone and noise generators in stereo with the pan
+    parameter since file format 1.20. The direct buffer input diverged: Android
+    additionally supported a pan parameter on it, expressed as an input element
+    nested inside the direct input element, which the file-format documentation
+    does not mention; iOS plays the direct source centred and accepts no
+    parameters on it. Independent of pan, Android's looped direct playback had
+    been broken since the stereo conversion, writing mono samples into the
+    interleaved stereo buffer. The decision keeps the direct input mono and
+    parameterless: it plays duplicated to both channels, as every file written
+    before the stereo conversion expects, and the undocumented pan path is
+    closed rather than documented. Android now implements this; the entry stays
+    until the release carrying the fix has shipped.

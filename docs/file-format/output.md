@@ -18,7 +18,7 @@ The output block defines all hardware outputs such as the speaker used in the ex
 
 The audio tag defines audio as an output (i.e. a speaker). The audio waveform can be composed from one or multiple sources:
 
-**input** An input tag on the immediate level below *audio* denotes a direct source. At the end of an analysis period phyphox will write the input buffer to an internal audio buffer and start the playback, so the sound is played after each analysis execution. It has a fixed amplitude of 1 and the duration is defined by the number of samples in the input buffer. Audio data is represented by values ranging from -1 to +1. Only one direct source is supported.
+**input** An input tag on the immediate level below *audio* denotes a direct source. At the end of an analysis period phyphox will write the input buffer to an internal audio buffer and start the playback, so the sound is played after each analysis execution. It has a fixed amplitude of 1 and the duration is defined by the number of samples in the input buffer. Audio data is represented by values ranging from -1 to +1. The mono signal is played identically on both stereo channels; a direct source takes no parameter inputs. Only one direct source is supported.
 
 **tone** A **tone** block represents a parametric tone generator. Its parameters **amplitude**, **duration** and **frequency** can either be fixed values (type="value") or a buffer (type="buffer", default) to control it dynamically. Each tone block (multiple are allowed) generates a sine tone and keeps track of the momentary phase of the sine function to avoid click noises due to mismatch of the frequency and the sampling rate or when changing the frequency.
 
@@ -26,7 +26,7 @@ The audio tag defines audio as an output (i.e. a speaker). The audio waveform ca
 
 Playback is triggered after each analysis process and each source can have individual durations (in seconds) and amplitudes (float value with 0.0 being silent and 1.0 maximum amplitude without clipping). If loop is set to true, the playback will loop. The default playback rate is 48kHz, but can be changed using the *rate* attribute (in Hz). However, this is not recommended if the experiment targets a wide audience since supported playback rates are very device specific.
 
-Since **file format 1.20 (phyphox version 1.2.1)** all inputs support panning from left to right, mapped to values from -1 (left) to +1 (right) with 0 being center. Note that this does not compensate for amplitude or loudness, but instead a center tone will be played at full amplitude on both channels and a pan to the right will not change the amplitude on the right channel but reduce the one on the left (and vice versa).
+Since **file format 1.20 (phyphox version 1.2.1)** the tone and noise generators support panning from left to right, mapped to values from -1 (left) to +1 (right) with 0 being center. Note that this does not compensate for amplitude or loudness, but instead a center tone will be played at full amplitude on both channels and a pan to the right will not change the amplitude on the right channel but reduce the one on the left (and vice versa). The direct source cannot be panned — it always plays centred on both channels.
 
 A waveform composed from two tone generators and a noise generator, each driven by its own data containers:
 

@@ -162,7 +162,7 @@ string
 :   The string is interpreted as a string and written directly to the characteristic
 
 hexadecimal
-:   The string is a hexadecimal representation of the binary value that should be written to the characteristic. (Note that there is no trailing "0x", so 0x1f is simply written as 1f.)
+:   The string is a hexadecimal representation of the binary value that should be written to the characteristic. (Note that there is no leading "0x", so 0x1f is simply written as 1f.) Spaces may be used to group the digits ("1A 2B"). Any other non-hexadecimal character makes the whole value empty, and a dangling digit of an odd-length string is ignored.
 
 singleByte
 :   The string is parsed as a decimal number and encoded as a single byte value (same as uInt8)

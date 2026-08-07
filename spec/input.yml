@@ -711,8 +711,7 @@ elements:
           Target frame rate for the prioritizeFramerate strategy, acting as a
           maximum exposure time. Unset, that strategy uses the shortest supported
           frame duration. It does not stop the camera exceeding the target.
-        agreement: divergent
-        inconsistency: ios-behind-on-format-1-20
+        agreement: agreed
 
       - name: locked
         description: >-
