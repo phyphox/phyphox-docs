@@ -54,7 +54,7 @@
 - id: cors-header
   title: Access-Control-Allow-Origin on every response
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Every response from every endpoint carries Access-Control-Allow-Origin, on both
     platforms. Android already does so for responses that reach respond(); iOS sends
@@ -63,23 +63,30 @@
     browser client most needs to read the body.
   affects:
     android: >-
-      Adds "Access-Control-Allow-Origin: *" to every response
-      (RemoteServer.java, respond()).
+      Adds "Access-Control-Allow-Origin: *" to every response; since the
+      cors-error-paths fix on the development branch (2026-08) it is set before a
+      request is dispatched rather than in respond()
+      (RemoteServer.java, CorsHTTPServer.handleTransaction).
     ios: >-
-      Sends no CORS header at all
-      (ExperimentWebServer.swift; GCDWebServer adds none by default).
+      Fixed on the development branch 2026-08: every handler's completion is
+      wrapped to add "Access-Control-Allow-Origin: *", and the static file
+      handler was replaced so the web interface files carry it too
+      (ExperimentWebServer.swift, cors()). Covered by an integration test
+      (WebServerCORSTests) that checks success, error and 404 responses.
+      The released app still sends no CORS header at all.
   verified: >-
-    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
-    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
-    iPhone15,2, App Store build). The iOS WebServer sources are identical
-    on master and development, so the store build behaves as the
-    development branch here.
+    Divergence confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build
+    1020102, Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The iOS fix is verified by an automated
+    test against the running server, not yet by a cross-platform hardware
+    comparison.
   summary: >-
-    A web page served from anywhere else can read the API of an Android phone but
-    not of an iPhone, because only Android sends a CORS header. This is invisible
-    to the bundled interface, which is served by the phone itself, but it decides
-    whether a browser-based client can work at all - so a tool built and tested
-    against Android fails against iOS with an opaque browser error.
+    A web page served from anywhere else could read the API of an Android phone
+    but not of an iPhone, because only Android sent a CORS header. The iOS
+    development branch now sends it on every response, including errors, so the
+    platforms agree once that ships. The entry stays until the release carrying
+    the fix is out, because the released iOS app still fails browser-based
+    clients with an opaque CORS error.
 
 - id: get-no-parameters
   title: /get without any parameters
@@ -480,35 +487,41 @@
 - id: cors-error-paths
   title: Android drops the CORS header on requests that throw
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
-    Follows from the group A decision: once no request reaches an unhandled
-    exception, every response is produced by respond() and carries the CORS header.
-    Nothing separate needs doing, but the entry stays until that is true, because a
-    browser client seeing an opaque CORS failure instead of an error message is the
-    symptom that will be noticed first.
+    Every response carries the CORS header, whatever produced it. Originally
+    expected to follow from the group A decision (no request reaching an unhandled
+    exception), but now guaranteed at the server level on Android independent of
+    that: the header is set before a request is dispatched, so jlhttp's own error
+    pages carry it too, and a handler exception is turned into a plain 500 instead
+    of reaching jlhttp's connection handling, which would discard the header.
   affects:
     android: >-
-      Adds "Access-Control-Allow-Origin: *" in respond(), which an unhandled
-      exception never reaches - jlhttp then serves its own text/html error page
-      without the header. Confirmed on a device: /export with no format and
-      /get with an unknown reference buffer both answer without CORS, while every
-      successful endpoint includes it (RemoteServer.java).
+      Fixed on the development branch 2026-08: the header is added for every
+      request before dispatch (RemoteServer.java, CorsHTTPServer.handleTransaction)
+      and unhandled handler exceptions become jlhttp 500 error responses that keep
+      it (withErrorResponse()). Confirmed on a device: success (single header, not
+      duplicated), the two throwing requests (/export with no format, /get with an
+      unknown reference buffer), 404, 405/501 on unknown methods and OPTIONS all
+      carry the header. The released app still drops it on requests that throw.
     ios: >-
-      Sends no CORS header anywhere, so the distinction does not arise.
+      Sends the CORS header on every response including error responses since
+      the cors-header fix on the development branch (2026-08); the released
+      app sends none anywhere, so the distinction does not arise there.
   verified: >-
-    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
-    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
-    iPhone15,2, App Store build). The iOS WebServer sources are identical
-    on master and development, so the store build behaves as the
-    development branch here.
+    Divergence confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build
+    1020102, Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). The Android fix verified on hardware
+    2026-08-07 (development build, Pixel 9 Pro) against the error paths listed
+    above; not yet by a cross-platform comparison.
   summary: >-
-    Android's CORS support is inconsistent with itself: successful responses
-    carry the header and requests that raise an exception do not. A browser
-    client therefore cannot read the error, and sees an opaque CORS failure
+    Android's CORS support was inconsistent with itself: successful responses
+    carried the header and requests that raise an exception did not. A browser
+    client therefore could not read the error, and saw an opaque CORS failure
     instead of the status code - the case where a useful message matters most.
-    Distinct from cors-header, which is about iOS having no CORS at all; fixing
-    that one would not fix this.
+    Distinct from cors-header, which is about iOS having no CORS at all. Both
+    development branches now send the header on every response; the entry stays
+    until the releases carrying the fixes are out.
 
 - id: res-content-type
   title: Content-Type of a resource served by /res
