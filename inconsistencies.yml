@@ -435,17 +435,26 @@
       bundled with the app, matching the fallback of the image view element
       (RemoteServer.java, handleRes()).
     ios: >-
-      Looks only in the experiment's resource folder and otherwise reports
-      {"error": "Unknown file."}
-      (ExperimentWebServer.swift, "/res" handler).
+      Implements the fallback on the development branch (2026-08): looks in the
+      experiment's resource folder, then falls back to the bundled images
+      (ExperimentWebServer.swift, "/res" handler via Experiment.resolveResource).
+      Still reports "No file requested." for a missing src parameter, which the
+      canonical behaviour asks it to drop.
   verified: >-
     Partly confirmed on hardware 2026-08-02 with the Roller Coaster experiment on
     Android 1.2.1-beta2 and iOS 1.2.0. The differing error messages were
     reproduced exactly. The fallback itself was not: both apps refuse a resource
     the experiment does not reference, so the Android asset lookup is only
     reachable for an experiment that *names* a resource it does not ship, which
-    that test could not produce. Path traversal ("../../../etc/hostname") was
-    refused by both.
+    that test could not produce. Note that test's traversal check
+    ("../../../etc/hostname") was refused only because the experiment did not
+    reference that path, not by a traversal guard: a file that *declares* a
+    traversing src passed the resources check and reached the file lookup. Both
+    platforms now guard the resource name against "../" path components (iOS
+    Experiment.resolveResource; Android Helper.isSafeResourceName on the
+    development branch 2026-08). Verified on Android hardware 2026-08-07: a
+    declared src of "../../../.../shared_prefs/...xml" is refused with
+    "Unknown file." while a bundled "hue.png" is served.
   summary: >-
     iOS distinguishes a missing src parameter ("No file requested.") from an
     unknown one ("Unknown file."), where Android answers "Unknown file." to both -
