@@ -53,10 +53,16 @@ rules:
     applies_to: "every attribute with type: enum"
     state:
       android: >-
-        Conforms for depth/mode and camera/feature, which are lowercased before
-        matching. Does not conform for sensor/rateStrategy (Enum.valueOf) or
-        camera/aeStrategy (a case-sensitive switch) - so Android is currently
-        inconsistent with itself.
+        Conforms across the whole format as of the development branch (2026-08). A
+        sweep extended folding from just depth/mode and camera/feature to every
+        enumerated value (input/output type, sensor type and rateStrategy, camera
+        aeStrategy and show_controls, graph style and scale modes, image filters,
+        audio waveform and parameter names, flashlight parameter names, bluetooth
+        mode and extra, network discovery/service/conversion, map zMode, interpolate
+        method, eventstream mode), the output component / input as / axis mapping
+        names, and the bluetooth conversion-function names (whose reflection lookup
+        was replaced with an explicit case-insensitive dispatch). The released app
+        folds only depth/mode and camera/feature.
       ios: >-
         Does not conform anywhere; every enumerated value is matched against the
         raw string.

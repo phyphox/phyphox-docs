@@ -66,9 +66,10 @@ elements:
         summary: Which protocol to speak.
         agreement: agreed
         note: >-
-          Android additionally accepts mqtts/csv and mqtts/json, TLS variants
-          contributed by a user without an iOS counterpart. They are not part of
-          the format - see network-mqtts-unofficial.
+          Android additionally accepts mqtts/csv and mqtts/json, the TLS variants
+          of the MQTT services (with username/password and a bundled certificate).
+          iOS does not implement them yet, so they are Android-only for now - see
+          network-mqtts-unofficial.
       - name: conversion
         description: >-
           A name from the list of response conversions below. This
@@ -134,6 +135,37 @@ elements:
           MQTT topic published to. Required by mqtt/json and mqtts/json; use
           mqtt/csv if nothing is to be sent.
         agreement: agreed
+      - name: username
+        type: string
+        summary: >-
+          User name for the MQTT broker connection. Required by the mqtts (TLS)
+          services, where it is also used as the MQTT client id; optional for the
+          plain mqtt services, whose brokers may require authentication too.
+        agreement: divergent
+        inconsistency: network-mqtts-unofficial
+      - name: password
+        type: string
+        summary: >-
+          Password for the MQTT broker connection. Required by the mqtts (TLS)
+          services; optional for the plain mqtt services.
+        agreement: divergent
+        inconsistency: network-mqtts-unofficial
+      - name: persistence
+        type: boolean
+        default: false
+        summary: >-
+          For mqtt/json and mqtts/json: publish with MQTT QoS 1 (at-least-once)
+          instead of QoS 0. (Formerly selected QoS 2, which has been dropped.)
+        agreement: divergent
+        inconsistency: network-mqtts-unofficial
+      - name: certificate
+        type: string
+        summary: >-
+          For the mqtts services: the file name of a custom CA certificate (PEM or
+          DER) to trust for the TLS connection, delivered as an experiment resource
+          in the res directory. Optional; without it the system trust store is used.
+        agreement: divergent
+        inconsistency: network-mqtts-unofficial
 
   - name: send
     parent: connection

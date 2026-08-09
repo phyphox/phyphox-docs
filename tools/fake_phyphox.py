@@ -131,9 +131,15 @@ class Android(Base):
                 out[name] = {"size": match["size"], "updateMode": "full",
                              "buffer": list(SAMPLES)}
             else:
+                threshold = value.split("|", 1)[0]
+                try:
+                    float(threshold)
+                except ValueError:
+                    self.send_empty(400, True)   # bad threshold -> 400 (get-unknown-reference-buffer, fixed)
+                    return
                 ref = value.split("|", 1)[1] if "|" in value else name
                 if not any(b["name"] == ref for b in BUFFERS):
-                    self.send_empty(500, True)   # dereferences null and throws
+                    self.send_empty(400, True)   # unknown reference -> 400 (get-unknown-reference-buffer, fixed)
                     return
                 out[name] = {"size": match["size"], "updateMode": "partial",
                              "buffer": list(SAMPLES)}
@@ -151,26 +157,25 @@ class Android(Base):
                 v = float(value)
             except ValueError:
                 self.send_json({"result": False}, cors=True); return
-            if math.isnan(v):
-                self.send_json({"result": False}, cors=True); return
+            if not math.isfinite(v):
+                self.send_json({"result": False}, cors=True); return  # rejects NaN and infinity (control-set-infinity, fixed)
             if not any(b["name"] == name for b in BUFFERS):
-                self.send_empty(500, True)      # dereferences null and throws
-                return
-            self.send_json({"result": True}, cors=True)     # accepts infinity
+                self.send_json({"result": False}, cors=True); return  # unknown buffer -> false (control-set-unknown-buffer, fixed)
+            self.send_json({"result": True}, cors=True)
         elif cmd == "trigger":
-            self.send_empty(500, True)          # unchecked index, throws
+            self.send_json({"result": False}, cors=True)  # out-of-range index -> false, not a crash (control-trigger-out-of-range; Android side fixed, iOS still answers true)
         else:
             self.send_json({"result": False}, cors=True)
 
     def h_export(self, q, pairs):
         fmt = q.get("format")
         if fmt is None:
-            self.send_empty(500, True)          # parseInt(null) throws
+            self.send_json({"error": "Invalid format."}, cors=True)   # missing format -> error object, not a crash (export-invalid-format; Android side fixed)
             return
         try:
             i = int(fmt)
         except ValueError:
-            self.send_empty(500, True)
+            self.send_json({"error": "Invalid format."}, cors=True)
             return
         if not 0 <= i <= 5:
             self.send_json({"error": "Format out of range."}, cors=True)

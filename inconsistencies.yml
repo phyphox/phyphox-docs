@@ -29,27 +29,54 @@
 # person can re-check it rather than trusting this file.
 
 - id: control-post
-  title: POST on /control
+  title: POST on every endpoint, with a JSON or form-encoded body
   area: remote-interface
   status: decided
   canonical: >-
-    Every endpoint accepts POST as well as GET. There is no reason to restrict them,
-    and a client that finds GET awkward - a long list of buffer names in a /get
-    query, for instance - should not have to work around it. Android accepts POST on
-    /control alone today; iOS accepts GET only. Note this widens the scope of the
-    entry, which was about /control.
+    Every endpoint accepts POST as well as GET, taking the same parameters either
+    way. There is no reason to restrict them, and a client that finds GET awkward -
+    a long list of buffer names in a /get query, for instance - should not have to
+    work around it. This is the first real definition of POST for this API (the
+    handful of POSTs Android accepted before were accidental and undocumented), so
+    the body format is defined here and both platforms implement it from the start:
+    a POST body is read as either application/json (a flat object, the natural form
+    for a script) or application/x-www-form-urlencoded, chosen by the request's
+    Content-Type. Two rules keep it unambiguous, and both platforms must follow
+    them: (1) every value is a string - the API is string-valued throughout, so a
+    JSON scalar is coerced to its string form before use, making {"value": 42} and
+    {"value": "42"} equivalent; a JSON body that is not valid JSON (including a bare
+    Infinity/NaN or an unrepresentable number) is a malformed body answered with
+    400. (2) Body parameters take precedence over query parameters of the same name.
+    Endpoints that take no parameters ignore the body.
   affects:
     android: >-
-      Registers /control for both GET and POST
-      (RemoteServer.java, host.addContext("/control", ..., "GET", "POST")).
+      On the development branch (2026-08) registers every endpoint for both GET and
+      POST, and reads parameters through a helper that merges the query with the
+      POST body: a JSON body is parsed and its scalars coerced to strings, a
+      form-encoded body is parsed by jlhttp, the body wins over the query, and a
+      malformed JSON body is a 400 (RemoteServer.java, requestParams()/
+      requestParamsList(), hasJsonBody()). The released app accepts POST on /control
+      only and only as form/query, with no JSON support.
     ios: >-
-      Registers /control for GET only
+      Registers /control for GET only, and has no POST body handling at all
       (ExperimentWebServer.swift, addHandler(forMethod: "GET", pathRegex: "/control")).
+      Needs POST on every endpoint accepting both a JSON and a form-encoded body,
+      with the string-coercion and body-precedence rules above.
+  verified: >-
+    Android side verified on hardware 2026-08-08 (development build, Pixel 9 Pro),
+    on accelerometer.phyphox and motion_stopwatch.phyphox: cmd=set via JSON number,
+    JSON string and form all store the same value into a persistent buffer; body
+    wins over a conflicting query cmd in both directions (start over stop and stop
+    over start); a threshold+reference /get returns identical partial data via GET
+    query and JSON body; a malformed JSON body and a bare Infinity/NaN both answer
+    400; GET is unaffected. iOS not yet implemented.
   summary: >-
-    The Android app accepts POST requests on /control in addition to GET; the iOS
-    app accepts GET only. The web interface bundled with both apps issues GET
-    exclusively, so this does not affect normal use - but a script written against
-    the Android behaviour will fail against iOS.
+    Historically Android accepted POST on /control (by accident) and iOS accepted
+    GET only. POST is now defined properly for the whole API, with a JSON or
+    form-encoded body: Android implements it on the development branch, iOS still
+    has to. The bundled web interface issues GET exclusively, so this does not
+    affect normal use - but it is what lets a script drive the API in the REST style
+    it expects.
 
 - id: cors-header
   title: Access-Control-Allow-Origin on every response
@@ -168,10 +195,70 @@
     form this API documents - is never told about the clear on iOS and keeps
     stale data.
 
+- id: get-invalid-threshold
+  title: /get with a threshold that is not a number
+  area: remote-interface
+  status: decided
+  canonical: >-
+    Reject the request with 400 (maintainer decision 2026-08-09). A threshold that
+    does not parse as a number is a malformed request, consistent with how a
+    threshold referencing an unknown buffer is treated; answering data instead
+    hides the client's mistake. iOS must stop silently treating an unparseable
+    threshold as "no threshold".
+  affects:
+    android: >-
+      Answers 400 with an empty body on the development branch since 2026-08;
+      before, the number parse threw and the request failed with a server error
+      (RemoteServer.java, handleGet()).
+    ios: >-
+      Parses the threshold with "Double(...) ?? -infinity", so an unparseable
+      value silently requests everything: the whole buffer is returned, labelled
+      updateMode "partial" (ExperimentWebServer.swift).
+  verified: >-
+    Android verified on hardware 2026-08-09 (development build, Pixel 9 Pro):
+    "?accX=notanumber" answers 400. iOS not yet changed.
+  summary: >-
+    A request like /get?buf=abc is rejected with 400 on Android (previously a
+    server error) and silently answered with the full buffer on iOS. The 400 is
+    canonical; the spec documents it, and iOS has to follow.
+
+- id: get-negative-threshold
+  title: /get with a negative threshold degrades instead of filtering
+  area: remote-interface
+  status: decided
+  canonical: >-
+    A negative threshold filters like any other (maintainer decision 2026-08-09):
+    the 8-digit precision nudge that both implementations apply must derive its
+    magnitude from the absolute value of the threshold, keeping its positive
+    direction. Both platforms computed log10 of the raw threshold, which is NaN
+    for a negative value, so the nudged threshold became NaN and the comparison
+    broke - differently on each platform.
+  affects:
+    android: >-
+      Fixed on the development branch 2026-08: the nudge uses
+      log10(abs(threshold)/1e7), so a negative threshold returns a partial update
+      filtered correctly (RemoteServer.java, parseBufferRequest()). Before, the
+      NaN threshold made the request degrade to a single-value response.
+    ios: >-
+      Still computes pow(10, floor(log10(threshold/1e7))) on the raw value, so a
+      negative threshold becomes NaN and the filter "v > NaN" drops everything:
+      the response is a "partial" update with an empty buffer
+      (ExperimentWebServer.swift). Needs the same abs() fix.
+  verified: >-
+    Android fix verified on hardware 2026-08-09 (development build, Pixel 9 Pro):
+    "?accX=-100" answers a partial update with the full history, "?accX=-0.5"
+    filters correctly (only values above -0.5), a positive threshold is
+    unaffected. iOS not yet changed.
+  summary: >-
+    Thresholds are usually positive (a time axis), which is why nobody noticed
+    that a negative one breaks: Android answered a single value, iOS an empty
+    partial update - both silently, in two different ways. The nudge formula just
+    needed an abs(). Android is fixed; iOS needs the same one-liner.
+
 - id: get-unknown-reference-buffer
   title: Threshold referencing a buffer that does not exist
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Reject a bad request cleanly; never let one reach an unhandled exception. A
     malformed or out-of-range request must produce a documented status and body -
@@ -183,23 +270,26 @@
     enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
-      Dereferences the missing buffer and throws, so the request fails with a
-      server error
-      (RemoteServer.java, buildBuffer(), "experiment.getBuffer(buffer.reference)"
-      may return null).
+      Fixed on the development branch 2026-08: a threshold referencing a buffer that
+      does not exist is rejected with 400 before building the response, matching iOS
+      (RemoteServer.java, handleGet()). The released app still throws. (An
+      unparseable threshold is likewise a 400, tracked separately as
+      get-invalid-threshold since iOS diverges there.)
     ios: >-
       Returns 400
       (ExperimentWebServer.swift, "guard let extraBuffer = self.experiment.buffers[extra]").
   verified: >-
-    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
-    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
-    iPhone15,2, App Store build). The iOS WebServer sources are identical
-    on master and development, so the store build behaves as the
-    development branch here.
+    Divergence confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build
+    1020102, Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). Android fix verified on hardware 2026-08-08
+    (development build, Pixel 9 Pro): "?intensity=0|nosuchbuffer" and
+    "?intensity=notanumber" both answer 400.
   summary: >-
-    Asking for "?abc=42|nosuchbuffer" is rejected cleanly on iOS and crashes the
-    request handler on Android. Note that an unknown buffer in the *requested*
-    position is ignored by both, so only the reference position behaves this way.
+    Asking for "?abc=42|nosuchbuffer" is rejected cleanly on iOS and used to crash
+    the request handler on Android; Android now returns 400 as well. Note that an
+    unknown buffer in the *requested* position is ignored by both, so only the
+    reference position behaves this way. The entry stays until the release carrying
+    the fix is out.
 
 - id: control-clear-groups
   title: Clear groups on /control?cmd=clear
@@ -238,7 +328,7 @@
 - id: control-set-infinity
   title: Writing an infinite value with cmd=set
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Reject it. cmd=set accepts only finite values, as iOS already does; Android must
     stop admitting Infinity through Double.valueOf. Note that accepting it produces a
@@ -247,27 +337,29 @@
     from NaN.
   affects:
     android: >-
-      Rejects NaN only, so "value=Infinity" is parsed by Double.valueOf and
-      written to the buffer
-      (RemoteServer.java, handleControl(), case "set").
+      Fixed on the development branch 2026-08: cmd=set rejects any non-finite value
+      (NaN and infinity) with {"result": false}
+      (RemoteServer.java, handleControl(), case "set", "Double.isNaN(v) ||
+      Double.isInfinite(v)"). The released app still writes infinity into the buffer.
     ios: >-
       Rejects anything not finite, so infinity is refused with {"result": false}
       (ExperimentWebServer.swift, "if !value.isFinite").
   verified: >-
-    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
-    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
-    iPhone15,2, App Store build). The iOS WebServer sources are identical
-    on master and development, so the store build behaves as the
-    development branch here.
+    Divergence confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build
+    1020102, Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). Android fix verified on hardware 2026-08-08
+    (development build, Pixel 9 Pro): value=Infinity and value=NaN both answer
+    {"result": false}, value=1.5 answers {"result": true}.
   summary: >-
     Both apps refuse to write NaN, because a buffer holds NaN when empty and
-    writing it explicitly is almost always a mistake. They disagree about
-    infinity, which Android accepts into the buffer and iOS rejects.
+    writing it explicitly is almost always a mistake. They disagreed about
+    infinity, which Android accepted into the buffer and iOS rejected; Android now
+    rejects it too. The entry stays until the release carrying the fix is out.
 
 - id: control-set-unknown-buffer
   title: cmd=set naming a buffer that does not exist
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Reject a bad request cleanly; never let one reach an unhandled exception. A
     malformed or out-of-range request must produce a documented status and body -
@@ -279,22 +371,24 @@
     enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
-      Dereferences the missing buffer and throws, so the request fails with a
-      server error
-      (RemoteServer.java, handleControl(), "experiment.getBuffer(buffer).append(v)").
+      Fixed on the development branch 2026-08: cmd=set naming a buffer that does not
+      exist answers {"result": false} instead of dereferencing null and throwing
+      (RemoteServer.java, handleControl(), case "set", null check on getBuffer). The
+      released app still throws.
     ios: >-
       Returns {"result": false}
       (ExperimentWebServer.swift, "guard ... let buffer = self.experiment.buffers[bufferName]").
   verified: >-
-    Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
-    Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
-    iPhone15,2, App Store build). The iOS WebServer sources are identical
-    on master and development, so the store build behaves as the
-    development branch here.
+    Divergence confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build
+    1020102, Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
+    iPhone15,2, App Store build). Android fix verified on hardware 2026-08-08
+    (development build, Pixel 9 Pro): cmd=set with buffer=nosuchbuffer answers
+    {"result": false}.
   summary: >-
-    A typo in the buffer name gets a clean negative result on iOS and a failed
-    request on Android. The result field exists precisely to report this, so the
-    Android behaviour also loses the diagnostic.
+    A typo in the buffer name gets a clean negative result on iOS and used to fail
+    the request on Android; Android now answers {"result": false} too. The result
+    field exists precisely to report this. The entry stays until the release
+    carrying the fix is out.
 
 - id: control-trigger-out-of-range
   title: cmd=trigger with an out-of-range element index
@@ -311,9 +405,12 @@
     enum-invalid-value in the file format, applied to the API.
   affects:
     android: >-
-      Indexes the element list unchecked and throws, so the request fails with a
-      server error
-      (RemoteServer.java, handleControl(), case "trigger").
+      Fixed on the development branch 2026-08: an out-of-range element index answers
+      {"result": false} instead of indexing the list unchecked and throwing
+      (RemoteServer.java, handleControl(), case "trigger", bounds check). The
+      released app still throws. Note Android answers false for a trigger it did not
+      perform, where iOS answers true - the canonical asks for false, so iOS is the
+      side that still has to change.
     ios: >-
       Bounds-checks the index, does nothing if it is out of range or names a
       non-button element, and answers {"result": true} either way
@@ -345,9 +442,9 @@
   affects:
     android: >-
       Range-checks the index and answers 200 with {"error": "Format out of
-      range."}; a missing or non-numeric format throws in Integer.parseInt and
-      fails the request
-      (RemoteServer.java, handleExport()).
+      range."}; since the development branch (2026-08) a missing or non-numeric
+      format also answers 200 with {"error": "Invalid format."} instead of throwing
+      in Integer.parseInt (RemoteServer.java, handleExport()).
     ios: >-
       Indexes the format list unchecked, so an out-of-range index traps and
       terminates the app; a missing or non-numeric format is treated as index 0
@@ -599,29 +696,53 @@
   status: decided
   canonical: >-
     Enumerated values are matched case-insensitively, so mode="Closest" and
-    mode="closest" are the same. This keeps configurations working that already rely
-    on it, since Android folds case for depth/mode and camera/feature today. It holds
-    only as long as no allowed set contains two values differing only in case; none
-    does, and none may be introduced. Android must extend the folding to
-    sensor/rateStrategy and camera/aeStrategy, which it currently matches case
-    sensitively; iOS must fold everywhere. Case folding happens before the rejection
-    required by input-invalid-enum-handling, or the very files this rule protects
-    would be refused. See spec/rules.yml, rule enum-case-insensitive.
+    mode="closest" are the same, and this holds for EVERY enumerated value in the
+    format - not just a chosen few. The rule covers: the enumerated attribute values
+    across all blocks (input/output type; sensor type and rateStrategy; camera
+    feature, aeStrategy and show_controls; depth mode; graph style and scale modes;
+    image dark/lightFilter; audio waveform; audio and flashlight parameter names;
+    bluetooth mode and extra; network discovery, service and conversion; analysis
+    map zMode, interpolate method and eventstream mode), the output component and
+    input "as"/"axis" mapping names (t, luma, shutterSpeed, pixelPosition, ...), and
+    the bluetooth conversion-function names (int16LittleEndian, hexadecimal,
+    byteArray, ...). It holds only as long as no allowed set contains two values
+    differing only in case; none does today across any of these vocabularies, and
+    none may be introduced (new enumerations should be all-lowercase). Case folding
+    happens before the rejection required by input-invalid-enum-handling, or the very
+    files this rule protects would be refused. See spec/rules.yml, rule
+    enum-case-insensitive.
   affects:
     android: >-
-      Lowercases the value before matching for depth/mode and camera/feature, so
-      mode="Closest" is accepted (PhyphoxFile.java, inputBlockParser).
+      Folds case for every enumerated value as of the development branch (2026-08).
+      Previously only depth/mode and camera/feature were folded; the sweep extended
+      it to all the vocabularies listed in the canonical, via a case-insensitive
+      helper for enum-valued attributes, lowercased switches, equalsIgnoreCase for
+      the component/as mapping names, and a rewritten bluetooth conversion lookup
+      that resolves the function by name case-insensitively (PhyphoxFile.java,
+      SensorInput.java, GraphView.java, AudioOutput.java, Helper.enumFromStringIgnoreCase,
+      and Conversions{Input,Output,Config}.getConversion, which also replaced the old
+      reflection lookup). The released app folds only depth/mode and camera/feature.
     ios: >-
-      Matches the raw string, so mode="Closest" fails to parse - throwing for
-      depth/mode, and silently falling back to photometric for camera/feature
-      (InputElementHandler.swift).
+      Matches the raw string everywhere, so mode="Closest" fails to parse - throwing
+      for depth/mode, silently falling back to photometric for camera/feature
+      (InputElementHandler.swift). iOS still has to fold every enumerated value,
+      including the component/as mapping names and the bluetooth conversion-function
+      names - the same full extent Android now covers.
+  verified: >-
+    Android folding verified on hardware 2026-08-08 (development build, Pixel 9 Pro):
+    an experiment mixing rateStrategy="Limit", sensor type="ACCELEROMETER",
+    graph style="DOTS", scaleMinX="AUTO" and component="X"/"T" loads; a bluetooth
+    experiment with conversion="Int16LittleEndian"/"Float32BigEndian"/"HEXADECIMAL"/
+    "BYTEARRAY" loads; a bogus conversion is still rejected; and every bundled
+    bluetooth experiment (covering all conversion functions) still loads. iOS not
+    yet changed.
   summary: >-
     The same file is accepted by one app and not the other purely because of
-    capitalisation. Note that Android is not consistent with itself either: it
-    lowercases depth/mode and camera/feature but not sensor/rateStrategy or
-    camera/aeStrategy, which use valueOf and a case-sensitive switch. Like
-    input-invalid-enum-handling this wants a single rule for the whole format
-    rather than an answer per attribute.
+    capitalisation. Android now folds case for the whole format - every enumerated
+    attribute value, the output component/input as mapping names, and the bluetooth
+    conversion-function names - while iOS still matches the raw string everywhere.
+    The gap between the platforms is therefore wider than the original entry
+    suggested, and closing it on iOS is a format-wide change, not a per-attribute one.
 - id: input-output-component-validation
   title: Validation of the component attribute on input outputs
   area: file-format
@@ -749,7 +870,7 @@
 - id: android-unofficial-attributes
   title: Attributes in the Android parser that are not part of the format
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Neither is part of the phyphox file format, and both should be removed from
     the Android parser rather than specified or ported. camera/threshold belongs
@@ -759,11 +880,26 @@
     are absent from the specification for that reason.
   affects:
     android: >-
-      Accepts camera/threshold (default 0.5, passed to the camera's threshold
-      analyser) and edit/editable (default true)
-      (PhyphoxFile.java, inputBlockParser and viewBlockParser).
+      Removed on the development branch (2026-08). For camera/threshold the whole
+      untested threshold analyser was removed, not just the attribute: the camera
+      no longer offers a threshold output component either, so Android now has
+      nothing where iOS has nothing (ThresholdAnalyzer deleted; the threshold
+      output slot dropped from the camera output mapping and the CameraInput buffer
+      indices renumbered; PhyphoxFile.java, CameraInput.kt,
+      AnalyzingOpenGLRenderer.java). edit/editable is no longer read, so the edit
+      element is always editable, its former default (PhyphoxFile.java,
+      viewBlockParser). The released app still has both. An unknown attribute is
+      silently ignored, so a file setting editable still loads; a file that named
+      the camera threshold *output* would now fail to load, but none does.
     ios: >-
-      Accepts neither.
+      Has neither: no threshold analyser or output, and no editable attribute.
+  verified: >-
+    Android removal verified on hardware 2026-08-08 (development build, Pixel 9
+    Pro): camera-luminance loads and its exposure outputs, which shifted index when
+    the threshold slot was removed, still carry correct data (shutterSpeed 0.067 s,
+    iso 6400, aperture f/1.68); spectroscopy (pixelPosition, the last output) loads;
+    an edit element with editable="false" loads with the attribute ignored. No
+    bundled experiment uses the camera threshold output or the editable attribute.
   summary: >-
     Two attributes exist only because implementation reached the parser ahead of
     a decision to ship the feature. They are documented nowhere, unlikely to be
@@ -952,7 +1088,7 @@
 - id: android-info-batterylevel-as-optional
   title: The info module's batteryLevel output does not require as on Android
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     The as attribute is required, as the documentation states and as every other
     output of the module already demands. Android's mapping table has
@@ -960,11 +1096,18 @@
     unnamed output is not silently taken to be the battery level.
   affects:
     android: >-
-      asRequired = false for batteryLevel, so an output carrying no as attribute
-      is assigned to it (PhyphoxFile.java, analysisBlockParser, case "info").
+      Fixed on the development branch (2026-08): asRequired = true for
+      batteryLevel like every other info output, so an output without an as
+      attribute is rejected rather than assigned to the battery level
+      (PhyphoxFile.java, analysisBlockParser, case "info"). The released app
+      still assigns an unnamed output to batteryLevel.
     ios: >-
       Matches batteryLevel by name only; an unnamed output is not assigned to it
       (InfoAnalysis.swift).
+  verified: >-
+    Android fix verified on hardware 2026-08-08 (development build, Pixel 9 Pro):
+    an info module with an unnamed output is refused ("The non-mapped output could
+    not be matched."), while an output with as="batteryLevel" loads.
   summary: >-
     batteryLevel is the only output of the info module that Android will accept
     without an as attribute, which the documentation does not permit and iOS does
@@ -974,36 +1117,70 @@
     documented behaviour is what both should do.
 
 - id: network-mqtts-unofficial
-  title: The TLS MQTT services are an unofficial Android-only addition
+  title: MQTT services, reimplemented dependency-free and to be brought to parity
   area: file-format
   status: decided
   canonical: >-
-    mqtts/csv and mqtts/json are not part of the phyphox file format. They were
-    contributed by a user for Android alone, have no iOS counterpart and are
-    barely tested, so the feature is not considered complete. They are
-    undocumented for that reason and are absent from the specification. Whether
-    to finish them - which would mean an iOS implementation and documentation -
-    or to remove them is open; what is settled is that they are not something an
-    experiment author should rely on today.
+    The MQTT services are kept and finished rather than removed (maintainer
+    decision 2026-08). Both platforms provide all four - mqtt/csv, mqtt/json,
+    mqtts/csv, mqtts/json - backed by a from-scratch MQTT 3.1.1 client with no
+    external dependency (Android previously used the Eclipse Paho / hannesa2
+    "paho.mqtt.android" fork, which wrapped the archived Paho Android Service and
+    is in maintenance mode; iOS lacked the TLS variants entirely). Three settled
+    changes to what the services do: (1) delivery is QoS 0, or QoS 1 when the
+    persistence attribute is set - the former QoS 2 "persistence" mode with offline
+    buffering is dropped, since phyphox does not need exactly-once and QoS 1 with
+    the app's own buffering covers the reliability case; (2) the mqtts custom CA is a
+    PEM or DER certificate (.pem/.crt/.cer/.der) named by an optional certificate
+    attribute and delivered as an ordinary experiment resource in the res directory -
+    so it is copied along with the experiment when saved to the collection, and
+    multiple experiments can carry different certificates. It is used as a trust
+    anchor for the broker's certificate chain with NO host-name verification. If the
+    attribute is omitted the system trust store is used; if it names a file that
+    cannot be loaded, the connection is refused rather than silently falling back.
+    The mqtts services default to port 8883 (plain mqtt to 1883). This replaces the
+    Android-only BKS truststore, which could never have worked on iOS. (3) The
+    services stay MQTT 3.1.1 - MQTT 5 buys nothing for this publish/subscribe use and
+    would break older brokers. The services, the username/password, persistence and
+    certificate attributes, and this certificate mechanism are now documented
+    (docs/file-format/network-connections.md, spec/network.yml); the documentation
+    stands but marks the feature Android-only until iOS conforms.
   affects:
     android: >-
-      Accepts service="mqtts/csv" and service="mqtts/json", together with the
-      username and password attributes they require and the persistence
-      attribute, which also applies to mqtt/json
+      Reimplemented on the development branch (2026-08) with a from-scratch client
+      (NetworkConnection/Mqtt/MqttClient.java: CONNECT, PUBLISH, SUBSCRIBE, PINGREQ,
+      DISCONNECT; QoS 0 and 1; TLS via the platform SSL socket). The Paho/hannesa2
+      dependency was removed. persistence now selects QoS 1; the TLS certificate is
+      named by the certificate attribute and resolved as an experiment resource from
+      the res directory, the same way image resources are (so it survives saving to
+      the collection - MqttHelper.buildSslSocketFactory, PhyphoxFile adds it to
+      experiment.resources). Accepts the username,
+      password and persistence attributes; username and password are also accepted
+      as optional on the plain mqtt services, since brokers commonly require
+      authentication without TLS - previously they were silently ignored there
       (PhyphoxFile.java, networkBlockParser).
     ios: >-
       Accepts http/get, http/post, mqtt/csv and mqtt/json only, and throws
       "Unkown network service" for anything else. It does not declare username,
-      password or persistence at all
-      (NetworkElementHandler.swift).
+      password or persistence at all (NetworkElementHandler.swift). Needs the same
+      from-scratch MQTT 3.1.1 client: the mqtts services, username/password auth,
+      persistence as QoS 1, and a bundled PEM certificate for the custom CA.
+  verified: >-
+    Android verified on hardware 2026-08-09 (development build, Pixel 9 Pro)
+    against a local broker, cross-checked with the mosquitto client tools:
+    mqtt/json publishes JSON (QoS 0 and, with persistence, QoS 1) and receives
+    into a buffer; mqtts/json connects over TLS with a bundled self-signed PEM and
+    username/password, and both publishes and receives over TLS. Connection-error
+    reporting and exponential-backoff reconnect were observed against an
+    unreachable public broker. iOS not yet implemented.
   summary: >-
-    An experiment talking to an MQTT broker over TLS works on Android and fails
-    to load on iOS, which names the service it does not know - a loud failure,
-    and the right one for something that was never finished. The services, and
-    the username, password and persistence attributes they need, arrived on
-    Android in 2021 as a user contribution and stopped there. Recorded rather
-    than left in the source unremarked, so that anyone finding mqtts in the
-    Android parser or in an experiment file knows what it is.
+    Historically mqtts/csv and mqtts/json (plus username, password and persistence)
+    were an Android-only, barely-tested user contribution on top of the Paho fork,
+    and its TLS certificate was not even being delivered. The maintainer decision is
+    to finish the feature rather than remove it: a from-scratch, dependency-free
+    MQTT 3.1.1 client, QoS 1 instead of QoS 2, PEM instead of BKS. Android is done;
+    iOS has to implement the same before the services can be documented as part of
+    the format.
 
 - id: container-type-unvalidated
   title: The type attribute of a data container is validated only on Android
@@ -1045,16 +1222,21 @@
     keeps the documented default of 3, which both apps already do.
   affects:
     android: >-
-      Parses the attribute with a sentinel default of 0 and applies it only if
-      it is positive (PhyphoxFile.java, case "gausssmooth"); anything else
-      leaves the constructor's sigma of 3. The documented default of 3 is
-      therefore what you get for sigma="0", sigma="-1" and for omitting the
-      attribute alike.
+      Fixed on the development branch (2026-08): a present sigma of zero or less
+      is rejected, naming the attribute; an absent attribute still keeps the
+      module's default of 3 (PhyphoxFile.java, case "gausssmooth"). The released
+      app instead treats sigma="0"/"-1" as "not set" and smooths with sigma 3.
     ios: >-
       Takes the attribute verbatim, defaulting to 3 only when it is absent
       (GaussSmoothAnalysis.swift). sigma="0" makes the kernel's normalisation
       divide by zero, so the module writes NaN for every value; a negative
-      sigma gives a zero-width kernel.
+      sigma gives a zero-width kernel. iOS still has to reject a non-positive
+      sigma.
+  verified: >-
+    Android rejection verified on hardware 2026-08-08 (development build, Pixel 9
+    Pro): sigma="-1" refuses the file naming the attribute ("Attribute \"sigma\"
+    of gausssmooth must be greater than zero."), while sigma="2.5" and an omitted
+    sigma both load. iOS not yet changed (Mac task #30).
   summary: >-
     Both apps default the smoothing width to 3 when the attribute is omitted,
     which is what the documentation says. They differ on a value that is

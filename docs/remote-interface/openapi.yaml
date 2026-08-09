@@ -48,7 +48,33 @@ info:
     all. See the inconsistencies noted on this page for where that is not yet
     true.
 
-    Every endpoint accepts POST as well as GET.
+    ### Parameters, and POST bodies
+
+    Every endpoint accepts **POST** as well as GET, and takes the same parameters
+    either way. A POST may carry those parameters in its body in one of two
+    formats, chosen by the request's `Content-Type`:
+
+    - `application/json` — a flat JSON object, e.g.
+      `{"cmd": "set", "buffer": "height", "value": 42}`. This is the natural form
+      for a script.
+    - `application/x-www-form-urlencoded` — the classic HTML form encoding, the
+      same `name=value&…` you would put in a query string.
+
+    Two rules keep this unambiguous:
+
+    - **Every value is a string.** The whole API is string-valued — a `/get` value
+      like `"3|t"` or `"full"`, a `set` value that is parsed as a number. A JSON
+      scalar is coerced to its string form before it is used, so
+      `{"value": 42}` and `{"value": "42"}` mean the same thing. A JSON body is a
+      convenience, not a second type system; nesting is not part of the format.
+      (A JSON body must still be valid JSON: a bare `Infinity`/`NaN` or a numeric
+      literal too large to represent is a malformed body and answered with `400`.)
+    - **Body parameters win over query parameters** of the same name, so
+      `POST /control?cmd=stop` with a body of `{"cmd": "start"}` starts the
+      measurement.
+
+    A malformed request body (JSON that does not parse) is answered with `400`.
+    Endpoints that take no parameters ignore a body.
 
     **The server is single-threaded and slow.** The bundled web interface
     deliberately serialises its requests and delays the next one by 10 ms. Clients
@@ -200,10 +226,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GetResponse"
+        "400":
+          description: |
+            The request was malformed: a threshold that does not parse as a
+            number, or a threshold referencing a buffer that does not exist. (An
+            unknown buffer in the *requested* position is skipped, not rejected.)
       x-phyphox-inconsistency:
         - get-no-parameters
         - get-nonfinite-single-value
         - get-unknown-reference-buffer
+        - get-invalid-threshold
+        - get-negative-threshold
         - get-force-full-update
 
   /control:
@@ -242,9 +275,10 @@ paths:
           in: query
           required: false
           description: |
-            `cmd=set`: the value to write. Must parse as a number and must not be
-            NaN; a buffer holds NaN when empty, so writing it explicitly is
-            treated as a mistake.
+            `cmd=set`: the value to write. Must parse as a number and must be
+            finite; NaN and infinity are rejected. A buffer holds NaN when empty,
+            so writing it explicitly is treated as a mistake, and `/get` reports
+            any non-finite value as `null` so an infinity could not be read back.
           schema:
             type: number
         - name: element

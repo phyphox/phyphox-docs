@@ -204,6 +204,8 @@ The MQTT/CSV service connects to an MQTT broker at the given address and will se
 
 If a `receiveTopic` is set, it will subscribe to this topic (or set of topics if MQTT-typical wildcards are used) and will treat the payload of each received message as response (note that there is no mechanism to assign responses to requests - it is very likely that this received message was received before a message was sent).
 
+If the broker requires authentication, set the optional `username` and `password` attributes (this applies to `mqtt/json` as well). Note that on a plain (non-TLS) connection these credentials travel unencrypted; use the mqtts services if that matters.
+
 Example:
 
 ```xml
@@ -241,6 +243,43 @@ Example:
 In this setup, phyphox would connect to "some.service.com/your/endpoint:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" and the last value from "h" to the topic "phone/data". This would be done in a message with a JSON object as payload in a form like {"pressure":\[1.1,1.2,1.3\],"altitude":42.0}. Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
 
 Note that if you want to receive JSON data via MQTT, you have to pick the conversion "json" (see "Response conversion"). If you do not want to send anything, but only receive JSON, you should use the "mqtt/csv" service without setting any "send" and trigger it periodically. If you use "mqtt/json" without setting any "send", it will still send an empty JSON object.
+
+### MQTTS/CSV and MQTTS/JSON (MQTT over TLS)
+
+{{inconsistency:network-mqtts-unofficial}}
+
+Attribute `service="mqtts/csv"` or `service="mqtts/json"`
+
+These behave exactly like `mqtt/csv` and `mqtt/json` respectively, but connect to the broker over a TLS-encrypted connection. Two further attributes:
+
+- `username` — the user name for the broker connection. For the mqtts services it is also used as the MQTT client id.
+- `password` — the password for the broker connection.
+
+Both are mandatory for the mqtts services (and optional for the plain mqtt services, see above). If the address does not name a port, the standard MQTT-over-TLS port 8883 is used (the plain `mqtt/*` services default to 1883).
+
+#### Certificate
+
+To trust a broker whose certificate is not signed by a public certificate authority — for example a self-hosted broker with a self-signed or private-CA certificate — provide the certificate as an experiment resource and name it with the optional `certificate` attribute:
+
+- Put a certificate file in **PEM or DER** format (extension `.pem`, `.crt`, `.cer` or `.der`) in the experiment's `res` directory, exactly like an image resource. Set `certificate="broker-ca.pem"` on the connection to reference it by file name. Because it is a resource, it is bundled in the experiment zip and, when the user saves the experiment to their collection, copied along with it — so it keeps working after saving.
+- The certificate is used as a trusted anchor: the broker's certificate is accepted if its chain validates against it. If the `certificate` attribute is omitted, the device's system certificate authorities are used instead. If it is set but the file cannot be loaded, the connection is not made (rather than silently falling back to a different trust).
+- The broker's host name is **not** verified against the certificate; trust rests entirely on the certificate chain. This is intended for a pinned, self-hosted broker.
+
+Example (the experiment is packaged as a zip whose `res` directory contains `broker-ca.pem`):
+
+```xml
+    <connection privacy="..." service="mqtts/json" address="some.service.com:8883"
+                username="phone1" password="secret" certificate="broker-ca.pem"
+                sendTopic="phone/data" receiveTopic="fancySensor/value"
+                conversion="json" interval="1">
+        <send keep="true" id="pressure" type="buffer" datatype="array">p</send>
+        <receive append="true">sensordata</receive>
+    </connection>
+```
+
+### Persistence and delivery quality
+
+The `persistence` attribute applies to `mqtt/json` and `mqtts/json`. When set to `true`, messages are published with MQTT quality-of-service level 1 (at-least-once): the broker acknowledges every message while the connection is up. When it is `false` (the default), messages are published with QoS 0 (at-most-once, fire-and-forget). There is no offline buffering — a message generated while the connection is down is not resent.
 
 ## Response conversions
 
