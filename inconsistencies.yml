@@ -31,7 +31,7 @@
 - id: control-post
   title: POST on every endpoint, with a JSON or form-encoded body
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Every endpoint accepts POST as well as GET, taking the same parameters either
     way. There is no reason to restrict them, and a client that finds GET awkward -
@@ -58,10 +58,14 @@
       requestParamsList(), hasJsonBody()). The released app accepts POST on /control
       only and only as form/query, with no JSON support.
     ios: >-
-      Registers /control for GET only, and has no POST body handling at all
-      (ExperimentWebServer.swift, addHandler(forMethod: "GET", pathRegex: "/control")).
-      Needs POST on every endpoint accepting both a JSON and a form-encoded body,
-      with the string-coercion and body-precedence rules above.
+      Implemented on the development branch (2026-08): every endpoint, including
+      the static files, is registered for GET and POST, and requestParams merges
+      a JSON or form-encoded body (chosen by Content-Type) with the query, body
+      first, using the same string-coercion rules as Android; a malformed or
+      oversized body answers 400 (ExperimentWebServer.swift,
+      addGETPOSTHandler/requestParams; pinned by
+      WebServerExportFormatTests.testPostBodies). The released app accepts GET
+      only.
   verified: >-
     Android side verified on hardware 2026-08-08 (development build, Pixel 9 Pro),
     on accelerometer.phyphox and motion_stopwatch.phyphox: cmd=set via JSON number,
@@ -69,12 +73,19 @@
     wins over a conflicting query cmd in both directions (start over stop and stop
     over start); a threshold+reference /get returns identical partial data via GET
     query and JSON body; a malformed JSON body and a bare Infinity/NaN both answer
-    400; GET is unaffected. iOS not yet implemented.
+    400; GET is unaffected. The iOS side is verified by an automated test
+    against the running server (JSON scalar coercion, form body, body-over-query
+    precedence, malformed-body 400, body ignored by a parameterless endpoint),
+    not yet by a cross-platform hardware comparison.
+    The contract test does not cover this entry at all: it issues GET
+    exclusively, so the POST surface has to be verified by hand or by the
+    platform test suites.
   summary: >-
     Historically Android accepted POST on /control (by accident) and iOS accepted
     GET only. POST is now defined properly for the whole API, with a JSON or
-    form-encoded body: Android implements it on the development branch, iOS still
-    has to. The bundled web interface issues GET exclusively, so this does not
+    form-encoded body: Android implements it on both development branches
+    (Android, and iOS since 2026-08), so the entry stays only until the
+    releases carrying it ship. The bundled web interface issues GET exclusively, so this does not
     affect normal use - but it is what lets a script drive the API in the REST style
     it expects.
 
@@ -107,6 +118,11 @@
     iPhone15,2, App Store build). The iOS fix is verified by an automated
     test against the running server, not yet by a cross-platform hardware
     comparison.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the divergence no longer
+    reproduces.
   summary: >-
     A web page served from anywhere else could read the API of an Android phone
     but not of an iPhone, because only Android sent a CORS header. The iOS
@@ -118,7 +134,7 @@
 - id: get-no-parameters
   title: /get without any parameters
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Allowed and successful. /get with no parameters returns 200 with an empty buffer
     object and a normal status object, which is what Android does. Polling for status
@@ -129,23 +145,32 @@
       Returns 200 with an empty buffer object and a normal status object
       (RemoteServer.java, getBufferRequests() returns an empty set).
     ios: >-
-      Returns 400 with an empty body
-      (ExperimentWebServer.swift, "guard let queryString = request.url.query").
+      Fixed on the development branch (2026-08): /get without parameters answers
+      200 with an empty buffer object and a normal status object
+      (ExperimentWebServer.swift; pinned by WebServerConformanceTests). The
+      released app answers 400 with an empty body.
   verified: >-
     Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
     Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
     iPhone15,2, App Store build). The iOS WebServer sources are identical
     on master and development, so the store build behaves as the
     development branch here.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the divergence no longer
+    reproduces.
   summary: >-
-    Requesting /get with no buffers - the natural way to poll only the experiment
-    status, for instance to watch for a session change - works on Android and
-    fails on iOS.
+    Requesting /get with no buffers - the natural way to poll only the
+    experiment status, for instance to watch for a session change - worked on
+    Android and failed with 400 on iOS. The iOS development branch now answers
+    200 with an empty buffer object like Android, so the entry stays until the
+    release carrying the fix is out.
 
 - id: get-nonfinite-single-value
   title: NaN and infinity in a single-value response
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     null, in every update mode. Android already behaves this way; iOS must stop
     emitting the string "nan" in single-value mode. See the note on non-finite values
@@ -156,20 +181,21 @@
       Emits JSON null for a non-finite value in every update mode
       (RemoteServer.java, buildBuffer()).
     ios: >-
-      Emits JSON null in full and partial mode, but a JSON *string* ("nan",
-      "inf", "-inf") for a non-finite last value in single mode
-      (ExperimentWebServer.swift, "dict[\"buffer\"] = [String(v)]").
+      Fixed on the development branch (2026-08): a non-finite last value answers
+      null in single mode like in every other mode (ExperimentWebServer.swift;
+      pinned by WebServerConformanceTests). The released app answers the JSON
+      string "nan"/"inf"/"-inf".
   summary: >-
-    A buffer whose last value is NaN or infinite comes back as [null] from Android
-    and as ["nan"] from iOS. A client that parses the array as numbers throws on
-    iOS. Both platforms agree on null everywhere else, which is what makes this
-    easy to miss - it only shows up in single-value mode, and only once a
-    non-finite value occurs.
+    A buffer whose last value is NaN or infinite came back as [null] from
+    Android and as ["nan"] from iOS, so a client parsing the array as numbers
+    threw on iOS - and only in single-value mode, which made it easy to miss.
+    The iOS development branch now answers null in every update mode like
+    Android; the entry stays until the release carrying the fix is out.
 
 - id: get-force-full-update
   title: Which requests are upgraded to a full update after a clear
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Upgrade every requested buffer, which is the safe option and what Android does.
     After a clear the client's data is stale whatever it asked for, so telling it
@@ -183,22 +209,22 @@
       full update, whatever the request asked for
       (RemoteServer.java, parseBufferRequest(), "value.equals(\"full\") || forceFullUpdate").
     ios: >-
-      Upgrades only those buffers whose requested value is the literal string
-      "partial"
-      (ExperimentWebServer.swift, "value == \"full\" || (value == \"partial\" && self.forceFullUpdate)").
+      Fixed on the development branch (2026-08): after a clear, every requested
+      buffer is upgraded to a full update whatever its request asked for
+      (ExperimentWebServer.swift; pinned by WebServerConformanceTests). The
+      released app upgrades only requests carrying the literal value "partial".
   summary: >-
-    After the experiment data is cleared the server has to tell clients to discard
-    what they hold, which it does by answering the next request with a full
-    update. The two apps disagree on which requests get that treatment, and the
-    iOS condition only triggers for the undocumented literal value "partial",
-    which the bundled interface happens to send. A threshold-based client - the
-    form this API documents - is never told about the clear on iOS and keeps
-    stale data.
+    After the data was cleared, Android upgraded every requested buffer of the
+    next /get to a full update while iOS upgraded only those requested with the
+    literal value "partial" - so a threshold-based client, the form the
+    documentation teaches, was never told about the clear on iOS. The iOS
+    development branch now upgrades every requested buffer like Android; the
+    entry stays until the release carrying the fix is out.
 
 - id: get-invalid-threshold
   title: /get with a threshold that is not a number
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Reject the request with 400 (maintainer decision 2026-08-09). A threshold that
     does not parse as a number is a malformed request, consistent with how a
@@ -211,21 +237,23 @@
       before, the number parse threw and the request failed with a server error
       (RemoteServer.java, handleGet()).
     ios: >-
-      Parses the threshold with "Double(...) ?? -infinity", so an unparseable
-      value silently requests everything: the whole buffer is returned, labelled
-      updateMode "partial" (ExperimentWebServer.swift).
+      Fixed on the development branch (2026-08): an unparseable threshold
+      answers 400 (ExperimentWebServer.swift; pinned by
+      WebServerConformanceTests). The released app treats it as -infinity and
+      returns the whole buffer labelled "partial".
   verified: >-
     Android verified on hardware 2026-08-09 (development build, Pixel 9 Pro):
     "?accX=notanumber" answers 400. iOS not yet changed.
   summary: >-
-    A request like /get?buf=abc is rejected with 400 on Android (previously a
-    server error) and silently answered with the full buffer on iOS. The 400 is
-    canonical; the spec documents it, and iOS has to follow.
+    A threshold that does not parse as a number - /get?buf=abc - answered 400 on
+    Android but silently returned the whole buffer labelled "partial" on iOS,
+    hiding the client's mistake. The iOS development branch now answers 400 as
+    decided; the entry stays until the release carrying the fix is out.
 
 - id: get-negative-threshold
   title: /get with a negative threshold degrades instead of filtering
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     A negative threshold filters like any other (maintainer decision 2026-08-09):
     the 8-digit precision nudge that both implementations apply must derive its
@@ -240,20 +268,23 @@
       filtered correctly (RemoteServer.java, parseBufferRequest()). Before, the
       NaN threshold made the request degrade to a single-value response.
     ios: >-
-      Still computes pow(10, floor(log10(threshold/1e7))) on the raw value, so a
-      negative threshold becomes NaN and the filter "v > NaN" drops everything:
-      the response is a "partial" update with an empty buffer
-      (ExperimentWebServer.swift). Needs the same abs() fix.
+      Fixed on the development branch (2026-08): the precision nudge derives its
+      magnitude from the absolute value of the threshold, so a negative
+      threshold filters like any other (ExperimentWebServer.swift; pinned by
+      WebServerConformanceTests). The released app computes log10 of the raw
+      value and answers an empty "partial" for a negative threshold.
   verified: >-
     Android fix verified on hardware 2026-08-09 (development build, Pixel 9 Pro):
     "?accX=-100" answers a partial update with the full history, "?accX=-0.5"
     filters correctly (only values above -0.5), a positive threshold is
     unaffected. iOS not yet changed.
   summary: >-
-    Thresholds are usually positive (a time axis), which is why nobody noticed
-    that a negative one breaks: Android answered a single value, iOS an empty
-    partial update - both silently, in two different ways. The nudge formula just
-    needed an abs(). Android is fixed; iOS needs the same one-liner.
+    Both implementations nudge a threshold by its eighth significant digit
+    before comparing, and both computed that nudge with log10 of the raw value,
+    which is NaN for a negative threshold. Android answered the full buffer, iOS
+    an empty partial one. Both now derive the magnitude from the absolute value,
+    so a negative threshold filters like any other; the entry stays until the
+    releases carrying the fix are out.
 
 - id: get-unknown-reference-buffer
   title: Threshold referencing a buffer that does not exist
@@ -350,6 +381,11 @@
     iPhone15,2, App Store build). Android fix verified on hardware 2026-08-08
     (development build, Pixel 9 Pro): value=Infinity and value=NaN both answer
     {"result": false}, value=1.5 answers {"result": true}.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the divergence no longer
+    reproduces.
   summary: >-
     Both apps refuse to write NaN, because a buffer holds NaN when empty and
     writing it explicitly is almost always a mistake. They disagreed about
@@ -384,6 +420,11 @@
     iPhone15,2, App Store build). Android fix verified on hardware 2026-08-08
     (development build, Pixel 9 Pro): cmd=set with buffer=nosuchbuffer answers
     {"result": false}.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the divergence no longer
+    reproduces.
   summary: >-
     A typo in the buffer name gets a clean negative result on iOS and used to fail
     the request on Android; Android now answers {"result": false} too. The result
@@ -393,7 +434,7 @@
 - id: control-trigger-out-of-range
   title: cmd=trigger with an out-of-range element index
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Reject a bad request cleanly; never let one reach an unhandled exception. A
     malformed or out-of-range request must produce a documented status and body -
@@ -412,24 +453,33 @@
       perform, where iOS answers true - the canonical asks for false, so iOS is the
       side that still has to change.
     ios: >-
-      Bounds-checks the index, does nothing if it is out of range or names a
-      non-button element, and answers {"result": true} either way
-      (ExperimentWebServer.swift, "if (self.htmlId2ViewElement.count > elementIndex)").
+      Fixed on the development branch (2026-08): an out-of-range or non-numeric
+      element index, or one naming an element that is not a button, answers
+      {"result": false} (ExperimentWebServer.swift; pinned by
+      WebServerConformanceTests). The released app answers {"result": true}
+      without performing anything.
   verified: >-
     Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
     Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
     iPhone15,2, App Store build). The iOS WebServer sources are identical
     on master and development, so the store build behaves as the
     development branch here.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the divergence no longer
+    reproduces.
   summary: >-
-    Neither behaviour is right: Android fails the request, and iOS reports success
-    for a trigger it did not perform. A client cannot tell from either response
-    whether the element was actually activated.
+    A trigger request naming an element index that is out of range, non-numeric,
+    or not a button was answered {"result": true} by iOS although nothing was
+    triggered, and threw on Android. Both development branches now answer
+    {"result": false}; the entry stays until the releases carrying the fix are
+    out.
 
 - id: export-invalid-format
   title: /export with a format index that is out of range
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Reject a bad request cleanly; never let one reach an unhandled exception. A
     malformed or out-of-range request must produce a documented status and body -
@@ -446,16 +496,24 @@
       format also answers 200 with {"error": "Invalid format."} instead of throwing
       in Integer.parseInt (RemoteServer.java, handleExport()).
     ios: >-
-      Indexes the format list unchecked, so an out-of-range index traps and
-      terminates the app; a missing or non-numeric format is treated as index 0
-      (Excel)
-      (WebServerUtilities.swift, "exportTypes[Int(str) ?? 0].1").
+      Fixed on the development branch (2026-08): mapFormatString bounds-checks
+      the index and the /export handler answers the same error objects as
+      Android - {"error": "Format out of range."} for an out-of-range index,
+      {"error": "Invalid format."} for a missing or non-numeric format
+      (WebServerUtilities.swift, ExperimentWebServer.swift; pinned by
+      WebServerExportFormatTests). The released app still traps on an
+      out-of-range index and silently exports Excel for a malformed one.
   verified: >-
     Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
     Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
     iPhone15,2, App Store build). The iOS WebServer sources are identical
     on master and development, so the store build behaves as the
     development branch here.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the divergence no longer
+    reproduces.
   summary: >-
     "/export?format=99" is an error message on Android and a crash of the whole
     app on iOS - reachable by anyone who can reach the phone, since the API has no
@@ -518,7 +576,7 @@
 - id: res-fallback
   title: Fallback for resources not shipped with the experiment
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Android's behaviour, which is a recent fix and is planned for iOS as well: look
     in the experiment's resource folder, then fall back to the images bundled with
@@ -532,11 +590,13 @@
       bundled with the app, matching the fallback of the image view element
       (RemoteServer.java, handleRes()).
     ios: >-
-      Implements the fallback on the development branch (2026-08): looks in the
-      experiment's resource folder, then falls back to the bundled images
-      (ExperimentWebServer.swift, "/res" handler via Experiment.resolveResource).
-      Still reports "No file requested." for a missing src parameter, which the
-      canonical behaviour asks it to drop.
+      Fixed on the development branch (2026-08): resolves against the
+      experiment's resource folder with a fallback to the bundled images, and a
+      missing src parameter answers the same {"error": "Unknown file."} as an
+      unknown one (ExperimentWebServer.swift, "/res" handler via
+      Experiment.resolveResource; pinned by WebServerConformanceTests). The
+      released app has no fallback and answers "No file requested." for a
+      missing src.
   verified: >-
     Partly confirmed on hardware 2026-08-02 with the Roller Coaster experiment on
     Android 1.2.1-beta2 and iOS 1.2.0. The differing error messages were
@@ -552,17 +612,24 @@
     development branch 2026-08). Verified on Android hardware 2026-08-07: a
     declared src of "../../../.../shared_prefs/...xml" is refused with
     "Unknown file." while a bundled "hue.png" is served.
+    Cross-platform run of tools/contract_test.py on 2026-08-09 (21 probes,
+    including --allow-control), Android 1.2.1-beta3 (build 1020103, Pixel 9 Pro,
+    from development) against iOS 1.2.0 (build 17426, iPhone15,2, from
+    development), both on accelerometer.phyphox: the error-message divergence no
+    longer reproduces. The fallback itself was again not exercised - the probed
+    experiment carries no image resource - so that half remains verified by the
+    iOS unit tests only.
   summary: >-
-    iOS distinguishes a missing src parameter ("No file requested.") from an
-    unknown one ("Unknown file."), where Android answers "Unknown file." to both -
-    so a client cannot tell a malformed request from a wrong file name on
-    Android. Separately, Android falls back to images bundled with the app when a
-    resource is not in the experiment's own folder and iOS does not, which would
-    show up for an experiment naming a resource it does not ship.
+    Android resolves a resource against the experiment's folder with a fallback
+    to the images bundled with the app; iOS had no fallback and additionally
+    distinguished a missing src parameter ("No file requested.") from an unknown
+    one ("Unknown file."). The iOS development branch implements the fallback
+    and answers "Unknown file." in both cases like Android; the entry stays
+    until the release carrying the fix is out.
 - id: meta-missing-value-representation
   title: How /meta reports a value the device cannot supply
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     Omit the key. Availability differs enormously between devices and platforms, and
     answering with a mass of nulls misrepresents that as data. A client must expect
@@ -574,8 +641,9 @@
       key, so e.g. depthFrontResolution and depthFrontRate are simply absent on a
       device without a depth sensor (RemoteServer.java, handleMeta()).
     ios: >-
-      Includes the key with a JSON null, e.g. "deviceBoard": null,
-      "depthBackRate": null (ExperimentWebServer.swift, "/meta" handler).
+      Fixed on the development branch (2026-08): an unavailable value omits its
+      key entirely (ExperimentWebServer.swift, "/meta" handler; pinned by
+      WebServerConformanceTests). The released app answers JSON null entries.
   verified: >-
     Confirmed on hardware 2026-08-02: Android 1.2.1-beta2 (build 1020102,
     Pixel 9 Pro, from development) against iOS 1.2.0 (build 17272,
@@ -583,12 +651,11 @@
     on master and development, so the store build behaves as the
     development branch here.
   summary: >-
-    A client cannot tell "this device has no such value" from "this app version
-    does not report it", because the two platforms express the first case
-    differently and neither uses the empty string. Observed on real devices: an
-    Android phone omitted depthFrontResolution, depthFrontRate,
-    depthBackResolution and depthBackRate; an iPhone sent null for those plus
-    deviceBaseOS, deviceBoard, deviceCodename and deviceManufacturer.
+    Metadata values a device cannot supply were answered as JSON null entries by
+    iOS while Android omitted the keys, so a client saw a mass of nulls
+    misrepresenting missing capability as data. The iOS development branch now
+    omits unavailable keys like Android; the entry stays until the release
+    carrying the fix is out.
 
 - id: cors-error-paths
   title: Android drops the CORS header on requests that throw
@@ -632,7 +699,7 @@
 - id: res-content-type
   title: Content-Type of a resource served by /res
   area: remote-interface
-  status: decided
+  status: fixed
   canonical: >-
     application/octet-stream. phyphox should not attempt file-type detection: it
     would mean depending on the host system's type database, which differs between
@@ -650,15 +717,15 @@
       application/octet-stream for every resource whatever its type
       (RemoteServer.java, handleRes()).
     ios: >-
-      GCDWebServerFileResponse derives the type from the file extension, so a
-      PNG is served as image/png
-      (ExperimentWebServer.swift, "/res" handler).
+      Fixed on the development branch (2026-08): every resource is served as
+      application/octet-stream (ExperimentWebServer.swift, "/res" handler). The
+      released app derives the type from the file extension.
   summary: >-
-    The same image comes back with a different Content-Type from the two apps.
-    The bundled interface is unaffected because browsers sniff images inside an
-    <img> tag regardless, but any other client - one saving the file, or
-    deciding how to render it from the header - sees a generic binary blob from
-    Android and a typed image from iOS.
+    Android serves every resource as application/octet-stream while iOS derived
+    the Content-Type from the file extension, introducing a dependence on the
+    host system's type database. The iOS development branch now answers
+    application/octet-stream like Android; the entry stays until the release
+    carrying the fix is out.
 
 - id: input-invalid-enum-handling
   title: What happens when an enumerated attribute has an invalid value
@@ -976,7 +1043,7 @@
 - id: ios-hyperbolic-modules-compute-trig
   title: sinh, cosh and tanh compute sin, cos and tan on iOS
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Android is correct: sinh, cosh and tanh compute the hyperbolic functions, as
     documented. The iOS classMap entries are a bug and must point at
@@ -987,15 +1054,16 @@
       Correct. analysisBlockParser maps sinh, cosh and tanh to their own
       implementations (PhyphoxFile.java).
     ios: >-
-      Wrong. ExperimentAnalysisFactory.classMap contains
-      "sinh": SinAnalysis.self, "cosh": CosAnalysis.self and
-      "tanh": TanAnalysis.self, so each hyperbolic module runs the ordinary
-      trigonometric one. SinhAnalysis, CoshAnalysis and TanhAnalysis exist and
-      correctly call vvsinh, vvcosh and vvtanh, but are referenced nowhere
-      outside their own files.
+      Fixed on the development branch (2026-08): classMap now maps sinh, cosh
+      and tanh to SinhAnalysis, CoshAnalysis and TanhAnalysis, which call
+      vvsinh, vvcosh and vvtanh; pinned by HyperbolicModuleTests and exercised
+      by the three modules in full-skeleton.phyphox. The released app still
+      computes the trigonometric functions.
   summary: >-
-    An experiment using sinh, cosh or tanh produces silently wrong numbers on
-    iOS: it computes the ordinary trigonometric function instead. There is no
+    An experiment using sinh, cosh or tanh produced silently wrong numbers on
+    the released iOS app: it computes the ordinary trigonometric function
+    instead; the iOS development branch fixes this (2026-08), and the entry
+    stays until the release carrying the fix is out. There is no
     error, nothing in the interface to indicate it, and the result is plausible
     enough to be mistaken for data. Because the substituted modules also honour
     the deg attribute, sinh with deg="true" additionally converts the input from
