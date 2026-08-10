@@ -221,7 +221,7 @@ def _check_spec(entries):
             if ref and ref not in entries:
                 problems.append(f"rules.yml: rule {rule['id']} names unknown "
                                 f"inconsistency {ref}")
-            elif ref and entries[ref].get("status") != "decided":
+            elif ref and entries[ref].get("status") not in ("decided", "fixed"):
                 problems.append(
                     f"rules.yml: rule {rule['id']} states settled behaviour but "
                     f"{ref} is status '{entries[ref].get('status')}' - a rule may "
