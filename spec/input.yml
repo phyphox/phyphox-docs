@@ -212,8 +212,7 @@ elements:
             value: auto
           - value: limit
         summary: How to reconcile the requested rate with what the device offers.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
       - name: average
@@ -344,8 +343,7 @@ elements:
             specific to the sensor. This is currently only used by the
             magnetometer, which encodes its accuracy as 1 low, 2 medium and
             3 high.
-      agreement: divergent
-      inconsistency: input-output-component-validation
+      agreement: agreed
       rules: [output-component-validation]
 
   # ------------------------------------------------------------------ audio --
@@ -399,8 +397,7 @@ elements:
             recording output - mostly when the rate changes, which normally
             only happens if the audio setup changes - so do not clear this
             data container while reading it.
-      agreement: divergent
-      inconsistency: input-output-component-validation
+      agreement: agreed
       rules: [output-component-validation]
 
   # --------------------------------------------------------------- location --
@@ -487,8 +484,7 @@ elements:
           description: >-
             Number of satellites used for this measurement. Not available on
             iOS.
-      agreement: divergent
-      inconsistency: input-output-component-validation
+      agreement: agreed
       rules: [output-component-validation]
 
   # ------------------------------------------------------------------ depth --
@@ -520,8 +516,7 @@ elements:
         values: [closest, weighted, average]
         default: closest
         summary: How to reduce the depth values in the selected region to one number.
-        agreement: divergent
-        inconsistency: input-enum-case-sensitivity
+        agreement: agreed
         rules: [enum-case-insensitive, enum-invalid-value]
 
       - name: x1
@@ -603,8 +598,7 @@ elements:
             Timestamp.
           description: >-
             Timestamp of the frame the depth value came from.
-      agreement: divergent
-      inconsistency: input-output-component-validation
+      agreement: agreed
       rules: [output-component-validation]
 
   # ----------------------------------------------------------------- camera --
@@ -691,8 +685,7 @@ elements:
             Like mean, but never exposes for longer than the frame duration at
             the highest frame rate the camera supports, accepting
             underexposure to keep that rate. See aeFPSTarget.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
       - name: aeFPSTarget
@@ -759,8 +752,7 @@ elements:
             averaged over the selected area.
           spectroscopy: >-
             A spectrum per frame, taken across the selected area.
-        agreement: divergent
-        inconsistency: input-enum-case-sensitivity
+        agreement: agreed
         rules: [enum-case-insensitive, enum-invalid-value]
 
     outputs:
@@ -844,8 +836,7 @@ elements:
           deprecated: true
           superseded_by: the data picker, configured by the graph's output tags
           platforms: [ios]
-      agreement: divergent
-      inconsistency: input-output-component-validation
+      agreement: agreed
       rules: [output-component-validation]
 
   # -------------------------------------------------------------- bluetooth --
@@ -933,7 +924,6 @@ elements:
           BLE hardware addresses, so the criterion cannot be honoured there.
         agreement: platform
         platforms: [android]
-        inconsistency: ble-address-ios-must-reject
       - name: id
         description: >-
           Combines two functions for managing several BLE devices in

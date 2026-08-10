@@ -120,8 +120,7 @@ elements:
         values: [string, base64]
         default: string
         summary: Whether the text is characters or an encoded image.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: color
@@ -305,8 +304,8 @@ elements:
         default: buffer
         summary: >-
           Reserved for future container types. Only "buffer" is valid.
-        agreement: divergent
-        inconsistency: container-type-unvalidated
+        agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: clearGroup
         description: >-
           If set, the buffer is not cleared automatically when the

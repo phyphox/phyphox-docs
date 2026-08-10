@@ -113,8 +113,7 @@ elements:
         values: [left, right, center]
         default: left
         summary: Horizontal alignment.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: bold
         description: >-
@@ -285,9 +284,13 @@ elements:
             [32,125] will be skipped.
         description: >-
           Choose alternative formats to show the value.
-        type: string
+        type: enum
+        values: [float, degree-minutes, degree-minutes-seconds, ascii]
+        default: float
         summary: Format specifier for the displayed number.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: input-invalid-enum-handling
+        rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: input
     parent: value
@@ -596,8 +599,7 @@ elements:
         values: [auto, extend, fixed]
         default: auto
         summary: How the lower x bound is chosen.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMaxX
         description: >-
@@ -609,8 +611,7 @@ elements:
         values: [auto, extend, fixed]
         default: auto
         summary: How the upper x bound is chosen.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMinY
         description: >-
@@ -622,8 +623,7 @@ elements:
         values: [auto, extend, fixed]
         default: auto
         summary: How the lower y bound is chosen.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMaxY
         description: >-
@@ -635,8 +635,7 @@ elements:
         values: [auto, extend, fixed]
         default: auto
         summary: How the upper y bound is chosen.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMinZ
         description: >-
@@ -648,8 +647,7 @@ elements:
         values: [auto, extend, fixed]
         default: auto
         summary: How the lower z bound is chosen.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: scaleMaxZ
         description: >-
@@ -661,8 +659,7 @@ elements:
         values: [auto, extend, fixed]
         default: auto
         summary: How the upper z bound is chosen.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: minX
         description: >-
@@ -780,9 +777,8 @@ elements:
         summary: >-
           Ninth stop of the map colour scale. There is no upper limit - the scale
           ends at the first gap in the numbering - so mapColor10 and beyond are
-          valid. iOS currently stops reading at nine; see the inconsistency.
-        agreement: divergent
-        inconsistency: views-map-color-limit
+          valid on both platforms.
+        agreement: agreed
       - name: interpolateMapColors
         description: >-
           Interpolate area between data points. If disabled, phyphox
@@ -823,8 +819,7 @@ elements:
         required: true
         values: [x, y, z]
         summary: Which axis this container supplies.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: color
         type: color
@@ -1008,8 +1003,7 @@ elements:
         summary: >-
           Whether the text names a data container, is a literal value, or stands
           for an empty buffer.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: output
@@ -1304,8 +1298,7 @@ elements:
         values: [none, invert]
         default: none
         summary: Filter applied when the app is in dark mode.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: lightFilter
         description: >-
@@ -1317,8 +1310,7 @@ elements:
         values: [none, invert]
         default: none
         summary: Filter applied when the app is in light mode.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   # ------------------------------------------------------------- camera-gui --
@@ -1400,8 +1392,7 @@ elements:
         values: [always, full_view_only, never]
         default: full_view_only
         summary: When the exposure controls are offered.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   # -------------------------------------------------------------- depth-gui --

@@ -62,14 +62,9 @@ elements:
           A name from the list of network services below, defining
           the service (protocol) for the connection.
         type: enum
-        values: [http/get, http/post, mqtt/csv, mqtt/json]
+        values: [http/get, http/post, mqtt/csv, mqtt/json, mqtts/csv, mqtts/json]
         summary: Which protocol to speak.
         agreement: agreed
-        note: >-
-          Android additionally accepts mqtts/csv and mqtts/json, the TLS variants
-          of the MQTT services (with username/password and a bundled certificate).
-          iOS does not implement them yet, so they are Android-only for now - see
-          network-mqtts-unofficial.
       - name: conversion
         description: >-
           A name from the list of response conversions below. This
@@ -79,8 +74,7 @@ elements:
         type: enum
         values: [none, csv, json]
         summary: How to interpret the response before writing it to containers.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: discovery
         description: >-
@@ -89,8 +83,7 @@ elements:
         type: enum
         values: [http]
         summary: How to find the service on the local network, if it is not at a fixed address.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: discoveryAddress
         description: >-
@@ -141,31 +134,27 @@ elements:
           User name for the MQTT broker connection. Required by the mqtts (TLS)
           services, where it is also used as the MQTT client id; optional for the
           plain mqtt services, whose brokers may require authentication too.
-        agreement: divergent
-        inconsistency: network-mqtts-unofficial
+        agreement: agreed
       - name: password
         type: string
         summary: >-
           Password for the MQTT broker connection. Required by the mqtts (TLS)
           services; optional for the plain mqtt services.
-        agreement: divergent
-        inconsistency: network-mqtts-unofficial
+        agreement: agreed
       - name: persistence
         type: boolean
         default: false
         summary: >-
           For mqtt/json and mqtts/json: publish with MQTT QoS 1 (at-least-once)
           instead of QoS 0. (Formerly selected QoS 2, which has been dropped.)
-        agreement: divergent
-        inconsistency: network-mqtts-unofficial
+        agreement: agreed
       - name: certificate
         type: string
         summary: >-
           For the mqtts services: the file name of a custom CA certificate (PEM or
           DER) to trust for the TLS connection, delivered as an experiment resource
           in the res directory. Optional; without it the system trust store is used.
-        agreement: divergent
-        inconsistency: network-mqtts-unofficial
+        agreement: agreed
 
   - name: send
     parent: connection
@@ -212,16 +201,19 @@ elements:
           Whether the text names a data container, a metadata identifier (see
           the network-connections page for the vocabulary), or the element sends
           the current time.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: datatype
-        type: string
+        type: enum
+        values: [number, array]
+        default: array
         summary: >-
-          How the value is encoded in the request, where the service allows a
-          choice. Passed through by both apps to the service implementation
-          rather than interpreted by the parser.
-        agreement: agreed
+          How a buffer is encoded in the request, where the service allows a
+          choice: number sends only the last value as a single number, array the
+          whole buffer.
+        agreement: divergent
+        inconsistency: input-enum-case-sensitivity
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: keep
         type: boolean
         default: true

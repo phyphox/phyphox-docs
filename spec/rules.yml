@@ -23,14 +23,20 @@ rules:
     applies_to: "every attribute with type: enum"
     state:
       android: >-
-        Already conforms for sensor/rateStrategy, camera/aeStrategy and
-        camera/feature.
+        Conforms for most enumerated attributes (sensor/rateStrategy,
+        camera/aeStrategy, camera/feature, per-set graph style and others throw).
+        Six residual gaps still substitute silently: slider type, tone waveform,
+        value format, the element-level graph style, boolean values
+        (Boolean.valueOf turns anything not "true" into false) and the send
+        datatype.
       ios: >-
-        Does not conform. rateStrategy uses `try?`, aeStrategy uses
-        `(try? ...) ?? .mean`, and CameraFeature's own `init?(rawValue:)` returns
-        .PHOTOMETRIC rather than nil for an unrecognised value, so it can never
-        signal failure - that initialiser has to change shape, not just its
-        default.
+        Conforms as of the development branch (2026-08-10). The central attribute
+        readers throw on a failed decode; the silently-swallowing wrappers
+        (rateStrategy `try?`, aeStrategy and waveform `(try? ...) ?? default`,
+        CameraFeature's always-succeeding init, the slider type fallback, the
+        value format fallback, the graph style fallbacks and the ignored unknown
+        network discovery) were all removed; invalid send datatypes and boolean
+        values other than true/false are rejected as well.
 
   - id: enum-case-insensitive
     decided: 2026-08-02
@@ -53,19 +59,30 @@ rules:
     applies_to: "every attribute with type: enum"
     state:
       android: >-
-        Conforms across the whole format as of the development branch (2026-08). A
-        sweep extended folding from just depth/mode and camera/feature to every
-        enumerated value (input/output type, sensor type and rateStrategy, camera
-        aeStrategy and show_controls, graph style and scale modes, image filters,
-        audio waveform and parameter names, flashlight parameter names, bluetooth
-        mode and extra, network discovery/service/conversion, map zMode, interpolate
-        method, eventstream mode), the output component / input as / axis mapping
-        names, and the bluetooth conversion-function names (whose reflection lookup
-        was replaced with an explicit case-insensitive dispatch). The released app
-        folds only depth/mode and camera/feature.
+        Conforms across the whole format as of the development branch (2026-08),
+        with five residual gaps: the slider type attribute, the metadata
+        identifiers of network send elements, the camera locked setting names,
+        the send datatype and the root element name are still compared
+        case-sensitively. Boolean values and all other element names have always
+        folded. Everything else folds
+        (input/output type, sensor type and rateStrategy, camera aeStrategy and
+        show_controls, graph style and scale modes, image filters, audio waveform
+        and parameter names, flashlight parameter names, bluetooth mode and extra,
+        network discovery/service/conversion, map zMode, interpolate method,
+        eventstream mode, the output component / input as / axis mapping names,
+        and the bluetooth conversion-function names via an explicit
+        case-insensitive dispatch). The released app folds only depth/mode and
+        camera/feature.
       ios: >-
-        Does not conform anywhere; every enumerated value is matched against the
-        raw string.
+        Conforms as of the development branch (2026-08-10): one central fold for
+        all String-raw-value enums decoded from attributes
+        (DocumentParser+Extensions.swift), lowercased switches for the explicit
+        matches, a folded component lookup (SensorDescriptor.buffer(for:)), a
+        used(as:) helper for the analysis as-slot names, folded metadata
+        identifiers, camera locked setting names and send datatype (normalized to
+        lowercase at parse time), folding Bool readers, and folded element names
+        including the root and the import file-type sniffer. The
+        released app matches the raw string everywhere.
     check: >-
       Before adding an enumeration to the spec, verify its values do not collide
       once case-folded. Checked for the input block: 7 enumerated attributes, no
@@ -91,14 +108,15 @@ rules:
         outputs and for the per-slot tables of every analysis module, all via the
         ioMapping tables passed to ioBlockParser.
       ios: >-
-        Does not conform anywhere. SensorOutputElementHandler accepts any
-        component name, defaults a missing one to the string "output" - which
-        matches no element's component list - and applies no counts;
-        unrecognised components are dropped later without an error. The analysis
-        modules are the same one level down: each checks only what its own code
-        needs, so 104 slots that require the as attribute do not enforce it, 37
-        that refuse a literal value accept one, and two modules place their
-        outputs by position instead of by name.
+        Conforms as of the development branch (2026-08-10). A port of Android's
+        ioBlockParser algorithm (IOMappingValidation.swift) validates the
+        component tables of the five input elements, the slider outputs, and -
+        via slot tables each module declares itself, initially generated from
+        spec/analysis.yml - all 54 analysis
+        modules, with Android's exact error messages. average maps its stddev
+        output by the documented name (the "std" lookup is gone) and loess maps
+        yi0/yi1/yi2 by name instead of document order. The released app does not
+        validate anywhere.
     migration: >-
       Making iOS strict can stop a file loading that loads there today. The
       exposure is limited: any file Android accepts is already valid by this

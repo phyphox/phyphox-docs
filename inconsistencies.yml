@@ -740,22 +740,37 @@
     rule enum-invalid-value.
   affects:
     android: >-
-      Refuses the file. sensor/rateStrategy throws "Invalid rate strategy.",
-      camera/aeStrategy throws "Unknown aeStrategy: ..." and camera/feature
-      throws "Unknown feature name: ..." (PhyphoxFile.java, inputBlockParser).
+      Refuses the file for most enumerated attributes (sensor/rateStrategy throws
+      "Invalid rate strategy.", camera/aeStrategy "Unknown aeStrategy: ...",
+      camera/feature "Unknown feature name: ...", a per-set graph style "Unknown
+      value for style of input tag."; PhyphoxFile.java). Six residual gaps found
+      during the iOS sweep still substitute silently: slider type (unknown values
+      silently select a normal slider, without even folding case), tone waveform
+      (silently sine), value format (silently the plain float display), the
+      element-level graph style (Style.unknown is passed on without an error),
+      boolean attributes (Boolean.valueOf turns anything that is not
+      case-insensitively "true" - including "yes" and "1" - into false) and the
+      send datatype (anything but exactly "number" silently means array).
     ios: >-
-      Silently substitutes the default. rateStrategy uses "try?" and falls
-      through to the version-dependent default, aeStrategy uses
-      "(try? ...) ?? .mean", and CameraFeature's own init returns .PHOTOMETRIC
-      for anything it does not recognise (InputElementHandler.swift).
+      Refuses the file as of the development branch (2026-08-10). The central
+      attribute readers already threw on a failed decode; the sweep removed every
+      wrapper that swallowed that error: rateStrategy no longer uses "try?",
+      aeStrategy and tone waveform no longer "(try? ...) ?? default", and
+      CameraFeature lost the custom init that returned .PHOTOMETRIC for anything
+      unrecognised. Also newly rejecting: an unknown network discovery method
+      (was silently ignored), an invalid slider type (was silently a RANGE
+      slider - the opposite default direction to Android's silent normal), an
+      unknown value format, an invalid per-set or element-level graph style, an
+      invalid send datatype and any boolean value other than true/false in any
+      case. The released app substitutes defaults throughout.
   summary: >-
     A typo in an enumerated attribute stops the experiment loading on Android and
-    is ignored on iOS, where the experiment then runs with different settings
-    than its author wrote. The silent path is the more dangerous one: an author
-    testing only on iOS cannot tell that the attribute had no effect, and the
-    file will not load at all for their Android users. This is one decision, not
-    three - whatever is chosen should apply to every enumerated attribute in the
-    format.
+    was ignored on iOS, where the experiment then ran with different settings
+    than its author wrote. iOS conforms fully as of 2026-08-10; Android conforms
+    except for four attributes that still silently substitute (slider type, tone
+    waveform, value format, element-level graph style). The rule applies to every
+    enumerated attribute in the format, so those four are bugs against the
+    decided canonical, not open questions.
 
 - id: input-enum-case-sensitivity
   title: Case sensitivity of enumerated attribute values
@@ -770,9 +785,16 @@
     image dark/lightFilter; audio waveform; audio and flashlight parameter names;
     bluetooth mode and extra; network discovery, service and conversion; analysis
     map zMode, interpolate method and eventstream mode), the output component and
-    input "as"/"axis" mapping names (t, luma, shutterSpeed, pixelPosition, ...), and
-    the bluetooth conversion-function names (int16LittleEndian, hexadecimal,
-    byteArray, ...). It holds only as long as no allowed set contains two values
+    input "as"/"axis" mapping names (t, luma, shutterSpeed, pixelPosition, ...), the
+    bluetooth conversion-function names (int16LittleEndian, hexadecimal,
+    byteArray, ...), and - extended by maintainer decision 2026-08-10 - the metadata
+    identifiers of network send elements (uniqueID, deviceModel,
+    accelerometerName, ...), the setting names inside the camera locked
+    attribute (shutter_speed, iso, ...), the send datatype attribute
+    (number/array), boolean attribute values (true/false in any case; anything
+    else is an error, not false) and the element names themselves, including the
+    root element (the Android block parsers have always lowercased their
+    tags). It holds only as long as no allowed set contains two values
     differing only in case; none does today across any of these vocabularies, and
     none may be introduced (new enumerations should be all-lowercase). Case folding
     happens before the rejection required by input-invalid-enum-handling, or the very
@@ -780,21 +802,43 @@
     enum-case-insensitive.
   affects:
     android: >-
-      Folds case for every enumerated value as of the development branch (2026-08).
-      Previously only depth/mode and camera/feature were folded; the sweep extended
-      it to all the vocabularies listed in the canonical, via a case-insensitive
-      helper for enum-valued attributes, lowercased switches, equalsIgnoreCase for
-      the component/as mapping names, and a rewritten bluetooth conversion lookup
-      that resolves the function by name case-insensitively (PhyphoxFile.java,
-      SensorInput.java, GraphView.java, AudioOutput.java, Helper.enumFromStringIgnoreCase,
-      and Conversions{Input,Output,Config}.getConversion, which also replaced the old
-      reflection lookup). The released app folds only depth/mode and camera/feature.
+      Folds case for every enumerated value as of the development branch (2026-08)
+      with three residual gaps: the slider type attribute is
+      still compared with a case-sensitive equals ('range' selects a range slider,
+      anything else - including 'Range' - silently a normal one; PhyphoxFile.java
+      around line 1876); the metadata identifiers resolve through case-sensitive
+      valueOf lookups (Metadata.java); the camera locked setting names are
+      stored as written and looked up against lowercase keys
+      (CameraInput.parseMapFromString); and the send datatype attribute is
+      compared with a case-sensitive equals("number") at send time. Boolean
+      values and element names fold (Boolean.valueOf, tag.toLowerCase() in the
+      block parsers) - except the root element, whose check is a case-sensitive
+      equals("phyphox"). Everything else folds, via a case-insensitive helper for
+      enum-valued attributes, lowercased switches, equalsIgnoreCase for the
+      component/as mapping names, and a rewritten bluetooth conversion lookup
+      (PhyphoxFile.java, SensorInput.java, GraphView.java, AudioOutput.java,
+      Helper.enumFromStringIgnoreCase, Conversions{Input,Output,Config}.getConversion).
+      The released app folds only depth/mode and camera/feature.
     ios: >-
-      Matches the raw string everywhere, so mode="Closest" fails to parse - throwing
-      for depth/mode, silently falling back to photometric for camera/feature
-      (InputElementHandler.swift). iOS still has to fold every enumerated value,
-      including the component/as mapping names and the bluetooth conversion-function
-      names - the same full extent Android now covers.
+      Folds case for every enumerated value as of the development branch
+      (2026-08-10). One central point covers all String-raw-value enums decoded
+      from attributes (the LosslessStringConvertible extension in
+      DocumentParser+Extensions.swift, which scans the cases with both sides
+      folded, so camelCase values like prioritizeFramerate and the bluetooth
+      conversion-function names are found); the remaining explicit switches
+      (network service/conversion/discovery, map zMode, audio and flashlight
+      parameter names, slider type, bluetooth special conversion names), the
+      sensor-output component match (SensorDescriptor.buffer(for:)) and the
+      analysis as-slot comparisons (a used(as:) helper replacing 91 direct string
+      equalities) fold at the match site, as do the metadata identifiers of
+      network send elements (lowercased switch plus the folding SensorMetadata
+      decode), the camera locked setting names and the send datatype (both
+      normalized to lowercase at parse time), boolean values (dedicated folding
+      Bool readers on the attribute container) and the element names including
+      the root (folded in the central child-handler lookup - which the document
+      handler shares - the views dispatch, the analysis module-name path and the
+      import file-type sniffer). The released app matches the raw string
+      everywhere.
   verified: >-
     Android folding verified on hardware 2026-08-08 (development build, Pixel 9 Pro):
     an experiment mixing rateStrategy="Limit", sensor type="ACCELEROMETER",
@@ -813,7 +857,7 @@
 - id: input-output-component-validation
   title: Validation of the component attribute on input outputs
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Validate and reject. A parser checks each output's component attribute against
     the list allowed for its element, enforces the minimum and maximum counts, and
@@ -830,11 +874,16 @@
       per component, and requires the attribute where the mapping is ambiguous
       (PhyphoxFile.java, ioBlockParser with an ioMapping table per input).
     ios: >-
-      Accepts any component name and any number of outputs; the handler stores
-      whatever it finds and defaults a missing component attribute to the string
-      "output", which matches no input's component list. Unrecognised components
-      are dropped later without an error (InputElementHandler.swift,
-      SensorOutputElementHandler).
+      Conforms as of the development branch (2026-08-10): a port of Android's
+      ioBlockParser algorithm (IOMappingValidation.swift) checks each output
+      against its element's component table with Android's exact messages, and
+      normalizes the components so an unnamed audio or depth output carries the
+      slot it filled ("out", "z"). The slider outputs are validated against the
+      same tables Android uses (one output for a normal slider, lowerValue and
+      upperValue exactly once each for a range slider - previously an unknown or
+      missing name silently produced a slider without a binding). The bundled
+      collection passes under the stricter parser (DeserializerTests). The
+      released app accepts and drops anything.
   summary: >-
     A misspelled component - "acc" for "abs", say - is a load error on Android
     and silently produces an experiment with an empty buffer on iOS. The same
@@ -846,7 +895,7 @@
 - id: views-map-color-limit
   title: How many stops a map graph's colour scale may have
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     No limit. A colour scale may have as many stops as the file gives, ending at
     the first gap in the numbering - which is what Android already does and what
@@ -860,9 +909,11 @@
       the first attribute that is absent, so a scale may have any number of
       stops (PhyphoxFile.java, viewBlockParser, around the mapColor loop).
     ios: >-
-      Capped at nine. Iterates a fixed list mapColor1...mapColor9 and breaks at
-      the first one missing, so a tenth stop is silently ignored
-      (GraphViewElementHandler.swift).
+      Unbounded as of the development branch (2026-08-10): the numbered
+      attributes are read via dynamic keys in a while loop ending at the first
+      gap, like Android (GraphViewElementHandler.swift). An unparseable colour
+      still ends the scale, which the canonical deliberately leaves unsettled.
+      The released app caps the scale at nine stops.
   summary: >-
     Both apps read an explicit colour scale for map graphs the same way - stops
     numbered from 1, ending at the first gap - so scales of up to nine stops
@@ -873,6 +924,39 @@
     where it is treated as absent, while Android substitutes its default colour
     and carries on.
 
+- id: views-map-color-unparseable
+  title: An unparseable colour in a map graph's colour scale
+  area: file-format
+  status: decided
+  canonical: >-
+    An unparseable colour ends the scale, exactly as a missing one does - the iOS
+    behaviour is correct (maintainer decision 2026-08-10). The map colour scale is
+    read as mapColor1, mapColor2, ... up to the first stop that is absent OR does
+    not name a valid colour; a bad colour is treated as the end of the scale, not
+    filled in. Android must stop substituting its default colour and carrying on.
+    This is the related question left open by views-map-color-limit, now settled.
+  affects:
+    android: >-
+      Reads mapColor1, mapColor2, ... in a while loop that ends only at the first
+      absent attribute; a present but unparseable colour is replaced with the app's
+      default (phyphox_primary) and the loop continues, so the scale keeps its
+      length with a default-coloured stop in the middle
+      (PhyphoxFile.java, viewBlockParser, getColorAttribute in the mapColor loop).
+    ios: >-
+      Reads the numbered attributes in a while loop that ends at the first one that
+      is absent or does not parse as a colour, so an unparseable colour truncates
+      the scale there - the same as a gap in the numbering
+      (GraphViewElementHandler.swift).
+  summary: >-
+    Both apps read a map graph's colour scale as stops numbered from 1, ending at
+    the first gap. They differ on a stop that is present but not a valid colour:
+    iOS ends the scale at it (treating it as absent), Android substitutes its
+    default colour and keeps reading the later stops. So mapColor2="notacolour"
+    with a mapColor3 after it yields a two-stop scale missing everything from
+    mapColor2 on, on iOS, and a full scale with one default-coloured stop on
+    Android. The maintainer decision (2026-08-10) is that the iOS behaviour is
+    correct - an unparseable colour is a mistake and should not be silently papered
+    over with a default; Android has to change.
 - id: graph-output-data-picker
   title: The output element of a graph means different things on the two apps
   area: file-format
@@ -908,7 +992,7 @@
 - id: ble-address-ios-must-reject
   title: The BLE address attribute is Android-only, and iOS should say so
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     address is an Android-only scan criterion, because iOS gives no access to a
     BLE device's hardware address and the criterion therefore cannot be honoured
@@ -922,9 +1006,12 @@
       Reads address and uses it as a scan criterion
       (PhyphoxFile.java, inputBlockParser, case "bluetooth").
     ios: >-
-      Does not declare the attribute at all, so it is silently dropped and the
-      device is chosen by the remaining criteria
-      (InputElementHandler.swift, BluetoothElementHandler).
+      Rejects the file as of the development branch (2026-08-10) with "The
+      bluetooth address attribute is not supported on iOS, which does not expose
+      hardware addresses. Experiments using it are Android-only.", in both the
+      input and the output block (InputElementHandler.swift,
+      OutputElementHandler.swift). The released app silently drops the attribute
+      and connects by the remaining criteria.
   summary: >-
     An experiment that pins a Bluetooth connection to one hardware address works
     as intended on Android and silently connects to a different device on iOS,
@@ -1080,7 +1167,7 @@
 - id: analysis-slot-constraints-unenforced
   title: Per-slot constraints on analysis module inputs and outputs
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Validate and reject, by the rule already decided as output-component-validation,
     whose scope is the mapping mechanism wherever it appears in the format. A parser
@@ -1098,11 +1185,21 @@
       input could not be matched", "A maximum of n inputs was expected for X",
       "Value-type not allowed for input X" (PhyphoxFile.java, ioBlockParser).
     ios: >-
-      Matches the `as` names each module knows about, falls back to document
-      order for anything unnamed, and applies no per-slot restriction. There is
-      no equivalent of the mapping table; each module checks only what its own
-      code happens to need, typically that its two or three essential inputs are
-      present (Analysis/Modules/*.swift).
+      Conforms as of the development branch (2026-08-10). Every module declares
+      its own slot table (ExperimentAnalysisModule.ioMapping, overridden in each
+      module's file next to the code consuming the same slot names, so the
+      vocabulary is defined in one place; the 54 overrides were initially
+      generated from the machine-readable specification, spec/analysis.yml,
+      itself modelled on Android's ioMapping tables). The tables are enforced
+      before a module is built, by the same algorithm and with the same messages
+      as Android's ioBlockParser, including the repeating-group handling
+      (IOMappingValidation.swift, hooked in
+      ExperimentAnalysisFactory.analysisModule); a unit test walks the classMap
+      so no module can silently skip validation. The modules also retrieve their
+      inputs and outputs through the same assignment (mapIO/MappedAnalysisIO,
+      slot constants shared between each module's table and its init), so slot
+      names are defined once and the hand-rolled name matching in the module
+      inits is gone. The released app enforces nothing.
   summary: >-
     Android states four constraints per input and output slot of every analysis
     module and enforces all of them; iOS enforces none. Of the 194 slots across
@@ -1119,7 +1216,7 @@
 - id: analysis-outputs-assigned-by-position
   title: iOS assigns some analysis outputs by position, ignoring the as attribute
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Settled by the same rule: an output whose as attribute names no slot of the
     module is an error, not something to place by position. Two further points are
@@ -1134,12 +1231,13 @@
       marks required for average/stddev and for loess/yi1 and loess/yi2
       (PhyphoxFile.java, ioBlockParser).
     ios: >-
-      average looks for as="std" - not the documented "stddev" - and otherwise
-      takes the first output as the average and any later one as the standard
-      deviation ("if output.asString == \"std\" || avg != nil").
-      loess never looks at output names at all, reading outputs[0], outputs[1]
-      and outputs[2] as yi0, yi1 and yi2
-      (AverageAnalysis.swift, LoessAnalysis.swift).
+      Conforms as of the development branch (2026-08-10): average maps its
+      outputs by the documented names - an unnamed output is the average, and
+      only as="stddev" is the standard deviation; the "std" lookup is gone -
+      and loess maps yi0/yi1/yi2 by name, with an unnamed output filling yi0
+      (AverageAnalysis.swift, LoessAnalysis.swift). A unit test pins that
+      writing the outputs in stddev-then-average order no longer swaps the two
+      values. The released app assigns both modules' outputs by document order.
   summary: >-
     Two analysis modules assign their outputs by document order on iOS rather
     than by the as attribute, and one of them does not even recognise the
@@ -1185,9 +1283,9 @@
     documented behaviour is what both should do.
 
 - id: network-mqtts-unofficial
-  title: MQTT services, reimplemented dependency-free and to be brought to parity
+  title: MQTT services, reimplemented dependency-free on both platforms
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     The MQTT services are kept and finished rather than removed (maintainer
     decision 2026-08). Both platforms provide all four - mqtt/csv, mqtt/json,
@@ -1211,8 +1309,7 @@
     services stay MQTT 3.1.1 - MQTT 5 buys nothing for this publish/subscribe use and
     would break older brokers. The services, the username/password, persistence and
     certificate attributes, and this certificate mechanism are now documented
-    (docs/file-format/network-connections.md, spec/network.yml); the documentation
-    stands but marks the feature Android-only until iOS conforms.
+    (docs/file-format/network-connections.md, spec/network.yml).
   affects:
     android: >-
       Reimplemented on the development branch (2026-08) with a from-scratch client
@@ -1228,11 +1325,19 @@
       authentication without TLS - previously they were silently ignored there
       (PhyphoxFile.java, networkBlockParser).
     ios: >-
-      Accepts http/get, http/post, mqtt/csv and mqtt/json only, and throws
-      "Unkown network service" for anything else. It does not declare username,
-      password or persistence at all (NetworkElementHandler.swift). Needs the same
-      from-scratch MQTT 3.1.1 client: the mqtts services, username/password auth,
-      persistence as QoS 1, and a bundled PEM certificate for the custom CA.
+      Reimplemented on the development branch (2026-08-10) to match: a from-scratch
+      client on Network.framework (NetworkConnection/MqttClient.swift: CONNECT,
+      PUBLISH, SUBSCRIBE, PINGREQ, DISCONNECT; QoS 0 and 1; TLS via NWProtocolTLS)
+      replaces CocoaMQTT, which was removed from the project. All four services are
+      accepted with the username, password, persistence and certificate attributes
+      and the same validation as Android (mandatory credentials and sendTopic on
+      the TLS/json variants, path-traversal guard on the certificate name). The
+      certificate is registered as an experiment resource (Experiment.resources),
+      resolved like an image resource including the bundled-asset fallback, and
+      used as the sole trust anchor without host name verification via a custom
+      sec_protocol verify block; an unloadable certificate refuses the connection.
+      The mqtts variants use the username as the client id, the plain services
+      phyphox_<hex> (NetworkElementHandler.swift, NetworkService.swift).
   verified: >-
     Android verified on hardware 2026-08-09 (development build, Pixel 9 Pro)
     against a local broker, cross-checked with the mosquitto client tools:
@@ -1240,20 +1345,75 @@
     into a buffer; mqtts/json connects over TLS with a bundled self-signed PEM and
     username/password, and both publishes and receives over TLS. Connection-error
     reporting and exponential-backoff reconnect were observed against an
-    unreachable public broker. iOS not yet implemented.
+    unreachable public broker. iOS verified 2026-08-10 by unit tests
+    (phyphoxTests: wire format against the MQTT 3.1.1 spec examples, parser
+    validation of all four services, PEM and DER certificate loading, and a full
+    loopback session against an in-process broker covering CONNECT/CONNACK,
+    SUBSCRIBE/SUBACK, QoS 1 in both directions with PUBACK, and the descriptive
+    CONNACK rejection message) and on hardware the same day: plain mqtt against the
+    maintainer's own broker, and mqtts on an iPhone (iOS 26.5) against mosquitto
+    2.1.2 with a self-signed PEM and password auth over Wi-Fi, driven by an
+    on-device XCTest through the production service path (MqttHardwareTests,
+    TEST_RUNNER_PHYPHOX_MQTT_TEST_BROKER) - TLSv1.3 negotiated, certificate
+    resolved as an experiment resource, default port 8883 applied, QoS 1 publish
+    routed back through the subscription, wrong password surfacing "connection
+    refused: not authorized" from the CONNACK, and an unloadable certificate
+    refusing the connection, all confirmed against the broker log.
   summary: >-
     Historically mqtts/csv and mqtts/json (plus username, password and persistence)
     were an Android-only, barely-tested user contribution on top of the Paho fork,
     and its TLS certificate was not even being delivered. The maintainer decision is
     to finish the feature rather than remove it: a from-scratch, dependency-free
-    MQTT 3.1.1 client, QoS 1 instead of QoS 2, PEM instead of BKS. Android is done;
-    iOS has to implement the same before the services can be documented as part of
-    the format.
+    MQTT 3.1.1 client, QoS 1 instead of QoS 2, PEM instead of BKS. Both platforms
+    now carry the same design: Android since 2026-08-09, iOS since 2026-08-10
+    (Network.framework, CocoaMQTT removed).
 
+- id: mqtts-system-trust-hostname-verification
+  title: "mqtts with the system trust store: host name verification differs"
+  area: file-format
+  status: decided
+  canonical: >-
+    Verify the broker's host name when the system trust store is used, on both
+    platforms (maintainer decision 2026-08-10). Without a certificate attribute an
+    mqtts connection trusts the public certificate authorities, so a certificate
+    valid for a different host than the one the experiment names must be refused -
+    that is exactly the spoofing case host-name verification exists to catch. iOS
+    already does this; Android must add it. This does not touch the pinned
+    custom-CA case, where network-mqtts-unofficial deliberately keeps host-name
+    verification OFF: there the certificate is the sole trust anchor for a
+    self-hosted broker whose certificate commonly names an internal host or IP, so
+    the criterion could not be met. The rule is therefore: host name verified when
+    the certificate attribute is absent, not verified when it is present.
+  affects:
+    android: >-
+      With no certificate attribute, the TLS socket comes from
+      SSLSocketFactory.getDefault() and the handshake is started without a
+      HostnameVerifier: the broker's chain is validated against the system trust
+      store, but the certificate's host name is not checked
+      (NetworkConnection/Mqtt/MqttClient.java, attemptConnect). Must verify the
+      host name in the system-trust case, e.g. HttpsURLConnection's default
+      HostnameVerifier against the SSLSession after the handshake (works on the
+      app's minSdk of 21, unlike SSLParameters.setEndpointIdentificationAlgorithm
+      which is API 24+), gated on the certificate attribute being absent.
+    ios: >-
+      Conforms. With no certificate attribute the default NWProtocolTLS options
+      apply, which validate the chain against the system trust store and verify
+      the host name; the custom sec_protocol verify block that skips the host-name
+      check is installed only when a certificate is given
+      (NetworkConnection/MqttClient.swift, attemptConnect).
+  summary: >-
+    For the pinned custom-CA case the decision in network-mqtts-unofficial is
+    explicit - no host name verification. For the system-trust case it was silent,
+    and the platforms differed: a broker presenting a publicly trusted certificate
+    issued for a different host name was accepted by Android and refused by iOS. A
+    correctly configured broker behaves identically on both, so this only shows on
+    misconfigured or spoofed brokers - which is precisely where it matters. The
+    maintainer decision (2026-08-10) is to verify in the system-trust case, which
+    iOS already does; Android has to add the check.
 - id: container-type-unvalidated
   title: The type attribute of a data container is validated only on Android
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     iOS should check the attribute and reject any value other than "buffer", as
     Android already does. The attribute exists so that further container types
@@ -1266,8 +1426,10 @@
       which is the only value defined; the attribute exists for future container
       types (PhyphoxFile.java, dataContainersBlockParser).
     ios: >-
-      Does not declare the attribute, so any value is accepted and ignored
-      (DataContainersElementHandler.swift).
+      Validates as of the development branch (2026-08-10): any value other than
+      "buffer" (matched case-insensitively) is rejected with Android's wording,
+      "Unknown container type" (DataContainersElementHandler.swift). The
+      released app accepts and ignores any value.
   summary: >-
     A data container declared with a type other than "buffer" is refused by
     Android and silently accepted by iOS. The practical exposure today is nil,
@@ -1280,7 +1442,7 @@
 - id: gausssmooth-nonpositive-sigma
   title: A gausssmooth module with sigma of zero or less
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     A sigma of zero or less is not a valid width, and both apps should refuse
     to load the file, naming the attribute. Neither current behaviour is
@@ -1295,11 +1457,11 @@
       module's default of 3 (PhyphoxFile.java, case "gausssmooth"). The released
       app instead treats sigma="0"/"-1" as "not set" and smooths with sigma 3.
     ios: >-
-      Takes the attribute verbatim, defaulting to 3 only when it is absent
-      (GaussSmoothAnalysis.swift). sigma="0" makes the kernel's normalisation
-      divide by zero, so the module writes NaN for every value; a negative
-      sigma gives a zero-width kernel. iOS still has to reject a non-positive
-      sigma.
+      Rejects a present, non-positive sigma as of the development branch
+      (2026-08-10) with Android's exact wording ("Attribute \"sigma\" of
+      gausssmooth must be greater than zero."); an absent attribute keeps the
+      default of 3 (GaussSmoothAnalysis.swift). The released app uses the value
+      verbatim and writes NaN for every output at sigma="0".
   verified: >-
     Android rejection verified on hardware 2026-08-08 (development build, Pixel 9
     Pro): sigma="-1" refuses the file naming the attribute ("Attribute \"sigma\"
@@ -1351,3 +1513,164 @@
     before the stereo conversion expects, and the undocumented pan path is
     closed rather than documented. Android now implements this; the entry stays
     until the release carrying the fix has shipped.
+
+- id: get-buffer-snapshot-consistency
+  title: "/get returns buffers with inconsistent lengths during a measurement"
+  area: remote-interface
+  status: fixed
+  canonical: >-
+    A /get response is a consistent snapshot: buffers that are written together for
+    one event (a sensor sample's x/y/z/t, a camera frame's h/s/v/t, an analysis
+    cycle's outputs) must all reflect the same set of completed writes, so their
+    lengths agree. Android already does this by holding experiment.dataLock across
+    each write batch and across the read; iOS had to gain the equivalent.
+  affects:
+    android: >-
+      Consistent. The whole data pipeline and the remote read are serialised behind
+      experiment.dataLock, so handleGet always sees a coherent snapshot
+      (RemoteServer.java).
+    ios: >-
+      Fixed on the development branch (2026-08-10). Previously each DataBuffer had
+      its own lock but there was no experiment-wide lock, so /get read the requested
+      buffers one at a time (b.toArray() per buffer) with no snapshot; a write
+      landing mid-loop made one buffer come back a sample longer than the others
+      (reported in GitHub issue 22 on the camera HSV experiment, but latent for
+      every multi-buffer experiment). A shared BufferLock (DataBuffer.swift) is now
+      held by every input write group (ExperimentSensorInput/GPS/Bluetooth,
+      AnalyzingRenderer, NetworkConnection) and each analysis cycle
+      (ExperimentAnalysis), and /get snapshots all requested buffers in one read
+      (ExperimentWebServer.swift). It is always taken around - never inside - the
+      per-buffer locks and never across a thread hop, so it cannot deadlock.
+  verified: >-
+    Reproduced conceptually from the report (buffer lengths diverging by one under
+    concurrent writes) and pinned by a unit test that appends 5000 grouped samples
+    on a background thread while snapshotting under the lock, asserting the two
+    buffers never differ in length (BufferSnapshotConsistencyTests). The full
+    experiment suite (which constructs and runs every bundled experiment) passes
+    with the lock in place, i.e. no deadlock in the write/analysis paths. Not yet
+    verified end-to-end against a real remote client.
+  summary: >-
+    A REST /get in full update mode, polled while a camera experiment was running,
+    returned buffers whose lengths differed by one sample after enough requests
+    (GitHub issue 22). The cause was not the camera but the absence of an
+    experiment-wide data lock on iOS: /get read multiple buffers without a
+    consistent snapshot while inputs kept writing, so any multi-buffer experiment
+    could show it. Android was unaffected because it serialises everything behind
+    experiment.dataLock. iOS now has the equivalent shared lock.
+
+- id: version-string-must-be-major-minor
+  title: A file version string that is not major.minor
+  area: file-format
+  status: fixed
+  canonical: >-
+    The version attribute of the root element is strictly major.minor (two integer
+    components), and a string of any other shape is rejected rather than
+    reinterpreted. In particular a three-part app version such as "1.2.0" put in the
+    attribute by mistake must not load. Android already rejects it; iOS had to stop
+    accepting it. This does not change the newer-than-supported check, which both
+    platforms already do correctly.
+  affects:
+    android: >-
+      Rejects anything that is not major.minor: it reads the major from before the
+      first dot and the minor from everything after it, and requires both to be
+      plain integers, so "1.2.0" makes the minor "2.0" fail Integer.valueOf and the
+      file is refused with "Unable to interpret the file version"
+      (PhyphoxFile.java, around line 3616).
+    ios: >-
+      Fixed on the development branch (2026-08-10). Previously the version was parsed
+      by SemanticVersion, which splits on every dot and accepts an optional patch, so
+      "1.2.0" was read as 1.2.0 and loaded (being <= the supported version) - the
+      reported case, where a user put the phyphox app version 1.2.0 where the file
+      format version 1.20 belonged, so the file loaded even on an app that a genuine
+      1.20 file would have refused. The parser now requires exactly two
+      dot-separated components before the SemanticVersion parse
+      (PhyphoxElementHandler.swift).
+  verified: >-
+    Pinned by unit tests (FileVersionValidationTests): 1.20/1.7/1.0 load, 1.21/2.0/
+    1.100 are refused as too new, and 1.2.0/1.20.0/1/1.20-beta/v1.20/"1."/"" are
+    refused as malformed. The whole bundled collection (all major.minor) still loads.
+  summary: >-
+    A user could load a file whose version attribute held a three-part app version
+    like "1.2.0" on a phyphox version that a real newer file version would have
+    refused, because iOS reinterpreted the semver-shaped string as 1.2.0 instead of
+    rejecting it. The file format version is major.minor; anything else is a
+    malformed version and should not load. Android already refused it, iOS now does
+    too. The separate check that a supported-but-newer version is refused was
+    already correct on both platforms.
+
+- id: fft-real-input-output-length
+  title: FFT output length when only a real input is given
+  area: file-format
+  status: fixed
+  canonical: >-
+    An fft module given only a real input treats the imaginary part as all zeroes
+    and returns the full complex spectrum, the same length it would for a complex
+    input of the same size. It is not shortened to the unique first half. Android
+    already does this; iOS had to stop halving the output.
+  affects:
+    android: >-
+      Builds a complex input with the imaginary part zeroed when no im input is
+      given and appends the full-length real and imaginary result
+      (Analysis.java, fftAM.update).
+    ios: >-
+      Fixed on the development branch (2026-08-11). It already computed the full
+      complex DFT with a zero imaginary part, but then truncated both output
+      buffers to the first half (countI/2) whenever no im input was present, so a
+      real FFT returned half as many points as the complex FFT of the same input.
+      The truncation was removed (FFTAnalysis.swift, update).
+  verified: >-
+    Unit test (FFTRealInputTests): a real-only FFT of eight samples returns eight
+    output points (not four) with the DC bin equal to the input sum.
+  summary: >-
+    A real-input FFT returned half the output length on iOS and the full length on
+    Android, so the same experiment produced spectra of different sizes on the two
+    platforms - and anything plotting the FFT output against a matching frequency
+    axis, or feeding it downstream, saw a different result. Both now return the full
+    complex spectrum with the imaginary part assumed zero.
+
+- id: fft-non-power-of-two-input
+  title: FFT output for input lengths that are not a power of two
+  area: file-format
+  status: decided
+  canonical: >-
+    The fft module guarantees consistent output across platforms only for a
+    power-of-two number of input samples, and this is by design and permanent: fft
+    is meant to use the fastest available transform on each platform, which
+    constrains the supported lengths. For a power-of-two length both platforms
+    compute the same unpadded transform and the results are identical (together with
+    the unified real-input handling, fft-real-input-output-length, which returns the
+    full spectrum in both cases). For any other length the output is
+    implementation-defined - the platforms diverge in both length and values - and
+    an experiment that needs a portable FFT must feed fft a power-of-two number of
+    samples. General-purpose, arbitrary-length transforms are not going to be added
+    to fft; instead a separate dft analysis module is planned that computes an exact
+    input-length DFT consistently on both platforms at the cost of speed. Until dft
+    exists, non-power-of-two input to fft is simply outside the guaranteed contract.
+  affects:
+    android: >-
+      Uses FFTW, which transforms an arbitrary length directly (mixed-radix, and
+      Bluestein for primes), so the native path computes a true input-length DFT
+      with no padding and outputs that many points (analysis.cpp, fftw3complex ->
+      fftwf_plan_dft_1d(n, ...)). The pure-Java fallback instead zero-pads to the
+      next power of two for the calculation but then truncates the output back to
+      the input length (Analysis.java, fftAM). Either way the output length equals
+      the input length.
+    ios: >-
+      Uses Apple's vDSP_DFT, whose setup only accepts lengths of the form f*2^n with
+      f in {1, 3, 5, 15}. A non-power-of-two input is therefore zero-padded up to the
+      nearest such length (nextFFTSize) and the transform is computed and returned at
+      that padded length, so the output is longer than the input and is a
+      zero-padded, interpolated spectrum rather than a true input-length DFT
+      (FFTAnalysis.swift). For a power-of-two input no padding happens and the result
+      matches Android.
+  summary: >-
+    The two platforms use different FFT libraries with different length constraints:
+    FFTW on Android transforms any length directly, while iOS's vDSP_DFT only
+    supports lengths of the form f*2^n and so zero-pads other lengths up to the
+    nearest supported size. As a result a non-power-of-two number of input samples
+    yields a different output length and different values on the two platforms,
+    while a power-of-two number of samples is identical on both. This is the intended
+    contract for fft: power-of-two input is portable, the module stays as fast as the
+    platform allows, and other lengths are left undefined. A separate general-purpose
+    dft module (slower, exact input length, consistent across platforms) is planned
+    for callers that need non-power-of-two transforms.

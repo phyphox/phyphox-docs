@@ -78,8 +78,7 @@ elements:
         values: [buffer, value]
         default: buffer
         summary: Whether the text names a data container or is a literal value.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: tone
@@ -129,8 +128,7 @@ elements:
         values: [buffer, value]
         default: buffer
         summary: Whether the text names a data container or is a literal value.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: noise
@@ -189,8 +187,7 @@ elements:
         values: [buffer, value]
         default: buffer
         summary: Whether the text names a data container or is a literal value.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   # -------------------------------------------------------------- bluetooth --
@@ -231,7 +228,6 @@ elements:
           block.
         agreement: platform
         platforms: [android]
-        inconsistency: ble-address-ios-must-reject
       - name: mtu
         type: integer
         default: 0

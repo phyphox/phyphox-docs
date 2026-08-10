@@ -156,6 +156,10 @@ mapColor\[n\]
 :   n-th color in the color map
 :   *optional*, if none are defined, phyphox uses a black-orange-white color gradient
 
+The scale is read from `mapColor1` upward and ends at the first stop that is missing or does not name a valid color, so the number of stops is unlimited but a typo in one color ends the scale there.
+
+{{inconsistency:views-map-color-unparseable}}
+
 You can also define your own color palette. Phyphox uses a black-orange-white gradient by default, but introducing more colors can be very helpful to improve contrast. Colors a simply defined as a series of colors that are spread across the z range:
 
 ```xml

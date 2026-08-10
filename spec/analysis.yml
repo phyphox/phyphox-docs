@@ -63,8 +63,7 @@ common:
       summary: >-
         Whether the text names a data container, is a literal value, or
         stands for a constant empty buffer.
-      agreement: divergent
-      inconsistency: input-invalid-enum-handling
+      agreement: agreed
       rules: [enum-invalid-value, enum-case-insensitive]
     - name: keep
       type: boolean
@@ -113,8 +112,7 @@ elements:
     parent: phyphox
     since: "1.0"
     slot_constraints:
-      agreement: divergent
-      inconsistency: analysis-slot-constraints-unenforced
+      agreement: agreed
       rules: [output-component-validation]
     summary: Container for the analysis modules, executed in document order.
     children: [abs, acos, add, append, asin, atan, atan2, autocorrelation, average, binning, butterworth, const, cos, cosh, count, crosscorrelation, differentiate, divide, eventstream, fft, first, formula, gausssmooth, gcd, if, imagedecode, info, integrate, interpolate, lcm, loess, log, map, match, max, min, movingaverage, multiply, periodicity, power, ramp, rangefilter, reduce, round, sin, sinh, sort, split, subrange, subtract, tan, tanh, threshold, timer]
@@ -412,11 +410,7 @@ elements:
         as_required: true
         min: 0
         max: 1
-        agreement: divergent
-        inconsistency: analysis-outputs-assigned-by-position
-        note: >-
-          iOS looks for as="std" and otherwise takes whichever output comes
-          second, so the documented name has no effect there.
+        agreement: agreed
 
   - name: binning
     parent: analysis
@@ -667,9 +661,12 @@ elements:
     children: [input, output]
     attributes:
       - name: mode
-        type: string
+        type: enum
+        values: [above, below, aboveAbsolute, belowAbsolute, aboveDerivative, belowDerivative, aboveDerivativeAbsolute, belowDerivativeAbsolute]
+        default: above
         summary: See the module description.
         agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]
     inputs:
       - name: data
         as_required: true
@@ -816,9 +813,10 @@ elements:
           data, in terms of value indices.
         default: 3.0
         type: float
-        summary: See the module description.
-        agreement: divergent
-        inconsistency: gausssmooth-nonpositive-sigma
+        summary: >-
+          See the module description. A present value of zero or less rejects
+          the file; the default applies only when the attribute is absent.
+        agreement: agreed
     inputs:
       - name: in
         as_required: false
@@ -1043,8 +1041,7 @@ elements:
         type: enum
         values: [nearest, previous, next, linear]
         summary: See the module description.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
     inputs:
       - name: x
@@ -1136,15 +1133,13 @@ elements:
         min: 0
         max: unlimited
         repeat_offset: 0
-        agreement: divergent
-        inconsistency: analysis-outputs-assigned-by-position
+        agreement: agreed
       - name: yi2
         as_required: true
         min: 0
         max: unlimited
         repeat_offset: 0
-        agreement: divergent
-        inconsistency: analysis-outputs-assigned-by-position
+        agreement: agreed
 
   - name: log
     parent: analysis
