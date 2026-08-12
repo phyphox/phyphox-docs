@@ -211,8 +211,7 @@ elements:
           How a buffer is encoded in the request, where the service allows a
           choice: number sends only the last value as a single number, array the
           whole buffer.
-        agreement: divergent
-        inconsistency: input-enum-case-sensitivity
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: keep
         type: boolean

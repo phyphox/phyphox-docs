@@ -96,8 +96,7 @@ elements:
         default: sine
         since: "1.19"
         summary: Shape of the generated wave.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: input

@@ -91,6 +91,7 @@ elements:
           choice from the phyphox [Colors](colors.md)
         since: "1.7"
         type: color
+        rules: [color-invalid-value]
         summary: Text colour.
         agreement: agreed
       - name: size
@@ -160,6 +161,7 @@ elements:
           RGB hex value or a named choice from the phyphox
           [Colors](colors.md)
         type: color
+        rules: [color-invalid-value]
         summary: Fill colour. Defaults to the background, making it invisible.
         agreement: agreed
 
@@ -194,6 +196,7 @@ elements:
           choice from the phyphox [Colors](colors.md)
         since: "1.7"
         type: color
+        rules: [color-invalid-value]
         summary: Text colour.
         agreement: agreed
       - name: size
@@ -288,8 +291,7 @@ elements:
         values: [float, degree-minutes, degree-minutes-seconds, ascii]
         default: float
         summary: Format specifier for the displayed number.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   - name: input
@@ -476,8 +478,7 @@ elements:
         values: [lines, dots, hbars, vbars, map]
         default: lines
         summary: How the data is drawn.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
         note: >-
           iOS's GraphStyle also has a `mapZ` case, which is not a value the file
@@ -529,6 +530,7 @@ elements:
           Color of the graph line as six-digit RGB hex value or a
           named choice from the phyphox [Colors](colors.md)
         type: color
+        rules: [color-invalid-value]
         summary: Colour of the first dataset.
         agreement: agreed
       - name: logX
@@ -739,6 +741,7 @@ elements:
         agreement: agreed
       - name: mapColor1
         type: color
+        rules: [color-invalid-value]
         summary: >-
           First stop of the colour scale for a map style. The stops are read in
           order and the scale ends at the first one that is absent, so they must
@@ -746,34 +749,42 @@ elements:
         agreement: agreed
       - name: mapColor2
         type: color
+        rules: [color-invalid-value]
         summary: Second stop of the map colour scale.
         agreement: agreed
       - name: mapColor3
         type: color
+        rules: [color-invalid-value]
         summary: Third stop of the map colour scale.
         agreement: agreed
       - name: mapColor4
         type: color
+        rules: [color-invalid-value]
         summary: Fourth stop of the map colour scale.
         agreement: agreed
       - name: mapColor5
         type: color
+        rules: [color-invalid-value]
         summary: Fifth stop of the map colour scale.
         agreement: agreed
       - name: mapColor6
         type: color
+        rules: [color-invalid-value]
         summary: Sixth stop of the map colour scale.
         agreement: agreed
       - name: mapColor7
         type: color
+        rules: [color-invalid-value]
         summary: Seventh stop of the map colour scale.
         agreement: agreed
       - name: mapColor8
         type: color
+        rules: [color-invalid-value]
         summary: Eighth stop of the map colour scale.
         agreement: agreed
       - name: mapColor9
         type: color
+        rules: [color-invalid-value]
         summary: >-
           Ninth stop of the map colour scale. There is no upper limit - the scale
           ends at the first gap in the numbering - so mapColor10 and beyond are
@@ -823,6 +834,7 @@ elements:
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: color
         type: color
+        rules: [color-invalid-value]
         summary: Colour of this dataset, overriding the graph's colour.
         agreement: agreed
       - name: lineWidth
@@ -1158,8 +1170,7 @@ elements:
         values: [normal, range]
         default: normal
         summary: A single handle, or two defining a range.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: showValue
         description: >-
@@ -1172,6 +1183,7 @@ elements:
         agreement: agreed
       - name: color
         type: color
+        rules: [color-invalid-value]
         summary: Colour of the slider.
         agreement: agreed
 
@@ -1190,8 +1202,7 @@ elements:
         summary: >-
           Which handle of a range slider this output follows. Omitted for a
           normal slider.
-        agreement: divergent
-        inconsistency: input-invalid-enum-handling
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   # --------------------------------------------------------------- dropdown --
@@ -1228,6 +1239,7 @@ elements:
         agreement: agreed
       - name: color
         type: color
+        rules: [color-invalid-value]
         summary: Colour of the menu.
         agreement: agreed
 
@@ -1365,6 +1377,7 @@ elements:
           Overexposed parts of the image are replaced by the given
           color
         type: color
+        rules: [color-invalid-value]
         summary: Colour used to highlight overexposed pixels. Unset disables it.
         agreement: agreed
       - name: markUnderexposure
@@ -1372,6 +1385,7 @@ elements:
           Underexposed parts of the image are replaced by the given
           colour.
         type: color
+        rules: [color-invalid-value]
         summary: Colour used to highlight underexposed pixels. Unset disables it.
         agreement: agreed
       - name: show_controls

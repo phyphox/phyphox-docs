@@ -730,7 +730,7 @@
 - id: input-invalid-enum-handling
   title: What happens when an enumerated attribute has an invalid value
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Reject the file. An enumerated attribute carrying a value outside its allowed set
     is an error, and the experiment must not load. Android already behaves this way;
@@ -740,17 +740,14 @@
     rule enum-invalid-value.
   affects:
     android: >-
-      Refuses the file for most enumerated attributes (sensor/rateStrategy throws
-      "Invalid rate strategy.", camera/aeStrategy "Unknown aeStrategy: ...",
-      camera/feature "Unknown feature name: ...", a per-set graph style "Unknown
-      value for style of input tag."; PhyphoxFile.java). Six residual gaps found
-      during the iOS sweep still substitute silently: slider type (unknown values
-      silently select a normal slider, without even folding case), tone waveform
-      (silently sine), value format (silently the plain float display), the
-      element-level graph style (Style.unknown is passed on without an error),
-      boolean attributes (Boolean.valueOf turns anything that is not
+      Refuses the file for every enumerated attribute as of the development
+      branch (2026-08-11). The six residual gaps found during the iOS sweep -
+      slider type, tone waveform, value format, the element-level graph style,
+      boolean attributes (Boolean.valueOf turned anything that is not
       case-insensitively "true" - including "yes" and "1" - into false) and the
-      send datatype (anything but exactly "number" silently means array).
+      send datatype - now throw a phyphoxFileException on an unknown value
+      (PhyphoxFile.java). The released app still substitutes silently in those
+      six places.
     ios: >-
       Refuses the file as of the development branch (2026-08-10). The central
       attribute readers already threw on a failed decode; the sweep removed every
@@ -766,16 +763,15 @@
   summary: >-
     A typo in an enumerated attribute stops the experiment loading on Android and
     was ignored on iOS, where the experiment then ran with different settings
-    than its author wrote. iOS conforms fully as of 2026-08-10; Android conforms
-    except for four attributes that still silently substitute (slider type, tone
-    waveform, value format, element-level graph style). The rule applies to every
-    enumerated attribute in the format, so those four are bugs against the
-    decided canonical, not open questions.
+    than its author wrote. Both platforms conform on their development branches:
+    iOS as of 2026-08-10, Android (which had six residual attributes that still
+    substituted silently) as of 2026-08-11. Remains listed until the releases
+    carrying the fixes ship.
 
 - id: input-enum-case-sensitivity
   title: Case sensitivity of enumerated attribute values
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Enumerated values are matched case-insensitively, so mode="Closest" and
     mode="closest" are the same, and this holds for EVERY enumerated value in the
@@ -802,18 +798,19 @@
     enum-case-insensitive.
   affects:
     android: >-
-      Folds case for every enumerated value as of the development branch (2026-08)
-      with three residual gaps: the slider type attribute is
-      still compared with a case-sensitive equals ('range' selects a range slider,
-      anything else - including 'Range' - silently a normal one; PhyphoxFile.java
-      around line 1876); the metadata identifiers resolve through case-sensitive
-      valueOf lookups (Metadata.java); the camera locked setting names are
-      stored as written and looked up against lowercase keys
-      (CameraInput.parseMapFromString); and the send datatype attribute is
-      compared with a case-sensitive equals("number") at send time. Boolean
-      values and element names fold (Boolean.valueOf, tag.toLowerCase() in the
-      block parsers) - except the root element, whose check is a case-sensitive
-      equals("phyphox"). Everything else folds, via a case-insensitive helper for
+      Folds case for every enumerated value as of the development branch
+      (2026-08-11), with no known residual gaps. The ones found during the iOS
+      sweep are closed: the slider type folds and rejects, the metadata
+      identifiers resolve through case-insensitive scans of the enum values
+      (Metadata.java), the camera locked setting names are lowercased when the
+      map is built (CameraInput.parseMapFromString), the send datatype is folded
+      and normalized to lowercase at parse time, and the root element check is
+      an equalsIgnoreCase. Beyond the recorded list, the send type values
+      meta/time (buffer already folded), the experiment-list scanner's tag
+      switches (AssetExperimentLoader.java) and the bluetooth transfer's
+      bare-XML sniffer ("<phyphox...", BluetoothExperimentLoader.kt) turned out
+      to be case-sensitive too and now fold. Everything else folds, via a
+      case-insensitive helper for
       enum-valued attributes, lowercased switches, equalsIgnoreCase for the
       component/as mapping names, and a rewritten bluetooth conversion lookup
       (PhyphoxFile.java, SensorInput.java, GraphView.java, AudioOutput.java,
@@ -845,15 +842,29 @@
     graph style="DOTS", scaleMinX="AUTO" and component="X"/"T" loads; a bluetooth
     experiment with conversion="Int16LittleEndian"/"Float32BigEndian"/"HEXADECIMAL"/
     "BYTEARRAY" loads; a bogus conversion is still rejected; and every bundled
-    bluetooth experiment (covering all conversion functions) still loads. iOS not
-    yet changed.
+    bluetooth experiment (covering all conversion functions) still loads. The
+    gaps closed 2026-08-11 verified the same way on the same device: files with
+    an uppercase root element (which also lists correctly after saving to the
+    collection), slider type="RANGE" with LowerValue/UPPERVALUE outputs,
+    waveform="SawTooth", format="Degree-Minutes-Seconds", style="DOTS",
+    logX="False"/partialUpdate="TRUE", datatype="NUMBER", send type="META"/
+    "TIME" with identifiers DeviceModel/UniqueID/AccelerometerName all load,
+    and camera locked="ISO=200, Shutter_Speed=1/100" is honored at the sensor
+    (live capture request shows sensitivity 200, exposureTime 10ms); invalid
+    values in each of these spots are rejected with the expected messages,
+    including logX="yes" and logX="1". iOS folding is pinned by
+    EnumCaseFoldingTests (2026-08-10). Not hardware-verified on Android: the
+    folded bare-XML sniffer in the bluetooth experiment transfer (needs a DIY
+    BLE device sending an uppercase root).
   summary: >-
     The same file is accepted by one app and not the other purely because of
-    capitalisation. Android now folds case for the whole format - every enumerated
-    attribute value, the output component/input as mapping names, and the bluetooth
-    conversion-function names - while iOS still matches the raw string everywhere.
-    The gap between the platforms is therefore wider than the original entry
-    suggested, and closing it on iOS is a format-wide change, not a per-attribute one.
+    capitalisation. Both platforms now fold case for the whole format on their
+    development branches - every enumerated attribute value, the output
+    component/input as mapping names, the bluetooth conversion-function names,
+    the metadata identifiers, the camera locked setting names, boolean values
+    and the element names including the root - iOS as of 2026-08-10, Android
+    (which had five recorded residual spots plus three found while closing them)
+    as of 2026-08-11. Remains listed until the releases carrying the fixes ship.
 - id: input-output-component-validation
   title: Validation of the component attribute on input outputs
   area: file-format
@@ -925,38 +936,59 @@
     and carries on.
 
 - id: views-map-color-unparseable
-  title: An unparseable colour in a map graph's colour scale
+  title: An unparseable colour value (any colour attribute, not only the map scale)
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
-    An unparseable colour ends the scale, exactly as a missing one does - the iOS
-    behaviour is correct (maintainer decision 2026-08-10). The map colour scale is
-    read as mapColor1, mapColor2, ... up to the first stop that is absent OR does
-    not name a valid colour; a bad colour is treated as the end of the scale, not
-    filled in. Android must stop substituting its default colour and carrying on.
-    This is the related question left open by views-map-color-limit, now settled.
+    A present but unparseable colour rejects the experiment file, anywhere a
+    colour attribute appears - the same strictness as an invalid enumerated
+    value. A colour is parseable if it is a named phyphox colour
+    (case-insensitive) or exactly six hex digits, optionally prefixed with '#'.
+    The numbered map scale still ends at the first ABSENT stop; a present
+    unparseable stop is an error, not the end of the scale. See spec/rules.yml,
+    rule color-invalid-value. This decision (2026-08-12) supersedes the first
+    one on this entry (2026-08-10, "an unparseable colour ends the scale like a
+    missing one"), which had been made on an incorrect record of the Android
+    behaviour: Android never substituted its default and read on - it rejected
+    the file through an accidental unhandled NumberFormatException with an
+    unhelpful generic message, and iOS's silent fallback turned out to apply to
+    every colour attribute, not just the map scale. This is also the related
+    question left open by views-map-color-limit, now settled.
   affects:
     android: >-
-      Reads mapColor1, mapColor2, ... in a while loop that ends only at the first
-      absent attribute; a present but unparseable colour is replaced with the app's
-      default (phyphox_primary) and the loop continues, so the scale keeps its
-      length with a default-coloured stop in the middle
-      (PhyphoxFile.java, viewBlockParser, getColorAttribute in the mapColor loop).
+      Conforms as of the development branch (2026-08-12): a strict colour
+      parser (RGB.fromPhyphoxStringStrict - named colours or exactly six hex
+      digits) backs getColorAttribute and the per-set graph colour, and a
+      present unparseable value throws a proper phyphoxFileException ("Could
+      not parse color \"...\" of attribute \"...\"."). Before, garbage crashed
+      Integer.parseInt and rejected the file as "Unhandled RuntimeException
+      while loading this experiment: For input string: ...", while hex-parseable
+      oddities of other lengths (e.g. "abc") were quietly accepted; a bad
+      colour in a saved file's <color> element even crashed the experiment
+      list, whose scanner now falls back to the default colour deliberately.
     ios: >-
-      Reads the numbered attributes in a while loop that ends at the first one that
-      is absent or does not parse as a colour, so an unparseable colour truncates
-      the scale there - the same as a gap in the numbering
-      (GraphViewElementHandler.swift).
+      Conforms as of the development branch (2026-08-12): mapColorString
+      (Constants.swift) accepts exactly the named colours (case-insensitive)
+      and six hex digits with an optional '#' - the lenient NSScanner hex path
+      is no longer reachable from the file format - and a present but
+      unparseable value is an error with Android's message at every site: the
+      colour attributes of the view elements, markOverexposure/
+      markUnderexposure and the numbered mapColorN loop (via
+      KeyedAttributeContainer.optionalColor), and the per-set graph colour
+      with "Could not parse color of input tag."
+      (GraphViewElementHandler.swift; pinned by StrictnessFixesTests). The
+      experiment <color> element already rejected garbage. The released app
+      silently substitutes its defaults, ends the map scale at a bad stop, and
+      accepts hex oddities like "12zz" as 0x12.
   summary: >-
-    Both apps read a map graph's colour scale as stops numbered from 1, ending at
-    the first gap. They differ on a stop that is present but not a valid colour:
-    iOS ends the scale at it (treating it as absent), Android substitutes its
-    default colour and keeps reading the later stops. So mapColor2="notacolour"
-    with a mapColor3 after it yields a two-stop scale missing everything from
-    mapColor2 on, on iOS, and a full scale with one default-coloured stop on
-    Android. The maintainer decision (2026-08-10) is that the iOS behaviour is
-    correct - an unparseable colour is a mistake and should not be silently papered
-    over with a default; Android has to change.
+    The platforms disagreed about a colour value that does not parse: iOS
+    silently substituted its default (or silently ended the numbered map
+    scale), Android rejected the file - historically with an accidental,
+    unhelpfully worded error. The maintainer decision (2026-08-12, superseding
+    the narrower 2026-08-10 one) extends the enum strictness rule to colours:
+    reject the file with a proper message, on both platforms; parseable means
+    a named phyphox colour or exactly six hex digits with optional '#'. Both
+    development branches conform as of 2026-08-12.
 - id: graph-output-data-picker
   title: The output element of a graph means different things on the two apps
   area: file-format
@@ -1371,7 +1403,7 @@
 - id: mqtts-system-trust-hostname-verification
   title: "mqtts with the system trust store: host name verification differs"
   area: file-format
-  status: decided
+  status: fixed
   canonical: >-
     Verify the broker's host name when the system trust store is used, on both
     platforms (maintainer decision 2026-08-10). Without a certificate attribute an
@@ -1386,21 +1418,34 @@
     the certificate attribute is absent, not verified when it is present.
   affects:
     android: >-
-      With no certificate attribute, the TLS socket comes from
-      SSLSocketFactory.getDefault() and the handshake is started without a
-      HostnameVerifier: the broker's chain is validated against the system trust
-      store, but the certificate's host name is not checked
-      (NetworkConnection/Mqtt/MqttClient.java, attemptConnect). Must verify the
-      host name in the system-trust case, e.g. HttpsURLConnection's default
-      HostnameVerifier against the SSLSession after the handshake (works on the
-      app's minSdk of 21, unlike SSLParameters.setEndpointIdentificationAlgorithm
-      which is API 24+), gated on the certificate attribute being absent.
+      Conforms as of the development branch (2026-08-12). MqttClient takes a
+      verifyHostname flag, set by MqttService to (tls && certificateFileName ==
+      null), and runs HttpsURLConnection's default HostnameVerifier against the
+      SSLSession right after startHandshake, failing the connection with
+      SSLPeerUnverifiedException("Host name ... not verified") when it does not
+      match (NetworkConnection/Mqtt/MqttClient.java, attemptConnect). The manual
+      verifier is used rather than
+      SSLParameters.setEndpointIdentificationAlgorithm, which is API 24+ while
+      the app's minSdk is 21. The pinned custom-CA case keeps verification off,
+      as decided. Before the fix the handshake ran without any verifier, so the
+      chain was validated but the host name was not.
     ios: >-
       Conforms. With no certificate attribute the default NWProtocolTLS options
       apply, which validate the chain against the system trust store and verify
       the host name; the custom sec_protocol verify block that skips the host-name
       check is installed only when a certificate is given
       (NetworkConnection/MqttClient.swift, attemptConnect).
+  verified: >-
+    Android verified on hardware 2026-08-12 (development build, Pixel 9 Pro),
+    all three cases: an mqtts connection with no certificate attribute to
+    137.226.117.156:443 - an address not covered by that host's certificate -
+    is refused with "Host name 137.226.117.156 not verified"; the same
+    connection to phyphox.org:443 passes the TLS and host-name checks and then
+    fails at the MQTT layer as expected ("no CONNACK", it being an HTTPS
+    server); and an experiment pinning a custom CA whose certificate would fail
+    host-name verification (CN=192.168.2.24, no subjectAltName, which Android's
+    verifier requires) connects to that broker and publishes normally, showing
+    verification is correctly skipped in the pinned case.
   summary: >-
     For the pinned custom-CA case the decision in network-mqtts-unofficial is
     explicit - no host name verification. For the system-trust case it was silent,
@@ -1409,7 +1454,8 @@
     correctly configured broker behaves identically on both, so this only shows on
     misconfigured or spoofed brokers - which is precisely where it matters. The
     maintainer decision (2026-08-10) is to verify in the system-trust case, which
-    iOS already does; Android has to add the check.
+    iOS already did; Android added the check on 2026-08-12, so both platforms now
+    conform. Remains listed until the release carrying the fix has shipped.
 - id: container-type-unvalidated
   title: The type attribute of a data container is validated only on Android
   area: file-format

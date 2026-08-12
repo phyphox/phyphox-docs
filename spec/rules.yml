@@ -23,12 +23,12 @@ rules:
     applies_to: "every attribute with type: enum"
     state:
       android: >-
-        Conforms for most enumerated attributes (sensor/rateStrategy,
-        camera/aeStrategy, camera/feature, per-set graph style and others throw).
-        Six residual gaps still substitute silently: slider type, tone waveform,
-        value format, the element-level graph style, boolean values
-        (Boolean.valueOf turns anything not "true" into false) and the send
-        datatype.
+        Conforms across the whole format as of the development branch
+        (2026-08-11). The six residual gaps found during the iOS sweep are
+        closed: slider type, tone waveform, value format and the element-level
+        graph style throw on an unknown value, getBooleanAttribute rejects
+        anything but true/false, and the send datatype is validated (and
+        normalized to lowercase) at parse time.
       ios: >-
         Conforms as of the development branch (2026-08-10). The central attribute
         readers throw on a failed decode; the silently-swallowing wrappers
@@ -59,12 +59,16 @@ rules:
     applies_to: "every attribute with type: enum"
     state:
       android: >-
-        Conforms across the whole format as of the development branch (2026-08),
-        with five residual gaps: the slider type attribute, the metadata
-        identifiers of network send elements, the camera locked setting names,
-        the send datatype and the root element name are still compared
-        case-sensitively. Boolean values and all other element names have always
-        folded. Everything else folds
+        Conforms across the whole format as of the development branch
+        (2026-08-11), with no known residual gaps. The five found during the iOS
+        sweep are closed: the slider type folds (and rejects), the metadata
+        identifiers resolve through case-insensitive scans of the enum values,
+        the camera locked setting names are lowercased when the map is built,
+        the send datatype is folded and normalized at parse time, and the root
+        element check is an equalsIgnoreCase. Beyond the list, the send type
+        values meta/time (buffer already folded), the experiment-list scanner's
+        tag switches and the bluetooth transfer's bare-XML sniffer
+        ("<phyphox...") now fold too. Everything else already folded
         (input/output type, sensor type and rateStrategy, camera aeStrategy and
         show_controls, graph style and scale modes, image filters, audio waveform
         and parameter names, flashlight parameter names, bluetooth mode and extra,
@@ -88,6 +92,52 @@ rules:
       once case-folded. Checked for the input block: 7 enumerated attributes, no
       collisions, and only camera/aeStrategy uses values that are not already
       all-lowercase.
+
+  - id: color-invalid-value
+    decided: 2026-08-12
+    inconsistency: views-map-color-unparseable
+    summary: A colour attribute whose value is not parseable is an error.
+    rule: >-
+      A colour value must be a named phyphox colour (matched case-insensitively,
+      like enumerated values) or a hexadecimal RGB value of exactly six hex
+      digits, optionally prefixed with '#'. Anything else rejects the
+      experiment file, exactly as an invalid enumerated value does. For the
+      numbered mapColorN attributes of a map graph the scale still ends at the
+      first stop that is ABSENT, but a stop that is present and unparseable is
+      an error, not the end of the scale.
+    history: >-
+      Supersedes the first decision on views-map-color-unparseable (2026-08-10,
+      "an unparseable colour ends the scale like a missing one"), which was
+      made on the incorrect record that Android substituted its default colour
+      and read on. In fact Android has always rejected the file - via an
+      accidental unhandled NumberFormatException with an unhelpful message -
+      and iOS silently substitutes its defaults for every colour attribute, not
+      just the map scale. Given the corrected facts the maintainer decided
+      (2026-08-12) to extend the strictness of enum-invalid-value to colours.
+    applies_to: >-
+      every attribute with type: color, and the numbered mapColorN attributes
+      of the graph element.
+    state:
+      android: >-
+        Conforms as of the development branch (2026-08-12): a present but
+        unparseable colour anywhere throws ("Could not parse color \"...\" of
+        attribute \"...\"."), via a strict parser accepting exactly the named
+        colours and six-digit hex (RGB.fromPhyphoxStringStrict). Previously it
+        rejected most garbage by accident (unhandled NumberFormatException,
+        "Unhandled RuntimeException ... For input string: ...") while quietly
+        accepting some (any parseable hex number of other lengths, e.g. "abc"
+        as 0x000abc). The experiment-list scanner stays lenient on purpose - a
+        bad colour there falls back to the default instead of breaking the
+        list, which previously crashed it.
+      ios: >-
+        Conforms as of the development branch (2026-08-12): mapColorString
+        accepts exactly the named colours and six-digit hex with an optional
+        '#' (the lenient NSScanner hex path is no longer reachable from the
+        file format), and a present but unparseable value throws Android's
+        message at every colour site, including the per-set graph colour and
+        the numbered mapColorN stops (KeyedAttributeContainer.optionalColor,
+        GraphViewElementHandler.swift). The released app silently substitutes
+        its defaults.
 
   - id: output-component-validation
     decided: 2026-08-02

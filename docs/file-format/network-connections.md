@@ -263,7 +263,8 @@ To trust a broker whose certificate is not signed by a public certificate author
 
 - Put a certificate file in **PEM or DER** format (extension `.pem`, `.crt`, `.cer` or `.der`) in the experiment's `res` directory, exactly like an image resource. Set `certificate="broker-ca.pem"` on the connection to reference it by file name. Because it is a resource, it is bundled in the experiment zip and, when the user saves the experiment to their collection, copied along with it — so it keeps working after saving.
 - The certificate is used as a trusted anchor: the broker's certificate is accepted if its chain validates against it. If the `certificate` attribute is omitted, the device's system certificate authorities are used instead. If it is set but the file cannot be loaded, the connection is not made (rather than silently falling back to a different trust).
-- The broker's host name is **not** verified against the certificate; trust rests entirely on the certificate chain. This is intended for a pinned, self-hosted broker.
+- With a `certificate`, the broker's host name is **not** verified against it; trust rests entirely on the pinned certificate. This is intended for a self-hosted broker, whose certificate commonly names an internal host name or IP address that could not be matched anyway.
+- Without a `certificate`, the host name **is** verified: since any publicly trusted authority is then accepted, the certificate must also be issued for the host the experiment connects to, or the connection is refused.
 
 Example (the experiment is packaged as a zip whose `res` directory contains `broker-ca.pem`):
 
