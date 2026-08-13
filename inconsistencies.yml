@@ -106,34 +106,3 @@
     platform allows, and other lengths are left undefined. A separate general-purpose
     dft module (slower, exact input length, consistent across platforms) is planned
     for callers that need non-power-of-two transforms.
-
-- id: error-response-content-type
-  title: Content-Type of empty error responses
-  area: remote-interface
-  status: decided
-  canonical: >-
-    An error response is never empty (decided 2026-08-13). Every error answer
-    carries a JSON error object - the {"error": "<reason>"} pattern /export
-    and /res already use - with Content-Type: application/json, whatever the
-    status code. This matches what comparable REST APIs do, matches the API's
-    own existing style, and gives a developer probing the API a reason string
-    where an empty 400 stays mute. The reason text is human-readable, not
-    machine-readable; clients must not match on it.
-  affects:
-    android: >-
-      An empty 400 carries "Content-Type: application/octet-stream" with
-      Content-Length 0 - the server's default type applied to a bodyless
-      response (observed on /get with a bad threshold reference and with a
-      malformed POST body; RemoteServer.java via jlhttp).
-    ios: >-
-      The same responses carry no Content-Type header at all
-      (ExperimentWebServer.swift via GCDWebServer, no body set).
-  verified: >-
-    2026-08-13 against current development builds ("Acceleration with g" on
-    both).
-  summary: >-
-    The two servers disagree on whether an empty error response names a
-    content type: Android sends application/octet-stream, iOS sends no
-    Content-Type header at all. Both will change: an error response is to
-    carry a JSON error object like /export and /res already do, so this
-    divergence disappears along with the empty bodies.

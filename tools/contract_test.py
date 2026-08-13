@@ -127,8 +127,7 @@ def build_probes(buffer_name, resource_name=None):
         # fixed in the 2026-08 cleanup and their entries deleted; the probes
         # stay so a regression on either side shows up immediately.
         Probe("get.no.parameters", "/get"),
-        Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"},
-              relates_to=["error-response-content-type"]),
+        Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"}),
         Probe("export.bad.format", "/export", {"format": "99"},
               expect_json=False),
         Probe("export.missing.format", "/export",
@@ -155,8 +154,7 @@ def build_probes(buffer_name, resource_name=None):
         Probe("post.get.body.over.query", "/get", {b: "full"},
               schema="GetResponse", post_json={b: ""}),
         Probe("post.malformed.json", "/get", expect_json=False,
-              post_json='{"not json',
-              relates_to=["error-response-content-type"]),
+              post_json='{"not json'),
         Probe("post.config.body.ignored", "/config", schema="Config",
               post_json={"ignored": "by a parameterless endpoint"}),
     ]

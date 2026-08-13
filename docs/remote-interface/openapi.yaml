@@ -242,8 +242,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      x-phyphox-inconsistency:
-        - error-response-content-type
     post:
       tags: [data]
       summary: Read buffer data and experiment status (POST)
@@ -256,8 +254,6 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/Parameters"
       responses: *getResponses
-      x-phyphox-inconsistency:
-        - error-response-content-type
 
   /control:
     get:
