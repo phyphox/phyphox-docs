@@ -1,0 +1,30 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Generated fixture: the events block, which the apps write into saved
+         state files and read back. No shipped or collected experiment
+         carries it, since it never appears in hand-written configurations. -->
+    <title>Corpus: events block</title>
+    <state-title>Corpus saved state 2026-08-13</state-title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for the events block of a saved state.</description>
+    <events>
+        <start experimentTime="0.0" systemTime="1755080000000"/>
+        <pause experimentTime="5.25" systemTime="1755080005250"/>
+        <start experimentTime="5.25" systemTime="1755080060000"/>
+        <pause experimentTime="12.5" systemTime="1755080067250"/>
+    </events>
+    <data-containers>
+        <container size="100" init="1,2,3">values</container>
+    </data-containers>
+    <views>
+        <view label="Data">
+            <value label="Last value">
+                <input>values</input>
+            </value>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="values">values</data>
+        </set>
+    </export>
+</phyphox>

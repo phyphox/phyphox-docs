@@ -1,0 +1,468 @@
+<phyphox version="1.19" locale="en">
+  <title>Color counter</title>
+  <category>Camera</category>
+  <description>Counts occurences of high saturation separated by color.
+</description>
+  <icon>123</icon>
+  <data-containers>
+    <container size="0">inHue</container>
+    <container size="0">inSat</container>
+    <container size="0">thisSat</container>
+    <container size="0">thisHue</container>
+    <container size="1">hue_last</container>
+    <container size="1">sat_last</container>
+    <container size="1">t_last</container>
+    <container size="1">t_limit</container>
+    <container size="0">inT</container>
+    <container size="0">triggering</container>
+    <container size="0">triggering_change</container>
+    <container init="0.5">threshold</container>
+    <container size="0">amplitude</container>
+    <container size="0">amplitude_hue</container>
+    <container size="0">t</container>
+    <container size="0">onEvents</container>
+    <container size="0">onHues</container>
+    <container size="0">offEvents</container>
+    <container size="0">rEvents</container>
+    <container size="0">yEvents</container>
+    <container size="0">gEvents</container>
+    <container size="0">cEvents</container>
+    <container size="0">bEvents</container>
+    <container size="0">mEvents</container>
+    <container size="0">dtlist</container>
+    <container size="0">ddlist</container>
+    <container size="0">tindex</container>
+    <container size="1">tcount</container>
+    <container size="1">tcount-1</container>
+    <container init="0">reset</container>
+    <container size="5">lastTimes</container>
+    <container size="0">lastPeriods</container>
+    <container size="1">framePeriod</container>
+    <container size="1">frameRate</container>
+    <container size="1" init="0">r</container>
+    <container size="1" init="0">y</container>
+    <container size="1" init="0">g</container>
+    <container size="1" init="0">c</container>
+    <container size="1" init="0">b</container>
+    <container size="1" init="0">m</container>
+  </data-containers>
+  <input>
+    <camera auto_exposure="true" feature="photometric" x1="0.4" x2="0.6" y1="0.4" y2="0.6" aeStrategy="prioritizeFramerate">
+      <output component="hue">inHue</output>
+      <output component="saturation">inSat</output>
+      <output component="t">inT</output>
+    </camera>
+  </input>
+  <views>
+    <view label="Settings">
+      <camera-gui label="Preview" exposure_adjustment_level="3"/>
+      <image src="hue.png"/>
+      <slider label="Saturation threshold" minValue="0" maxValue="1" stepSize="0.01" precision="2">
+        <output>threshold</output>
+      </slider>
+      <value label="State">
+        <input>triggering</input>
+        <map max="0.5">Idle</map>
+        <map min="0.5">Triggered</map>
+      </value>
+      <separator height="1"/>
+      <graph label="Saturation" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="Saturation" partialUpdate="true">
+        <input axis="x">t</input>
+        <input axis="y">amplitude</input>
+      </graph>
+      <graph label="Hue" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="Hue" unitY="[[unit_short_degree]]" partialUpdate="true">
+        <input axis="x">t</input>
+        <input axis="y">amplitude_hue</input>
+      </graph>
+      <separator height="1"/>
+      <value label="Frame rate" unit="[[unit_short_hertz]]" precision="1">
+        <input>frameRate</input>
+      </value>
+    </view>
+    <view label="Sequence">
+      <camera-gui label="Preview" exposure_adjustment_level="3"/>
+      <value label="Red" size="3" precision="0">
+        <input>r</input>
+      </value>
+      <value label="Yellow" size="3" precision="0">
+        <input>y</input>
+      </value>
+      <value label="Green" size="3" precision="0">
+        <input>g</input>
+      </value>
+      <value label="Cyan" size="3" precision="0">
+        <input>c</input>
+      </value>
+      <value label="Blue" size="3" precision="0">
+        <input>b</input>
+      </value>
+      <value label="Magenta" size="3" precision="0">
+        <input>m</input>
+      </value>
+      <separator height="1"/>
+      <button label="Reset">
+        <input type="value">1</input>
+        <output>reset</output>
+      </button>
+    </view>
+  </views>
+  <analysis>
+    <!-- Keep input data to show in preview graph -->
+    <append>
+      <input keep="true">inSat</input>
+      <output append="true">amplitude</output>
+    </append>
+    <append>
+      <input keep="true">inHue</input>
+      <output append="true">amplitude_hue</output>
+    </append>
+    <append>
+      <input keep="true">inT</input>
+      <output append="true">t</output>
+    </append>
+    <append>
+      <input keep="true">inSat</input>
+      <input>sat_last</input>
+      <output>sat_last</output>
+    </append>
+    <append>
+      <input>sat_last</input>
+      <input>inSat</input>
+      <output>thisSat</output>
+    </append>
+    <append>
+      <input keep="true">thisSat</input>
+      <output>sat_last</output>
+    </append>
+    <append>
+      <input keep="true">inHue</input>
+      <input>hue_last</input>
+      <output>hue_last</output>
+    </append>
+    <append>
+      <input>hue_last</input>
+      <input keep="true">inHue</input>
+      <output>thisHue</output>
+    </append>
+    <append>
+      <input>thisHue</input>
+      <output>hue_last</output>
+    </append>
+    <append>
+      <input keep="true">t</input>
+      <output>t_last</output>
+    </append>
+    <subtract>
+      <input>t_last</input>
+      <input type="value">10</input>
+      <output>t_limit</output>
+    </subtract>
+    <rangefilter>
+      <input>t</input>
+      <input as="min">t_limit</input>
+      <input>amplitude</input>
+      <input>amplitude_hue</input>
+      <output>t</output>
+      <output>amplitude</output>
+      <output>amplitude_hue</output>
+    </rangefilter>
+    <!-- Translate input values into 1 (for triggering) and 0 (non-triggering) according to user-selected trigger range -->
+    <formula formula="heaviside([1_]-[2])">
+      <input>thisSat</input>
+      <input keep="true">threshold</input>
+      <output>triggering</output>
+    </formula>
+    <!-- Dermine times when triggering turns on or off -->
+    <differentiate>
+      <input keep="true">triggering</input>
+      <output>triggering_change</output>
+    </differentiate>
+    <rangefilter>
+      <input keep="true">inT</input>
+      <input>inHue</input>
+      <input keep="true">triggering_change</input>
+      <input as="min" type="value">0.5</input>
+      <output append="true">onEvents</output>
+      <output append="true">onHues</output>
+    </rangefilter>
+    <rangefilter>
+      <input>inT</input>
+      <input>triggering_change</input>
+      <input as="max" type="value">-0.5</input>
+      <output append="true">offEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="max" type="value">29.999999</input>
+      <output>rEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="min" type="value">30</input>
+      <input as="max" type="value">89.999999</input>
+      <output>yEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="min" type="value">90</input>
+      <input as="max" type="value">149.999999</input>
+      <output>gEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="min" type="value">150</input>
+      <input as="max" type="value">209.999999</input>
+      <output>cEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="min" type="value">210</input>
+      <input as="max" type="value">269.999999</input>
+      <output>bEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="min" type="value">270</input>
+      <input as="max" type="value">329.999999</input>
+      <output>mEvents</output>
+    </rangefilter>
+
+    <rangefilter>
+      <input keep="true">onEvents</input>
+      <input keep="true">onHues</input>
+      <input as="min" type="value">330</input>
+      <output append="true">rEvents</output>
+    </rangefilter>
+
+    <count>
+        <input keep="true">rEvents</input>
+        <output>r</output>
+    </count>
+
+    <count>
+        <input keep="true">yEvents</input>
+        <output>y</output>
+    </count>
+
+    <count>
+        <input keep="true">gEvents</input>
+        <output>g</output>
+    </count>
+
+    <count>
+        <input keep="true">cEvents</input>
+        <output>c</output>
+    </count>
+
+    <count>
+        <input keep="true">bEvents</input>
+        <output>b</output>
+    </count>
+
+    <count>
+        <input keep="true">mEvents</input>
+        <output>m</output>
+    </count>
+
+
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>amplitude</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>t</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>sat_last</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>onEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>onHues</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>offEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>rEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>yEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>gEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>cEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>bEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>mEvents</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>inT</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="empty"/>
+      <output>inSat</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="value">0</input>
+      <output>r</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="value">0</input>
+      <output>y</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="value">0</input>
+      <output>g</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="value">0</input>
+      <output>c</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="value">0</input>
+      <output>b</output>
+    </if>
+    <if greater="true">
+      <input clear="false">reset</input>
+      <input type="value">0</input>
+      <input type="value">0</input>
+      <output>m</output>
+    </if>
+    <append>
+      <input type="value">0</input>
+      <output>reset</output>
+    </append>
+     
+    <append>
+      <input keep="true">t</input>
+      <output>lastTimes</output>
+    </append>
+    <differentiate>
+      <input keep="true">lastTimes</input>
+      <output>lastPeriods</output>
+    </differentiate>
+    <average>
+      <input>lastPeriods</input>
+      <output>framePeriod</output>
+    </average>
+    <divide>
+      <input type="value">1</input>
+      <input keep="true">framePeriod</input>
+      <output>frameRate</output>
+    </divide>
+    <!-- BPM and many plot -->
+    <differentiate>
+      <input clear="false">onEvents</input>
+      <output>dtlist</output>
+    </differentiate>
+    <append>
+      <input type="value">0</input>
+      <input>dtlist</input>
+      <input type="value">0</input>
+      <output>dtlist</output>
+    </append>
+    <subtract>
+      <input keep="true">offEvents</input>
+      <input keep="true">onEvents</input>
+      <output>ddlist</output>
+    </subtract>
+    <append>
+      <input type="value">0</input>
+      <output clear="false">ddlist</output>
+    </append>
+    <count>
+      <input clear="false">ddlist</input>
+      <output>tcount</output>
+    </count>
+    <subtract>
+      <input clear="false">tcount</input>
+      <input type="value">1</input>
+      <output>tcount-1</output>
+    </subtract>
+    <ramp>
+      <input as="start" type="value">0</input>
+      <input as="stop">tcount-1</input>
+      <input as="length">tcount</input>
+      <output>tindex</output>
+    </ramp>
+  </analysis>
+  <export>
+    <set name="Raw">
+      <data name="t (s)">t</data>
+      <data name="Hue">amplitude</data>
+    </set>
+    <set name="Events">
+      <data name="On (s)">onEvents</data>
+      <data name="Off (s)">offEvents</data>
+    </set>
+  </export>
+</phyphox>

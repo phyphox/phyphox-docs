@@ -1,0 +1,85 @@
+<phyphox version="1.19" locale="en">
+    <title>Info View</title>
+    <category>View Tests</category>
+    <description>
+        Test of the info view element
+    </description>
+    <data-containers>
+        <container>rangea1</container>
+        <container>rangea2</container>
+        <container>rangeb1</container>
+        <container>rangeb2</container>
+        <container>rangec1</container>
+        <container>rangec2</container>
+        <container>ranged1</container>
+        <container>ranged2</container>
+        <container>rangee1</container>
+        <container>rangee2</container>
+        <container>rangef1</container>
+        <container>rangef2</container>
+    </data-containers>
+    <views>
+        <view label="Slider">
+            <value label="Range lower value">
+                <input>rangea1</input>
+            </value>
+            <value label="Range upper value">
+                <input>rangea2</input>
+            </value>
+            <slider label="2-10, step 2" minValue="2" maxValue="10" stepSize="2" showValue="true" type="range">
+                <output value="lowerValue">rangea1</output>
+                <output value="upperValue">rangea2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>rangeb1</input>
+            </value>
+            <value label="Range upper value">
+                <input>rangeb2</input>
+            </value>
+            <slider label="1-5, step 2" minValue="1" maxValue="5" stepSize="2" showValue="true" type="range">
+                <output value="lowerValue">rangeb1</output>
+                <output value="upperValue">rangeb2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>rangec1</input>
+            </value>
+            <value label="Range upper value">
+                <input>rangec2</input>
+            </value>
+            <slider label="0.4-5.6, step 1" minValue="0.4" maxValue="5.6" stepSize="1" showValue="true" type="range">
+                <output value="lowerValue">rangec1</output>
+                <output value="upperValue">rangec2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>ranged1</input>
+            </value>
+            <value label="Range upper value">
+                <input>ranged2</input>
+            </value>
+            <slider label="0.9-2.3, step 0.5" minValue="0.9" maxValue="2.3" stepSize="0.5" showValue="true" type="range">
+                <output value="lowerValue">ranged1</output>
+                <output value="upperValue">ranged2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>rangee1</input>
+            </value>
+            <value label="Range upper value">
+                <input>rangee2</input>
+            </value>
+            <slider label="-1.9-2.3, step 0.2" minValue="-1.9" maxValue="2.3" stepSize="0.2" showValue="true" type="range">
+                <output value="lowerValue">rangee1</output>
+                <output value="upperValue">rangee2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>rangef1</input>
+            </value>
+            <value label="Range upper value">
+                <input>rangef2</input>
+            </value>
+            <slider label="-1.9-2.3, step 0" minValue="-1.9" maxValue="2.3" stepSize="0" showValue="true" type="range">
+                <output value="lowerValue">rangef1</output>
+                <output value="upperValue">rangef2</output>
+            </slider>
+        </view>
+    </views>
+</phyphox>

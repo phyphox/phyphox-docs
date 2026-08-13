@@ -1,0 +1,54 @@
+<phyphox version="1.20" locale="en">
+    <title>BLE output trigger</title>
+    <category>Test</category>
+    <description>...</description>
+    <data-containers>
+        <container size="1" static="false">t</container>
+        <container size="1" static="false">x</container>
+        <container size="1" static="false">y</container>
+        <container size="1" static="false">z</container>
+    </data-containers>
+    <input>
+        <sensor rate="1" average="false" type="accelerometer">
+            <output component="x">x</output>
+            <output component="y">y</output>
+            <output component="z">z</output>
+            <output component="t">t</output>
+        </sensor>
+    </input>
+    <output>
+        <bluetooth  name="Pixel 9 Pro" >
+            <input char="00002a8a-0000-9999-8000-00805f9b34fb" offset="0" conversion="string">t</input>
+            <input char="00002a8b-0000-9999-8000-00805f9b34fb" offset="0" triggerId="x" conversion="string">x</input>
+            <input char="00002a8c-0000-9999-8000-00805f9b34fb" offset="0" triggerId="y" conversion="string">y</input>
+            <input char="00002a8d-0000-9999-8000-00805f9b34fb" offset="0" triggerId="z" conversion="string">z</input>
+        </bluetooth>
+    </output>
+    <views>
+        <view label="Raw Data">
+            <info label="This &quot;experiment&quot; reads out the accelerometer and allows sending x, y and z only on request" >
+            </info>
+            <value label="t" size="1" precision="2" scientific="false" unit="s" factor="1" >
+                <input>t</input>
+            </value>
+            <value label="x" size="1" precision="2" scientific="false" unit="m/s²" factor="1" >
+                <input>x</input>
+            </value>
+            <button label="Send x">
+                <trigger>x</trigger>
+            </button>
+            <value label="y" size="1" precision="2" scientific="false" unit="m/s²" factor="1" >
+                <input>y</input>
+            </value>
+            <button label="Send y">
+                <trigger>y</trigger>
+            </button>
+            <value label="z" size="1" precision="2" scientific="false" unit="m/s²" factor="1" >
+                <input>z</input>
+            </value>
+            <button label="Send z">
+                <trigger>z</trigger>
+            </button>
+        </view>
+    </views>
+</phyphox>

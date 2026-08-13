@@ -1,0 +1,146 @@
+<phyphox version="1.17" locale="en">
+    <title>Module: threshold</title>
+    <category>Test</category>
+    <description>
+        Analysis module test: threshold
+    </description>
+    <data-containers>
+        <container init="" size="0">empty</container>
+        <container init="nan" size="0">nan</container>
+        <container init="-3,-2,-1,0,1,2,3" size="0">data</container>
+        <container init="-3,-2,-1,0,1,2,3" size="0">data2</container>
+        <container init="0" size="0">null</container>
+        <container size="0">test1</container>
+        <container size="0">test2</container>
+        <container size="0">test3</container>
+        <container size="0">test4</container>
+        <container size="0">test5</container>
+        <container size="0">test6</container>
+        <container size="0">test7</container>
+        <container size="0">count1</container>
+        <container size="0">count2</container>
+        <container size="0">count3</container>
+        <container size="0">count4</container>
+        <container size="0">count5</container>
+        <container size="0">count6</container>
+        <container size="0">count7</container>
+    </data-containers>
+    <views>
+        <view label="Results">
+            <value label="Test 1">
+                <input>test1</input>
+            </value>
+            <value label="Count 1">
+                <input>count1</input>
+            </value>
+            <value label="Test 2">
+                <input>test2</input>
+            </value>
+            <value label="Count 2">
+                <input>count2</input>
+            </value>
+            <value label="Test 3">
+                <input>test3</input>
+            </value>
+            <value label="Count 3">
+                <input>count3</input>
+            </value>
+            <value label="Test 4">
+                <input>test4</input>
+            </value>
+            <value label="Count 4">
+                <input>count4</input>
+            </value>
+            <value label="Test 5">
+                <input>test5</input>
+            </value>
+            <value label="Count 5">
+                <input>count5</input>
+            </value>
+            <value label="Test 6">
+                <input>test6</input>
+            </value>
+            <value label="Count 6">
+                <input>count6</input>
+            </value>
+            <value label="Test 7">
+                <input>test7</input>
+            </value>
+            <value label="Count 7">
+                <input>count7</input>
+            </value>
+        </view>
+    </views>
+    <analysis>
+        <threshold>
+            <input as="x" keep="true">data</input>
+            <input as="y" keep="true">data2</input>
+            <input as="threshold" keep="true">null</input>
+            <output>test1</output>
+        </threshold>
+        <count>
+            <input keep="true">test1</input>
+            <output>count1</output>
+        </count>
+        <threshold>
+            <input as="x" keep="true">empty</input>
+            <input as="y" keep="true">data</input>
+            <input as="threshold" keep="true">null</input>
+            <output>test2</output>
+        </threshold>
+        <count>
+            <input keep="true">test2</input>
+            <output>count2</output>
+        </count>
+        <threshold>
+            <input as="x" keep="true">nan</input>
+            <input as="y" keep="true">data</input>
+            <input as="threshold" keep="true">null</input>
+            <output>test3</output>
+        </threshold>
+        <count>
+            <input keep="true">test3</input>
+            <output>count3</output>
+        </count>
+        <threshold>
+            <input as="x" keep="true">data</input>
+            <input as="y" keep="true">empty</input>
+            <input as="threshold" keep="true">null</input>
+            <output>test4</output>
+        </threshold>
+        <count>
+            <input keep="true">test4</input>
+            <output>count4</output>
+        </count>
+        <threshold>
+            <input as="x" keep="true">data</input>
+            <input as="y" keep="true">nan</input>
+            <input as="threshold" keep="true">null</input>
+            <output>test5</output>
+        </threshold>
+        <count>
+            <input keep="true">test5</input>
+            <output>count5</output>
+        </count>
+        <threshold>
+            <input as="x" keep="true">data</input>
+            <input as="y" keep="true">data</input>
+            <input as="threshold" keep="true">empty</input>
+            <output>test6</output>
+        </threshold>
+        <count>
+            <input keep="true">test6</input>
+            <output>count6</output>
+        </count>
+        <threshold>
+            <input as="x" keep="true">data</input>
+            <input as="y" keep="true">data</input>
+            <input as="threshold" keep="true">nan</input>
+            <output>test7</output>
+        </threshold>
+        <count>
+            <input keep="true">test7</input>
+            <output>count7</output>
+        </count>
+    </analysis>
+</phyphox>

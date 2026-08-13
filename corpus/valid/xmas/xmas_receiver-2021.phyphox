@@ -1,0 +1,410 @@
+<phyphox version="1.0" locale="en">
+    <title>Xmas receiver</title>
+    <category>Fun</category>
+    <icon format="base64">
+        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</icon>
+    <description>
+        Decode the mysterious sounds, i.e. our christmas message on http://phyphox.org/xmas 
+    </description>
+    <translations>
+        <translation locale="de">
+            <title>Weihnachtsempfänger</title>
+            <category>Spaß</category>
+            <description>
+                Entschlüssle die merkwürdigen Töne unserer Weihnachtsnachricht auf http://phyphox.org/xmas
+            </description>
+            <string original="Xmas message">Weihnachtsbotschaft</string>
+            <string original="Color">Farbe</string>
+            <string original="Start this experiment and play the audio of our christmas message on another device, so your phone can hear it. Watch as the pixels slowly start to form an image. More info on phyphox.org/xmas.">Starte dieses Experiment und spiele den Ton unserer Weihnachtsnachricht auf einem zweiten Gerät ab, so dass dein Smartphone es hören kann. Sieh zu, wie die Pixel sich langsam zu einem Bild formen. Mehr Infos auf phyphox.org/xmas.</string>
+        </translation>
+        <translation locale="fr">
+            <title>Message de Noël</title>
+            <category>Fun</category>
+            <description>
+                Décodez notre mystérieux message sonore de Noël : http://phyphox.org/xmas
+            </description>
+            <string original="Xmas message">Message de Noël</string>
+            <string original="Color">Couleur</string>
+            <string original="Start this experiment and play the audio of our christmas message on another device, so your phone can hear it. Watch as the pixels slowly start to form an image. More info on phyphox.org/xmas.">Démarrez cette expérience, et lancez le mystérieux message audio sur un autre appareil, pour que votre téléphone l'entende. L'image va apparaître pixel par pixel... Plus d'information (en anglais) : phyphox.org/xmas.</string>
+        </translation>
+        <translation locale="it">
+            <title>Xmas receiver</title>
+            <category>Fun</category>
+            <description>
+                Decodifica il suono misterioso contenuto nel messaggio natalizio su http://phyphox.org/xmas
+            </description>
+            <string original="Xmas message">Messaggio natalizio</string>
+            <string original="Color">Colore</string>
+            <string original="Start this experiment and play the audio of our christmas message on another device, so your phone can hear it. Watch as the pixels slowly start to form an image. More info on phyphox.org/xmas.">Avvia l'esperimento e riproduci l'audio del nostro messaggio natalizio su un altro dispositivo, in modo che il tuo telefono possa sentirlo. I pixel iniziano lentamente a formare un'immagine. Maggiori informazioni su phyphox.org/xmas</string>
+        </translation>
+    </translations>
+    <data-containers>
+        <container size="0">temp</container>
+        <container size="2048">recording</container>
+        <container size="2048">recording_windowed</container>
+        <container size="2048" static="true">time</container>
+        <container size="2048" static="true">frequency</container>
+        <container size="2048">fftX</container>
+        <container size="2048">fftY</container>
+        <container size="100">partFrequency</container>
+        <container size="100">partFFTtempX</container>
+        <container size="100">partFFTtempY</container>
+        <container size="100">partFFTtempX2</container>
+        <container size="100">partFFTtempY2</container>
+        <container size="100">partFFT</container>
+        <container size="100">partFrequencyX</container>
+        <container size="100">partFFTX</container>
+        <container size="100">partFrequencyY</container>
+        <container size="100">partFFTY</container>
+        <container size="100">partFrequencyC</container>
+        <container size="100">partFFTC</container>
+        <container size="100">partFrequencyCheck</container>
+        <container size="100">partFFTCheck</container>
+        <container size="1">f1new</container>
+        <container size="1">f1new_mapped</container>
+        <container size="8">f1_r</container>
+        <container size="1">f2new</container>
+        <container size="1">f2new_mapped</container>
+        <container size="8">f2_r</container>
+        <container size="1">f3new</container>
+        <container size="1">f4new</container>
+        <container size="1">colornew</container>
+        <container size="8">color_r</container>
+        <container size="1">repeat</container>
+        <container size="1">repeat_stop</container>
+        <container size="1">valid</container>
+        <container size="4096">x</container>
+        <container size="4096">y</container>
+        <container size="4096">z</container>
+        <container size="0">cutA</container>
+        <container size="0">cutB</container>
+        <container size="1">replaceStart</container>
+        <container size="1">replaceEnd</container>
+    </data-containers>  
+    <input>
+        <audio rate="48000">
+            <output>recording</output>
+        </audio>
+    </input>
+    <views>
+        <view label="Message">
+            <graph label="Xmas message" labelX="x" labelY="y" labelZ="Color" style="map" aspectRatio="1" minX="1" maxX="64" minY="1" maxY="64" minZ="0" maxZ="7" scaleMinX="fixed" scaleMaxX="fixed" scaleMinY="fixed" scaleMaxY="fixed" scaleMinZ="fixed" scaleMaxZ="fixed" mapWidth="64" mapColor1="000000" mapColor2="0000ff" mapColor3="ff00ff" mapColor4="ff0000" mapColor5="ffff00" mapColor6="00ff00" mapColor7="00ffff" mapColor8="ffffff">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+                <input axis="z">z</input>
+            </graph>
+            <info label="Start this experiment and play the audio of our christmas message on another device, so your phone can hear it. Watch as the pixels slowly start to form an image. More info on phyphox.org/xmas." />
+        </view>
+    </views>
+    <analysis sleep="0">
+        <!-- Initialize x, y and z to circumvent buggy map module implementation on iOS -->
+        <ramp cycles="0">
+            <input as="start" type="value">1</input>
+            <input as="stop" type="value">64</input>
+            <input as="length" type="value">64</input>
+            <output>temp</output>
+        </ramp>
+        <append cycles="0">
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <output clear="false">temp</output><!-- 4 sequences -->
+        </append>
+        <append cycles="0">
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <output clear="false">temp</output><!-- 16 sequences -->
+        </append>
+        <append cycles="0">
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <input clear="false">temp</input>
+            <output>x</output> <!-- 64 sequences -->
+        </append>
+        <ramp cycles="0">
+            <input as="start" type="value">1</input>
+            <input as="stop" type="value">64</input>
+            <input as="length" type="value">64</input>
+            <output>temp</output>
+        </ramp>
+        <reduce cycles="0">
+            <input as="factor" type="value">0.015625</input> 64 times
+            <input as="x">temp</input>
+            <output as="x" clear="false">y</output>
+        </reduce>
+        <const cycles="0">
+            <input as="value" type="value">0</input>
+            <input as="length" type="value">4096</input>
+            <output>z</output>
+        </const>
+
+
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop" type="value">42.666667</input>
+            <output>time</output>
+        </ramp>
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop" type="value">47976.5625</input>
+            <output>frequency</output>
+        </ramp>
+
+        <formula formula="[2_] * (sin(3.1416*[1_]/42.666667))^2">
+            <input clear="false">time</input>
+            <input clear="false">recording</input>
+            <output>recording_windowed</output>
+        </formula>
+
+        <fft>
+            <input clear="false">recording_windowed</input>
+            <output as="re">fftX</output>
+            <output as="im">fftY</output>
+        </fft>
+        <rangefilter>
+            <input clear="false">frequency</input>
+            <input as="min" type="value">749</input>
+            <input as="max" type="value">2249</input>
+            <input clear="false">fftX</input>
+            <input clear="false">fftY</input>
+            <output>partFrequencyX</output>
+            <output>partFFTtempX</output>
+            <output>partFFTtempY</output>
+        </rangefilter>
+        <multiply>
+            <input clear="false">partFFTtempX</input>
+            <input>partFFTtempX</input>
+            <output>partFFTtempX2</output>
+        </multiply>
+        <multiply>
+            <input clear="false">partFFTtempY</input>
+            <input>partFFTtempY</input>
+            <output>partFFTtempY2</output>
+        </multiply>
+        <add>
+            <input>partFFTtempX2</input>
+            <input>partFFTtempY2</input>
+            <output>partFFTX</output>
+        </add>
+
+        <rangefilter>
+            <input clear="false">frequency</input>
+            <input as="min" type="value">2249</input>
+            <input as="max" type="value">3749</input>
+            <input clear="false">fftX</input>
+            <input clear="false">fftY</input>
+            <output>partFrequencyY</output>
+            <output>partFFTtempX</output>
+            <output>partFFTtempY</output>
+        </rangefilter>
+        <multiply>
+            <input clear="false">partFFTtempX</input>
+            <input>partFFTtempX</input>
+            <output>partFFTtempX2</output>
+        </multiply>
+        <multiply>
+            <input clear="false">partFFTtempY</input>
+            <input>partFFTtempY</input>
+            <output>partFFTtempY2</output>
+        </multiply>
+        <add>
+            <input>partFFTtempX2</input>
+            <input>partFFTtempY2</input>
+            <output>partFFTY</output>
+        </add>
+
+        <rangefilter>
+            <input clear="false">frequency</input>
+            <input as="min" type="value">3749</input>
+            <input as="max" type="value">5249</input>
+            <input clear="false">fftX</input>
+            <input clear="false">fftY</input>
+            <output>partFrequencyC</output>
+            <output>partFFTtempX</output>
+            <output>partFFTtempY</output>
+        </rangefilter>
+        <multiply>
+            <input clear="false">partFFTtempX</input>
+            <input>partFFTtempX</input>
+            <output>partFFTtempX2</output>
+        </multiply>
+        <multiply>
+            <input clear="false">partFFTtempY</input>
+            <input>partFFTtempY</input>
+            <output>partFFTtempY2</output>
+        </multiply>
+        <add>
+            <input>partFFTtempX2</input>
+            <input>partFFTtempY2</input>
+            <output>partFFTC</output>
+        </add>
+
+        <rangefilter>
+            <input>frequency</input>
+            <input as="min" type="value">5249</input>
+            <input as="max" type="value">5624</input>
+            <input>fftX</input>
+            <input>fftY</input>
+            <output>partFrequencyCheck</output>
+            <output>partFFTtempX</output>
+            <output>partFFTtempY</output>
+        </rangefilter>
+        <multiply>
+            <input clear="false">partFFTtempX</input>
+            <input>partFFTtempX</input>
+            <output>partFFTtempX2</output>
+        </multiply>
+        <multiply>
+            <input clear="false">partFFTtempY</input>
+            <input>partFFTtempY</input>
+            <output>partFFTtempY2</output>
+        </multiply>
+        <add>
+            <input>partFFTtempX2</input>
+            <input>partFFTtempY2</input>
+            <output>partFFTCheck</output>
+        </add>
+
+        <max>
+            <input as="y" clear="false">partFFTX</input>
+            <input as="x" clear="false">partFrequencyX</input>
+            <output as="position" clear="false">f1new</output>
+        </max>
+        <formula formula="round(([1] - 750)/(48000/2048))+1">
+            <input clear="false">f1new</input>
+            <output>f1new_mapped</output>
+        </formula>
+        <max>
+            <input as="y" clear="false">partFFTY</input>
+            <input as="x" clear="false">partFrequencyY</input>
+            <output as="position" clear="false">f2new</output>
+        </max>
+        <formula formula="round(([1] - 2250)/(48000/2048))+1">
+            <input clear="false">f2new</input>
+            <output>f2new_mapped</output>
+        </formula>
+        <max>
+            <input as="y" clear="false">partFFTC</input>
+            <input as="x" clear="false">partFrequencyC</input>
+            <output as="position" clear="false">f3new</output>
+        </max>
+        <max>
+            <input as="y" clear="false">partFFTCheck</input>
+            <input as="x" clear="false">partFrequencyCheck</input>
+            <output as="position" clear="false">f4new</output>
+        </max>
+
+        <formula formula="round(([1] - 3750)/(48000/2048)) % 8">
+            <input clear="false">f3new</input>
+            <output clear="false">colornew</output>
+        </formula>
+
+        <formula formula="floor(round(([1] - 3750)/(48000/2048)) / 8)+1">
+            <input clear="false">f3new</input>
+            <output clear="false">repeat</output>
+        </formula>
+
+        <formula formula="[2]+([1]-1)">
+            <input clear="false">repeat</input>
+            <input clear="false">f1new_mapped</input>
+            <output clear="false">repeat_stop</output>
+        </formula>
+
+        <ramp>
+            <input as="start" clear="false">f1new_mapped</input>
+            <input as="stop">repeat_stop</input>
+            <input as="length" clear="false">repeat</input>
+            <output clear="false">f1_r</output>
+        </ramp>
+
+        <const>
+            <input as="value" clear="false">f2new_mapped</input>
+            <input as="length" clear="false">repeat</input>
+            <output clear="false">f2_r</output>
+        </const>
+
+        <const>
+            <input as="value">colornew</input>
+            <input as="length" clear="false">repeat</input>
+            <output clear="true">color_r</output>
+        </const>
+
+        <formula formula="heaviside(0.1 - abs(round((([1]-750)/(48000/2048)) + round(([2]-2250)/(48000/2048)) + round(([3]-3750)/(48000/2048)))%16 - round(([4]-5250)/(48000/2048))))">
+            <input>f1new</input>
+            <input>f2new</input>
+            <input>f3new</input>
+            <input>f4new</input>
+            <output>valid</output>
+        </formula>
+
+<!--
+        <map zMode="average">
+            <input as="mapWidth" type="value">64</input>
+            <input as="minX" type="value">1</input>
+            <input as="maxX" type="value">64</input>
+            <input as="mapHeight" type="value">64</input>
+            <input as="minY" type="value">1</input>
+            <input as="maxY" type="value">64</input>
+            <input as="x" clear="false">f1</input>
+            <input as="y" clear="false">f2</input>
+            <input as="z" clear="false">color</input>
+            <output as="x">x</output>
+            <output as="y">y</output>
+            <output as="z">z</output>
+        </map>
+-->
+
+        <formula formula="([1]-1)+([2]-1)*64">
+            <input clear="false">f1new_mapped</input><!-- x -->
+            <input clear="false">f2new_mapped</input><!-- y -->
+            <output>replaceStart</output>
+        </formula>
+
+        <add>
+            <input clear="false">replaceStart</input>
+            <input clear="false">repeat</input> <!-- length -->
+            <output>replaceEnd</output>
+        </add>
+
+        <subrange>
+            <input clear="false">z</input>
+            <input as="to" clear="false">replaceStart</input>
+            <output>cutA</output>
+        </subrange>
+
+        <subrange>
+            <input clear="false">z</input>
+            <input as="from" clear="false">replaceEnd</input>
+            <output>cutB</output>
+        </subrange>
+
+        <append>
+            <input>cutA</input>
+            <input>color_r</input>
+            <input>cutB</input>
+            <output>temp</output>
+        </append>
+
+        <if equal="true">
+            <input clear="false">valid</input>
+            <input type="value">1</input>
+            <input clear="false">temp</input>
+            <output>z</output>
+        </if>
+
+        <append>
+            <input clear="false">x</input>
+            <output clear="false">x</output>
+        </append>
+
+    </analysis>
+    <export>
+        <set name="Xmas message">
+            <data name="x">x</data>
+            <data name="y">y</data>
+            <data name="Color">z</data>
+        </set>
+    </export>
+</phyphox>

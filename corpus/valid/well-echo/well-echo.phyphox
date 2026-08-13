@@ -1,0 +1,122 @@
+<phyphox version="1.13" locale="en">
+  <title>Well echo recorder</title>
+  <category>Well tools</category>
+  <icon>💧</icon>
+  <description>
+        Basic audio recording triggered by a loud noise.
+    </description>
+  <data-containers>
+    <container size="24000">rec_in</container>
+    <container size="240000">t</container>
+    <container size="240000">rec</container>
+    <container size="1">rate</container>
+    <container size="1">max</container>
+    <container size="1">max_scaled</container>
+    <container size="10" init="1,1,1,1,1,1,1,1,1,1">max_hist</container>
+    <container size="1">max_avg</container>
+    <container size="1">count</container>
+    <container size="1" init="0">samples_since_trigger</container>
+    <container size="1">temp</container>
+  </data-containers>
+  <input>
+    <audio>
+      <output>rec_in</output>
+      <output component="rate">rate</output>
+    </audio>
+  </input>
+  <views>
+    <view label="Scope">
+      <graph label="Audio Data" labelX="Time" unitX="s" labelY="Amplitude" unitY="a.u.">
+        <input axis="x">t</input>
+        <input axis="y">rec</input>
+      </graph>
+    </view>
+  </views>
+  <analysis>
+
+    <!-- Generate time axis -->
+    <formula formula="(240000-1)/[1]" cycles="10">
+        <input clear="false">rate</input>
+        <output clear="false">temp</output>
+    </formula>
+    <ramp cycles="10">
+      <input as="start" type="value">0</input>
+      <input as="stop">temp</input>
+      <input as="length" type="value">240000</input>
+      <output clear="false">t</output>
+    </ramp>
+
+    <!-- Count samples and add to samples_since_trigger if we have already been triggered -->
+    <count>
+      <input clear="false">rec_in</input>
+      <output>count</output>
+    </count>
+    <add>
+        <input clear="false">count</input>
+        <input clear="false">samples_since_trigger</input>
+        <output>temp</output>
+    </add>
+    <if greater="true">
+        <input clear="false">samples_since_trigger</input>
+        <input type="value">0</input>
+        <input>temp</input>
+        <output clear="false">samples_since_trigger</output>
+    </if>
+
+    <!-- Calculate average of previous sample amplitude -->
+    <average>
+      <input clear="false">max_hist</input>
+      <output>max_avg</output>
+    </average>
+
+    <!-- Get current max amplitude and append to history -->
+    <max>
+      <input as="y" clear="false">rec_in</input>
+      <output as="max">max</output>
+    </max>
+    <append>
+      <input clear="false">max</input>
+      <output clear="false">max_hist</output>
+    </append>
+
+    <!-- Set max to zero if we have already been triggered to avoid re-triggering -->
+    <if greater="true">
+        <input clear="false">samples_since_trigger</input>
+        <input type="value">0</input>
+        <input type="value">0</input>
+        <output clear="false">max</output>
+    </if>
+
+    <!-- Is 10% of max still larger than the previous average? That's a trigger! -->
+    <multiply>
+        <input clear="false">max</input>
+        <input type="value">0.1</input>
+        <output>max_scaled</output>
+    </multiply>
+    <if greater="true">
+        <input>max_scaled</input>
+        <input clear="false">max_avg</input>
+        <input>count</input>
+        <output>samples_since_trigger</output>
+    </if>
+
+    <!-- Append new recorded data to output if it has been triggered and unless we have already recorded enough data -->
+    <formula formula="heaviside([1]-0.5)*heaviside(220000-[1])">
+        <input clear="false">samples_since_trigger</input>
+        <output>temp</output>
+    </formula>
+    <if greater="true">
+        <input clear="false">temp</input>
+        <input type="value">0</input>
+        <input>rec_in</input>
+        <output clear="false">rec</output>
+    </if>
+
+  </analysis>
+  <export>
+    <set name="Audio data">
+      <data name="Time (ms)">t</data>
+      <data name="Recording (a.u.)">rec</data>
+    </set>
+  </export>
+</phyphox>

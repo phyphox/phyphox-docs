@@ -1,0 +1,40 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Generated fixture: network connection attributes no collected file
+         uses - discovery with discoveryAddress, a TLS certificate resource,
+         persistence, receive append and send keep. The addresses are
+         examples; the fixture is for parsing, not for connecting. -->
+    <title>Corpus: network details</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for rarely used network attributes.</description>
+    <data-containers>
+        <container size="100">outv</container>
+        <container size="100">inv</container>
+    </data-containers>
+    <input>
+        <sensor type="pressure">
+            <output component="x">outv</output>
+        </sensor>
+    </input>
+    <network>
+        <connection service="mqtts/json" address="mqtts://broker.example.org:8883"
+                    discovery="http" discoveryAddress="http://discovery.example.org/phyphox"
+                    certificate="broker-ca.pem" persistence="true" interval="1"
+                    receiveTopic="phyphox/in" sendTopic="phyphox/out"
+                    privacy="https://phyphox.org/disclaimer/">
+            <send id="p" type="buffer" keep="false" datatype="number">outv</send>
+            <receive id="r" append="false" clear="true">inv</receive>
+        </connection>
+    </network>
+    <views>
+        <view label="Data">
+            <value label="Received">
+                <input>inv</input>
+            </value>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="received">inv</data>
+        </set>
+    </export>
+</phyphox>

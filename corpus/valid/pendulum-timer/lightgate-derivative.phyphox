@@ -1,0 +1,176 @@
+<phyphox version="1.14" locale="en">
+  <title>Light Gate (d/dt)</title>
+  <category>Timers</category>
+  <description>
+        Variant of the acoustic stopwatch, optimized to measure the period of a pendulum using a light gate attached to the microphone input.
+    </description>
+  <icon>LG</icon>
+  <translations>
+    <translation locale="vi">
+      <title>Đo chu kỳ (d/dt)</title>
+      <category>Đồng hồ</category>
+      <description>
+        Đây là một biến thể của đồng hồ âm, nó được dùng để đo chu kỳ của con lắc đơn và con lắc lò xo, sử dụng kết hợp với bộ thí nghiệm tự chế của Mr Vũ.
+    </description>
+      <string original="Detection setup">Cài đặt</string>
+      <string original="Threshold">Ngưỡng</string>
+      <string original="Minimum Delay">Độ trễ</string>
+      <string original="Max number of periods">Số chu kỳ đo</string>
+      <string original="Reset">Đặt lại</string>
+      <string original="Results">Kết quả</string>
+      <string original="Events">Kích thích</string>
+      <string original="Periods">Chu kỳ thứ</string>
+      <string original="Total time">Tổng thời gian</string>
+      <string original="Average period">Chu kỳ</string>
+    </translation>
+  </translations>
+  <data-containers>
+    <container>threshold</container>
+    <container>mindelay</container>
+    <container>distance</container>
+    <container size="16384">recording</container>
+    <container size="16384">todo</container>
+    <container size="16384">todoAvg</container>
+    <container>rate</container>
+    <container>i</container>
+    <container>skip</container>
+    <container>last</container>
+    <container size="0">events</container>
+    <container size="0">tlist</container>
+    <container size="0">tlistperiods</container>
+    <container size="1">tcount</container>
+    <container size="1">tcountreal</container>
+    <container size="1">periods</container>
+    <container size="1">maxperiods</container>
+    <container size="1">t0</container>
+    <container size="1">totalTime</container>
+    <container>avgPeriod</container>
+    <container>count</container>
+    <container init="0">index</container>
+  </data-containers>
+  <input>
+    <audio append="true">
+      <output>recording</output>
+      <output component="rate">rate</output>
+    </audio>
+  </input>
+  <views>
+    <view label="Simple">
+      <info label="Detection setup" bold="true" size="1.5" />
+      <edit label="Threshold" unit="[[unit_short_arbitrary_unit]]" default="0.1" signed="false" min="0" max="1">
+        <output>threshold</output>
+      </edit>
+      <edit label="Minimum Delay" unit="[[unit_short_second]]" default="0.1" signed="false">
+        <output>mindelay</output>
+      </edit>
+      <edit label="Max number of periods" default="10" min="1" max="50" signed="false" decimal="false">
+        <output>maxperiods</output>
+      </edit>
+      <separator height="2" />
+      <button label="Reset">
+        <input type="empty"/>
+        <output>events</output>
+        <input type="value">0</input>
+        <output>i</output>
+      </button>
+      <separator height="2" />
+      <info label="Results" bold="true" size="1.5" />
+      <value label="Events" size="1" precision="0">
+        <input>tcountreal</input>
+      </value>
+      <value label="Periods" size="2" precision="0">
+        <input>periods</input>
+      </value>
+      <value label="Total time" size="2" precision="3" unit="[[unit_short_second]]">
+        <input>totalTime</input>
+      </value>
+      <value label="Average period" size="2" precision="3" unit="[[unit_short_second]]">
+        <input>avgPeriod</input>
+      </value>
+    </view>
+  </views>
+  <analysis sleep="0.05" requireFill="recording" requireFillThreshold="10">
+    
+    <multiply>
+      <input keep="true">mindelay</input>
+      <input keep="true">rate</input>
+      <output>distance</output>
+    </multiply>
+
+    <split>
+        <input as="data">recording</input>
+        <input as="overlap" type="value">9</input>
+        <output>todo</output>
+        <output>recording</output>
+    </split>
+
+    <movingaverage dropIncomplete="true">
+        <input as="data">todo</input>
+        <input as="width" type="value">10</input>
+        <output>todoAvg</output>
+    </movingaverage>
+
+    <eventstream mode="aboveDerivativeAbsolute">
+      <input as="data">todoAvg</input>
+      <input as="threshold" keep="true">threshold</input>
+      <input as="distance" keep="true">distance</input>
+      <input as="index">i</input>
+      <input as="skip">skip</input>
+      <input as="last">last</input>
+      <output as="events" append="true">events</output>
+      <output as="index">i</output>
+      <output as="skip">skip</output>
+      <output as="last">last</output>
+    </eventstream>
+    <divide>
+      <input keep="true">events</input>
+      <input keep="true">rate</input>
+      <output>tlist</output>
+    </divide>
+
+
+
+    <count>
+      <input clear="false">tlist</input>
+      <output>tcountreal</output>
+    </count>
+    <formula formula="min(floor(abs([1]-1)/2), [2])">
+      <input clear="false">tcountreal</input>
+      <input clear="false">maxperiods</input>
+      <output>periods</output>
+    </formula>
+    <formula formula="2*[1]+1">
+      <input clear="false">periods</input>
+      <output>tcount</output>
+    </formula>
+    <subrange>
+      <input clear="false">tlist</input>
+      <input as="to">tcount</input>
+      <output>tlistperiods</output>
+    </subrange>
+    <first>
+      <input clear="false">tlistperiods</input>
+      <output>t0</output>
+    </first>
+    <formula formula="[2]-[1]">
+      <input clear="false">t0</input>
+      <input clear="false">tlistperiods</input>
+      <output>totalTime</output>
+    </formula>
+    <divide>
+      <input clear="false">totalTime</input>
+      <input clear="false">periods</input>
+      <output>avgPeriod</output>
+    </divide>
+    <add>
+      <input clear="false">index</input>
+      <input>count</input>
+      <output>index</output>
+    </add>
+  </analysis>
+  <export>
+    <set name="All">
+      <data name="Event time (s)">tlistperiods</data>
+    </set>
+  </export>
+</phyphox>

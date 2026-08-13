@@ -1,0 +1,144 @@
+<phyphox version="1.19" locale="en">
+  <title>Doppler Effekt</title>
+  <category>Physik im Advent</category>
+  <icon>Dop</icon>
+  <description>
+    Zeitliche Frequenz-Messung zur Untersuchung des Doppler-Effekts
+  </description>
+  <data-containers>
+    <container size="4800">recording</container>
+    <container size="4800">recording_raw</container>
+    <container>rate</container>
+    <container>tmax</container>
+    <container size="4800">time</container>
+    <container size="4800">autocorrelation</container>
+    <container size="4800">autoco_t</container>
+    <container>period</container>
+    <container>frequency</container>
+    <container>max</container>
+    <container>threshold</container>
+    <container>count</container>
+    <container>count-1</container>
+    <container size="0">peaksX</container>
+    <container size="0">peaksXfiltered</container>
+    <container size="1">lastX</container>
+    <container size="0">history_t</container>
+    <container size="0">history_f</container>
+  </data-containers>
+  <input>
+    <audio append="true">
+      <output>recording</output>
+      <output component="rate">rate</output>
+    </audio>
+  </input>
+  <views>
+    <view label="Verlauf">
+      <image src="pia.png" />
+      <separator height="1"/>
+      <graph label="Verlauf" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="f" unitY="[[unit_short_hertz]]" scaleMinY="fixed" scaleMaxY="fixed" scaleMinX="fixed" scaleMaxX="fixed" minY="2980" maxY="3020" minX="0" maxX="10" followX="true" style="dots" lineWidth="3">
+        <input axis="x">history_t</input>
+        <input axis="y">history_f</input>
+      </graph>
+      <separator height="1"/>
+      <value label="Frequenz" size="2" precision="0" unit="[[unit_short_hertz]]">
+        <input>frequency</input>
+      </value>
+    </view>
+    <view label="Rohdaten">
+      <graph label="Recording" labelX="[[quantity_short_time]]" unitX="[[unit_short_milli_second]]" labelY="Amplitude" unitY="[[unit_short_arbitrary_unit]]">
+        <input axis="x">time</input>
+        <input axis="y">recording_raw</input>
+      </graph>
+    </view>
+  </views>
+  <analysis sleep="0.05">
+    <append>
+      <input keep="true">recording</input>
+      <output>recording_raw</output>
+    </append>
+    <divide>
+      <input type="value">4800000</input>
+      <!-- 4800 / rate * 1000 -->
+      <input clear="false">rate</input>
+      <output>tmax</output>
+    </divide>
+    <ramp>
+      <input as="start" type="value">0</input>
+      <input as="stop" clear="false">tmax</input>
+      <output>time</output>
+    </ramp>
+    <autocorrelation>
+      <input as="x" clear="false">time</input>
+      <input as="y" clear="false">recording</input>
+      <output as="y">autocorrelation</output>
+      <output as="x">autoco_t</output>
+      <input as="minX" type="value">0</input>
+      <input as="maxX" type="value">40</input>
+    </autocorrelation>
+    <max>
+      <input as="y" clear="false">autocorrelation</input>
+      <output as="max">max</output>
+    </max>
+    <multiply>
+      <input clear="false">max</input>
+      <input type="value">0.5</input>
+      <output>threshold</output>
+    </multiply>
+    <max multiple="true">
+      <input as="x" clear="false">autoco_t</input>
+      <input as="y" clear="false">autocorrelation</input>
+      <input as="threshold" clear="false">threshold</input>
+      <output as="position">peaksX</output>
+    </max>
+    <rangefilter>
+      <input clear="false">peaksX</input>
+      <input as="max" type="value">39.9</input>
+      <output>peaksXfiltered</output>
+    </rangefilter>
+    <count>
+      <input clear="false">peaksXfiltered</input>
+      <output>count</output>
+    </count>
+    <subtract>
+      <input clear="false">count</input>
+      <input type="value">1</input>
+      <output>count-1</output>
+    </subtract>
+    <append>
+      <input clear="false">peaksXfiltered</input>
+      <output>lastX</output>
+    </append>
+    <divide>
+      <input clear="false">lastX</input>
+      <input type="value">1000</input>
+      <input clear="false">count-1</input>
+      <output>period</output>
+    </divide>
+    <divide>
+      <input type="value">1</input>
+      <input clear="false">period</input>
+      <output>frequency</output>
+    </divide>
+    <append>
+        <input keep="true">frequency</input>
+        <output append="true">history_f</output>
+    </append>
+    <timer>
+        <output append="true">history_t</output>
+    </timer>
+  </analysis>
+  <export>
+    <set name="History">
+      <data name="Time (s)">history_t</data>
+      <data name="Frequency (Hz)">history_f</data>
+    </set>
+    <set name="Autocorrelation">
+      <data name="Delay (ms)">autoco_t</data>
+      <data name="Autocorrelation (a.u.)">autocorrelation</data>
+    </set>
+    <set name="Raw data">
+      <data name="Time (ms)">time</data>
+      <data name="Recording (a.u.)">recording_raw</data>
+    </set>
+  </export>
+</phyphox>

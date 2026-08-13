@@ -1,0 +1,148 @@
+<phyphox version="1.19" locale="en">
+  <title>Graph NaN Test</title>
+  <category>Tests</category>
+  <description>Check if NaNs break a single or multiple plots</description>
+  <translations>
+  </translations>
+  <data-containers>
+    <container size="0" init="1, 2, 3, 4">validx</container>
+    <container size="0" init="1, NaN, 3, 4">dirtyx</container>
+    <container size="0" init="NaN,NaN,NaN,NaN">invalidx</container>
+    <container size="0" init="">emptyx</container>
+    <container size="0" init="4, 3, 2, 1">validy</container>
+    <container size="0" init="5, 4, 3, 2">validy2</container>
+    <container size="0" init="5, 6, NaN, 8">dirtyy</container>
+    <container size="0" init="NaN, NaN, NaN, NaN">invalidy</container>
+    <container size="0" init="">emptyy</container>
+  </data-containers>
+  <views>
+    <view label="Graph">
+      <graph label="valid, valid">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="valid, dirtyY">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">dirtyy</input>
+      </graph>
+
+      <graph label="dirtyY, valid">
+        <input axis="x">validx</input>
+        <input axis="y">dirtyy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+      </graph>
+
+      <graph label="valid, dirtyX">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">dirtyx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="dirtyX, valid">
+        <input axis="x">dirtyx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="valid, dirty">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">dirtyx</input>
+        <input axis="y">dirtyy</input>
+      </graph>
+
+      <graph label="dirty, valid">
+        <input axis="x">dirtyx</input>
+        <input axis="y">dirtyy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+      </graph>
+
+
+      <graph label="valid, invalidY">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="y">invalidy</input>
+      </graph>
+
+      <graph label="valid, invalidY">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">invalidy</input>
+      </graph>
+
+      <graph label="invalidY, valid">
+        <input axis="x">validx</input>
+        <input axis="y">invalidy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+      </graph>
+
+      <graph label="valid, invalidX">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">invalidx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="invalidX, valid">
+        <input axis="x">invalidx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="valid, invalid">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">invalidx</input>
+        <input axis="y">invalidy</input>
+      </graph>
+
+      <graph label="invalid, valid">
+        <input axis="x">invalidx</input>
+        <input axis="y">invalidy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+      </graph>
+
+      <graph label="emptyx, valid">
+        <input axis="x">emptyx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="emptyy, valid">
+        <input axis="x">validx</input>
+        <input axis="y">emptyy</input>
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+      </graph>
+
+      <graph label="valid, emptyx">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">emptyx</input>
+        <input axis="y">validy2</input>
+      </graph>
+
+      <graph label="valid, emptyy">
+        <input axis="x">validx</input>
+        <input axis="y">validy</input>
+        <input axis="x">validx</input>
+        <input axis="y">emptyy</input>
+      </graph>
+
+    </view>
+  </views>
+</phyphox>

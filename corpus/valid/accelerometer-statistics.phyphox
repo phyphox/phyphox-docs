@@ -1,0 +1,170 @@
+<phyphox version="1.6" locale="en">
+    <title>Accelerometer Statistics</title>
+    <category>Statistics</category>
+    <description>
+        Check the statistical distribution of the sensor data.
+
+        This experiment simply displays raw z data from the sensor in a histogram, which should form into a Gaussian distribution when the device is resting. Depending on the noise of the sensor you may want to change the binning size.
+    </description>
+    <icon format="base64">
+        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
+    </icon>
+    <translations>
+        <translation locale="de">
+            <title>Statistik des Beschleunigungssensors</title>
+            <category>Experimentalphysik I</category>
+            <description>
+                Prüfe die statistische Verteilung der Sensordaten.
+
+                Dieses Experiment zeigt einfach die Rohdaten der z-Komponente des Beschleunigungssensors in einem Histogramm an. Wenn das Smartphone ruht, sollte sich hier eine Gauß-Verteilung ergeben. Je nach Rauschen des Sensors solltest du die Bin-Größe anpassen.
+            </description>
+            <string original="Statistics">Statistik</string>
+            <string original="z Acceleration">z Beschleunigung</string>
+            <string original="z Acceleration (m/s²)">z Beschl. (m/s²)</string>
+            <string original="Histogram">Histogramm</string>
+            <string original="Bin center (m/s²)">Bin-Mitte (m/s²)</string>
+            <string original="Count">Anzahl</string>
+            <string original="Bin size">Bin-Größe</string>
+            <string original="Average acceleration">Mittlere Beschleunigung</string>
+            <string original="Standard deviation">Standardabweichung</string>
+        </translation>
+    </translations>
+    <data-containers>
+        <container size="0">accZ</container>
+        <container size="0">t</container>
+        <container size="0">binStart</container>
+        <container size="0">binCount</container>
+        <container size="1">average</container>
+        <container size="1">deviation</container>
+        <container size="1">count</container>
+        <container size="1">binSize</container>
+        <container size="0">temp1</container>
+        <container size="0">temp2</container>
+        <container size="1">minX</container>
+        <container size="1">maxX</container>
+        <container size="500">gaussianX</container>
+        <container size="500">gaussian</container>
+    </data-containers>
+    <input>
+        <sensor type="accelerometer" rate="0">
+            <output component="z">accZ</output>
+            <output component="t">t</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="Statistics">
+            <graph label="z Acceleration" labelX="t (s)" labelY="z Acceleration (m/s²)" partialUpdate="true" style="lines">
+                <input axis="x">t</input>
+                <input axis="y">accZ</input>
+            </graph>
+            <graph label="Histogram" labelX="Acceleration (m/s²)" labelY="Count" partialUpdate="false">
+                <input axis="x">gaussianX</input>
+                <input axis="y" style="lines" lineWidth="2">gaussian</input>
+                <input axis="x">binStart</input>
+                <input axis="y" style="vbars" color="E0E040" lineWidth="0.9">binCount</input>
+            </graph>
+            <edit label="Bin size" unit="m/s²" default="0.005" signed="false">
+                <output>binSize</output>
+            </edit>
+            <value label="Average acceleration" precision="4" scientific="false" unit="m/s²" factor="1">
+                <input>average</input>
+            </value>
+            <value label="Standard deviation" precision="4" scientific="false" unit="m/s²" factor="1">
+                <input>deviation</input>
+            </value>
+            <value label="Count" precision="0" scientific="false" unit="" factor="1">
+                <input>count</input>
+            </value>
+        </view>
+    </views>
+    <analysis>
+        <binning>
+            <input clear="false">accZ</input>
+            <input clear="false" as="dx">binSize</input>
+            <output clear="true">binStart</output>
+            <output clear="true">binCount</output>
+        </binning>
+        <average>
+            <input clear="false">accZ</input>
+            <output as="average">average</output>
+            <output as="stddev">deviation</output>
+        </average>
+        <count>
+            <input clear="false">accZ</input>
+            <output>count</output>
+        </count>
+
+
+        <subrange>
+            <input as="from" type="value">0</input>
+            <input as="length" type="value">1</input>
+            <input clear="false">binStart</input>
+            <output>minX</output>
+        </subrange>
+        <append>
+            <input clear="false">binStart</input>
+            <output>temp1</output>
+        </append>
+        <add>
+            <input>temp1</input>
+            <input clear="false">binSize</input>
+            <output>maxX</output>
+        </add>
+        <ramp>
+            <input as="start" clear="false">minX</input>
+            <input as="stop" clear="false">maxX</input>
+            <output>gaussianX</output>
+        </ramp>
+
+        <subtract>
+            <input clear="false">gaussianX</input>
+            <input clear="false">average</input>
+            <output>temp1</output>
+        </subtract>
+
+        <multiply>
+            <input clear="false">temp1</input>
+            <input>temp1</input>
+            <output>temp2</output>
+        </multiply>
+
+        <divide>
+            <input>temp2</input>
+            <input type="value">-2</input>
+            <input clear="false">deviation</input>
+            <input clear="false">deviation</input>
+            <output>temp1</output>
+        </divide>
+
+        <power>
+            <input as="base" type="value">2.7182818284</input> <!-- e -->
+            <input as="exponent">temp1</input>
+            <output>temp2</output>
+        </power>
+
+        <divide>
+            <input>temp2</input>
+            <input type="value">2.506628275</input> <!-- sqrt(2pi) -->
+            <input clear="false">deviation</input>
+            <output>temp1</output>
+        </divide>
+
+        <multiply>
+            <input>temp1</input>
+            <input clear="false">binSize</input>
+            <input clear="false">count</input>
+            <output>gaussian</output>
+        </multiply>
+
+    </analysis>
+    <export>
+        <set name="Data">
+            <data name="t (s)">t</data>
+            <data name="z Acceleration (m/s^2)">accZ</data>
+        </set>
+        <set name="Bins">
+            <data name="Bin start (m/s²)">binStart</data>
+            <data name="Bin count">binCount</data>
+        </set>
+    </export>
+</phyphox>

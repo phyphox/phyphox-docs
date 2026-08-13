@@ -1,0 +1,26 @@
+<phyphox version="1.12" locale="en">
+    <title>Info View</title>
+    <category>View Tests</category>
+    <description>
+        Test of the info view element
+    </description>
+    <views>
+        <view label="Test">
+            <info label="Long text that is wrapped and aligned left. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam" align="left" />
+            <info label="Long text that is wrapped and aligned right. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam" align="right" />
+            <info label="Long text that is wrapped and centered. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam" align="center" />
+            <info label="Short text that is aligned left." align="left" />
+            <info label="Short text that is aligned right." align="right" />
+            <info label="Short text that is centered." align="center" />
+            <info label="Double sized text" size="2" />
+            <info label="Half sized text" size="0.5" />
+            <info label="Italics" italic="true" />
+            <info label="Bold" bold="true" />
+            <info label="Red" color="ff0000" />
+            <info label="Green" color="00ff00" />
+            <info label="Blue" color="0000ff" />
+            <info label="Red with Hash" color="#ff0000" />
+            <info label="Red named" color="red" />
+        </view>
+    </views>
+</phyphox>

@@ -1,0 +1,263 @@
+<phyphox version="1.11">
+    <title>CO₂-Sensor (MQTT)</title>
+    <category>CO₂-Sensor</category>
+    <color>23AA47</color>
+    <description>This experiment visualizes the sensor data of the phyphox CO2 sensor. (MQTT version with hardcoded MQTT broker.</description>
+    <icon format="string">CO₂</icon>
+    <data-containers>
+        <container size="0">co_in</container>
+        <container size="0">temp_in</container>
+        <container size="0">hum_in</container>
+        <container size="0">time_in</container>
+
+        <container size="1">co_now</container>
+        <container size="1">temp_now</container>
+        <container size="1">hum_now</container>
+
+        <container size="0">co_temp</container>
+        <container size="0">temp_temp</container>
+        <container size="0">hum_temp</container>
+        <container size="0">time_temp</container>
+
+        <container size="0">co</container>
+        <container size="0">temp</container>
+        <container size="0">hum</container>
+        <container size="0">time</container>
+
+        <container size="0">timediff</container>
+        <container size="0">timecorrect</container>
+
+        <container size="0">co_display</container>
+        <container size="0">temp_display</container>
+        <container size="0">hum_display</container>
+        <container size="0">time_display</container>
+
+        <container size="1" init="0">timezero</container>
+        <container size="1">pptime</container>
+        <container size="1">pptimezero</container>
+
+        <container size="1" init="-1000000000">nOld</container>
+
+        <container size="1" init="0">retrieveButton</container>
+        <container size="1">sendHistory</container>
+    </data-containers>
+    <network>
+      <connection address="192.168.2.5:1883" autoConnect="true" service="mqtt/csv" receiveTopic="co2/data/+" interval="0.5" id="co2" privacy="https://phyphox.org/disclaimer/" conversion="json">
+        <send id="co2/control/sendHistory" datatype="number">sendHistory</send>
+        <receive id="co2" clear="true">co_in</receive>
+        <receive id="temperature" clear="true">temp_in</receive>
+        <receive id="humidity" clear="true">hum_in</receive>
+        <receive id="timestamp" clear="true">time_in</receive>
+      </connection>
+    </network>
+    <analysis sleep="0.5" onUserInput="false">
+
+        <!--_____________________________________-->
+        <!--|          Set time zero            |-->
+        <!--¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯-->
+
+        <!-- if timezero is 0, we have not yet determined zero on the x axis. Let's use the timestamp of any new data point and match it to the output of the timer module. -->
+
+        <timer>
+            <output>pptime</output>
+        </timer>
+
+        <if less="true" equal="true">
+            <input clear="false">timezero</input>
+            <input type="value">0</input>
+            <input clear="false">pptime</input>
+            <output clear="false">pptimezero</output>
+        </if>
+
+        <if less="true" equal="true">
+            <input clear="false">timezero</input>
+            <input type="value">0</input>
+            <input clear="false">time_in</input>
+            <output clear="false">timezero</output>
+        </if>
+
+        <!--_____________________________________-->
+        <!--|         Retrieve button           |-->
+        <!--¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯-->
+
+        <if equal="true">
+            <input clear="false">retrieveButton</input>
+            <input type="value">1</input>
+            <input type="value">1</input>
+            <input type="empty" />
+            <output as="result" clear="true">sendHistory</output>
+        </if>
+
+        <append>
+            <input type="value">0</input>
+            <output as="out">retrieveButton</output>
+		</append>
+
+        <!--_____________________________________-->
+        <!--|         Append new data           |-->
+        <!--¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯-->
+
+        <append>
+            <input clear="false">co_in</input>
+            <output clear="false">co_now</output>
+		</append>
+
+        <append>
+            <input clear="false">temp_in</input>
+            <output clear="false">temp_now</output>
+		</append>
+
+        <append>
+            <input clear="false">hum_in</input>
+            <output clear="false">hum_now</output>
+		</append>
+
+        <append>
+            <input clear="true">co_in</input>
+            <output clear="false">co</output>
+		</append>
+
+        <append>
+            <input clear="true">temp_in</input>
+            <output clear="false">temp</output>
+		</append>
+
+        <append>
+            <input clear="true">hum_in</input>
+            <output clear="false">hum</output>
+		</append>
+
+        <append>
+            <input clear="true">time_in</input>
+            <output clear="false">time</output>
+		</append>
+
+        <!--_____________________________________-->
+        <!--|     Sort and delete duplicates    |-->
+        <!--¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯-->
+
+        <sort>
+            <input clear="false">time</input>
+            <input clear="false">co</input>
+            <input clear="false">temp</input>
+            <input clear="false">hum</input>
+            <output clear="true">time_temp</output>
+            <output clear="true">co_temp</output>
+            <output clear="true">temp_temp</output>
+            <output clear="true">hum_temp</output>
+        </sort>
+
+        <append>
+            <input type="value">2</input>
+            <output>timediff</output>
+        </append>
+
+        <differentiate>
+            <input clear="false">time_temp</input>
+            <output clear="false">timediff</output>
+        </differentiate>
+
+        <rangefilter>
+            <input clear="false">timediff</input>
+            <input type="value" as="min">1</input>
+            <input clear="false">co_temp</input>
+            <input clear="false">temp_temp</input>
+            <input clear="false">hum_temp</input>
+            <input clear="false">time_temp</input>
+            <output>timediff</output>
+            <output>co</output>
+            <output>temp</output>
+            <output>hum</output>
+            <output>time</output>
+        </rangefilter>
+
+        <!--_____________________________________-->
+        <!--|        Generate time axis         |-->
+        <!--¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯-->
+
+        <formula formula="([1_]-[2]+[3])">
+            <input clear="false">time</input>
+            <input clear="false">timezero</input>
+            <input clear="false">pptimezero</input>
+            <output>timecorrect</output>
+        </formula>
+
+        <!--_____________________________________-->
+        <!--|  Filter for selected time range   |-->
+        <!--¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯-->
+
+        <rangefilter>
+            <input clear="false">co</input>
+            <input clear="false">temp</input>
+            <input clear="false">hum</input>
+            <input clear="false">timecorrect</input>
+            <input clear="false" as="min">nOld</input>
+            <output>co_display</output>
+            <output>temp_display</output>
+            <output>hum_display</output>
+            <output>time_display</output>
+        </rangefilter>
+
+    </analysis>
+    <views>
+        <view label="Data">
+            <graph label="CO₂" lineWidth="2" color="23AA47" timeOnX="true" systemTime="true" labelX="time" labelY="CO₂" unitX="s" unitY="ppm">
+                <input axis="x">time_display</input>
+                <input axis="y">co_display</input>
+            </graph>
+            <value label="CO₂" size="1" precision="2" scientific="false" unit="ppm" >
+                <input>co_now</input>
+            </value>
+            <separator height="1" />
+            <graph label="Temperature" color="ffcd1a" timeOnX="true" systemTime="true" labelX="time" labelY="temperature" unitX="s" unitY="°C">
+                <input axis="x">time_display</input>
+                <input axis="y">temp_display</input>
+            </graph>
+            <value label="Temperature" size="1" precision="2" scientific="false" unit="°C">
+                <input>temp_now</input>
+            </value>
+            <separator height="1" />
+            <graph label="Humidity" color="2073FA" timeOnX="true" systemTime="true" labelX="time" labelY="humidity" unitX="s" unitY="%">
+                <input axis="x">time_display</input>
+                <input axis="y">hum_display</input>
+            </graph>
+            <value label="Humidity" size="1" precision="2" scientific="false" unit="%">
+                <input>hum_now</input>
+            </value>
+        </view>
+        <view label="History">
+            <button label="Retrieve old data">
+                <input type="value">1</input>
+                <output>retrieveButton</output>
+                <input type="value">-120</input>
+                <output>nOld</output>
+            </button>
+            <separator height="1" />
+            <info label="Show data from before the start of the experiment for no more than" />
+            <button label="1 hour">
+                <input type="value">-3600</input>
+                <output>nOld</output>
+            </button>
+            <button label="2 hour">
+                <input type="value">-7200</input>
+                <output>nOld</output>
+            </button>
+            <button label="4 hour">
+                <input type="value">-14400</input>
+                <output>nOld</output>
+            </button>
+            <button label="no limit">
+                <input type="value">-1000000000</input>
+                <output>nOld</output>
+            </button>
+        </view>
+    </views>
+    <export>
+        <set name="data">
+            <data name="Time (min)">time_display</data>
+            <data name="CO2 (ppm)">co_display</data>
+            <data name="Temperature (°C)">temp_display</data>
+            <data name="Humidity (%)">hum_display</data>
+        </set>
+    </export>
+</phyphox>

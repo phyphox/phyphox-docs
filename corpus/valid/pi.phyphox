@@ -1,0 +1,330 @@
+<phyphox version="1.4" locale="en">
+    <title>π-day</title>
+    <category>Fun</category>
+    <description>
+        Experimentally approximate π to celebrate π-day.
+
+        This experiment generates random numbers from the accelerometer and uses them to randomly place points within a square. By counting the numbers of points that also fall inside a circle contained by the square, we can approximate pi experimentally.
+    </description>
+    <icon>
+        π
+    </icon>
+    <translations>
+        <translation locale="de">
+            <title>π-Tag</title>
+            <category>Spaß</category>
+            <description>
+                Bestimme experimentell π um den π-Tag zu feiern.
+
+                Dieses Experiment erzeugt über den Beschleunigungssensor Zufallszahlen und nutzt diese um zufällig Punkte innerhalb eines Quadrats zu verteilen. Durch Abzählen der Punkte innerhalb eines von diesem Quadrat umschlossenen Kreises können wir Pi annähern.
+            </description>
+            <string original="Positions">Positionen</string>
+            <string original="Total points">Anzahl Punkte</string>
+            <string original="Inside circle">Im Kreis</string>
+            <string original="How does it work?">Wir funktioniert es?</string>
+            <string original="This experiment generates random numbers from the noise of the accelerometer in your phone. These random numbers are used to create a point at a random location (x,y) within a square, ranging from -1 to +1 on the x and on the y axis.">Dieses Experiment erzeugt aus dem Rauschen des Beschleunigungssensors Zufallszahlen. Diese Zufallszahlen werden benutzt um Punkte an zufälligen Orten (x,y) in einem Rechteck im bereich -1 bis +1 auf der x- und y-Achse zu platzieren.</string>
+            <string original="You will notice that there is a circle drawn into this square range. This is a circle with radius 1. By calculating the distance r² = x² + y² of a point at (x,y), we can tell if it is within the circle (r &lt; 1) or if it is on the outside (r &gt; 1).">Dir ist sicher aufgefallen, dass in dieses Quadrat ein Kreis mit dem Radius 1 eingezeichnet ist. Wir können sagen, ob ein Punkt (x,y) darin liegt, indem wir den Abstand r² = x² + y² berechnen. Ist dieser kleiner 1, liegt der Punkt innen, ist er größer 1, liegt er außen.</string>
+            <string original="The probability for a point to be inside is proportional to the ratio of the area of the circle to the area of the square. The area of the square is 4 as each side has the length 2. The area of the circle is π, because its radius is 1 (the area of a circle with radius r is πr²). Therefore the probability for a point to be inside the circle is π/4.">Die Wahrscheinlichkeit, dass ein Punkt innen landet ist proportional zum Verhältnis der Fläche des Kreises zu der Fläche des Quadrats. Letztere beträgt 4, da das Quadrat eine Seitenlänge von 2 hat. Die Fläche des Kreises ist π, da sein Radius 1 beträgt (die Fläche eines Kreises mit Radius r is πr²). Somit ist die Wahrscheinlichkeit, dass ein Punkt im Kreis landet gleich π/4.</string>
+            <string original="Putting it all together, all we need to do is calculating the ratio of points inside the circle to the total number of points. π is four times this ratio.">Um schließlich π anzunähern müssen wir nur das Verhältnis der Punkte im Kreis zur Gesamtzahl der Punkte berechnen. π ist dann das Vierfache dieses Verhältnisses.</string>
+            <string original="Problems">Probleme</string>
+            <string original="This method requires equally distributed random numbers, which we generate from the decimal part of the sensor readings. This leads to the following possible problems:">Diese Methode erfordert gleichverteilte Zufallszahlen, die wir aus den Nachkommastellen der Messwerte erzeugen. Dies führt zu folgenden Problemen:</string>
+            <string original="While the first digit will stabilize very fast, it will take somewhat longer for the next one to stabilize. If you want a good result for the last digit shown in this experiment, expect to acquire 10000 or even 100000 values before getting a satisfactory result.">Die erste Stelle erscheint recht schnell, die nächste braucht schon etwas länger, um sich zu stabilisieren. Um einen zufriedenstellenden Wert für die letzte hier angezeigte Stelle zu erhalten, musst du damit rechnen, 10.000 bis 100.000 Werte zu sammeln.</string>
+            <string original="You smartphone needs to be resting to get an approximately unbiased distribution.">Dein Smartphone muss ruhen, um annähern gleichverteilte Werte zu erzeugen. Bewegungen können zu Verzerrungen der Verteilung führen.</string>
+            <string original="Depending on the accelerometer in your phone or the way it handles the data, you may still not get unbiased and equally distributed data. In this case you will notice patterns in the way the points are scattered in the graph and you result may be systematically off.">Je nach verbautem beschleunigungssensor oder der Art, wie dein Smartphone die Daten behandelt, kann es vorkommen, dass die Daten dennoch nicht gleich verteilt sind. In diesem Fall wirst du ein Muster oder eine Systematik darin sehen, wie die Punkte im Graphen verteilt sind. Dies wird das ergebnis systematisch verfälschen.</string>
+        </translation>
+    </translations>
+    <data-containers>
+        <container static="true" size="0">circlePhi</container>
+        <container static="true" size="0">circleX</container>
+        <container static="true" size="0">circleY</container>
+
+        <container static="true" size="0">indices</container>
+        <container>x</container>
+        <container>y</container>
+        <container>abs(x)</container>
+        <container>abs(y)</container>
+        <container>1000*abs(x)</container>
+        <container>1000*abs(y)</container>
+        <container>ix</container>
+        <container>iy</container>
+        <container>randomX</container>
+        <container>randomY</container>
+        <container>2*randomX</container>
+        <container>2*randomY</container>
+        <container>randomCoordX</container>
+        <container>randomCoordY</container>
+        <container>randomCoordX2</container>
+        <container>randomCoordY2</container>
+        <container>randomCoordAbs2</container>
+
+        <container init="0">count</container>
+        <container init="0">countTemp</container>
+        <container init="0">insideTemp</container>
+        <container init="0">inside</container>
+        <container>pi/4</container>
+        <container>pi</container>
+
+        <container size="0">xList</container>
+        <container size="0">yList</container>
+        <container size="0">xDrawList</container>
+        <container size="0">yDrawList</container>
+    </data-containers>
+    <input>
+        <sensor type="linear_acceleration" rate="20" average="true">
+            <output component="x">x</output>
+            <output component="y">y</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="π">
+
+            <value label="π" size="3" precision="3">
+                <input>pi</input>
+            </value>
+
+            <separator height="0.5" />
+
+            <graph label="Positions" labelX="x" labelY="y"  style="dots" aspectRatio="1" minX="-1" maxX="1" minY="-1" maxY="1" scaleMinX="fixed" scaleMaxX="fixed" scaleMinY="fixed" scaleMaxY="fixed">
+                <input axis="x">xDrawList</input>
+                <input axis="y">yDrawList</input>
+            </graph>
+
+            <value label="Total points" size="1" precision="0">
+                <input>count</input>
+            </value>
+
+            <value label="Inside circle" size="1" precision="0">
+                <input>inside</input>
+            </value>
+
+        </view>
+        <view label="How does it work?">
+            <info label="This experiment generates random numbers from the noise of the accelerometer in your phone. These random numbers are used to create a point at a random location (x,y) within a square, ranging from -1 to +1 on the x and on the y axis." />
+            <separator height="1" />
+            <info label="You will notice that there is a circle drawn into this square range. This is a circle with radius 1. By calculating the distance r² = x² + y² of a point at (x,y), we can tell if it is within the circle (r &lt; 1) or if it is on the outside (r &gt; 1)." />
+            <separator height="1" />
+            <info label="The probability for a point to be inside is proportional to the ratio of the area of the circle to the area of the square. The area of the square is 4 as each side has the length 2. The area of the circle is π, because its radius is 1 (the area of a circle with radius r is πr²). Therefore the probability for a point to be inside the circle is π/4." />
+            <separator height="1" />
+            <info label="Putting it all together, all we need to do is calculating the ratio of points inside the circle to the total number of points. π is four times this ratio." />
+        </view>
+        <view label="Problems">
+            <info label="This method requires equally distributed random numbers, which we generate from the decimal part of the sensor readings. This leads to the following possible problems:" />
+            <separator height="1" />
+            <info label="While the first digit will stabilize very fast, it will take somewhat longer for the next one to stabilize. If you want a good result for the last digit shown in this experiment, expect to acquire 10000 or even 100000 values before getting a satisfactory result." />
+            <separator height="1" />
+            <info label="You smartphone needs to be resting to get an approximately unbiased distribution." />
+            <separator height="1" />
+            <info label="Depending on the accelerometer in your phone or the way it handles the data, you may still not get unbiased and equally distributed data. In this case you will notice patterns in the way the points are scattered in the graph and you result may be systematically off." />
+        </view>
+    </views>
+    <analysis sleep="0.05">
+        <!-- This circle is just for visualization. We use pi to calculate it, but it's not part of the calculations to determine pi. So, this is not cheating ;) -->
+        <ramp>
+            <input type="value" as="start">0</input>
+            <input type="value" as="stop">6.283185307</input>
+            <input type="value" as="length">1000</input>
+            <output>circlePhi</output>
+        </ramp>
+
+        <cos>
+            <input clear="false">circlePhi</input>
+            <output>circleX</output>
+        </cos>
+
+        <sin>
+            <input clear="false">circlePhi</input>
+            <output>circleY</output>
+        </sin>
+
+        <!-- Let's generate the actual random numbers from the accelerometer. We use a simple/naive approach: Use the decimal part of x*1000, which should be equally distributed for our purpose. Unfortunately, phyphox does not have a round function or anything similar, so we will exploit that subrange uses an integer index. Therefore, we do the following for each x-acceleration value:
+1.) Create a list 0-100000
+2.) Take the absolute of x (we cannot work with negative indices).
+3.) get a value i from our list at position 1000*abs(x) using subrange.
+4.) Our random number in the range [0..1) is 1000*abs(x)-i
+5.) Our random coordinate is 1-2*(1000*abs(x)-i) -->
+
+<!-- 1.) -->
+
+        <ramp>
+            <input type="value" as="start">0</input>
+            <input type="value" as="stop">999</input>
+            <input type="value" as="length">1000</input>
+            <output>indices</output>
+        </ramp>
+
+<!-- 2.) -->
+
+        <abs>
+            <input>x</input>
+            <output>abs(x)</output>
+        </abs>
+
+        <abs>
+            <input>y</input>
+            <output>abs(y)</output>
+        </abs>
+
+<!-- 3.) -->
+
+        <multiply>
+            <input>abs(x)</input>
+            <input type="value">1000</input>
+            <output>1000*abs(x)</output>
+        </multiply>
+
+        <multiply>
+            <input>abs(y)</input>
+            <input type="value">1000</input>
+            <output>1000*abs(y)</output>
+        </multiply>
+
+        <subrange>
+            <input as="from" clear="false">1000*abs(x)</input>
+            <input as="length" type="value">1</input>
+            <input clear="false">indices</input>
+            <output>ix</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">1000*abs(y)</input>
+            <input as="length" type="value">1</input>
+            <input clear="false">indices</input>
+            <output>iy</output>
+        </subrange>
+
+<!-- 4.) -->
+
+        <subtract>
+            <input>1000*abs(x)</input>
+            <input>ix</input>
+            <output>randomX</output>
+        </subtract>
+
+        <subtract>
+            <input>1000*abs(y)</input>
+            <input>iy</input>
+            <output>randomY</output>
+        </subtract>
+
+<!-- 5.) -->
+
+        <multiply>
+            <input type="value">2</input>
+            <input>randomX</input>
+            <output>2*randomX</output>
+        </multiply>
+
+        <multiply>
+            <input type="value">2</input>
+            <input>randomY</input>
+            <output>2*randomY</output>
+        </multiply>
+
+        <subtract>
+            <input type="value">1</input>
+            <input>2*randomX</input>
+            <output>randomCoordX</output>
+        </subtract>
+
+        <subtract>
+            <input type="value">1</input>
+            <input>2*randomY</input>
+            <output>randomCoordY</output>
+        </subtract>
+
+<!-- To evaluate, whether this falls into the circle, we calculate the distance from the origin. Since we use a circle with radius=1, we canjust evaluate the square of the distance and do not need to calculate the root -->
+
+        <multiply>
+            <input clear="false">randomCoordX</input>
+            <input clear="false">randomCoordX</input>
+            <output clear="false">randomCoordX2</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">randomCoordY</input>
+            <input clear="false">randomCoordY</input>
+            <output clear="false">randomCoordY2</output>
+        </multiply>
+
+        <add>
+            <input>randomCoordX2</input>
+            <input>randomCoordY2</input>
+            <output>randomCoordAbs2</output>
+        </add>
+
+<!-- Now let's add 1 to the total number of points and if it falls within the circle one to the inside counter -->
+
+        <add>
+            <input clear="false">count</input>
+            <input type="value">1</input>
+            <output>countTemp</output>
+        </add>
+
+        <if less="true" equal="true">
+            <input clear="false">randomCoordX</input>
+            <input type="value">1</input>
+            <input>countTemp</input>
+            <input clear="false">count</input>
+            <output>count</output>
+        </if>
+
+        <add>
+            <input clear="false">inside</input>
+            <input type="value">1</input>
+            <output>insideTemp</output>
+        </add>
+
+        <if less="true">
+            <input>randomCoordAbs2</input>
+            <input type="value">1</input>
+            <input>insideTemp</input>
+            <input clear="false">inside</input>
+            <output>inside</output>
+        </if>
+
+<!-- Finally, calculate pi as the ratio of the circle area and the square area. The former is pi and the latter is 4 (because r=1 and width=height=2). Therefore the number of points inside the circle divided by the number of points in total (within the square) approximates pi/4. -->
+
+        <divide>
+            <input clear="false">inside</input>
+            <input clear="false">count</input>
+            <output>pi/4</output>
+        </divide>
+
+        <multiply>
+            <input>pi/4</input>
+            <input type="value">4</input>
+            <output>pi</output>
+        </multiply>
+
+<!-- The part below just stores the coordinates, so we can show them to the user. Since phyphox does not (yet) support multiple inputs to a single graph, we also combine them with the circle visualization points to show both. -->
+
+        <append>
+            <input>randomCoordX</input>
+            <output clear="false">xList</output>
+        </append>
+
+        <append>
+            <input>randomCoordY</input>
+            <output clear="false">yList</output>
+        </append>
+
+        <append>
+            <input clear="false">circleX</input>
+            <input clear="false">xList</input>
+            <output>xDrawList</output>
+        </append>
+
+        <append>
+            <input clear="false">circleY</input>
+            <input clear="false">yList</input>
+            <output>yDrawList</output>
+        </append>
+
+    </analysis>
+    <export>
+        <set name="Random data">
+            <data name="Random X">randomX</data>
+            <data name="Random Y">randomY</data>
+        </set>
+    </export>
+</phyphox>

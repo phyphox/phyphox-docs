@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><phyphox locale="en" version="1.14">
+    <title>Malus's law</title>
+    <category>Camera</category>
+    <description>Luminance as a function of rotation angle, designed to measure Malus's law by rotating the phone with a polarizer attached to the camera.</description>
+    <icon>Y</icon>
+    <data-containers>
+        <container size="0">x in</container>
+        <container size="0">y in</container>
+        <container size="0">angle in</container>
+        <container size="0">luminance in</container>
+        <container size="0">angle</container>
+        <container size="0">luminance</container>
+    </data-containers>
+    <input>
+        <camera auto_exposure="true" locked="" feature="photometric" x1="0.4" x2="0.6" y1="0.4" y2="0.6">
+            <output component="luminance">luminance in</output>
+        </camera>
+        <sensor type="accelerometer" rate="30" average="true">
+          <output component="x">x in</output>
+          <output component="y">y in</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="default">
+            <graph label="Malus's law" labelX="Angle" labelY="Luminance" unitX="[[unit_short_degree]]" style="dots">
+                <input axis="x">angle</input>
+                <input axis="y">luminance</input>
+            </graph>
+
+            <separator height="1"/>
+            <camera-gui label="Preview" exposure_adjustment_level="3" show_controls="full_view_only" grayscale="true" markOverexposure="ff0000" markUnderexposure="0000ff"/>
+        </view>
+
+    </views>
+    <analysis sleep="0.2">
+        <formula formula="atan2([1_],[2_])*57.29577951">
+          <input>x in</input>
+          <input>y in</input>
+          <output>angle in</output>
+        </formula>
+        <average>
+            <input>angle in</input>
+            <output clear="false">angle</output>
+        </average>
+        <average>
+            <input>luminance in</input>
+            <output clear="false">luminance</output>
+        </average>
+    </analysis>
+    <export>
+        <set name="Data">
+            <data name="angle (deg)">angle</data>
+            <data name="luminance">luminance</data>
+        </set>
+    </export>
+</phyphox>

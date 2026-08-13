@@ -1,0 +1,44 @@
+<phyphox version="1.14">
+    <title>110 Hz request</title>
+    <category>Sensor rate tests</category>
+    <description>-----</description>
+    <data-containers>
+        <container size="0">x</container>
+        <container size="0">t</container>
+        <container>count</container>
+        <container>tmax</container>
+        <container>rate</container>
+    </data-containers>
+    <input>
+        <sensor type="accelerometer" rate="110" rateStrategy="request">
+            <output component="x">x</output>
+            <output component="t">t</output>
+        </sensor>
+    </input>
+    <analysis>
+        <count>
+            <input clear="false">x</input>
+            <output>count</output>
+        </count>
+        <append>
+            <input clear="false">t</input>
+            <output>tmax</output>
+        </append>
+        <divide>
+            <input>count</input>
+            <input>tmax</input>
+            <output>rate</output>
+        </divide>
+    </analysis>
+    <views>
+     <view label="Graph">
+      <graph label="Accelerometer x" timeOnX="true" labelX="t" unitX="s" labelY="a" unitY="m/s²" unitYperX="m/s³" partialUpdate="true" color="green">
+        <input axis="x">t</input>
+        <input axis="y">x</input>
+      </graph>
+        <value label="Rate" unit="Hz">
+            <input>rate</input>
+        </value>
+     </view>
+    </views>
+</phyphox>

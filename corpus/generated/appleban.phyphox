@@ -1,0 +1,28 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en" appleBan="true">
+    <!-- Generated fixture: the appleBan attribute, which hides an experiment
+         on iOS for App Store compliance. Modelled in the spec but
+         deliberately undocumented; no collected file uses it. -->
+    <title>Corpus: appleBan</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for the appleBan root attribute.</description>
+    <data-containers>
+        <container size="100">values</container>
+    </data-containers>
+    <input>
+        <sensor type="magnetic_field">
+            <output component="x">values</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="Data">
+            <value label="x">
+                <input>values</input>
+            </value>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="x">values</data>
+        </set>
+    </export>
+</phyphox>

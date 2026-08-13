@@ -1,0 +1,25 @@
+<phyphox version="1.18" locale="en">
+    <title>Image Test (Logo only)</title>
+    <category>Test</category>
+    <description>
+        Test for image view element
+    </description>
+    <data-containers>
+    </data-containers>
+    <views>
+        <view label="Test">
+            <info label="Full size:" />
+            <image src="test.png" />
+            <info label="Half size:" />
+            <image src="test.png" scale="0.5" />
+            <info label="Dark mode filtered:" />
+            <image src="test.png" scale="0.5" darkFilter="invert" />
+            <info label="Light mode filtered:" />
+            <image src="test.png" scale="0.5" lightFilter="invert" />
+            <info label="Error:" />
+            <image src="asdlkasndkla.jpg" scale="0.5" />
+        </view>
+    </views>
+    <analysis>
+    </analysis>
+</phyphox>

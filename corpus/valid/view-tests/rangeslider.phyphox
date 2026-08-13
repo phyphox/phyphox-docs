@@ -1,0 +1,26 @@
+<phyphox version="1.19" locale="en">
+    <title>Info View</title>
+    <category>View Tests</category>
+    <description>
+        Test of the info view element
+    </description>
+    <data-containers>
+        <container>range1</container>
+        <container>range2</container>
+    </data-containers>
+    <views>
+        <view label="Slider">
+            
+            <slider label="Range with show" minValue="0" maxValue="10" stepSize="0.1" showValue="true" type="range">
+                <output value="lowerValue">range1</output>
+                <output value="upperValue">range2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>range1</input>
+            </value>
+            <value label="Range upper value">
+                <input>range2</input>
+            </value>
+        </view>
+    </views>
+</phyphox>

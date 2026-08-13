@@ -1,0 +1,80 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <title>imagedecode BLE test</title>
+    <category>phyphox tests</category>
+    <description>Receives a movie as a series of heavily compressed grayscale JPEG frames (256x256 pixels) via Bluetooth Low Energy and shows the luminance of the latest frame as a map graph, with and without color interpolation. Counterpart to the imagedecode_ble_server.py test script: start that server on a Linux machine with BlueZ, then start the measurement here to trigger the transfer. The server announces each frame's size on a second characteristic, which gates the analysis via requireFillDynamic: the frame is only decoded (and the received bytes consumed) once it arrived completely.</description>
+    <data-containers>
+        <container size="100000">imageData</container>
+        <container size="1">frameSize</container>
+        <container size="1">imgWidth</container>
+        <container size="1">imgHeight</container>
+        <container size="65536">pixLuminance</container>
+        <container size="1">nPix</container>
+        <container size="1">maxIndex</container>
+        <container size="65536">pixIndex</container>
+        <container size="65536">mapX</container>
+        <container size="65536">mapY</container>
+    </data-containers>
+    <input>
+        <bluetooth id="imageSource" name="phyphoxIMG" uuid="a29e2f80-1b5a-4d84-9b58-6a1de6b60001" mode="notification" subscribeOnStart="true" mtu="517">
+            <output char="a29e2f80-1b5a-4d84-9b58-6a1de6b60002" conversion="uInt8" offset="0" repeating="1">imageData</output>
+            <output char="a29e2f80-1b5a-4d84-9b58-6a1de6b60003" conversion="uInt16LittleEndian">frameSize</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Image">
+            <value label="Frame size" precision="0" unit="bytes">
+                <input>frameSize</input>
+            </value>
+            <value label="Width" precision="0" unit="px">
+                <input>imgWidth</input>
+            </value>
+            <value label="Height" precision="0" unit="px">
+                <input>imgHeight</input>
+            </value>
+            <graph label="Luminance" style="map" mapWidth="256" aspectRatio="1" interpolateMapColors="false" labelX="x" unitX="px" labelY="y" unitY="px" labelZ="Luminance" unitZ="">
+                <input axis="x">mapX</input>
+                <input axis="y">mapY</input>
+                <input axis="z">pixLuminance</input>
+            </graph>
+        </view>
+    </views>
+    <analysis requireFill="imageData" requireFillDynamic="frameSize">
+        <imagedecode>
+            <input clear="true">imageData</input>
+            <output as="width">imgWidth</output>
+            <output as="height">imgHeight</output>
+            <output as="luminance">pixLuminance</output>
+        </imagedecode>
+        <count>
+            <input clear="false">pixLuminance</input>
+            <output>nPix</output>
+        </count>
+        <subtract>
+            <input clear="false">nPix</input>
+            <input type="value">1</input>
+            <output>maxIndex</output>
+        </subtract>
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop" clear="false">maxIndex</input>
+            <input as="length" clear="false">nPix</input>
+            <output>pixIndex</output>
+        </ramp>
+        <formula formula="[1_]%256">
+            <input clear="false">pixIndex</input>
+            <output>mapX</output>
+        </formula>
+        <formula formula="floor(([2]-1-[1_])/256)">
+            <input clear="false">pixIndex</input>
+            <input clear="false">nPix</input>
+            <output>mapY</output>
+        </formula>
+    </analysis>
+    <export>
+        <set name="Decoded frame">
+            <data name="x (px)">mapX</data>
+            <data name="y (px)">mapY</data>
+            <data name="Luminance">pixLuminance</data>
+        </set>
+    </export>
+</phyphox>

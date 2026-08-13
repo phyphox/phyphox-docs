@@ -1,0 +1,55 @@
+<phyphox version="1.11" locale="en">
+  <title>Powermeter</title>
+  <category>Net examples</category>
+  <icon>P</icon>
+  <description>MQTT from SML powermeter</description>
+  <data-containers>
+    <container size="0">power</container>
+    <container size="0">t</container>
+    <container size="1">time</container>
+    <container size="0">times</container>
+    <container size="0">count1</container>
+    <container size="0">count2</container>
+    <container size="0">countdiff</container>
+  </data-containers>
+  <network>
+    <connection address="192.168.2.10" autoConnect="true" username="user" password="secret" service="mqtt/csv" receiveTopic="homeassistant/sensor/sml_house_power/state" privacy="https://phyphox.org/disclaimer/" conversion="csv" interval="1">
+        <receive id="0" clear="false">power</receive>
+    </connection>
+  </network>
+  <analysis>
+    <timer>
+        <output>time</output>
+    </timer>
+    <count>
+        <input clear="false">power</input>
+        <output>count1</output>
+    </count>
+    <count>
+        <input clear="false">t</input>
+        <output>count2</output>
+    </count>
+    <subtract>
+        <input>count1</input>
+        <input>count2</input>
+        <output>countdiff</output>
+    </subtract>
+    <const>
+        <input as="length">countdiff</input>
+        <input as="value">time</input>
+        <output>times</output>
+    </const>
+    <append>
+        <input>times</input>
+        <output clear="false">t</output>
+    </append>
+  </analysis>
+  <views>
+    <view label="3D Printer">
+      <graph label="Power" labelX="time" labelY="power" unitY="W" unitX="s">
+        <input axis="x">t</input>
+        <input axis="y" color="blue">power</input>
+      </graph>
+    </view>
+  </views>
+</phyphox>

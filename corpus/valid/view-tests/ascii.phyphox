@@ -1,0 +1,45 @@
+<phyphox version="1.19" locale="en">
+    <title>ASCII-Test</title>
+    <category>View Tests</category>
+    <description>
+        Tests the ascii formatter of the value element
+    </description>
+    <data-containers>
+        <container size="0" init="72,101,108,108,111,32,87,111,114,108,100,33">helloworld</container>
+        <container init="-1">counter</container>
+        <container init="0">cutoff</container>
+        <container size="0">text1</container>
+        <container size="0">text2</container>
+    </data-containers>
+    <analysis sleep="0.5">
+        <add>
+            <input>counter</input>
+            <input type="value">1</input>
+            <output>counter</output>
+        </add>
+        <formula formula="[1]%20">
+            <input keep="true">counter</input>
+            <output>cutoff</output>
+        </formula>
+        <subrange>
+            <input keep="true">helloworld</input>
+            <input as="to">cutoff</input>
+            <output>text1</output>
+        </subrange>
+        <formula formula="[1]%26 + 65">
+            <input keep="true">counter</input>
+            <output>text2</output>
+        </formula>
+
+    </analysis>
+    <views>
+        <view label="Tests">
+            <value label="Test 1" format="ascii">
+                <input>text1</input>
+            </value>
+            <value label="Test 2" format="ascii">
+                <input>text2</input>
+            </value>
+        </view>
+    </views>
+</phyphox>

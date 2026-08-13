@@ -1,0 +1,95 @@
+<phyphox version="1.10" locale="en">
+    <title>Concistency Test</title>
+    <category>Tests</category>
+    <description>
+        Analysis consistency test
+    </description>
+    <data-containers>
+        <container size="1">cycle</container>
+        <container init="1" size="0">a</container>
+        <container init="2" size="0">b</container>
+        <container init="3" size="0">c</container>
+    </data-containers>
+    <views>
+        <view label="Results">
+            <value label="cycle">
+                <input>cycle</input>
+            </value>
+            <value label="a">
+                <input>a</input>
+            </value>
+            <value label="b">
+                <input>b</input>
+            </value>
+            <value label="c">
+                <input>c</input>
+            </value>
+        </view>
+    </views>
+    <analysis sleep="1">
+        <append cycles="0">
+            <input type="value">0</input>
+            <output>cycle</output>
+        </append>
+        <add cycles="1-">
+            <input clear="false">cycle</input>
+            <input type="value">1</input>
+            <output>cycle</output>
+        </add>
+        
+
+
+        <add cycles="0">
+            <input clear="false">a</input>
+            <input type="value">1</input>
+            <output>c</output>
+        </add>
+        <add cycles="1">
+            <input clear="true">a</input>
+            <input type="value">1</input>
+            <output clear="false">c</output>
+        </add>
+        <count cycles="2">
+            <input>c</input>
+            <output>a</output>
+        </count>
+        <if greater="true" equal="true" cycles="3">
+            <input>a</input>
+            <input type="value">0</input>
+            <input clear="false">b</input>
+            <input type="value">7</input>
+            <output>a</output>
+        </if>
+        <if greater="true" equal="true" cycles="4">
+            <input clear="false">a</input>
+            <input type="value">0</input>
+            <input type="value">-5</input>
+            <input type="value">42</input>
+            <output>a</output>
+        </if>
+        <if greater="true" equal="true" cycles="5">
+            <input clear="true">a</input>
+            <input type="value">0</input>
+            <input type="value">-3</input>
+            <input type="value">11</input>
+            <output clear="false">a</output>
+        </if>
+        <count cycles="6">
+            <input clear="false">a</input>
+            <output>c</output>
+        </count>
+        <if equal="true" cycles="7">
+            <input clear="true">c</input>
+            <input type="value">0</input>
+            <input type="value">5</input>
+            <output clear="true">a</output>
+        </if>
+        <if equal="true" cycles="8">
+            <input clear="true">c</input>
+            <input type="value">0</input>
+            <input type="value">5</input>
+            <input type="empty" />
+            <output clear="true">a</output>
+        </if>
+    </analysis>
+</phyphox>

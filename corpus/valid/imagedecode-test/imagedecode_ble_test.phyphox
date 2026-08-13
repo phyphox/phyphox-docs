@@ -1,0 +1,87 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <title>imagedecode BLE test</title>
+    <category>phyphox tests</category>
+    <description>Receives an encoded image file (256 pixels wide) as a byte stream via Bluetooth Low Energy, decodes it with the imagedecode analysis module and shows its luminance as a map graph. Counterpart to the imagedecode_ble_server.py test script: start that server on a Linux machine with BlueZ, then start the measurement here to trigger the transfer. Note that the received bytes accumulate in a buffer, so clear the data before starting a second transfer.</description>
+    <data-containers>
+        <container size="1000000">imageData</container>
+        <container size="1">bytesReceived</container>
+        <container size="1">imgWidth</container>
+        <container size="1">imgHeight</container>
+        <container size="262144">pixLuminance</container>
+        <container size="1">nPix</container>
+        <container size="1">maxIndex</container>
+        <container size="262144">pixIndex</container>
+        <container size="262144">mapX</container>
+        <container size="262144">mapY</container>
+    </data-containers>
+    <input>
+        <bluetooth id="imageSource" name="phyphoxIMG" uuid="a29e2f80-1b5a-4d84-9b58-6a1de6b60001" mode="notification" subscribeOnStart="true">
+            <output char="a29e2f80-1b5a-4d84-9b58-6a1de6b60002" conversion="uInt8" offset="0" repeating="1">imageData</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Image">
+            <value label="Bytes received" precision="0">
+                <input>bytesReceived</input>
+            </value>
+            <value label="Width" precision="0" unit="px">
+                <input>imgWidth</input>
+            </value>
+            <value label="Height" precision="0" unit="px">
+                <input>imgHeight</input>
+            </value>
+            <graph label="Luminance (interpolated)" style="map" mapWidth="256" aspectRatio="1" labelX="x" unitX="px" labelY="y" unitY="px" labelZ="Luminance" unitZ="">
+                <input axis="x">mapX</input>
+                <input axis="y">mapY</input>
+                <input axis="z">pixLuminance</input>
+            </graph>
+            <graph label="Luminance (not interpolated)" style="map" mapWidth="256" aspectRatio="1" interpolateMapColors="false" labelX="x" unitX="px" labelY="y" unitY="px" labelZ="Luminance" unitZ="">
+                <input axis="x">mapX</input>
+                <input axis="y">mapY</input>
+                <input axis="z">pixLuminance</input>
+            </graph>
+        </view>
+    </views>
+    <analysis sleep="1">
+        <count>
+            <input clear="false">imageData</input>
+            <output>bytesReceived</output>
+        </count>
+        <imagedecode>
+            <input clear="false">imageData</input>
+            <output as="width">imgWidth</output>
+            <output as="height">imgHeight</output>
+            <output as="luminance">pixLuminance</output>
+        </imagedecode>
+        <count>
+            <input clear="false">pixLuminance</input>
+            <output>nPix</output>
+        </count>
+        <subtract>
+            <input clear="false">nPix</input>
+            <input type="value">1</input>
+            <output>maxIndex</output>
+        </subtract>
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop" clear="false">maxIndex</input>
+            <input as="length" clear="false">nPix</input>
+            <output>pixIndex</output>
+        </ramp>
+        <formula formula="[1_]%256">
+            <input clear="false">pixIndex</input>
+            <output>mapX</output>
+        </formula>
+        <formula formula="floor([1_]/256)">
+            <input clear="false">pixIndex</input>
+            <output>mapY</output>
+        </formula>
+    </analysis>
+    <export>
+        <set name="Decoded image">
+            <data name="x (px)">mapX</data>
+            <data name="y (px)">mapY</data>
+            <data name="Luminance">pixLuminance</data>
+        </set>
+    </export>
+</phyphox>

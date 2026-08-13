@@ -173,6 +173,7 @@ def on_config(config, **kwargs):
 
     _check_spec(entries)
     _check_spec_against_docs()
+    _check_corpus()
     return config
 
 
@@ -197,6 +198,33 @@ def _check_spec_against_docs():
     if rc:
         raise ValueError("the documentation describes constructs the spec does "
                          "not model:\n" + buf.getvalue())
+
+
+def _check_corpus():
+    """Fail the build if a corpus file no longer matches the spec.
+
+    The corpus exists to hold the parser surface still, which only works if
+    the two cannot drift apart: a spec change that invalidates a corpus file
+    has to be noticed by whoever makes it, not by the next test run in an app
+    repository.
+    """
+    corpus = os.path.join(ROOT, "corpus")
+    if not os.path.isdir(corpus):
+        return
+    _ensure_path()
+    import io
+    import contextlib
+    import validate_experiments
+    argv = sys.argv
+    buf = io.StringIO()
+    try:
+        sys.argv = ["validate_experiments.py", corpus]
+        with contextlib.redirect_stdout(buf):
+            rc = validate_experiments.main()
+    finally:
+        sys.argv = argv
+    if rc:
+        raise ValueError("corpus/ no longer matches spec/:\n" + buf.getvalue())
 
 
 def _check_spec(entries):

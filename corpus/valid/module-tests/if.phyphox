@@ -1,0 +1,131 @@
+<phyphox version="1.17" locale="en">
+    <title>Module: if</title>
+    <category>Test</category>
+    <description>
+        Analysis module test: if
+    </description>
+    <data-containers>
+        <container init="" size="0">empty</container>
+        <container init="nan" size="0">nan</container>
+        <container size="0">test1</container>
+        <container size="0">test2</container>
+        <container size="0">test3</container>
+        <container size="0">test4</container>
+        <container size="0">test5</container>
+        <container size="0">test6</container>
+        <container size="0">count1</container>
+        <container size="0">count2</container>
+        <container size="0">count3</container>
+        <container size="0">count4</container>
+        <container size="0">count5</container>
+        <container size="0">count6</container>
+    </data-containers>
+    <views>
+        <view label="Results">
+            <value label="Test 1">
+                <input>test1</input>
+            </value>
+            <value label="Count 1">
+                <input>count1</input>
+            </value>
+            <value label="Test 2">
+                <input>test2</input>
+            </value>
+            <value label="Count 2">
+                <input>count2</input>
+            </value>
+            <value label="Test 3">
+                <input>test3</input>
+            </value>
+            <value label="Count 3">
+                <input>count3</input>
+            </value>
+            <value label="Test 4">
+                <input>test4</input>
+            </value>
+            <value label="Count 4">
+                <input>count4</input>
+            </value>
+            <value label="Test 5">
+                <input>test5</input>
+            </value>
+            <value label="Count 5">
+                <input>count5</input>
+            </value>
+            <value label="Test 6">
+                <input>test6</input>
+            </value>
+            <value label="Count 6">
+                <input>count6</input>
+            </value>
+        </view>
+    </views>
+    <analysis>
+        <if less="true">
+            <input keep="true">empty</input>
+            <input type="value">5</input>
+            <input type="value">1</input>
+            <input type="value">2</input>
+            <output>test1</output>
+        </if>
+        <count>
+            <input keep="true">test1</input>
+            <output>count1</output>
+        </count>
+        <if less="true">
+            <input keep="true">nan</input>
+            <input type="value">5</input>
+            <input type="value">1</input>
+            <input type="value">2</input>
+            <output>test2</output>
+        </if>
+        <count>
+            <input keep="true">test2</input>
+            <output>count2</output>
+        </count>
+        <if less="true">
+            <input type="value">0</input>
+            <input type="value">5</input>
+            <input keep="true">empty</input>
+            <input type="value">2</input>
+            <output>test3</output>
+        </if>
+        <count>
+            <input keep="true">test3</input>
+            <output>count3</output>
+        </count>
+        <if less="true">
+            <input type="value">0</input>
+            <input type="value">5</input>
+            <input keep="true">nan</input>
+            <input type="value">2</input>
+            <output>test4</output>
+        </if>
+        <count>
+            <input keep="true">test4</input>
+            <output>count4</output>
+        </count>
+        <if less="true">
+            <input type="value">0</input>
+            <input type="value">5</input>
+            <input type="value">1</input>
+            <input keep="true">empty</input>
+            <output>test5</output>
+        </if>
+        <count>
+            <input keep="true">test5</input>
+            <output>count5</output>
+        </count>
+        <if less="true">
+            <input type="value">0</input>
+            <input type="value">5</input>
+            <input type="value">1</input>
+            <input keep="true">nan</input>
+            <output>test6</output>
+        </if>
+        <count>
+            <input keep="true">test6</input>
+            <output>count6</output>
+        </count>
+    </analysis>
+</phyphox>

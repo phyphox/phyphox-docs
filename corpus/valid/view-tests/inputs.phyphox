@@ -1,0 +1,130 @@
+<phyphox version="1.19" locale="en">
+    <title>Info View</title>
+    <category>View Tests</category>
+    <description>
+        Test of the info view element
+    </description>
+    <data-containers>
+        <container>button</container>
+        <container>edit</container>
+        <container>slider</container>
+        <container>range1</container>
+        <container>range2</container>
+        <container>dropdown</container>
+        <container>switch</container>
+        <container>shared</container>
+    </data-containers>
+    <views>
+        <view label="Button">
+            <button label="Fallback 1" dynamicLabel="button">
+                <input type="value">1</input>
+                <output>button</output>
+                <map max="1.5">On 1</map>
+                <map min="1.5">Off 1</map>
+            </button>
+            <button label="Fallback 2" dynamicLabel="button">
+                <input type="value">2</input>
+                <output>button</output>
+                <map min="1.5">On 2</map>
+                <map max="1.5">Off 2</map>
+            </button>
+            <value label="Button value">
+                <input>button</input>
+            </value>
+        </view>
+        <view label="Edit">
+            <edit label="Edit" default="42">
+                <output>edit</output>
+            </edit>
+            <value label="Edit value">
+                <input>edit</input>
+            </value>
+        </view>
+        <view label="Slider">
+            <slider label="Continuous" minValue="0" maxValue="100" default="42" showValue="false">
+                <output>slider</output>
+            </slider>
+            <slider label="1 to 10" minValue="1" maxValue="10" stepSize="1" showValue="false">
+                <output>slider</output>
+            </slider>
+            <slider label="Fine" minValue="1" maxValue="10" stepSize="0.1" showValue="false">
+                <output>slider</output>
+            </slider>
+            <slider label="Negative with value" minValue="-20" maxValue="10" stepSize="2" showValue="true">
+                <output>slider</output>
+            </slider>
+            <slider label="Value and precision" minValue="0" maxValue="10" stepSize="0.01" showValue="true" precision="1">
+                <output>slider</output>
+            </slider>
+            <value label="Slider value">
+                <input>slider</input>
+            </value>
+            <separator height="0.5"/>
+            <separator color="white"/>
+            <separator height="0.5"/>
+            <slider label="Range without show" minValue="-20" maxValue="10" stepSize="2" type="range" showValue="false">
+                <output value="lowerValue">range1</output>
+                <output value="upperValue">range2</output>
+            </slider>
+            <slider label="Range with show" minValue="0" maxValue="10" stepSize="0.1" showValue="true" type="range">
+                <output value="lowerValue">range1</output>
+                <output value="upperValue">range2</output>
+            </slider>
+            <value label="Range lower value">
+                <input>range1</input>
+            </value>
+            <value label="Range upper value">
+                <input>range2</input>
+            </value>
+        </view>
+        <view label="Dropdown">
+            <dropdown label="Dropdown" default="2">
+                <output>dropdown</output>
+                <map value="1">One</map>
+                <map value="2">Two</map>
+                <map value="3">Three</map>
+                <map value="3.5">Three point five</map>
+            </dropdown>
+            <value label="Dropdown value">
+                <input>dropdown</input>
+            </value>
+        </view>
+        <view label="Switch">
+            <toggle label="Switch" default="1">
+                <output>switch</output>
+            </toggle>
+            <value label="Switch value">
+                <input>switch</input>
+            </value>
+        </view>
+        <view label="Shared">
+            <value label="Shared value">
+                <input>shared</input>
+            </value>
+            <button label="Set to 1">
+                <input type="value">1</input>
+                <output>shared</output>
+            </button>
+            <button label="Set to 2">
+                <input type="value">2</input>
+                <output>shared</output>
+            </button>
+            <edit label="Edit">
+                <output>shared</output>
+            </edit>
+            <slider label="1 to 10" minValue="1" maxValue="10">
+                <output>shared</output>
+            </slider>
+            <dropdown label="Dropdown">
+                <output>shared</output>
+                <map value="1">One</map>
+                <map value="2">Two</map>
+                <map value="3">Three</map>
+                <map value="3.5">Three point five</map>
+            </dropdown>
+            <toggle label="Switch">
+                <output>shared</output>
+            </toggle>
+        </view>
+    </views>
+</phyphox>

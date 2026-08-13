@@ -1,0 +1,177 @@
+<phyphox version="1.5">
+    <title>Digital Multimeter Auto-Connect</title>
+    <category>Owon</category>
+    <description>Read out the Digital Multimeters by Owon.</description>
+    <data-containers>
+        <container size="1">tin</container>
+        <container size="1">Vin</container>
+        
+        <!-- Owon B35T -->
+        <container size="1">str</container>
+        <container size="1">dec</container>
+        <container size="1">decfac</container>
+        <container size="1">unit</container>
+        <container size="1">unitfac</container>
+        
+        <!-- Owon W18B -->
+        <container size="1">18value</container>
+        <container size="1">18-value</container>
+        <container size="1">18signedvalue</container>
+        <container size="1">18bitmask</container>
+        <container size="1">18decfac</container>
+        <container size="1">18prefac</container>
+        
+        <container size="1">count</container>
+        <container size="0">t</container>
+        <container size="0">V</container>
+    </data-containers>
+    <input>
+        <bluetooth name="BDM" mode="notification" autoConnect="true">
+            <!-- Owon B35T -->
+            <output char="0000FFF4-0000-1000-8000-00805F9B34FB" conversion="string" length="5">str</output>
+            <output char="0000FFF4-0000-1000-8000-00805F9B34FB" conversion="string" offset="6" length="1">dec</output>
+            <output char="0000FFF4-0000-1000-8000-00805F9B34FB" conversion="uInt8" offset="9" length="1">unit</output>
+            
+            <!-- Owon W18B -->
+            <output char="0000FFF4-0000-1000-8000-00805F9B34FB" conversion="uInt16LittleEndian" offset="4" length="2">18value</output>
+            <output char="0000FFF4-0000-1000-8000-00805F9B34FB" conversion="uInt8" offset="0" length="1">18bitmask</output>
+            
+            <output char="0000FFF4-0000-1000-8000-00805F9B34FB" extra="time">tin</output>
+        </bluetooth>
+    </input>
+    <analysis sleep="0.05">
+
+        <!-- Owon W18B -->
+        <subtract>
+            <input type="value">32768</input>
+            <input clear="false">18value</input>
+            <output clear="false">18-value</output>
+        </subtract>
+        <if greater="true">
+            <input clear="false">18value</input>
+            <input type="value">32767</input>
+            <input clear="false">18-value</input>
+            <input clear="false">18value</input>
+            <output clear="false">18signedvalue</output>
+        </if>
+        <formula formula="10^(-([1]%4))">
+            <input clear="false">18bitmask</input>
+            <output clear="false">18decfac</output>
+        </formula>
+        <formula formula="1000^(floor([1]/8)%8-4)">
+            <input clear="true">18bitmask</input>
+            <output clear="false">18prefac</output>
+        </formula>
+        <multiply>
+            <input clear="false">18signedvalue</input>
+            <input clear="true">18decfac</input>
+            <input clear="true">18prefac</input>
+            <output clear="true">Vin</output>
+        </multiply>
+    
+        <!-- Owon B35T -->
+        <if equal="true">
+            <input clear="false">dec</input>
+            <input type="value">0</input>
+            <input type="value">1</input>
+            <output clear="false">decfac</output>
+        </if>
+        <if equal="true">
+            <input clear="false">dec</input>
+            <input type="value">1</input>
+            <input type="value">0.001</input>
+            <output clear="false">decfac</output>
+        </if>
+        <if equal="true">
+            <input clear="false">dec</input>
+            <input type="value">2</input>
+            <input type="value">0.01</input>
+            <output clear="false">decfac</output>
+        </if>
+        <if equal="true">
+            <input clear="true">dec</input>
+            <input type="value">4</input>
+            <input type="value">0.1</input>
+            <output clear="false">decfac</output>
+        </if>
+
+        <if equal="true">
+            <input clear="false">unit</input>
+            <input type="value">0</input>
+            <input type="value">1</input>
+            <output clear="false">unitfac</output>
+        </if>
+        <if equal="true">
+            <input clear="false">unit</input>
+            <input type="value">16</input>
+            <input type="value">1000000</input>
+            <output clear="false">unitfac</output>
+        </if>
+        <if equal="true">
+            <input clear="false">unit</input>
+            <input type="value">32</input>
+            <input type="value">1000</input>
+            <output clear="false">unitfac</output>
+        </if>
+        <if equal="true">
+            <input clear="false">unit</input>
+            <input type="value">64</input>
+            <input type="value">0.001</input>
+            <output clear="false">unitfac</output>
+        </if>
+        <if equal="true">
+            <input clear="true">unit</input>
+            <input type="value">128</input>
+            <input type="value">0.000001</input>
+            <output clear="false">unitfac</output>
+        </if>
+
+        <multiply>
+            <input clear="true">str</input>
+            <input clear="true">decfac</input>
+            <input clear="true">unitfac</input>
+            <output clear="false">Vin</output>
+        </multiply>
+
+        <count>
+            <input clear="false">Vin</input>
+            <output>count</output>
+        </count>
+
+        <if equal="true">
+            <input clear="false">count</input>
+            <input type="value">1</input>
+            <input clear="true">Vin</input>
+            <output clear="false">V</output>
+        </if>
+
+        <if equal="true">
+            <input clear="true">count</input>
+            <input type="value">1</input>
+            <input>tin</input>
+            <output clear="false">t</output>
+        </if>
+
+    </analysis>
+    <views>
+        <view label="Value">
+            <graph label="Value" labelX="t" unitX="s" labelY="y" unitY="?" partialUpdate="true">
+                <input axis="x">t</input>
+                <input axis="y">V</input>
+            </graph>
+
+            <value label="Value" size="2" precision="3" scientific="true">
+                <input>V</input>
+            </value>
+
+            <info label="Since the mode dial of the multimeter can be changed any time, we cannot show the correct units here. They always match the base units of the used mode (i.e. volt for voltage, not milli volts)." />
+
+        </view>
+    </views>
+    <export>
+    <set name="Raw Data">
+      <data name="Time (s)">t</data>
+      <data name="y">V</data>
+    </set>
+  </export>
+</phyphox>

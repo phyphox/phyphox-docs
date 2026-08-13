@@ -1,0 +1,57 @@
+<phyphox version="1.19" locale="en">
+    <title>Value-Map-Test</title>
+    <category>View Tests</category>
+    <description>
+        Tests the Text-Mapping of value elements
+    </description>
+    <data-containers>
+        <container init="-1">counter</container>
+        <container init="0">cutoff</container>
+    </data-containers>
+    <analysis sleep="0.5">
+        <add>
+            <input>counter</input>
+            <input type="value">1</input>
+            <output>counter</output>
+        </add>
+        <formula formula="[1]%20">
+            <input keep="true">counter</input>
+            <output>cutoff</output>
+        </formula>
+    </analysis>
+    <views>
+        <view label="Tests">
+            <value label="value">
+                <input>cutoff</input>
+            </value>
+            <value label="Mapped">
+                <input>cutoff</input>
+                <map max="0">Zero</map>
+                <map max="1">One</map>
+                <map max="2">Two</map>
+                <map max="3">Three</map>
+                <map max="4">Four</map>
+                <map max="5">Long text</map>
+                <map max="6">Longer text</map>
+                <map max="7">Even longer text</map>
+                <map max="8">Absurdely long text</map>
+                <map max="9">No, really, why would you use such long text?</map>
+                <map max="10">No, really, why would you use such long text? Dude!</map>
+            </value>
+            <value label="Mapped" size="2">
+                <input>cutoff</input>
+                <map max="0">Zero</map>
+                <map max="1">One</map>
+                <map max="2">Two</map>
+                <map max="3">Three</map>
+                <map max="4">Four</map>
+                <map max="5">Long text</map>
+                <map max="6">Longer text</map>
+                <map max="7">Even longer text</map>
+                <map max="8">Absurdely long text</map>
+                <map max="9">No, really, why would you use such long text?</map>
+                <map max="10">No, really, why would you use such long text? Dude!</map>
+            </value>
+        </view>
+    </views>
+</phyphox>

@@ -1,0 +1,189 @@
+<phyphox xmlns="https://phyphox.org/xml" xmlns:editor="https://phyphox.org/xml/editor" version="1.19">
+  <title>Rutsche (Schule)</title>
+  <category>Mechanik</category>
+  <color>green</color>
+  <description>Über das Experiment: Misst den Luftdruck, die Beschleunigung, den Neigungswinkel, die Höhenänderung und die Länge einer schiefen Ebene indem von einer Rutsche heruntergerutscht wird.
+
+Höhenänderungen können über eine kurze Zeitdauer sehr genau mit einem Barometer (Luftdrucksensor)bestimmt werden – auch dort wo GPS nicht funktioniert. Dieses Experiment nutzt den Beschleunigungssensor, um den Neigungswinkel des Handys zu berechnen. Hierzu sollte das Handy flach auf der Rutsche nach oben ausgerichtet liegen. Der Nutzer muss den gemessenen Winkel eingeben, damit die Berechnung der Rutschstrecke nicht durch wackeln beeinflusst wird.
+
+Weitere Details: Um das Rauschen des Experiments zu reduzieren, werden die Messdaten des Barometers über jeweils eine Sekunde gemittelt. Die Differenz aufeinander folgender Werte wird über die internationale barometrische Höhenformel in eine Höhendifferenz umgerechnet. Diese Höhendifferenz steht in geometrischem Zusammenhang mit dem Neigungswinkel und der Rutschstrecke.
+</description>
+  <data-containers>
+    <container size="0">pressure</container>
+    <container size="0">p_time</container>
+    <container size="0">v_time</container>
+    <container size="0">dt</container>
+    <container size="0">dt2</container>
+    <container size="0">v</container>
+    <container size="0">h</container>
+    <container>h0</container>
+    <container size="0">temp1</container>
+    <container size="0">temp2</container>
+    <container size="0">a_time</container>
+    <container size="0">a</container>
+    <container size="0">alpha</container>
+    <container size="0">sin(a)</container>
+    <container size="0">s</container>
+    <container size="0">t^2</container>
+    <container size="0">x</container>
+    <container size="0">y</container>
+    <container size="0">z</container>
+    <container size="0">t</container>
+    <container size="0">accX</container>
+    <container size="0">accY</container>
+    <container size="0">accZ</container>
+    <container size="0">tiltFladUD</container>
+    <container size="0">t1</container>
+  </data-containers>
+  <input>
+    <sensor type="pressure" rate="1" average="true">
+      <output component="x">pressure</output>
+      <output component="t">p_time</output>
+    </sensor>
+    <sensor type="linear_acceleration" rate="25" average="true">
+      <output component="t">a_time</output>
+      <output component="z">a</output>
+    </sensor>
+    <sensor type="accelerometer" rate="0">
+      <output component="x">accX</output>
+      <output component="y">accY</output>
+      <output component="z">accZ</output>
+      <output component="t">t1</output>
+    </sensor>
+  </input>
+  <analysis>
+    <differentiate>
+      <input as="in" keep="true">p_time</input>
+      <output>dt</output>
+    </differentiate>
+    <divide>
+      <input keep="true">dt</input>
+      <input type="value">2</input>
+      <output>dt2</output>
+    </divide>
+    <match>
+      <input as="in" keep="true">p_time</input>
+      <input as="in" keep="true">dt2</input>
+      <output as="out">temp1</output>
+    </match>
+    <add>
+      <input>temp1</input>
+      <input>dt2</input>
+      <output>v_time</output>
+    </add>
+    <formula formula="([1_]/1013.25)^0.190294957*-44330.769230769">
+      <input keep="true">pressure</input>
+      <output>temp1</output>
+    </formula>
+    <first>
+      <input as="value" keep="true">temp1</input>
+      <output as="first">h0</output>
+    </first>
+    <subtract>
+      <input>temp1</input>
+      <input>h0</input>
+      <output>h</output>
+    </subtract>
+    <differentiate>
+      <input as="in" keep="true">h</input>
+      <output>temp1</output>
+    </differentiate>
+    <divide>
+      <input>temp1</input>
+      <input>dt</input>
+      <output>v</output>
+    </divide>
+    <sin deg="true">
+      <input as="value">alpha</input>
+      <output>sin(a)</output>
+    </sin>
+    <divide>
+      <input keep="true">h</input>
+      <input keep="true">sin(a)</input>
+      <output>s</output>
+    </divide>
+    <multiply>
+      <input keep="true">p_time</input>
+      <input keep="true">p_time</input>
+      <output>t^2</output>
+    </multiply>
+    <formula formula="atan2([1_],[2_])*57.29577951">
+      <input keep="true">accY</input>
+      <input keep="true">accZ</input>
+      <output>tiltFladUD</output>
+    </formula>
+  </analysis>
+  <views>
+    <view label="Anleitung">
+      <info label="Um die Messung zu starten, drücke auf den &quot;Play-Button&quot; oben rechts. Nach jeder Messung sollten die Daten gelöscht werden (Mülleimer oben rechts) oder gespeichert werden (drei Punkte oben rechts -&gt; Zustand Speichern)."/>
+      <separator/>
+      <info label="Miss zunächst den Neigungswinkel der Rutsche, indem du das Handy hochkant ausgerichtet auf die Rutsche legst. Übertrage den angezeigten Wert in das Eingabefeld."/>
+      <separator/>
+      <info label="Klettere nun die Rutsche hoch."/>
+      <separator/>
+      <info label="Nach dem Start der Messung bleibe zunächst kurz ruhig in deiner sitzenden Position oben auf der Rutsche, bis in den Diagrammen Messwerte erscheinen. Aufgrund der Trägheit des Sensors kann dies ein bis zwei Sekunden dauern. Rutsche runter, ohne mit den Füßen oder anders zu bremsen. Wenn du unten angekommen bist, warte auch hier wieder ein bis zwei Sekunden ruhig ab, damit die Werte zuverlässig aufgenommen werden können."/>
+      <separator/>
+      <info label="Hinweis für iPhones: iPhones zeichnen nur etwa einen Messwert pro Sekunde auf. Zu schnelle Bewegungen werden deshalb möglicherweise nicht vollständig erfasst."/>
+    </view>
+    <view label="Neigungswinkel">
+      <value label="Messung Neigungswinkel" unit="Grad">
+        <input>tiltFladUD</input>
+      </value>
+      <separator/>
+      <info label="(Gib den gemessenen Neigungswinkel ein, dieser Wert wird für die folgenden Rechnungen benötigt)"/>
+      <separator/>
+      <edit label="Neigungswinkel (fester Wert)" unit="Grad" default="35">
+        <output>alpha</output>
+      </edit>
+    </view>
+    <view label="Bewegung">
+      <graph label="Höhe (über Barometer)" partialUpdate="true" labelX="[[quantity_short_time]]" labelY="[[quantity_short_height]]" unitX="[[unit_short_second]]" unitY="[[unit_short_meter]]" unitYperX="[[unit_short_meter_per_second]]" timeOnX="true">
+        <input axis="x">p_time</input>
+        <input axis="y">h</input>
+      </graph>
+      <graph label="Rutschstrecke-Zeit (s-t)" partialUpdate="true" labelX="Zeit" labelY="Rutschstrecke" unitX="s" unitY="m" timeOnX="true" color="ffff00">
+        <input axis="x">p_time</input>
+        <input axis="y">s</input>
+      </graph>
+      <graph label="Rutschstrecke-Quadrierte Zeit (s-t^2)" labelX="Zeit zum Quadrat" labelY="Rutschstrecke" unitX="s^2" unitY="m">
+        <input axis="x">t^2</input>
+        <input axis="y">s</input>
+      </graph>
+    </view>
+    <view label="Rohdaten">
+      <graph label="Druck" partialUpdate="true" labelX="[[quantity_short_time]]" labelY="[[quantity_short_pressure]]" unitX="[[unit_short_second]]" unitY="[[unit_short_hecto_pascal]]" timeOnX="true">
+        <input axis="x">p_time</input>
+        <input axis="y">pressure</input>
+      </graph>
+      <graph label="Beschleunigung z (ohne g)" partialUpdate="true" labelX="[[quantity_short_time]]" labelY="[[quantity_short_acceleration]]" unitX="[[unit_short_second]]" unitY="[[unit_short_meter_per_square_second]]" unitYperX="m/s³" timeOnX="true">
+        <input axis="x">a_time</input>
+        <input axis="y">a</input>
+      </graph>
+      <graph label="Beschleunigung x (mit g)" labelX="t" labelY="a_x" unitX="s" unitY="m/s^2">
+        <input axis="x">t1</input>
+        <input axis="y">accX</input>
+      </graph>
+      <graph label="Beschleunigung y (mit g)" labelX="t" labelY="a_y" unitX="s" unitY="m/s^2">
+        <input axis="x">t1</input>
+        <input axis="y">accY</input>
+      </graph>
+      <graph label="Beschleunigung z (mit g)" labelX="t" labelY="a_t" unitX="s" unitY="m/s^2">
+        <input axis="x">t1</input>
+        <input axis="y">accZ</input>
+      </graph>
+    </view>
+  </views>
+  <export>
+    <set name="Pressure and velocity">
+      <data name="Time (s)">p_time</data>
+      <data name="Pressure (hPa)">pressure</data>
+      <data name="Altitude (m)">h</data>
+      <data name="Time (velocity) (s)">v_time</data>
+      <data name="Velocity (m/s)">v</data>
+    </set>
+    <set name="Acceleration">
+      <data name="Time (s)">a_time</data>
+      <data name="Acceleration (m/s²)">a</data>
+    </set>
+  </export>
+</phyphox>

@@ -1,0 +1,35 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Generated fixture: audio output with normalize, an explicit
+         container type, and a Bluetooth string conversion carrying
+         decimalPoint on the output tag. UUIDs are examples. -->
+    <title>Corpus: io details</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for audio normalize, container type and bluetooth string parsing.</description>
+    <data-containers>
+        <container size="4800" type="buffer">wave</container>
+        <container size="100">btval</container>
+    </data-containers>
+    <input>
+        <bluetooth name="CorpusDevice" mode="notification" subscribeOnStart="true">
+            <output char="0000ffe1-0000-1000-8000-00805f9b34fb" conversion="string"
+                    decimalPoint="," offset="0" length="8">btval</output>
+        </bluetooth>
+    </input>
+    <output>
+        <audio rate="48000" normalize="true">
+            <input>wave</input>
+        </audio>
+    </output>
+    <views>
+        <view label="Data">
+            <value label="Value">
+                <input>btval</input>
+            </value>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="value">btval</data>
+        </set>
+    </export>
+</phyphox>

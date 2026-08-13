@@ -274,7 +274,7 @@ def main():
 
     if not rep.items:
         print("\nNothing to report: every file matches the specification.")
-        return 0
+        return 1 if unparsed else 0
 
     print()
     for kind in sorted(rep.items, key=lambda k: -len(rep.items[k])):
@@ -290,7 +290,7 @@ def main():
         if not args.detail and len(by_detail) > 8:
             print(f"   ... and {len(by_detail) - 8} more distinct message(s); use --detail")
         print()
-    return 0
+    return 1
 
 
 if __name__ == "__main__":

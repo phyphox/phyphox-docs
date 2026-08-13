@@ -1,0 +1,7 @@
+<phyphox version="1.14">
+    <title>30Hz Test request</title>
+    <category>Rate tests</category>
+    <color>red</color>
+    <description>Get raw data from selected sensors.</description>
+    <data-containers><container size="0">acc_time</container><container size="0">accX</container><container size="0">accY</container><container size="0">accZ</container></data-containers>
+    <input><sensor type="accelerometer" rate="30.0" rateStrategy="request"><output component="x">accX</output><output component="y">accY</output><output component="z">accZ</output><output component="t">acc_time</output></sensor></input><views><view label="Accelerometer"><graph label="Acceleration X" timeOnX="true" labelX="t (s)" labelY="a (m/s²)" partialUpdate="true"><input axis="x">acc_time</input><input axis="y">accX</input></graph><graph label="Acceleration Y" timeOnX="true" labelX="t (s)" labelY="a (m/s²)" partialUpdate="true"><input axis="x">acc_time</input><input axis="y">accY</input></graph><graph label="Acceleration Z" timeOnX="true" labelX="t (s)" labelY="a (m/s²)" partialUpdate="true"><input axis="x">acc_time</input><input axis="y">accZ</input></graph></view></views><export><set name="Accelerometer"><data name="Time (s)">acc_time</data><data name="Acceleration x (m/s^2)">accX</data><data name="Acceleration y (m/s^2)">accY</data><data name="Acceleration z (m/s^2)">accZ</data></set></export></phyphox>

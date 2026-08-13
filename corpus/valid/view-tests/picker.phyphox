@@ -1,0 +1,98 @@
+<phyphox version="1.20" locale="en">
+  <title>Graph picker</title>
+  <category>View Tests</category>
+  <description>
+      Test of the graph picker
+  </description>
+  <data-containers>
+    <container size="0">accX</container>
+    <container size="0">accY</container>
+    <container size="0">accZ</container>
+    <container size="0">acc</container>
+    <container size="0">acc_time</container>
+
+    <container size="1">test1</container>
+    <container size="1">test2</container>
+    <container size="1">test3</container>
+    <container size="1">test4</container>
+    <container size="1">test5</container>
+    <container size="1">test6</container>
+    <container size="1">test7</container>
+    <container size="1">test8</container>
+    <container size="1">test9</container>
+    <container size="1">test10</container>
+
+  </data-containers>
+  <input>
+    <sensor type="accelerometer">
+      <output component="x">accX</output>
+      <output component="t">acc_time</output>
+    </sensor>
+  </input>
+  <views>
+    <view label="Offset x">
+      <graph label="Accelerometer x"  pickLabel="Pick X" timeOnX="true" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="[[quantity_short_acceleration]]" unitY="[[unit_short_meter_per_square_second]]" unitYperX="m/s³" partialUpdate="true">
+        <input axis="x">acc_time</input>
+        <input axis="y">accX</input>
+        <output axis="x" label="Offset X">test1</output>
+      </graph>
+      <value label="Result">
+        <input>test1</input>
+      </value>
+    </view>
+    <view label="Offset y">
+      <graph label="Accelerometer x"  pickLabel="Pick Y" timeOnX="true" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="[[quantity_short_acceleration]]" unitY="[[unit_short_meter_per_square_second]]" unitYperX="m/s³" partialUpdate="true">
+        <input axis="x">acc_time</input>
+        <input axis="y">accX</input>
+        <output axis="y" label="Offset Y">test2</output>
+      </graph>
+      <value label="Result">
+        <input>test2</input>
+      </value>
+    </view>
+    <view label="Assign x/y">
+      <graph label="Accelerometer x"  pickLabel="Pick X/Y" timeOnX="true" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="[[quantity_short_acceleration]]" unitY="[[unit_short_meter_per_square_second]]" unitYperX="m/s³" partialUpdate="true">
+        <input axis="x">acc_time</input>
+        <input axis="y">accX</input>
+        <output axis="x" label="Assign x">test3</output>
+        <output axis="xcal" label="Assigned value:">test4</output>
+        <output axis="y" label="Assign y">test5</output>
+        <output axis="ycal" label="Assigned value:">test6</output>
+      </graph>
+      <value label="x picked">
+        <input>test3</input>
+      </value>
+      <value label="x assigned">
+        <input>test4</input>
+      </value>
+      <value label="y picked">
+        <input>test5</input>
+      </value>
+      <value label="y assigned">
+        <input>test6</input>
+      </value>
+    </view>
+    <view label="Calibrate">
+      <graph label="Accelerometer x"  pickLabel="Calibrate" timeOnX="true" labelX="[[quantity_short_time]]" unitX="[[unit_short_second]]" labelY="[[quantity_short_acceleration]]" unitY="[[unit_short_meter_per_square_second]]" unitYperX="m/s³" partialUpdate="true">
+        <input axis="x">acc_time</input>
+        <input axis="y">accX</input>
+        <output axis="x" label="Calibration point 1">test7</output>
+        <output axis="xcal" label="Assigned wavelength in nm">test8</output>
+        <output axis="x" label="Calibration point 2">test9</output>
+        <output axis="xcal" label="Assigned wavelength in nm">test10</output>
+      </graph>
+      <value label="x1 picked">
+        <input>test7</input>
+      </value>
+      <value label="x1 assigned">
+        <input>test8</input>
+      </value>
+      <value label="x2 picked">
+        <input>test9</input>
+      </value>
+      <value label="x2 assigned">
+        <input>test10</input>
+      </value>
+    </view>
+  </views>
+</phyphox>

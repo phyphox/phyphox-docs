@@ -1,0 +1,103 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Generated fixture: analysis modules no real experiment exercises.
+         asin/atan/tan (with deg), sinh/cosh/tanh, gcd/lcm, min with multiple,
+         sort descending, round ceil, butterworth. -->
+    <title>Corpus: analysis modules</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for otherwise unused analysis modules.</description>
+    <data-containers>
+        <container size="100">in1</container>
+        <container size="100">in2</container>
+        <container size="100">t</container>
+        <container size="100">rAsin</container>
+        <container size="100">rAtan</container>
+        <container size="100">rTan</container>
+        <container size="100">rSinh</container>
+        <container size="100">rCosh</container>
+        <container size="100">rTanh</container>
+        <container size="1">rGcd</container>
+        <container size="1">rLcm</container>
+        <container size="0">rMin</container>
+        <container size="0">rMinPos</container>
+        <container size="100">rSort</container>
+        <container size="100">rRound</container>
+        <container size="100">rFiltered</container>
+    </data-containers>
+    <input>
+        <sensor type="accelerometer">
+            <output component="x">in1</output>
+            <output component="y">in2</output>
+            <output component="t">t</output>
+        </sensor>
+    </input>
+    <analysis sleep="0.1">
+        <asin deg="true">
+            <input>in1</input>
+            <output>rAsin</output>
+        </asin>
+        <atan deg="true">
+            <input>in1</input>
+            <output>rAtan</output>
+        </atan>
+        <tan deg="true">
+            <input>in1</input>
+            <output>rTan</output>
+        </tan>
+        <sinh>
+            <input>in1</input>
+            <output>rSinh</output>
+        </sinh>
+        <cosh>
+            <input>in1</input>
+            <output>rCosh</output>
+        </cosh>
+        <tanh>
+            <input>in1</input>
+            <output>rTanh</output>
+        </tanh>
+        <gcd>
+            <input type="value">12</input>
+            <input type="value">18</input>
+            <output>rGcd</output>
+        </gcd>
+        <lcm>
+            <input type="value">4</input>
+            <input type="value">6</input>
+            <output>rLcm</output>
+        </lcm>
+        <min multiple="true">
+            <input as="y">in1</input>
+            <input as="threshold" type="value">0.5</input>
+            <output as="min">rMin</output>
+            <output as="position">rMinPos</output>
+        </min>
+        <sort descending="true">
+            <input>in1</input>
+            <output>rSort</output>
+        </sort>
+        <round ceil="true">
+            <input>in1</input>
+            <output>rRound</output>
+        </round>
+        <butterworth>
+            <input as="y">in1</input>
+            <input as="x">t</input>
+            <input as="n" type="value">2</input>
+            <input as="cutoff" type="value">5</input>
+            <output as="filtered">rFiltered</output>
+        </butterworth>
+    </analysis>
+    <views>
+        <view label="Results">
+            <graph label="Filtered" partialUpdate="true">
+                <input axis="x">t</input>
+                <input axis="y">rFiltered</input>
+            </graph>
+        </view>
+    </views>
+    <export>
+        <set name="Results">
+            <data name="filtered">rFiltered</data>
+        </set>
+    </export>
+</phyphox>

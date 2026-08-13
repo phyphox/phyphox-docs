@@ -1,0 +1,380 @@
+<phyphox version="1.14" locale="en">
+  <title>Popcorn counter v2</title>
+  <category>Fun</category>
+  <description>
+        Count plops of microwave popcorn.
+    </description>
+  <icon>🍿</icon>
+
+  <data-containers>
+
+    <container size="192000">recording_in</container>
+    <container size="96000">recording</container>
+    <container>rate</container>
+    <container>count</container>
+    <container>valid</container>
+
+    <container size="48000">chunk</container>
+    <container size="24000">overlap</container>
+    <container size="24000">temp_use</container>
+    <container size="72000">temp_remainder</container>
+    <container size="48000">index</container>
+    <container size="48000">f</container>
+
+    <container size="48000">butterworth</container>
+    <container size="48000">fftX</container>
+    <container size="48000">fftY</container>
+    <container size="48000">fftX_weighted</container>
+    <container size="48000">fftY_weighted</container>
+    <container size="48000">chunk_filtered</container>
+
+    <container size="48000">chunk_filtered_squared</container>
+    <container>ms</container>
+    <container>rms</container>
+    <container>threshold_est</container>
+    <container>threshold</container>
+
+    <container>threshold_in</container>
+    <container>f0</container>
+    <container>order</container>
+
+    <container>trigger_index</container>
+    <container>old_count</container>
+    <container>new_count</container>
+    <container>new_time</container>
+    <container size="0" init="0">counts</container>
+    <container size="0" init="0">times</container>
+
+    <container>binning_factor</container>
+    <container size="0" init="0">count_diffs</container>
+    <container size="0" init="0">hist_counts</container>
+    <container size="0" init="0">hist_times</container>
+
+    <container>chunksize</container>
+    <container>chunksize*2</container>
+    <container>chunksize*2-1</container>
+    <container>chunksize/2</container>
+    <container>chunksize*3/2</container>
+
+  </data-containers>
+
+  <input>
+    <audio>
+      <output>recording_in</output>
+      <output component="rate">rate</output>
+    </audio>
+  </input>
+
+  <views>
+    <view label="Count">
+        <graph label="Count history" labelX="Time" labelY="Counts (accumulated)" unitX="[[unit_short_second]]" unitY="">
+            <input axis="x">times</input>
+            <input axis="y">counts</input>
+        </graph>
+        <value label="Total counts" size="3" precision="0" scientific="false">
+            <input>counts</input>
+        </value>
+        <graph label="Histogram" labelX="Time" labelY="Counts (in interval)" unitX="[[unit_short_second]]" unitY="" lineWidth="0.9" style="vbars" scaleMinY="fixed" minY="0">
+            <input axis="x">hist_times</input>
+            <input axis="y">hist_counts</input>
+        </graph>
+        <edit label="Binning factor" default="50" signed="false" min="1" decimal="false">
+            <output>binning_factor</output>
+        </edit>
+    </view>
+    <view label="Settings">
+        <edit label="Chunk size" unit="samples" min="0" max="24000" default="12000">
+            <output>chunksize</output>
+        </edit>
+        <info label="If threshold is set to 0 it is determined from the RMS value" />
+        <edit label="Threshold" unit="" default="0">
+            <output>threshold_in</output>
+        </edit>
+        <value label="Threshold used" size="1" precision="5" scientific="false">
+            <input>threshold</input>
+        </value>
+        <separator height="1" /> 
+        <separator color="white" />
+        <separator height="1" />
+        <edit label="Filter frequency" unit="Hz" default="6000">
+            <output>f0</output>
+        </edit>
+        <edit label="Filter order" default="4" >
+            <output>order</output>
+        </edit>
+        <graph label="Butterworth Filter" labelX="Frequenz" labelY="Gewichtung" unitX="s" unitY="a.u.">
+            <input axis="x" color="green">f</input>
+            <input axis="y">butterworth</input>
+        </graph>
+    </view>
+    <view label="Debug">
+        <graph label="Unfiltered" labelX="Sample index" labelY="Amplitude" unitX="" unitY="[a.u.]">
+            <input axis="y">chunk</input>
+        </graph>
+        <graph label="FFT" labelX="Sample index" labelY="Amplitude" unitX="" unitY="[a.u.]">
+            <input axis="x">f</input>
+            <input axis="y">fftX</input>
+            <input axis="x" color="green">f</input>
+            <input axis="y">fftY</input>
+        </graph>
+            <graph label="Butterworth Filter" labelX="Frequenz" labelY="Gewichtung" unitX="s" unitY="a.u.">
+                <input axis="x" color="green">f</input>
+                <input axis="y">butterworth</input>
+            </graph>
+        <graph label="FFT filtered" labelX="Sample index" labelY="Amplitude" unitX="" unitY="[a.u.]">
+            <input axis="x">f</input>
+            <input axis="y">fftX_weighted</input>
+            <input axis="x" color="green">f</input>
+            <input axis="y">fftX_weighted</input>
+        </graph>
+        <graph label="Filtered" labelX="Sample index" labelY="Amplitude" unitX="" unitY="[a.u.]">
+            <input axis="y">chunk_filtered</input>
+        </graph>
+        <value label="Threshold" size="1" precision="5" scientific="false">
+            <input>threshold</input>
+        </value>
+        <value label="Count old" size="1" precision="0" scientific="false">
+            <input>old_count</input>
+        </value>
+        <value label="Count new" size="1" precision="0" scientific="false">
+            <input>new_count</input>
+        </value>
+    </view>
+  </views>
+
+  <analysis>
+
+    <multiply>
+        <input clear="false">chunksize</input>
+        <input type="value">2</input>
+        <output>chunksize*2</output>
+    </multiply>
+
+    <subtract>
+        <input clear="false">chunksize*2</input>
+        <input type="value">1</input>
+        <output>chunksize*2-1</output>
+    </subtract>
+
+    <divide>
+        <input clear="false">chunksize</input>
+        <input type="value">2</input>
+        <output>chunksize/2</output>
+    </divide>
+
+    <multiply>
+        <input clear="false">chunksize/2</input>
+        <input type="value">3</input>
+        <output>chunksize*3/2</output>
+    </multiply>
+
+    <!-- Catch and collect all samples -->
+    <append>
+        <input>recording_in</input>
+        <output clear="false">recording</output>
+    </append>
+
+    <!-- Check if there is enough new data for this analysis run to be valid -->
+
+    <count>
+      <input clear="false">recording</input>
+      <output>count</output>
+    </count>
+    <if greater="true" equal="true">
+        <input clear="false">count</input>
+        <input clear="false">chunksize</input>
+        <input type="value">1</input>
+        <input type="value">0</input>
+        <output>valid</output>
+    </if>
+
+
+    <!-- Cut the first new 12000 data points from the recording and keep the remainder -->
+
+    <subrange>
+        <input as="to" clear="false">chunksize</input>
+        <input clear="false">recording</input>
+        <output>temp_use</output>
+    </subrange>
+
+    <subrange>
+        <input as="from" clear="false">chunksize</input>
+        <input clear="false">recording</input>
+        <output>temp_remainder</output>
+    </subrange>
+
+
+    <!-- If this analysis run is valid, create a chunk from the (old) overlap data and the new 12000 values. Remove the 12000 new values from the recording buffer and also place them in the overlap buffer for the next time around. -->
+    <!-- If not, leave everything as is, but clear the chunk buffer so it is not processed this time around -->
+
+    <if equal="true">
+        <input clear="false">valid</input>
+        <input type="value">1</input>
+        <input clear="false">overlap</input>
+        <input type="empty" />
+        <output clear="true">chunk</output>
+    </if>
+    
+    <if equal="true">
+        <input clear="false">valid</input>
+        <input type="value">1</input>
+        <input clear="false">temp_use</input>
+        <input type="empty" />
+        <output clear="false">chunk</output>
+    </if>
+
+    <if equal="true">
+        <input clear="false">valid</input>
+        <input type="value">1</input>
+        <input clear="false">temp_use</input>
+        <output clear="true">overlap</output>
+    </if>
+
+    <if equal="true">
+        <input clear="false">valid</input>
+        <input type="value">1</input>
+        <input clear="false">temp_remainder</input>
+        <output clear="true">recording</output>
+    </if>
+
+
+    <!-- Filter the chunk data by calculating the FFT, applying a high pass and transforming back -->
+
+    <ramp>
+        <input as="start" type="value">0</input>
+        <input as="stop" clear="false">chunksize*2-1</input>
+        <input as="length" clear="false">chunksize*2</input>
+        <output>index</output>
+    </ramp>
+    <formula formula="([3]-abs([1_]-[3]))/[4]*[2]">
+        <input clear="false">index</input>
+        <input clear="false">rate</input>
+        <input clear="false">chunksize</input>
+        <input clear="false">chunksize*2</input>
+        <output>f</output> <!-- Frequency for each entry, taking into account the cutoff frequency -->
+    </formula>
+    <fft>
+        <input clear="false" as="re">chunk</input>
+        <output as="re">fftX</output>
+        <output as="im">fftY</output>
+    </fft>
+    <formula formula="1/sqrt(1+([2]/[1_])^(2*[3]))"> <!-- f0 = 6000, order = 4 -->
+        <input clear="false">f</input>
+        <input clear="false">f0</input>
+        <input clear="false">order</input>
+        <output>butterworth</output>
+    </formula>
+    <formula formula="[3_]*[1_]/[2]">
+        <input clear="false">fftX</input>
+        <input clear="false">count</input>
+        <input clear="false">butterworth</input>
+        <output>fftX_weighted</output>
+    </formula>
+    <formula formula="-[3_]*[1_]/[2]">
+        <input clear="false">fftY</input>
+        <input clear="false">count</input>
+        <input clear="false">butterworth</input>
+        <output>fftY_weighted</output>
+    </formula>
+    <fft>
+        <input as="re" clear="false">fftX_weighted</input>
+        <input as="im" clear="false">fftY_weighted</input>
+        <output as="re">chunk_filtered</output>
+    </fft>
+
+
+    <!-- Determine plop threshold from RMS of the chunk -->
+    <multiply>
+        <input clear="false">chunk_filtered</input>
+        <input clear="false">chunk_filtered</input>
+        <output>chunk_filtered_squared</output>
+    </multiply>
+    <average>
+        <input clear="false">chunk_filtered_squared</input>
+        <output as="average">ms</output>
+    </average>
+    <power>
+        <input as="base" clear="false">ms</input>
+        <input as="exponent" type="value">0.5</input>
+        <output>rms</output>
+    </power>
+    <multiply>
+        <input clear="false">rms</input>
+        <input type="value">7</input>
+        <output>threshold_est</output>
+    </multiply>
+    <if greater="true">
+        <input clear="false">threshold_in</input>
+        <input type="value">0</input>
+        <input clear="false">threshold_in</input>
+        <input clear="false">threshold_est</input>
+        <output clear="false">threshold</output>
+    </if>
+
+    <!-- This is not ideal, but... We will now simply look for a value that crosses the threshold. If this is in the first half, we attribute it to the previous chunk and do not count it. This allows us to avoid multiple triggers if an event spans multiple chunks, but it prevents us from detecting fast consecutive events, which at best would be counted as a single event. -->
+    <threshold>
+        <input as="y" clear="false">chunk_filtered</input>
+        <input as="threshold" clear="false">threshold</input>
+        <output>trigger_index</output>
+    </threshold>
+    <append>
+        <input clear="false">counts</input>
+        <output>old_count</output>
+    </append>
+    <add>
+        <input clear="false">counts</input>
+        <input type="value">1</input>
+        <output>new_count</output>
+    </add>
+    <if less="true">
+        <input clear="false">trigger_index</input>
+        <input clear="false">chunksize/2</input>
+        <input clear="false">counts</input>
+        <output clear="false">new_count</output>
+    </if>
+    <if equal="true" greater="true">
+        <input clear="false">trigger_index</input>
+        <input clear="false">chunksize*3/2</input>
+        <input clear="false">counts</input>
+        <output clear="false">new_count</output>
+    </if>
+    <timer>
+        <output>new_time</output>
+    </timer>
+    <if equal="true">
+        <input clear="false">valid</input>
+        <input type="value">1</input>
+        <input clear="false">new_time</input>
+        <output clear="false">times</output>
+    </if>
+    <if equal="true">
+        <input clear="false">valid</input>
+        <input type="value">1</input>
+        <input clear="false">new_count</input>
+        <output clear="false">counts</output>
+    </if>
+
+    <!-- Histogram -->
+    <differentiate>
+        <input clear="false">counts</input>
+        <output>count_diffs</output>
+    </differentiate>
+
+    <reduce  sumY="true">
+        <input as="factor" clear="false">binning_factor</input>
+        <input as="x" clear="false">times</input>
+        <input as="y" clear="false">count_diffs</input>
+        <output as="x">hist_times</output>
+        <output as="y">hist_counts</output>
+    </reduce>
+
+  </analysis>
+
+  <export>
+    <set name="Count">
+        <data name="Time (s)">times</data>
+        <data name="Count">counts</data>
+    </set>
+  </export>
+
+</phyphox>

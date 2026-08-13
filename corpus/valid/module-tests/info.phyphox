@@ -1,0 +1,48 @@
+<phyphox version="1.19" locale="en">
+    <title>Module: info</title>
+    <category>Test</category>
+    <description>
+        Analysis module test: info
+    </description>
+    <data-containers>
+        <container size="0">bat</container>
+        <container size="0">wifi</container>
+        <container size="0">vol</container>
+        <container size="0">t</container>
+    </data-containers>
+    <views>
+        <view label="Results">
+            <value label="Battery">
+                <input>bat</input>
+            </value>
+            <graph label="Battery">
+                <input axis="x">t</input>
+                <input axis="y">bat</input>
+            </graph>
+            <value label="Wifi">
+                <input>wifi</input>
+            </value>
+            <graph label="Wifi">
+                <input axis="x">t</input>
+                <input axis="y">wifi</input>
+            </graph>
+            <value label="Volume">
+                <input>vol</input>
+            </value>
+            <graph label="Volume">
+                <input axis="x">t</input>
+                <input axis="y">vol</input>
+            </graph>
+        </view>
+    </views>
+    <analysis>
+        <info>
+            <output append="true" as="batteryLevel">bat</output>
+            <output append="true" as="wifiSignalStrength">wifi</output>
+            <output append="true" as="systemVolume">vol</output>
+        </info>
+        <timer>
+            <output append="true">t</output>
+        </timer>
+    </analysis>
+</phyphox>

@@ -1,0 +1,351 @@
+<phyphox version="1.4" locale="en">
+    <title>Sun trace</title>
+    <category>Tools</category>
+    <description>
+        Test: Trace the sun...
+    </description>
+    <data-containers>
+        <container size="1">accX</container>
+        <container size="1">accX2</container>
+        <container size="1">accY</container>
+        <container size="1">accY2</container>
+        <container size="1">accZ</container>
+        <container size="1">accZ2</container>
+        <container size="1">accXZ</container>
+        <container size="1">accXZ2</container>
+        <container size="1">accT</container>
+        <container size="1">magX</container>
+        <container size="1">magY</container>
+        <container size="1">magZ</container>
+        <container size="1">aX</container>
+        <container size="1">aY</container>
+        <container size="1">aZ</container>
+        <container size="1">aX2</container>
+        <container size="1">aY2</container>
+        <container size="1">aZ2</container>
+        <container size="1">a2</container>
+        <container size="1">a</container>
+        <container size="1">gXZ2</container>
+        <container size="1">gXZ</container>
+        <container size="1">t1</container>
+        <container size="1">t2</container>
+        <container size="1">t3</container>
+        <container size="1">magT</container>
+        <container size="1">angle</container>
+        <container size="1">angleMag</container>
+        <container size="1">angleMag+360</container>
+        <container size="1">cosAngleMag</container>
+        <container size="1">angleMagUnsigned</container>
+        <container size="1">angleMagSigned</container>
+        <container size="1">UTC_hour</container>
+        <container size="1">UTC_minute</container>
+        <container size="1">UTC_minute_frac</container>
+        <container size="1">UTC</container>
+        <container size="0">UTC_set</container>
+        <container size="0">angle_set</container>
+        <container size="0">angleMag_set</container>
+        <container size="0">UTC_col</container>
+        <container size="0">angle_col</container>
+        <container size="0">angleMag_col</container>
+    </data-containers>
+    <input>
+        <sensor type="accelerometer" rate="4" average="true">
+            <output component="x">accX</output>
+            <output component="y">accY</output>
+            <output component="z">accZ</output>
+            <output component="t">accT</output>
+        </sensor>
+        <sensor type="magnetic_field" rate="4" average="true">
+            <output component="x">magX</output>
+            <output component="y">magY</output>
+            <output component="z">magZ</output>
+            <output component="t">magT</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="Sun trace">
+
+            <value label="Altitude" size="2" precision="2" scientific="false" unit="°" factor="1">
+                <input>angle</input>
+            </value>
+            <value label="Azimuth from north" size="2" precision="2" scientific="false" unit="°" factor="1">
+                <input>angleMag</input>
+            </value>
+            <edit label="UTC hour" unit="h">
+                <output>UTC_hour</output>
+            </edit>
+            <edit label="UTC minute" unit="m" signed="false">
+                <output>UTC_minute</output>
+            </edit>
+            <button label="Append">
+                <input>angle</input>
+                <output clear="false">angle_set</output>
+                <input>angleMag</input>
+                <output clear="false">angleMag_set</output>
+                <input>UTC</input>
+                <output clear="false">UTC_set</output>
+            </button>
+            <separator height="1" />
+            <graph label="Altitude" labelX="UTC time (h)" labelY="Angle (°)" partialUpdate="true" style="dots" lineWidth="5">
+                <input axis="x">UTC_col</input>
+                <input axis="y">angle_col</input>
+            </graph>
+            <graph label="Azimuth from north" labelX="UTC time (h)" labelY="Angle (°)" partialUpdate="true" style="dots" lineWidth="5">
+                <input axis="x">UTC_col</input>
+                <input axis="y">angleMag_col</input>
+            </graph>
+        </view>
+    </views>
+    <analysis sleep="0.5">
+        <divide>
+            <input clear="false">UTC_minute</input>
+            <input type="value">60</input>
+            <output>UTC_minute_frac</output>
+        </divide>
+        <add>
+            <input clear="false">UTC_minute_frac</input>
+            <input clear="false">UTC_hour</input>
+            <output clear="false">UTC</output>
+        </add>
+
+        <append>
+            <input clear="true">UTC_set</input>
+            <output clear="false">UTC_col</output>
+        </append>
+
+        <append>
+            <input clear="true">angle_set</input>
+            <output clear="false">angle_col</output>
+        </append>
+
+        <append>
+            <input clear="true">angleMag_set</input>
+            <output clear="false">angleMag_col</output>
+        </append>
+
+        <multiply>
+            <input clear="false">accX</input>
+            <input clear="false">accX</input>
+            <output clear="true">accX2</output>
+        </multiply>
+        <multiply>
+            <input clear="false">accY</input>
+            <input clear="false">accY</input>
+            <output clear="true">accY2</output>
+        </multiply>
+        <add>
+            <input clear="true">accX2</input>
+            <input clear="true">accZ2</input>
+            <output clear="true">accXZ2</output>
+        </add>
+        <power>
+            <input as="base" clear="true">accXZ2</input>
+            <input as="exponent" type="value">0.5</input>
+            <output clear="true">accXZ</output>
+        </power>
+        <atan2 deg="true">
+            <input clear="false">accY</input>
+            <input clear="true">accXZ</input>
+            <output clear="true">angle</output>
+        </atan2>
+
+        <multiply>
+            <input clear="false">accX</input>
+            <input clear="false">accX</input>
+            <output>accX2</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">accY</input>
+            <input clear="false">accY</input>
+            <output>accY2</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">accZ</input>
+            <input clear="false">accZ</input>
+            <output>accZ2</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">magY</input>
+            <input clear="false">accZ</input>
+            <output>t1</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">magZ</input>
+            <input clear="false">accY</input>
+            <output>t2</output>
+        </multiply>
+
+        <subtract>
+            <input clear="false">t1</input>
+            <input clear="false">t2</input>
+            <output>aX</output>
+        </subtract>
+
+        <multiply>
+            <input clear="false">magZ</input>
+            <input clear="false">accX</input>
+            <output>t1</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">magX</input>
+            <input clear="false">accZ</input>
+            <output>t2</output>
+        </multiply>
+
+        <subtract>
+            <input clear="false">t1</input>
+            <input clear="false">t2</input>
+            <output>aY</output>
+        </subtract>
+
+        <multiply>
+            <input clear="false">magX</input>
+            <input clear="false">accY</input>
+            <output>t1</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">magY</input>
+            <input clear="false">accX</input>
+            <output>t2</output>
+        </multiply>
+
+        <subtract>
+            <input clear="false">t1</input>
+            <input clear="false">t2</input>
+            <output>aZ</output>
+        </subtract>
+
+        <multiply>
+            <input clear="false">aX</input>
+            <input clear="false">aX</input>
+            <output>aX2</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">aY</input>
+            <input clear="false">aY</input>
+            <output>aY2</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">aZ</input>
+            <input clear="false">aZ</input>
+            <output>aZ2</output>
+        </multiply>
+
+        <add>
+            <input clear="false">aX2</input>
+            <input clear="false">aY2</input>
+            <input clear="false">aZ2</input>
+            <output>a2</output>
+        </add>
+
+        <power>
+            <input as="base" clear="false">a2</input>
+            <input as="exponent" type="value">0.5</input>
+            <output>a</output>
+        </power>
+
+        <add>
+            <input clear="false">accX2</input>
+            <input clear="false">accZ2</input>
+            <output>gXZ2</output>
+        </add>
+
+        <power>
+            <input as="base" clear="false">gXZ2</input>
+            <input as="exponent" type="value">0.5</input>
+            <output>gXZ</output>
+        </power>
+
+        <multiply>
+            <input clear="false">accZ</input>
+            <input clear="false">aX</input>
+            <output>t1</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">accX</input>
+            <input clear="false">aZ</input>
+            <output>t2</output>
+        </multiply>
+
+        <subtract>
+            <input>t1</input>
+            <input>t2</input>
+            <output>t3</output>
+        </subtract>
+
+        <divide>
+            <input clear="false">t3</input>
+            <input clear="false">a</input>
+            <input clear="false">gXZ</input>
+            <output>cosAngleMag</output>
+        </divide>
+
+        <acos deg="true">
+            <input clear="false">cosAngleMag</input>
+            <output clear="true">angleMagUnsigned</output>
+        </acos>
+
+        <multiply>
+            <input clear="false">magX</input>
+            <input clear="false">accZ</input>
+            <output>t1</output>
+        </multiply>
+
+        <multiply>
+            <input clear="false">magZ</input>
+            <input clear="false">accX</input>
+            <output>t2</output>
+        </multiply>
+
+        <subtract>
+            <input>t1</input>
+            <input>t2</input>
+            <output>t3</output>
+        </subtract>
+
+        <if less="true">
+            <input clear="false">t3</input>
+            <input type="value">0</input>
+            <input type="value">1</input>
+            <input type="value">-1</input>
+            <output>t1</output>
+        </if>
+
+        <multiply>
+            <input>t1</input>
+            <input>angleMagUnsigned</input>
+            <output clear="false">angleMagSigned</output>
+        </multiply>
+
+        <add>
+            <input clear="false">angleMagSigned</input>
+            <input type="value">360</input>
+            <output clear="false">angleMag+360</output>
+        </add>
+
+        <if less="true">
+            <input clear="false">angleMagSigned</input>
+            <input type="value">0</input>
+            <input>angleMag+360</input>
+            <input>angleMagSigned</input>
+            <output>angleMag</output>
+        </if>
+
+    </analysis>
+    <export>
+        <set name="Sun trace">
+            <data name="UTC (h)">UTC_col</data>
+            <data name="Altitude (deg)">angle_col</data>
+            <data name="Azimuth (deg)">angleMag_col</data>
+        </set>
+    </export>
+</phyphox>

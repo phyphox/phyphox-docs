@@ -1,0 +1,72 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Generated fixture: view attributes no collected experiment uses.
+         visibility on view, button, toggle, image, camera-gui and depth-gui;
+         color on dropdown and slider; the full mapColor1-9 ladder with
+         showColorScale; hideTimeMarkers and timeOnY on a graph;
+         aspectRatio on depth-gui; smooth on the depth input. -->
+    <title>Corpus: view details</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for rarely used view attributes.</description>
+    <data-containers>
+        <container size="1" init="1">show</container>
+        <container size="100">lum</container>
+        <container size="100">z</container>
+        <container size="100">zt</container>
+        <container size="100">mapX</container>
+        <container size="100">mapY</container>
+        <container size="100">mapZ</container>
+        <container size="1">choice</container>
+        <container size="1">level</container>
+        <container size="1">flag</container>
+        <container size="0">pressed</container>
+    </data-containers>
+    <input>
+        <camera x1="0.4" x2="0.6" y1="0.4" y2="0.6">
+            <output component="luminance">lum</output>
+        </camera>
+        <depth mode="average" smooth="false" x1="0.4" x2="0.6" y1="0.4" y2="0.6">
+            <output component="z">z</output>
+            <output component="t">zt</output>
+        </depth>
+    </input>
+    <views>
+        <view label="Details" visibility="show">
+            <camera-gui label="Camera" visibility="show" show_controls="always"/>
+            <depth-gui label="Depth" visibility="show" aspectRatio="1.5"/>
+            <image src="logo.png" visibility="show"/>
+            <button label="Mark" visibility="show">
+                <input type="value">1</input>
+                <output>pressed</output>
+            </button>
+            <toggle label="Enable" visibility="show" default="true">
+                <output>flag</output>
+            </toggle>
+            <dropdown label="Mode" color="orange">
+                <map value="1">One</map>
+                <map value="2">Two</map>
+                <output>choice</output>
+            </dropdown>
+            <slider label="Level" color="ff7e22" minValue="0" maxValue="10" stepSize="0.5" default="5">
+                <output>level</output>
+            </slider>
+            <graph label="Depth map" style="map" mapWidth="10" showColorScale="true"
+                   mapColor1="000000" mapColor2="101010" mapColor3="202020"
+                   mapColor4="303030" mapColor5="404040" mapColor6="606060"
+                   mapColor7="909090" mapColor8="c0c0c0" mapColor9="ffffff"
+                   labelX="x" labelY="y" labelZ="z">
+                <input axis="x">mapX</input>
+                <input axis="y">mapY</input>
+                <input axis="z">mapZ</input>
+            </graph>
+            <graph label="Depth over time" hideTimeMarkers="true" timeOnY="false" timeOnX="true" systemTime="true">
+                <input axis="x">zt</input>
+                <input axis="y">z</input>
+            </graph>
+        </view>
+    </views>
+    <export>
+        <set name="Depth">
+            <data name="z">z</data>
+        </set>
+    </export>
+</phyphox>

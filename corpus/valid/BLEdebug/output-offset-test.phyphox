@@ -1,0 +1,47 @@
+<phyphox version="1.14" locale="en">
+    <title>BLE output offset</title>
+    <category>Test</category>
+    <description>...</description>
+    <data-containers>
+        <container size="1000" static="false">t</container>
+        <container size="1000" static="false">x</container>
+        <container size="1000" static="false">y</container>
+        <container size="1000" static="false">z</container>
+    </data-containers>
+    <input>
+        <sensor rate="0" average="false" type="accelerometer">
+            <output component="x">x</output>
+            <output component="y">y</output>
+            <output component="z">z</output>
+            <output component="t">t</output>
+        </sensor>
+    </input>
+    <output>
+        <bluetooth  name="Pixel 6" >
+            <input char="00002a8a-0000-1000-8000-00805f9b34fb" offset="0" conversion="uInt32LittleEndian">x</input>
+            <input char="00002a8a-0000-1000-8000-00805f9b34fb" offset="4" conversion="uInt32LittleEndian">y</input>
+            <input char="00002a8a-0000-1000-8000-00805f9b34fb" offset="12" conversion="uInt32LittleEndian">z</input>
+        </bluetooth>
+    </output>
+    <analysis sleep="0.1"  onUserInput="false">
+    </analysis>
+    <views>
+        <view label="Raw Data">
+            <info label="This &quot;experiment&quot; reads out the accelerometer in z direction and sends the value to your arduino" >
+            </info>
+            <graph label="Accelerometer Z" aspectRatio="2.5" style="lines" lineWidth="1" color="ff7e22" partialUpdate="false" history="1" labelX="time" labelY="acceleration" labelZ="" unitX="s" unitY="m/s²" unitZ="" logX="false" logY="false" logZ="false" xPrecision="3" yPrecision="3" zPrecision="3" scaleMinX="auto" scaleMaxX="auto" scaleMinY="auto" scaleMaxY="auto" scaleMinZ="auto" scaleMaxZ="auto" minX="0" maxX="0" minY="0" maxY="0" minZ="0" maxZ="0"  mapWidth="0"       >
+                <input axis="x">t</input>
+                <input axis="y">z</input>
+            </graph>
+            <value label="acceleration Z" size="1" precision="2" scientific="false" unit="m/s²" factor="1" >
+                <input>z</input>
+            </value>
+        </view>
+    </views>
+    <export>
+        <set name="Rawdata">
+            <data name="Time">t</data>
+            <data name="Acceleration Z">z</data>
+        </set>
+    </export>
+</phyphox>
