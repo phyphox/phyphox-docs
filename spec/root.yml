@@ -431,8 +431,7 @@ colors:
     - {name: green,       hex: 2bfb4c}
     - {name: yellow,      hex: edf668}
     - {name: white,       hex: ffffff}
-    - {name: weakorange,  hex: ffc399,
-       agreement: divergent, inconsistency: named-color-weakorange}
+    - {name: weakorange,  hex: ffc399}
     - {name: weakred,     hex: ff7cac}
     - {name: weakmagenta, hex: f6aafa}
     - {name: weakblue,    hex: 9dd1ff}

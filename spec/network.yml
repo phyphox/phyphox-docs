@@ -324,8 +324,7 @@ metadata:
     - attitude
     # custom is deliberately NOT part of the vocabulary (decided 2026-08-13):
     # custom sensors are selected by nameFilter, so per-sensor metadata for
-    # "custom" is ambiguous. Android still accepts custom-prefixed
-    # identifiers and will be corrected - see metadata-custom-sensor-prefix.
+    # "custom" is ambiguous.
   sensor_suffixes:
     - Name
     - Vendor

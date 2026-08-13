@@ -106,8 +106,6 @@ In this list, \[sensor\] can be replaced by "accelerometer", "linear_acceleratio
 
 Metadata identifiers are matched without regard to case, like every enumerated value in the format, and an identifier outside this vocabulary rejects the experiment file.
 
-{{inconsistency:metadata-custom-sensor-prefix}}
-
 Aside from the sensors that are exposed through a unified API on Android, there are some additional metadata identifiers available for specific sensors:
 
 depthFrontSensor
