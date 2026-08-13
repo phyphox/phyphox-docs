@@ -153,7 +153,7 @@ def build_probes(buffer_name, resource_name=None):
               post_json={b: f"0|{b}"}),
         Probe("post.get.body.over.query", "/get", {b: "full"},
               schema="GetResponse", post_json={b: ""}),
-        Probe("post.malformed.json", "/get", expect_json=False,
+        Probe("post.malformed.json", "/get",
               post_json='{"not json'),
         Probe("post.config.body.ignored", "/config", schema="Config",
               post_json={"ignored": "by a parameterless endpoint"}),
@@ -465,6 +465,21 @@ def run(args):
                         f"{probe.name} [{name}]: schema {probe.schema}: "
                         f"{'/'.join(str(p) for p in err.path) or '<root>'}: "
                         f"{err.message}")
+            # An error response is never empty: it carries a JSON error object
+            # (decided 2026-08-13, formerly error-response-content-type). This
+            # holds API-wide, so it is checked here rather than per probe.
+            if r["status"] is not None and r["status"] >= 400:
+                if parsed is None:
+                    failures.append(
+                        f"{probe.name} [{name}]: error status {r['status']} "
+                        f"without a JSON error object")
+                else:
+                    v = validator_for(spec, "Error")
+                    for err in sorted(v.iter_errors(parsed), key=lambda e: e.path):
+                        failures.append(
+                            f"{probe.name} [{name}]: schema Error: "
+                            f"{'/'.join(str(p) for p in err.path) or '<root>'}: "
+                            f"{err.message}")
 
             results[name] = {
                 "status": r["status"],

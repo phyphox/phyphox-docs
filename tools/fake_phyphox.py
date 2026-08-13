@@ -86,7 +86,8 @@ class Base(BaseHTTPRequestHandler):
                     if not isinstance(obj, dict):
                         raise ValueError("not a flat object")
                 except ValueError:
-                    self.send_empty(400, self.cors)
+                    self.send_json({"error": "Malformed request body."},
+                                   status=400, cors=self.cors)
                     return
                 def coerce(v):
                     if isinstance(v, bool):
@@ -161,11 +162,13 @@ class Base(BaseHTTPRequestHandler):
                 try:
                     float(threshold)
                 except ValueError:
-                    self.send_empty(400, self.cors)   # bad threshold -> 400
+                    self.send_json({"error": "Invalid threshold."},
+                                   status=400, cors=self.cors)
                     return
                 ref = value.split("|", 1)[1] if "|" in value else name
                 if not any(b["name"] == ref for b in BUFFERS):
-                    self.send_empty(400, self.cors)   # unknown reference -> 400
+                    self.send_json({"error": "Unknown reference buffer."},
+                                   status=400, cors=self.cors)
                     return
                 out[name] = {"size": match["size"], "updateMode": "partial",
                              "buffer": list(SAMPLES)}
