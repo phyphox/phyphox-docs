@@ -418,8 +418,8 @@ elements:
 #
 # Sources compared 2026-08-13: RGB.java with res/values/colors.xml (Android),
 # Constants.swift namedColors (iOS), PhyphoxColor.ts (Blockly editor). All
-# fourteen names exist everywhere; the value of weakorange differs on Android
-# - see the inconsistency entry.
+# fourteen names and values agree everywhere (weakorange diverged on Android
+# until it was corrected the same day).
 
 colors:
   agreement: agreed
