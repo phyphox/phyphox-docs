@@ -6,13 +6,9 @@ implementations, and everything below — including the interactive requests —
 
 !!! note "Try it out against your own phone"
 
-    The **Try it out** buttons send real requests. They will not work against the phone unless the
-    page is opened from a host that phyphox allows: only the Android app sends a CORS header, so a
-    browser blocks these requests when the docs are served from anywhere other than the phone
-    itself, and blocks them against an iPhone in every case. See
-    [`cors-header`](../reference/known-inconsistencies.md).
-
-    To use them, set the server URL below to your phone's address, which phyphox shows when you
-    enable remote access.
+    The **Try it out** buttons send real requests. To use them, enable remote access in phyphox
+    and set the server URL below to your phone's address, which phyphox shows when you enable the
+    feature. Every response carries a CORS header, so the requests work no matter where this page
+    is served from.
 
 <swagger-ui src="openapi.yaml"/>

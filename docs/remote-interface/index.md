@@ -8,8 +8,6 @@
     [`openapi.yaml`](openapi.yaml). That file is the authority; where this page and the reference
     disagree, the reference is right.
 
-{{inconsistency:cors-header}}
-
 While the [remote interface](http://phyphox.org/remote-control/) of phyphox is a very powerful tool, you might be interested in communicating and controlling phyphox directly using your own software. The web page called by your browser when using the default remote interface is mostly based on some (not too complex) Javascript code. This code does a range of AJAX requests and receives responses in a JSON format, which are documented on this page. So, when the remote access feature is enabled, phyphox can be controlled through a REST API.
 
 In principle, with this information, you could embed phyphox into many other projects. For example, you could write an interface to perform measurements including more than one phones with phyphox or you could include phyphox into a more capable measurement software (LabView, Labber, Matlab) or control phyphox alongside other lab equipment like programmable voltage sources or power supplies of electro magnets.
@@ -71,25 +69,7 @@ The "status" JSON object contains four values:
 
 "session" gives a string identifier which is unique per session. If this changes, you may expect that the user has switched to a different experiment and all your old data has become invalid. "measuring" gives the current state of the measurement - false means that the experiment is paused, true that it is running. "timedRun" and "countDown" represent the timed run function. **"countDown" is given in milliseconds**, so in this case it is enabled and will stop the current measurement in 2.7 seconds. If "measuring" was false, it would mean that the measurement would start in 2.7 seconds.
 
-{{inconsistency:get-no-parameters}}
-
-{{inconsistency:get-nonfinite-single-value}}
-
-{{inconsistency:get-force-full-update}}
-
-{{inconsistency:get-unknown-reference-buffer}}
-
 ### /control
-
-{{inconsistency:control-post}}
-
-{{inconsistency:control-clear-groups}}
-
-{{inconsistency:control-set-infinity}}
-
-{{inconsistency:control-set-unknown-buffer}}
-
-{{inconsistency:control-trigger-out-of-range}}
 
 The document "control" is used to send commands to phyphox to start and stop the experiment. It will always respond with a simple confirmation object {"result": true} if successfull or {"result": false} if something went wrong.
 
@@ -104,8 +84,6 @@ Currently, there are four commands available:
 /control?cmd=set&buffer=abc&value=42 Writes the value 42 into the buffer abc (typically used for edit fields)
 
 ### /export
-
-{{inconsistency:export-invalid-format}}
 
 When requesting "export", you are effectively triggering the export function of phyphox to retrieve all recorded data in a single file. You can specify the format of this file using the index of the available formats. For example /export?format=0 will give an Excel file and /export?format=2 will give a CSV file (at the time of this writing).
 
@@ -163,5 +141,3 @@ Note, that the experiment time is based on the devices high resolution clock, wh
 `image` view element. It takes a single parameter `src`, the file name as written in the view
 element, and refuses anything the experiment does not actually reference. See the
 [API reference](api-reference.md) for the exact responses.
-
-{{inconsistency:res-fallback}}

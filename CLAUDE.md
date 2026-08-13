@@ -169,7 +169,12 @@ Entry `status` drives the wording:
 - `open` — nobody has decided which behaviour is correct. The reader is told not to rely on either.
 - `decided` — `canonical:` records the correct behaviour; the reader is told the others are bugs
   that will be fixed.
-- `fixed` — keep the entry until the release carrying the fix has shipped everywhere, then delete.
+
+There is deliberately no `fixed` status, and the build rejects one. Once every implementation
+agrees, **delete the entry** — together with its `{{inconsistency:…}}` markers,
+`x-phyphox-inconsistency` references and `inconsistency:` fields in `spec/`, in the same change as
+the fix. Readers learn about corrected behaviour from the release changelog; a lingering "recently
+corrected" note only clutters the documentation.
 
 When adding an entry, cite where each behaviour was observed (file and symbol), so the next person
 can re-verify rather than trust the file. Deciding the canonical behaviour is **the maintainer's

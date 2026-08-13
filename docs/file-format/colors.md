@@ -4,8 +4,6 @@ When creating your own experiments, you can use arbitrary colors by a 6-digit he
 
 These are the only two accepted forms: a color value that is neither a named color from the table below (names are matched case-insensitively) nor exactly six hex digits is an error, and the experiment will not load.
 
-{{inconsistency:views-map-color-unparseable}}
-
 Alternatively, you can use the names of defined colors. Phyphox often uses orange (#ff7e22) as its default trademark color, but it also defines a palette of additional colors that work well on the typical dark background of phyphox. These are:
 
 | Name | Hex | |

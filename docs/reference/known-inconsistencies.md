@@ -8,6 +8,8 @@ not a platform difference you should design around.
 
 This page lists the divergences we know about. Each one also raises a warning on the
 documentation page it affects, so you find out where it matters rather than only here.
+Once a divergence has been corrected in every implementation, its entry is removed;
+the fix is announced in the release notes of the version that carries it.
 
 !!! note "This list is not complete"
 

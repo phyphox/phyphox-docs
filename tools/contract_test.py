@@ -74,8 +74,9 @@ class Probe:
         self.clears = clears
         # Paths whose literal string value is part of what this probe compares.
         # Normally strings collapse to "<string>", because device names and
-        # titles differ legitimately - but where an entry is *about* the wording
-        # (res-fallback is), the wording has to be visible.
+        # titles differ legitimately - but where the wording itself is the
+        # finding (the former res-fallback divergence was), it has to be
+        # visible.
         self.keep_values = frozenset(keep_values)
 
     def url(self, base):
@@ -94,7 +95,7 @@ def build_probes(buffer_name, resource_name=None):
     probes = [
         Probe("config", "/config", schema="Config"),
         Probe("meta", "/meta", schema="Meta",
-              relates_to=["meta-sensors", "meta-missing-value-representation"]),
+              relates_to=["meta-sensors"]),
         Probe("time", "/time"),
 
         Probe("get.single", "/get", {b: ""}, schema="GetResponse"),
@@ -104,22 +105,18 @@ def build_probes(buffer_name, resource_name=None):
         Probe("get.unknown.buffer", "/get", {"nosuchbuffer___": ""},
               schema="GetResponse"),
 
-        # Edge cases that the two are known to handle differently. They are here
-        # so the recorded entries stay honest, and so a *change* in behaviour -
-        # someone fixing one side - shows up immediately.
-        Probe("get.no.parameters", "/get",
-              relates_to=["get-no-parameters"]),
-        Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"},
-              relates_to=["get-unknown-reference-buffer", "cors-error-paths"]),
+        # Edge cases the two used to handle differently. The divergences were
+        # fixed in the 2026-08 cleanup and their entries deleted; the probes
+        # stay so a regression on either side shows up immediately.
+        Probe("get.no.parameters", "/get"),
+        Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"}),
         Probe("export.bad.format", "/export", {"format": "99"},
-              expect_json=False, relates_to=["export-invalid-format"]),
+              expect_json=False),
         Probe("export.missing.format", "/export",
-              expect_json=False,
-              relates_to=["export-invalid-format", "cors-error-paths"]),
-        Probe("res.missing.src", "/res",
-              relates_to=["res-fallback"], keep_values=["error"]),
+              expect_json=False),
+        Probe("res.missing.src", "/res", keep_values=["error"]),
         Probe("res.unknown.src", "/res", {"src": "nosuchfile___.png"},
-              relates_to=["res-fallback"], keep_values=["error"]),
+              keep_values=["error"]),
 
         Probe("control.bad.command", "/control", {"cmd": "nosuchcommand___"},
               schema="ControlResult"),
@@ -130,33 +127,29 @@ def build_probes(buffer_name, resource_name=None):
         probes.insert(
             len(probes) - 2,
             Probe("res.existing", "/res", {"src": resource_name},
-                  expect_json=False, relates_to=["res-content-type"]))
+                  expect_json=False))
 
     control = [
         Probe("control.set", "/control", {"cmd": "set", "buffer": b, "value": "1"},
               schema="ControlResult", destructive=True),
         Probe("control.set.unknown.buffer", "/control",
               {"cmd": "set", "buffer": "nosuchbuffer___", "value": "1"},
-              schema="ControlResult", destructive=True,
-              relates_to=["control-set-unknown-buffer"]),
+              schema="ControlResult", destructive=True),
         Probe("control.set.infinity", "/control",
               {"cmd": "set", "buffer": b, "value": "Infinity"},
-              schema="ControlResult", destructive=True,
-              relates_to=["control-set-infinity"]),
+              schema="ControlResult", destructive=True),
         Probe("control.set.nan", "/control",
               {"cmd": "set", "buffer": b, "value": "NaN"},
               schema="ControlResult", destructive=True),
         Probe("control.trigger.out.of.range", "/control",
               {"cmd": "trigger", "element": "99999"},
-              schema="ControlResult", destructive=True,
-              relates_to=["control-trigger-out-of-range"]),
+              schema="ControlResult", destructive=True),
     ]
 
     clearing = [
         Probe("control.clear.groups", "/control",
               {"cmd": "clear", "clearGroup1": "nosuchgroup___"},
-              schema="ControlResult", destructive=True, clears=True,
-              relates_to=["control-clear-groups"]),
+              schema="ControlResult", destructive=True, clears=True),
     ]
     return probes, control, clearing
 
@@ -386,10 +379,11 @@ def run(args):
 
     failures, expected_diffs = [], []
     cors_seen = {name: set() for name in targets}
-    # A probe can kill the app it is aimed at - export-invalid-format does
-    # exactly that on iOS. Once a target has stopped answering, every later
-    # probe against it "diverges", which buries the one real finding under a
-    # page of noise. So notice it and stop.
+    # A probe can kill the app it is aimed at - /export with a bad format
+    # used to trap the whole iOS app (the former export-invalid-format
+    # divergence, fixed 2026-08). Once a target has stopped answering, every
+    # later probe against it "diverges", which buries the one real finding
+    # under a page of noise. So notice it and stop.
     died_after = {}
 
     for probe in probes:
@@ -401,9 +395,10 @@ def run(args):
             if r.get("transport_error"):
                 if name not in died_after:
                     died_after[name] = probe.name
-                # Not automatically a failure: an app that traps on a bad request
-                # answers nothing at all, and that is exactly what
-                # export-invalid-format describes. Let it take part in the diff.
+                # Not automatically a failure: an app that traps on a bad
+                # request answers nothing at all, which has happened before
+                # (the former export-invalid-format divergence). Let it take
+                # part in the diff.
                 results[name] = {"status": None, "content_type": None,
                                  "shape": f"<no response: {r['transport_error']}>"}
                 continue
@@ -457,23 +452,23 @@ def run(args):
                             + "\n    ".join(diffs))
 
     # CORS is a property of the whole server, not of one endpoint, so it is
-    # checked once here instead of being repeated on every probe. A platform
-    # that is inconsistent with *itself* is a separate, unrecorded problem.
+    # checked once here instead of being repeated on every probe. Both former
+    # CORS divergences (cors-header, cors-error-paths) were fixed in the
+    # 2026-08 cleanup, so any difference showing up again is unrecorded.
     for name, values in cors_seen.items():
         if len(values) > 1:
-            expected_diffs.append((
-                Probe(f"server.cors.{name}", "/", relates_to=["cors-error-paths"]),
-                [f"{name} sends the CORS header on some endpoints and not others"]))
+            failures.append(f"server.cors.{name}: UNRECORDED divergence\n    "
+                            f"{name} sends the CORS header on some endpoints "
+                            f"and not others")
     if len(targets) == 2:
         # "ever sends it" rather than "always sends it", so a platform that is
-        # internally inconsistent (see cors-error-paths) is still compared with
-        # the other one.
+        # internally inconsistent is still compared with the other one.
         a_cors = any(cors_seen["android"])
         i_cors = any(cors_seen["ios"])
         if a_cors != i_cors:
-            expected_diffs.append((
-                Probe("server.cors", "/", relates_to=["cors-header"]),
-                [f"Access-Control-Allow-Origin: android={a_cors} ios={i_cors}"]))
+            failures.append(f"server.cors: UNRECORDED divergence\n    "
+                            f"Access-Control-Allow-Origin: "
+                            f"android={a_cors} ios={i_cors}")
 
     # A recorded divergence that no probe can see any more has probably been
     # fixed on one side, and the entry is now lying to readers. Reported as a
@@ -481,8 +476,6 @@ def run(args):
     # through a shape diff alone, so absence here is a prompt to check, not
     # proof. This is the signal that someone fixed a bug and forgot the docs.
     probed_ids = {i for p in probes for i in p.relates_to}
-    if len(targets) == 2:
-        probed_ids.add("cors-header")   # checked above, not by a probe
     seen_ids = {i for p, _ in expected_diffs for i in p.relates_to}
     resolved = sorted(probed_ids - seen_ids)
 
@@ -502,8 +495,9 @@ def run(args):
         print("Recorded divergences that did NOT show up in this run:\n")
         for i in resolved:
             print(f"  {i}")
-        print("\n  If one of these was fixed, update its entry in "
-              "inconsistencies.yml (status: fixed) and the spec along with it.\n")
+        print("\n  If one of these was fixed everywhere, delete its entry from "
+              "inconsistencies.yml\n  along with its markers and spec references "
+              "- there is no 'fixed' status.\n")
 
     if expected_diffs:
         print("Known divergences, already recorded in inconsistencies.yml:\n")

@@ -18,10 +18,10 @@
 #   repeat_offset present when the slot is part of a repeating cycle, so several
 #                 groups of inputs can be given in order.
 #
-# These are Android's constraints. **iOS does not enforce them**: it matches the
-# `as` names it knows, falls back to document order for the rest, and applies no
-# per-slot restriction on type or on how many tags fill a slot. See
-# analysis-slot-constraints-unenforced.
+# Both parsers enforce these. iOS historically did not - it matched the `as`
+# names it knew and fell back to document order with no per-slot restriction -
+# but gained its own slot tables in the 2026-08 divergence cleanup
+# (ExperimentAnalysisModule.ioMapping on the development branch).
 #
 # How the two sides express a module's inputs and outputs differs, and only
 # Android states it declaratively. Android gives every module an ioMapping
@@ -964,11 +964,10 @@ elements:
         as_required: true
         min: 0
         max: 1
-        agreement: divergent
-        inconsistency: android-info-batterylevel-as-optional
+        agreement: agreed
         note: >-
-          Android's table has asRequired = false for this slot alone, which is
-          the bug; the value here is the documented behaviour.
+          Android's table had asRequired = false for this slot alone; fixed on
+          development in the 2026-08 divergence cleanup.
       - name: wifiSignalStrength
         as_required: true
         min: 0

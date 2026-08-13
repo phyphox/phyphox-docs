@@ -158,8 +158,6 @@ mapColor\[n\]
 
 The scale is read from `mapColor1` upward and ends at the first stop that is missing, so the number of stops is unlimited but the numbering must not have gaps. A stop that is present but does not name a valid color (a named phyphox color or a six-digit hex RGB value, optionally prefixed with `#`) is an error and the experiment will not load — the same strictness that applies to every color attribute in the format.
 
-{{inconsistency:views-map-color-unparseable}}
-
 You can also define your own color palette. Phyphox uses a black-orange-white gradient by default, but introducing more colors can be very helpful to improve contrast. Colors a simply defined as a series of colors that are spread across the z range:
 
 ```xml

@@ -70,8 +70,7 @@ elements:
       mono signal plays identically on both stereo channels and the element
       takes no parameter inputs. Only one direct source is supported.
     text: Name of the data container holding the waveform.
-    agreement: divergent
-    inconsistency: audio-direct-input-stereo
+    agreement: agreed
     attributes:
       - name: type
         type: enum

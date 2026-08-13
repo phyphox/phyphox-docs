@@ -5,14 +5,16 @@
 # in general. Answering them once settles the same question wherever it appears,
 # which is why they live here rather than being repeated per attribute.
 #
-# Each rule names the inconsistency entry that recorded the divergence, so the
-# rule and the to-do list cannot drift apart.
+# While the divergence that raised a rule is still being fixed, the rule names
+# its inconsistencies.yml entry, so the rule and the to-do list cannot drift
+# apart. Once every implementation conforms, that entry is deleted and the
+# reference here goes with it - the rule itself stays, as settled format
+# behaviour. `decided:` records when the behaviour was chosen.
 
 rules:
 
   - id: enum-invalid-value
     decided: 2026-08-02
-    inconsistency: input-invalid-enum-handling
     summary: An enumerated attribute whose value is not allowed is an error.
     rule: >-
       A parser must reject the experiment file when an enumerated attribute
@@ -40,7 +42,6 @@ rules:
 
   - id: enum-case-insensitive
     decided: 2026-08-02
-    inconsistency: input-enum-case-sensitivity
     summary: Enumerated values are matched without regard to case.
     rule: >-
       A parser folds case before matching an enumerated value, so `Closest` and
@@ -95,7 +96,6 @@ rules:
 
   - id: color-invalid-value
     decided: 2026-08-12
-    inconsistency: views-map-color-unparseable
     summary: A colour attribute whose value is not parseable is an error.
     rule: >-
       A colour value must be a named phyphox colour (matched case-insensitively,
@@ -141,7 +141,6 @@ rules:
 
   - id: output-component-validation
     decided: 2026-08-02
-    inconsistency: input-output-component-validation
     summary: Component names and counts on outputs are validated, and a mismatch rejects the file.
     rule: >-
       A parser checks the `component` attribute of each output against the list

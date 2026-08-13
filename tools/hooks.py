@@ -31,10 +31,13 @@ SPEC_DIR = os.path.join(ROOT, "spec")
 
 MARKER = re.compile(r"\{\{inconsistency:([a-z0-9-]+)\}\}")
 
+# There is deliberately no "fixed" status: an entry whose divergence has been
+# corrected everywhere is deleted, markers and spec references with it. Readers
+# learn about corrected behaviour from the release changelog; a lingering
+# "recently corrected" note only clutters the documentation.
 STATUS_LABEL = {
     "open": ("warning", "Implementations disagree - canonical behaviour not yet decided"),
     "decided": ("warning", "Implementations disagree - this is a known bug"),
-    "fixed": ("info", "Recently corrected"),
 }
 
 IMPL_LABEL = {
@@ -67,6 +70,13 @@ def _load():
     if _entries is None:
         with open(SOURCE) as f:
             data = yaml.safe_load(f) or []
+        bad = [e["id"] for e in data if e.get("status") not in STATUS_LABEL]
+        if bad:
+            raise ValueError(
+                "inconsistencies.yml: entries with a status that is not "
+                f"open/decided: {', '.join(bad)}. A corrected divergence is "
+                "deleted, not marked fixed - remove the entry along with its "
+                "markers and spec references.")
         _entries = {e["id"]: e for e in data}
     return _entries
 
@@ -221,7 +231,7 @@ def _check_spec(entries):
             if ref and ref not in entries:
                 problems.append(f"rules.yml: rule {rule['id']} names unknown "
                                 f"inconsistency {ref}")
-            elif ref and entries[ref].get("status") not in ("decided", "fixed"):
+            elif ref and entries[ref].get("status") != "decided":
                 problems.append(
                     f"rules.yml: rule {rule['id']} states settled behaviour but "
                     f"{ref} is status '{entries[ref].get('status')}' - a rule may "
@@ -409,7 +419,7 @@ def _render_list():
         return ("Nothing is currently recorded. That is unlikely to mean the "
                 "implementations agree - see the note above.\n")
 
-    by_status = {"open": [], "decided": [], "fixed": []}
+    by_status = {"open": [], "decided": []}
     for e in entries.values():
         by_status.setdefault(e.get("status", "open"), []).append(e)
 
@@ -421,9 +431,6 @@ def _render_list():
         ("decided", "Decided, not yet fixed",
          "The correct behaviour is settled. The implementations that disagree "
          "are buggy and will be corrected."),
-        ("fixed", "Fixed",
-         "Corrected in all implementations. Listed until the release carrying "
-         "the fix has shipped everywhere."),
     ]
     for status, heading, blurb in headings:
         items = by_status.get(status) or []

@@ -241,9 +241,9 @@ class PageState:
     """Per-page bookkeeping.
 
     An inconsistency is rendered in full the first time a page needs it and
-    referred to by link afterwards. `input-invalid-enum-handling` is reached by
-    eleven attributes; eleven copies of the same admonition on one page would
-    be worse than not warning at all.
+    referred to by link afterwards. An entry reached by a dozen attributes on
+    the same page would otherwise render a dozen copies of the same admonition,
+    which is worse than not warning at all.
     """
 
     def __init__(self, link_prefix=""):

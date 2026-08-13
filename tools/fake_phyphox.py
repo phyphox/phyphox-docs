@@ -6,9 +6,10 @@
                                    --ios     http://127.0.0.1:8112
 
 contract_test.py needs two phones, which makes it awkward to know whether the
-script itself works. This serves just enough of each platform's behaviour -
-including the divergences recorded in inconsistencies.yml - for the script to be
-exercised without hardware.
+script itself works. This serves just enough of each platform's behaviour - the
+remaining recorded divergence (meta-sensors) included - for the script to be
+exercised without hardware. Since the 2026-08 divergence cleanup the two
+fixtures agree everywhere else, mirroring the development branches.
 
 **This is a fixture for testing contract_test.py, not a model of phyphox.** It is
 not authoritative about anything, it is not kept in step with the apps, and a
@@ -31,6 +32,7 @@ SAMPLES = [0.1, 0.25, -0.4]
 
 class Base(BaseHTTPRequestHandler):
     platform = None
+    cors = True
 
     def log_message(self, *a):
         pass
@@ -104,20 +106,10 @@ class Base(BaseHTTPRequestHandler):
     def h_config(self, q, pairs):
         self.send_json(self.config(), cors=self.cors)
 
-
-class Android(Base):
-    platform = "android"
-    cors = True
-
-    def h_meta(self, q, pairs):
-        j = self.meta_common()
-        j["camera2api"] = ""
-        j["camera2apiFull"] = ""
-        j["sensors"] = {"accelerometer": {k: "" for k in (
-            "name", "vendor", "range", "resolution", "minDelay", "maxDelay",
-            "power", "version")}}
-        self.send_json(j, cors=True)
-
+    # -------------------------------------------------- agreed-on behaviour
+    # These handlers used to differ per platform. The divergences were fixed
+    # on the development branches in the 2026-08 cleanup, so both fixtures
+    # share the canonical behaviour now.
     def h_get(self, q, pairs):
         out = {}
         for name, value in pairs:
@@ -135,135 +127,85 @@ class Android(Base):
                 try:
                     float(threshold)
                 except ValueError:
-                    self.send_empty(400, True)   # bad threshold -> 400 (get-unknown-reference-buffer, fixed)
+                    self.send_empty(400, self.cors)   # bad threshold -> 400
                     return
                 ref = value.split("|", 1)[1] if "|" in value else name
                 if not any(b["name"] == ref for b in BUFFERS):
-                    self.send_empty(400, True)   # unknown reference -> 400 (get-unknown-reference-buffer, fixed)
+                    self.send_empty(400, self.cors)   # unknown reference -> 400
                     return
                 out[name] = {"size": match["size"], "updateMode": "partial",
                              "buffer": list(SAMPLES)}
-        self.send_json({"buffer": out, "status": self.status()}, cors=True)
+        self.send_json({"buffer": out, "status": self.status()}, cors=self.cors)
 
     def h_control(self, q, pairs):
         cmd = q.get("cmd")
         if cmd in ("start", "stop", "clear"):
-            self.send_json({"result": True}, cors=True)
+            self.send_json({"result": True}, cors=self.cors)
         elif cmd == "set":
             name, value = q.get("buffer"), q.get("value")
             if name is None or value is None:
-                self.send_json({"result": False}, cors=True); return
+                self.send_json({"result": False}, cors=self.cors); return
             try:
                 v = float(value)
             except ValueError:
-                self.send_json({"result": False}, cors=True); return
-            if not math.isfinite(v):
-                self.send_json({"result": False}, cors=True); return  # rejects NaN and infinity (control-set-infinity, fixed)
+                self.send_json({"result": False}, cors=self.cors); return
+            if not math.isfinite(v):                   # rejects NaN and infinity
+                self.send_json({"result": False}, cors=self.cors); return
             if not any(b["name"] == name for b in BUFFERS):
-                self.send_json({"result": False}, cors=True); return  # unknown buffer -> false (control-set-unknown-buffer, fixed)
-            self.send_json({"result": True}, cors=True)
+                self.send_json({"result": False}, cors=self.cors); return
+            self.send_json({"result": True}, cors=self.cors)
         elif cmd == "trigger":
-            self.send_json({"result": False}, cors=True)  # out-of-range index -> false, not a crash (control-trigger-out-of-range; Android side fixed, iOS still answers true)
+            # out-of-range index -> false, never a crash
+            self.send_json({"result": False}, cors=self.cors)
         else:
-            self.send_json({"result": False}, cors=True)
+            self.send_json({"result": False}, cors=self.cors)
 
     def h_export(self, q, pairs):
         fmt = q.get("format")
         if fmt is None:
-            self.send_json({"error": "Invalid format."}, cors=True)   # missing format -> error object, not a crash (export-invalid-format; Android side fixed)
+            self.send_json({"error": "Invalid format."}, cors=self.cors)
             return
         try:
             i = int(fmt)
         except ValueError:
-            self.send_json({"error": "Invalid format."}, cors=True)
+            self.send_json({"error": "Invalid format."}, cors=self.cors)
             return
         if not 0 <= i <= 5:
-            self.send_json({"error": "Format out of range."}, cors=True)
+            self.send_json({"error": "Format out of range."}, cors=self.cors)
             return
-        self.send_blob(b"fixture", "text/csv", cors=True)
+        self.send_blob(b"fixture", "text/csv", cors=self.cors)
 
     def h_res(self, q, pairs):
         if not q.get("src"):
-            self.send_json({"error": "Unknown file."}, cors=True)
+            self.send_json({"error": "Unknown file."}, cors=self.cors)
             return
         if q["src"] == "hue.png":
-            self.send_blob(b"\x89PNG", "application/octet-stream", cors=True)
+            self.send_blob(b"\x89PNG", "application/octet-stream",
+                           cors=self.cors)
             return
-        self.send_json({"error": "Unknown file."}, cors=True)
+        self.send_json({"error": "Unknown file."}, cors=self.cors)
+
+
+class Android(Base):
+    platform = "android"
+
+    def h_meta(self, q, pairs):
+        j = self.meta_common()
+        j["camera2api"] = ""
+        j["camera2apiFull"] = ""
+        j["sensors"] = {"accelerometer": {k: "" for k in (
+            "name", "vendor", "range", "resolution", "minDelay", "maxDelay",
+            "power", "version")}}
+        self.send_json(j, cors=True)
 
 
 class IOS(Base):
     platform = "ios"
-    cors = False
 
     def h_meta(self, q, pairs):
-        self.send_json(self.meta_common())      # no sensors, no camera2api
-
-    def h_get(self, q, pairs):
-        if not pairs:
-            self.send_empty(400)                # rejects an empty query
-            return
-        out = {}
-        for name, value in pairs:
-            match = next((b for b in BUFFERS if b["name"] == name), None)
-            if match is None:
-                continue
-            if value == "":
-                out[name] = {"size": match["size"], "updateMode": "single",
-                             "buffer": [SAMPLES[-1]]}
-            elif value == "full":
-                out[name] = {"size": match["size"], "updateMode": "full",
-                             "buffer": list(SAMPLES)}
-            else:
-                if "|" in value:
-                    ref = value.split("|", 1)[1]
-                    if not any(b["name"] == ref for b in BUFFERS):
-                        self.send_empty(400)
-                        return
-                out[name] = {"size": match["size"], "updateMode": "partial",
-                             "buffer": list(SAMPLES)}
-        self.send_json({"buffer": out, "status": self.status()})
-
-    def h_control(self, q, pairs):
-        cmd = q.get("cmd")
-        if cmd in ("start", "stop", "clear"):
-            self.send_json({"result": True})    # clearGroup params ignored
-        elif cmd == "set":
-            name, value = q.get("buffer"), q.get("value")
-            if name is None or value is None \
-                    or not any(b["name"] == name for b in BUFFERS):
-                self.send_json({"result": False}); return
-            try:
-                v = float(value)
-            except ValueError:
-                self.send_json({"result": False}); return
-            self.send_json({"result": math.isfinite(v)})   # rejects infinity
-        elif cmd == "trigger":
-            self.send_json({"result": True})    # bounds-checked, silent no-op
-        else:
-            self.send_json({"result": False})
-
-    def h_export(self, q, pairs):
-        fmt = q.get("format")
-        if fmt is None:
-            self.send_json({"error": "Format out of range"})
-            return
-        try:
-            i = int(fmt)
-        except ValueError:
-            i = 0
-        if not 0 <= i <= 5:
-            # The app traps here. A crashed app answers nothing at all, which is
-            # what a client sees, so the fixture closes the connection.
-            self.close_connection = True
-            return
-        self.send_blob(b"fixture", "text/csv")
-
-    def h_res(self, q, pairs):
-        if not q.get("src"):
-            self.send_json({"error": "No file requested."})
-            return
-        self.send_json({"error": "Unknown file."})
+        # meta-sensors: Android-only by platform limitation, iOS has no API
+        # for per-sensor metadata. The one remaining recorded divergence.
+        self.send_json(self.meta_common(), cors=True)
 
 
 def serve(cls, port):

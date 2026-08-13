@@ -246,8 +246,6 @@ Note that if you want to receive JSON data via MQTT, you have to pick the conver
 
 ### MQTTS/CSV and MQTTS/JSON (MQTT over TLS)
 
-{{inconsistency:network-mqtts-unofficial}}
-
 Attribute `service="mqtts/csv"` or `service="mqtts/json"`
 
 These behave exactly like `mqtt/csv` and `mqtt/json` respectively, but connect to the broker over a TLS-encrypted connection. Two further attributes:

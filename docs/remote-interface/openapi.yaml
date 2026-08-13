@@ -93,9 +93,11 @@ servers:
       port:
         default: "8080"
         description: |
-          Android defaults to 8080. iOS tries 80 first and falls back to 8080, so
-          on iOS the port can usually be omitted. Both are configurable in the app
-          settings (`remoteAccessPort`).
+          Android defaults to 8080, iOS to 80 — so on iOS the port can usually be
+          omitted. If the default port is taken, the app silently walks through
+          alternative ports (8080, 8081, …) and announces the one actually used;
+          a custom port configured in the app settings (`remoteAccessPort`) is
+          used exactly as configured.
 
 tags:
   - name: interface
@@ -231,13 +233,6 @@ paths:
             The request was malformed: a threshold that does not parse as a
             number, or a threshold referencing a buffer that does not exist. (An
             unknown buffer in the *requested* position is skipped, not rejected.)
-      x-phyphox-inconsistency:
-        - get-no-parameters
-        - get-nonfinite-single-value
-        - get-unknown-reference-buffer
-        - get-invalid-threshold
-        - get-negative-threshold
-        - get-force-full-update
 
   /control:
     get:
@@ -306,12 +301,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ControlResult"
-      x-phyphox-inconsistency:
-        - control-post
-        - control-clear-groups
-        - control-set-infinity
-        - control-set-unknown-buffer
-        - control-trigger-out-of-range
 
   /export:
     get:
@@ -361,8 +350,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      x-phyphox-inconsistency:
-        - export-invalid-format
 
   /config:
     get:
@@ -478,8 +465,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      x-phyphox-inconsistency:
-        - res-fallback
 
 components:
   schemas:
