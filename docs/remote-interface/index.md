@@ -91,8 +91,6 @@ When requesting "export", you are effectively triggering the export function of 
 
 **Available since [version 1.1.6](../reference/version-history/1.1.6.md)**
 
-{{inconsistency:config-buffer-order}}
-
 "config" does not take any parameters and returns a JSON structure with information on the current experiment configuration, including the following details:
 
 crc32

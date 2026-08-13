@@ -31,30 +31,6 @@
 # Keep entries factual and cite where the behaviour was observed, so the next
 # person can re-check it rather than trusting this file.
 
-- id: config-buffer-order
-  title: Order of the buffers array in /config
-  area: remote-interface
-  status: decided
-  canonical: >-
-    The order of the buffers array carries no meaning. Neither platform needs to
-    change; what is required is that the API description says so, so that no client
-    is written to depend on it. Android happens to list buffers in the order the
-    experiment declares them and iOS in an unspecified order, and both are valid.
-  affects:
-    android: >-
-      Iterates an ordered list, so buffers appear in the order the experiment
-      declares them
-      (RemoteServer.java, handleConfig(), "experiment.dataBuffers").
-    ios: >-
-      Iterates a dictionary, so the order is unspecified and may change between
-      runs
-      (ExperimentWebServer.swift, "for (name, buffer) in self.experiment.buffers").
-  summary: >-
-    JSON arrays are ordered, so a client may reasonably read meaning into the
-    order of /config buffers. On Android it matches the experiment file; on iOS it
-    is arbitrary. Neither is documented, so the safe reading for now is that the
-    order means nothing - but the two should agree.
-
 - id: meta-sensors
   title: Sensor metadata in /meta
   area: remote-interface

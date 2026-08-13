@@ -374,8 +374,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Config"
-      x-phyphox-inconsistency:
-        - config-buffer-order
 
   /meta:
     get:
