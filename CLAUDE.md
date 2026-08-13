@@ -45,6 +45,13 @@ and links pointing at anything in the second group are rewritten to absolute wik
 
 Branch: `main`.
 
+## Commits
+
+Unlike the other phyphox repositories, where nothing is committed unless the maintainer asks,
+finished work in this repository is **committed automatically**: end a task by committing it on
+`main` with a descriptive message. Never push — publishing remains the maintainer's call, here as
+everywhere.
+
 ## Commands
 
 ```
