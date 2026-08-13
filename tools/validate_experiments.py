@@ -35,6 +35,36 @@ import os
 import sys
 import xml.etree.ElementTree as ET
 
+
+def normalize_namespace(root):
+    """Reproduce the apps' namespace handling.
+
+    Android takes the ROOT element's namespace - none, or a default xmlns like
+    http://phyphox.org/xml - as the document's namespace, and skips tags from
+    any other namespace entirely (editor annotations, most commonly). Both
+    apps also ignore namespaced attributes such as editor:uuid. Without this,
+    every namespaced file in the wild reports as one big parse failure.
+    """
+    ns = root.tag[1:root.tag.index("}")] if root.tag.startswith("{") else ""
+    prefix = "{" + ns + "}" if ns else ""
+
+    def walk(node):
+        for a in [a for a in node.attrib if a.startswith("{")]:
+            del node.attrib[a]
+        kept = []
+        for c in node:
+            if isinstance(c.tag, str) and c.tag.startswith(prefix) and (
+                    prefix or not c.tag.startswith("{")):
+                c.tag = c.tag[len(prefix):]
+                walk(c)
+                kept.append(c)
+        node[:] = kept
+
+    if prefix:
+        root.tag = root.tag[len(prefix):]
+    walk(root)
+    return root
+
 import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -223,7 +253,7 @@ def main():
                     continue
                 p = os.path.join(dirpath, n)
                 try:
-                    root = ET.parse(p).getroot()
+                    root = normalize_namespace(ET.parse(p).getroot())
                 except ET.ParseError as e:
                     unparsed.append((n, str(e)))
                     continue
