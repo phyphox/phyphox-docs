@@ -986,6 +986,9 @@ elements:
         summary: >-
           Name of the conversion turning raw bytes into numbers. Required unless
           extra is set.
+        note: >-
+          The vocabulary is the input list of the conversions section at the
+          end of output.yml, shared by all three conversion attributes.
         agreement: agreed
       - name: offset
         type: integer
@@ -1036,4 +1039,7 @@ elements:
         type: string
         required: true
         summary: Conversion turning the element's text into bytes.
+        note: >-
+          The vocabulary is the config list of the conversions section at the
+          end of output.yml.
         agreement: agreed

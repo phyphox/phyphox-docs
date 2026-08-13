@@ -165,20 +165,6 @@ Takes *data* as input and splits it into two buffers at the given *index*. A thi
 
 {{spec:analysis/analysis/split}}
 
-*index*
-:   *as* required
-:   Number of inputs: One or none, defaults to the number of values in the *data* buffer
-:   Index at which *data* should be split. The value at *index* will be the first one that is not appended to the first output.
-
-<!-- -->
-
-*overlap*
-:   *as* required
-:   Number of inputs: One or none, default: 0
-:   Number of elements that should be sent to both outputs. This does not change the output to the first output buffer, but sends values before *index* also to the second output.
-
-<!-- -->
-
 ## subrange
 
 This module takes multiple inputs and returns all values within a given index range. This is much faster than using the rangefilter module for this purpose. The range is set using the inputs *from* (inclusive) and *to* (exclusive). Optionally, instead of setting *to*, you can set *length*, defining the total number of values returned after *from*.

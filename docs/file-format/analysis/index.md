@@ -4,43 +4,11 @@ The analysis block describes all the math required for the experiment. Each elem
 
 In most experiments the analysis block is executed in a loop, so the experiment data is analyzed as fast as possible. However, if you need to acquire a certain amount of data first (mostly when recording from the microphone) or if the results only change if the user changes a parameter, you can define the attributes *sleep*, *dynamicSleep* and/or *onUserInput* to pause the analysis loop.
 
-sleep
-:   The minimum time in seconds before the whole analysis block is executed again after the last execution has finished. Decimal values allowed.
-:   *optional*, default: '0.0' (immediately)
+{{spec:analysis/phyphox/analysis|attributes}}
 
-dynamicSleep
-:   The minimum time in seconds before the whole analysis block is executed again after the last execution has finished. This refers to a buffer, so the sleep time can be set by the analysis result. If the buffer is empty, the value from *sleep* is used instead. **Available since phyphox file format 1.5 (phyphox 1.0.7)**
-:   *optional*, default: not set (no dynamic sleep)
-
-onUserInput
-:   If true, the analysis block will not be executed again unless the user changes the content of an input view.
-:   *optional*, default: 'false'
-
-requireFill
-:   Sets the name of a data container that needs to be filled. The attribute requireFillThreshold or requireFillDynamic defines a required number of elements in the data container (default 1 element). If this number is not reached, the analysis block is skipped. **Available since phyphox file format 1.16 ([phyphox 1.1.12](../../reference/version-history/1.1.12.md))**
-
-requireFillThreshold
-:   A static integer number setting the threshold for the requireFill attribute. **Available since phyphox file format 1.16 ([phyphox 1.1.12](../../reference/version-history/1.1.12.md))**
-:   *optional*, default: '1'
-
-requireFillDynamic
-:   A dynamic value for the required number of elements in the data container defined by requireFill. This attribute points to another data container, which defines this value. If it is empty, the value from requireFillThreshold is used instead. **Available since phyphox file format 1.16 ([phyphox 1.1.12](../../reference/version-history/1.1.12.md))**
-:   *optional*, default: '' (requireFillThreshold used instead)
-
-timedRun
-:   Enable the timed run setting by default. This just acts as a preset. The user can still deactivate it from the main menu. **Available since phyphox file format 1.10 ([phyphox 1.1.6](../../reference/version-history/1.1.6.md))**
-:   *optional*, default: 'false' (deactivated)
-
-timedRunStartDelay
-:   Start delay in seconds for the timed run setting. This just acts as a preset. The user can still change it from the main menu. Also, this does not enable the function by default. To enable it, see *timedRun* above. **Available since phyphox file format 1.10 ([phyphox 1.1.6](../../reference/version-history/1.1.6.md))**
-:   *optional*, default: '3'
-
-timedRunStopDelay
-:   Stop delay in seconds for the timed run setting. This just acts as a preset. The user can still change it from the main menu. Also, this does not enable the function by default. To enable it, see *timedRun* above. **Available since phyphox file format 1.10 ([phyphox 1.1.6](../../reference/version-history/1.1.6.md))**
-:   *optional*, default: '10'
-
-optimization
-:   **Removed in phyphox file format 1.10 (phyphox 1.1.6)** This barely added any value but increased confusion significantly.
+An earlier attribute `optimization` was removed in phyphox file format 1.10
+(phyphox 1.1.6); it barely added any value but increased confusion
+significantly. It is ignored if present in an old file.
 
 ```xml
 <phyphox version="1.0">

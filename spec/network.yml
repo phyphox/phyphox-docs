@@ -52,7 +52,14 @@ elements:
           An address for the service. This is typically a fixed IP
           address or URL, but its meaning may vary depending on the
           service and it might work differently in combination with
-          different discovery methods.
+          different discovery methods. For the MQTT services, an
+          address that does not name a port uses the standard port:
+          1883 for mqtt/csv and mqtt/json, 8883 for the TLS variants
+          mqtts/csv and mqtts/json.
+        note: >-
+          Port defaults verified 2026-08-13 in both implementations:
+          MqttService.java (port = tls ? 8883 : 1883) and
+          NetworkService.swift (defaultPort = tls ? 8883 : 1883).
         type: string
         required: true
         summary: Address of the service.
@@ -265,3 +272,65 @@ elements:
         superseded_by: append
         summary: Deprecated in file format 1.17. clear=true corresponds to append=false.
         agreement: agreed
+
+# The identifiers a send tag accepts as element text when type="meta". Like the
+# bluetooth conversion vocabulary in output.yml, this is element-text
+# vocabulary rather than an enumerated attribute, so it is recorded here as
+# its own section. Identifiers are matched case-insensitively (rules.yml,
+# enum-case-insensitive, extended to metadata identifiers 2026-08-13), and an
+# unknown identifier rejects the experiment file.
+#
+# Sources compared 2026-08-13: Metadata.java (DeviceMetadata and the
+# SensorName x SensorMetadata composites, matched by case-insensitive scans)
+# and PhyphoxElementHandler.swift (lowercased switch plus the matchSensor
+# cascade). The two agree on everything except the "custom" sensor prefix,
+# which only Android accepts - see the inconsistency entry.
+
+metadata:
+  agreement: agreed
+  identifiers:
+    - uniqueID
+    - version
+    - build
+    - fileFormat
+    - deviceModel
+    - deviceBrand
+    - deviceBoard
+    - deviceManufacturer
+    - deviceBaseOS
+    - deviceCodename
+    - deviceRelease
+    - depthFrontSensor
+    - depthFrontResolution
+    - depthFrontRate
+    - depthBackSensor
+    - depthBackResolution
+    - depthBackRate
+    - camera2api
+    - camera2apiFull
+  # Composite identifiers: a sensor prefix directly followed by a suffix,
+  # e.g. accelerometerName or linear_accelerationMinDelay.
+  sensor_prefixes:
+    - accelerometer
+    - linear_acceleration
+    - gravity
+    - gyroscope
+    - magnetic_field
+    - pressure
+    - light
+    - proximity
+    - temperature
+    - humidity
+    - attitude
+    - name: custom
+      agreement: divergent
+      inconsistency: metadata-custom-sensor-prefix
+  sensor_suffixes:
+    - Name
+    - Vendor
+    - Range
+    - Resolution
+    - MinDelay
+    - MaxDelay
+    - Power
+    - Version

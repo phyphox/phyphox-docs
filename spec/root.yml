@@ -409,3 +409,33 @@ elements:
     since: "1.12"
     summary: The experiment was paused.
     attributes: *event_attributes
+
+# The named colours every attribute of type color accepts, matched
+# case-insensitively; the alternative is exactly six hex digits, optionally
+# prefixed with '#' (rules.yml, color-invalid-value). The names and values are
+# duplicated per implementation; tools/hooks.py checks the table on the Colors
+# documentation page against this list.
+#
+# Sources compared 2026-08-13: RGB.java with res/values/colors.xml (Android),
+# Constants.swift namedColors (iOS), PhyphoxColor.ts (Blockly editor). All
+# fourteen names exist everywhere; the value of weakorange differs on Android
+# - see the inconsistency entry.
+
+colors:
+  agreement: agreed
+  names:
+    - {name: orange,      hex: ff7e22}
+    - {name: red,         hex: fe005d}
+    - {name: magenta,     hex: eb46f4}
+    - {name: blue,        hex: 39a2ff}
+    - {name: green,       hex: 2bfb4c}
+    - {name: yellow,      hex: edf668}
+    - {name: white,       hex: ffffff}
+    - {name: weakorange,  hex: ffc399,
+       agreement: divergent, inconsistency: named-color-weakorange}
+    - {name: weakred,     hex: ff7cac}
+    - {name: weakmagenta, hex: f6aafa}
+    - {name: weakblue,    hex: 9dd1ff}
+    - {name: weakgreen,   hex: a1fdaf}
+    - {name: weakyellow,  hex: e7e09b}
+    - {name: weakwhite,   hex: c4c4c4}

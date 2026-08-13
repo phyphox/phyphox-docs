@@ -173,6 +173,7 @@ def on_config(config, **kwargs):
 
     _check_spec(entries)
     _check_spec_against_docs()
+    _check_colors()
     _check_corpus()
     return config
 
@@ -198,6 +199,36 @@ def _check_spec_against_docs():
     if rc:
         raise ValueError("the documentation describes constructs the spec does "
                          "not model:\n" + buf.getvalue())
+
+
+def _check_colors():
+    """Keep the colour table on the Colors page in step with spec/root.yml.
+
+    The page table is hand-written because of its swatch markup, so nothing
+    would notice a colour added or changed on one side only. The spec is the
+    source; the page must list exactly the same names and hex values.
+    """
+    spec_path = os.path.join(SPEC_DIR, "root.yml")
+    page_path = os.path.join(ROOT, "docs", "file-format", "colors.md")
+    if not (os.path.exists(spec_path) and os.path.exists(page_path)):
+        return
+    with open(spec_path) as f:
+        doc = yaml.safe_load(f) or {}
+    spec_colors = {c["name"]: str(c["hex"])
+                   for c in (doc.get("colors") or {}).get("names") or []}
+    if not spec_colors:
+        return
+    page_colors = dict(re.findall(r"^\| `([a-z]+)` \| `([0-9a-f]{6})` \|",
+                                  open(page_path).read(), re.M))
+    problems = []
+    for name in sorted(set(spec_colors) | set(page_colors)):
+        s, p = spec_colors.get(name), page_colors.get(name)
+        if s != p:
+            problems.append(f"{name}: spec says {s}, the Colors page says {p}")
+    if problems:
+        raise ValueError("the colour table on the Colors page is out of step "
+                         "with spec/root.yml:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 def _check_corpus():

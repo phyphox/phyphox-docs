@@ -106,3 +106,50 @@
     platform allows, and other lengths are left undefined. A separate general-purpose
     dft module (slower, exact input length, consistent across platforms) is planned
     for callers that need non-power-of-two transforms.
+
+- id: named-color-weakorange
+  title: The value of the named color weakorange
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      weakorange resolves to ffa500 - phyphox_primary_weak in
+      res/values/colors.xml, used by RGB.java. ffa500 is plain web orange,
+      brighter than the pastel the other platforms use.
+    ios: >-
+      weakorange resolves to ffc399 (Constants.swift, namedColors).
+    editor: >-
+      weakorange resolves to ffc399 (src/fields/PhyphoxColor.ts).
+  verified: >-
+    2026-08-13, read from the sources named above while modelling the colour
+    vocabulary in spec/root.yml. The documentation table has always said
+    ffc399.
+  summary: >-
+    The named color weakorange is ffc399 on iOS, in the editor and in this
+    documentation, but ffa500 on Android - a brighter, more saturated orange.
+    An experiment using weakorange looks noticeably different on the two
+    platforms. All thirteen other named colors agree everywhere.
+
+- id: metadata-custom-sensor-prefix
+  title: Sensor metadata identifiers for custom sensors
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Accepts customName, customVendor and the other custom-prefixed
+      composites: Metadata.java scans every SensorInput.SensorName, and the
+      enum includes custom.
+    ios: >-
+      Rejects them: the matchSensor cascade in PhyphoxElementHandler.swift
+      covers every sensor type except custom, so the identifier falls
+      through to the unknown-identifier error and the file is refused.
+  verified: >-
+    2026-08-13, read from the sources named above while modelling the
+    metadata identifier vocabulary in spec/network.yml. Not yet observed on
+    hardware.
+  summary: >-
+    A send tag with type="meta" naming a custom-sensor composite such as
+    customName loads on Android and is rejected on iOS. Whether the custom
+    prefix should be part of the metadata vocabulary at all has not been
+    decided - custom sensors are selected by nameFilter, so per-sensor
+    metadata for "custom" is ambiguous anyway.
