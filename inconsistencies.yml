@@ -147,7 +147,15 @@
 - id: error-response-content-type
   title: Content-Type of empty error responses
   area: remote-interface
-  status: open
+  status: decided
+  canonical: >-
+    An error response is never empty (decided 2026-08-13). Every error answer
+    carries a JSON error object - the {"error": "<reason>"} pattern /export
+    and /res already use - with Content-Type: application/json, whatever the
+    status code. This matches what comparable REST APIs do, matches the API's
+    own existing style, and gives a developer probing the API a reason string
+    where an empty 400 stays mute. The reason text is human-readable, not
+    machine-readable; clients must not match on it.
   affects:
     android: >-
       An empty 400 carries "Content-Type: application/octet-stream" with
@@ -163,5 +171,6 @@
   summary: >-
     The two servers disagree on whether an empty error response names a
     content type: Android sends application/octet-stream, iOS sends no
-    Content-Type header at all. There is no body either way, so no reasonable
-    client is affected - but which behaviour is correct has not been decided.
+    Content-Type header at all. Both will change: an error response is to
+    carry a JSON error object like /export and /res already do, so this
+    divergence disappears along with the empty bodies.

@@ -236,7 +236,14 @@ paths:
             The request was malformed: a threshold that does not parse as a
             number, a threshold referencing a buffer that does not exist, or a
             request body that is not valid JSON. (An unknown buffer in the
-            *requested* position is skipped, not rejected.)
+            *requested* position is skipped, not rejected.) Carries a JSON
+            error object, like every error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      x-phyphox-inconsistency:
+        - error-response-content-type
     post:
       tags: [data]
       summary: Read buffer data and experiment status (POST)
@@ -545,7 +552,8 @@ components:
         the query string takes, in one of the two formats described under
         "Parameters, and POST bodies" at the top of this page. Parameters may
         still be given in the query as well; on a name collision the body wins.
-        A JSON body that does not parse is answered with `400`.
+        A JSON body that does not parse is answered with `400` and a
+        JSON error object.
       required: false
       content:
         application/json:
