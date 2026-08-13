@@ -67,11 +67,45 @@ class Base(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path)
         q = parse_qsl(u.query, keep_blank_values=True)
-        handler = getattr(self, "h_" + u.path.strip("/").replace(".", "_") or "h_root", None)
+        self.dispatch(u.path, q)
+
+    def do_POST(self):
+        # POST takes the same parameters in a JSON or form-encoded body,
+        # values coerced to strings, body winning over the query on a name
+        # collision, malformed JSON answered with 400.
+        u = urlparse(self.path)
+        q = parse_qsl(u.query, keep_blank_values=True)
+        length = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(length) if length else b""
+        ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip()
+        body_pairs = []
+        if raw:
+            if ctype == "application/json":
+                try:
+                    obj = json.loads(raw.decode("utf-8"))
+                    if not isinstance(obj, dict):
+                        raise ValueError("not a flat object")
+                except ValueError:
+                    self.send_empty(400, self.cors)
+                    return
+                def coerce(v):
+                    if isinstance(v, bool):
+                        return "true" if v else "false"
+                    return "" if v is None else str(v)
+                body_pairs = [(k, coerce(v)) for k, v in obj.items()]
+            else:
+                body_pairs = parse_qsl(raw.decode("utf-8"),
+                                       keep_blank_values=True)
+        overridden = {k for k, _ in body_pairs}
+        merged = body_pairs + [(k, v) for k, v in q if k not in overridden]
+        self.dispatch(u.path, merged)
+
+    def dispatch(self, path, pairs):
+        handler = getattr(self, "h_" + path.strip("/").replace(".", "_") or "h_root", None)
         if handler is None:
             self.send_empty(404, self.cors)
             return
-        handler(dict(q), q)
+        handler(dict(pairs), pairs)
 
     # -------------------------------------------------------- shared payloads
     def config(self):

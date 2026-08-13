@@ -104,6 +104,8 @@ Additionally, you can get detailed metadata on the sensors supported by phyphox.
 
 In this list, \[sensor\] can be replaced by "accelerometer", "linear_acceleration", "gyroscope", "magnetic_field", "pressure", "temperature", "humidity", "light" and "proximity". Note that in some cases, phyphox will try to find a sensor by its name even though it is not officially designated to be a sensor of that type (for example vendor-specific temperature sensors).
 
+Metadata identifiers are matched without regard to case, like every enumerated value in the format, and an identifier outside this vocabulary rejects the experiment file.
+
 Aside from the sensors that are exposed through a unified API on Android, there are some additional metadata identifiers available for specific sensors:
 
 depthFrontSensor

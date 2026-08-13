@@ -63,7 +63,8 @@ class Probe:
     """One request, run identically against both phones."""
 
     def __init__(self, name, path, params=None, schema=None, expect_json=True,
-                 relates_to=(), destructive=False, clears=False, keep_values=()):
+                 relates_to=(), destructive=False, clears=False, keep_values=(),
+                 post_json=None, post_form=None):
         self.name = name
         self.path = path
         self.params = params or {}
@@ -78,10 +79,27 @@ class Probe:
         # finding (the former res-fallback divergence was), it has to be
         # visible.
         self.keep_values = frozenset(keep_values)
+        # Either makes the probe a POST. post_json is a dict (serialised) or a
+        # raw string (sent verbatim, for malformed-body probes); post_form is a
+        # dict sent form-encoded. Query params in `params` are kept alongside,
+        # which is what the body-over-query probes rely on.
+        self.post_json = post_json
+        self.post_form = post_form
 
     def url(self, base):
         q = urllib.parse.urlencode(self.params)
         return f"{base.rstrip('/')}{self.path}" + (f"?{q}" if q else "")
+
+    def request_body(self):
+        """(bytes, content_type) for a POST probe, (None, None) for GET."""
+        if self.post_json is not None:
+            raw = (self.post_json if isinstance(self.post_json, str)
+                   else json.dumps(self.post_json))
+            return raw.encode(), "application/json"
+        if self.post_form is not None:
+            return (urllib.parse.urlencode(self.post_form).encode(),
+                    "application/x-www-form-urlencoded")
+        return None, None
 
 
 def build_probes(buffer_name, resource_name=None):
@@ -109,7 +127,8 @@ def build_probes(buffer_name, resource_name=None):
         # fixed in the 2026-08 cleanup and their entries deleted; the probes
         # stay so a regression on either side shows up immediately.
         Probe("get.no.parameters", "/get"),
-        Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"}),
+        Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"},
+              relates_to=["error-response-content-type"]),
         Probe("export.bad.format", "/export", {"format": "99"},
               expect_json=False),
         Probe("export.missing.format", "/export",
@@ -121,6 +140,26 @@ def build_probes(buffer_name, resource_name=None):
         Probe("control.bad.command", "/control", {"cmd": "nosuchcommand___"},
               schema="ControlResult"),
         Probe("control.no.command", "/control", schema="ControlResult"),
+
+        # The POST surface: every endpoint takes its parameters in a JSON or
+        # form-encoded body as well, values coerced to strings, body winning
+        # over the query, malformed JSON answered with 400. Defined by the
+        # former control-post decision; these are read-only, the writing POST
+        # probes are with the other control probes below.
+        Probe("post.get.json", "/get", schema="GetResponse",
+              post_json={b: ""}),
+        Probe("post.get.form", "/get", schema="GetResponse",
+              post_form={b: "full"}),
+        Probe("post.get.threshold.json", "/get", schema="GetResponse",
+              post_json={b: f"0|{b}"}),
+        Probe("post.get.body.over.query", "/get", {b: "full"},
+              schema="GetResponse", post_json={b: ""},
+              relates_to=["android-get-duplicate-buffer-entries"]),
+        Probe("post.malformed.json", "/get", expect_json=False,
+              post_json='{"not json',
+              relates_to=["error-response-content-type"]),
+        Probe("post.config.body.ignored", "/config", schema="Config",
+              post_json={"ignored": "by a parameterless endpoint"}),
     ]
 
     if resource_name:
@@ -141,6 +180,12 @@ def build_probes(buffer_name, resource_name=None):
         Probe("control.set.nan", "/control",
               {"cmd": "set", "buffer": b, "value": "NaN"},
               schema="ControlResult", destructive=True),
+        Probe("post.control.set.json.number", "/control",
+              schema="ControlResult", destructive=True,
+              post_json={"cmd": "set", "buffer": b, "value": 1}),
+        Probe("post.control.set.form", "/control",
+              schema="ControlResult", destructive=True,
+              post_form={"cmd": "set", "buffer": b, "value": "1"}),
         Probe("control.trigger.out.of.range", "/control",
               {"cmd": "trigger", "element": "99999"},
               schema="ControlResult", destructive=True),
@@ -156,9 +201,12 @@ def build_probes(buffer_name, resource_name=None):
 
 # ----------------------------------------------------------------- requesting
 
-def fetch(url):
+def fetch(url, body=None, content_type=None):
     """Return a dict describing the response, never raising for HTTP errors."""
-    req = urllib.request.Request(url, headers={"Accept": "*/*"})
+    headers = {"Accept": "*/*"}
+    if content_type:
+        headers["Content-Type"] = content_type
+    req = urllib.request.Request(url, data=body, headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
             body = r.read()
@@ -391,7 +439,8 @@ def run(args):
             break
         results = {}
         for name, base in targets.items():
-            r = fetch(probe.url(base))
+            body, ctype = probe.request_body()
+            r = fetch(probe.url(base), body, ctype)
             if r.get("transport_error"):
                 if name not in died_after:
                     died_after[name] = probe.name

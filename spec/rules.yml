@@ -48,6 +48,11 @@ rules:
       `closest` are the same value. This holds as long as no allowed set contains
       two values differing only in case; none does today, and none may be
       introduced. New enumerations should be all-lowercase by preference.
+      The same folding applies to metadata identifiers - the element text of a
+      network send tag with type="meta", including the composite
+      sensor-prefixed forms such as accelerometerName (decided 2026-08-13;
+      identifiers are element text rather than attribute values, so they were
+      not automatically covered by the attribute wording above).
     rationale: >-
       Configurations in circulation already rely on this, because Android folds
       case for depth/mode and camera/feature. Matching case-sensitively would
@@ -57,7 +62,9 @@ rules:
       Case folding happens BEFORE the rejection rule. A parser that rejects first
       and folds second would refuse `mode="Closest"`, which is exactly the file
       this rule exists to keep working.
-    applies_to: "every attribute with type: enum"
+    applies_to: >-
+      every attribute with type: enum, and the metadata identifiers a network
+      send tag carries as element text when type="meta"
     state:
       android: >-
         Conforms across the whole format as of the development branch

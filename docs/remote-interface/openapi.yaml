@@ -74,7 +74,10 @@ info:
       measurement.
 
     A malformed request body (JSON that does not parse) is answered with `400`.
-    Endpoints that take no parameters ignore a body.
+    Endpoints that take no parameters ignore a body. This holds for every
+    endpoint — the static interface files (`/`, `/style.css`, `/logo`) accept
+    POST too, though there is no reason to use it, and their POST operations are
+    not spelled out below.
 
     **The server is single-threaded and slow.** The bundled web interface
     deliberately serialises its requests and delays the next one by 10 ms. Clients
@@ -221,7 +224,7 @@ paths:
             incremental:
               summary: Only what is new, against a time axis
               value: {t: "3", accX: "3|t"}
-      responses:
+      responses: &getResponses
         "200":
           description: Buffer contents and experiment status.
           content:
@@ -231,8 +234,24 @@ paths:
         "400":
           description: |
             The request was malformed: a threshold that does not parse as a
-            number, or a threshold referencing a buffer that does not exist. (An
-            unknown buffer in the *requested* position is skipped, not rejected.)
+            number, a threshold referencing a buffer that does not exist, or a
+            request body that is not valid JSON. (An unknown buffer in the
+            *requested* position is skipped, not rejected.)
+    post:
+      tags: [data]
+      summary: Read buffer data and experiment status (POST)
+      operationId: getDataPost
+      description: |
+        Identical to `GET /get`, with the buffer requests in the request body:
+        one key per buffer, same values as the query form. This is the natural
+        way to poll many buffers at once, and JSON spares you percent-encoding
+        the `|` of the threshold form.
+      requestBody:
+        $ref: "#/components/requestBodies/Parameters"
+      responses: *getResponses
+      x-phyphox-inconsistency:
+        - android-get-duplicate-buffer-entries
+        - error-response-content-type
 
   /control:
     get:
@@ -292,7 +311,7 @@ paths:
             Omit entirely to clear everything.
           schema:
             type: string
-      responses:
+      responses: &controlResponses
         "200":
           description: |
             Whether the command was accepted. Note that a rejected command also
@@ -301,6 +320,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ControlResult"
+    post:
+      tags: [control]
+      summary: Start, stop, clear, or write a value (POST)
+      operationId: controlPost
+      description: |
+        Identical to `GET /control`, with the command and its parameters in the
+        request body, e.g. `{"cmd": "set", "buffer": "height", "value": 1.87}`.
+      requestBody:
+        $ref: "#/components/requestBodies/Parameters"
+      responses: *controlResponses
 
   /export:
     get:
@@ -333,7 +362,7 @@ paths:
             type: integer
             minimum: 0
             maximum: 5
-      responses:
+      responses: &exportResponses
         "200":
           description: |
             The exported file. Note that an out-of-range or missing format also
@@ -350,6 +379,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    post:
+      tags: [data]
+      summary: Download all recorded data as a file (POST)
+      operationId: exportPost
+      description: |
+        Identical to `GET /export`, with `format` in the request body.
+      requestBody:
+        $ref: "#/components/requestBodies/Parameters"
+      responses: *exportResponses
 
   /config:
     get:
@@ -367,13 +405,21 @@ paths:
         by the experiment's author as the data worth keeping.
 
         Available since [phyphox 1.1.6](../reference/version-history/1.1.6.md).
-      responses:
+      responses: &configResponses
         "200":
           description: The experiment configuration.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Config"
+    post:
+      tags: [metadata]
+      summary: What experiment is running (POST)
+      operationId: configPost
+      description: |
+        Identical to `GET /config`. The endpoint takes no parameters, so a
+        request body is ignored.
+      responses: *configResponses
 
   /meta:
     get:
@@ -396,13 +442,23 @@ paths:
         seen on one device exists on another.
 
         Available since [phyphox 1.1.8](../reference/version-history/1.1.8.md).
-      responses:
+      responses: &metaResponses
         "200":
           description: Device metadata.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Meta"
+      x-phyphox-inconsistency:
+        - meta-sensors
+    post:
+      tags: [metadata]
+      summary: Device and software information (POST)
+      operationId: metaPost
+      description: |
+        Identical to `GET /meta`. The endpoint takes no parameters, so a
+        request body is ignored.
+      responses: *metaResponses
       x-phyphox-inconsistency:
         - meta-sensors
 
@@ -424,7 +480,7 @@ paths:
         between distant events is not reliable.
 
         Available since [phyphox 1.1.8](../reference/version-history/1.1.8.md).
-      responses:
+      responses: &timeResponses
         "200":
           description: Time reference events, oldest first.
           content:
@@ -433,6 +489,14 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/TimeEvent"
+    post:
+      tags: [metadata]
+      summary: Map experiment time onto the system clock (POST)
+      operationId: timePost
+      description: |
+        Identical to `GET /time`. The endpoint takes no parameters, so a
+        request body is ignored.
+      responses: *timeResponses
 
   /res:
     get:
@@ -450,7 +514,7 @@ paths:
           description: File name as written in the view element.
           schema:
             type: string
-      responses:
+      responses: &resResponses
         "200":
           description: |
             The file. An unknown or missing name also answers 200, with a JSON
@@ -463,8 +527,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    post:
+      tags: [interface]
+      summary: Fetch a resource bundled with the experiment (POST)
+      operationId: resPost
+      description: |
+        Identical to `GET /res`, with `src` in the request body.
+      requestBody:
+        $ref: "#/components/requestBodies/Parameters"
+      responses: *resResponses
 
 components:
+  requestBodies:
+    Parameters:
+      description: |
+        The endpoint's parameters as a request body: the same names and values
+        the query string takes, in one of the two formats described under
+        "Parameters, and POST bodies" at the top of this page. Parameters may
+        still be given in the query as well; on a name collision the body wins.
+        A JSON body that does not parse is answered with `400`.
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            description: |
+              A flat object. Values are coerced to strings before use, so
+              `{"value": 42}` and `{"value": "42"}` are equivalent; nested
+              objects and arrays are not part of the format.
+            additionalProperties:
+              type: [string, number, boolean]
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            additionalProperties:
+              type: string
   schemas:
     GetResponse:
       type: object
