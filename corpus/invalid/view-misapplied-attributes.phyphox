@@ -1,0 +1,263 @@
+<phyphox xmlns="http://phyphox.org/xml" xmlns:editor="http://phyphox.org/editor/xml" version="1.7" editor:version="1.0" locale="">
+    <title>Beschleunigung (Async, Rev2)</title>
+    <category>Laborino-Experimente</category>
+    <description>Dieses Experiment misst die Beschleunigung 𝑎 in x-, y- und z-Richtung für einen wählbaren Zeitraum mit einstellbarer Frequenz und Messbereich und trägt den Betrag sowie die Komponenten aller 3 Raumrichtungen nach Abschluss der Messung in Graphen über der Zeit auf. Um höhere Messfrequenzen als bei der Echtzeitmessung zu ermöglichen, werden die Daten erst nach der Messung übertragen.</description>
+    <icon format="base64">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
+    </icon>
+    <data-containers>
+        <!-- COMMUNICATION                                      -->
+        <container size="1" init="0" >BT_INC</container>
+        <container size="1" init="1" >BT_OUTC</container>
+        <container size="1" init="0">STATUS</container>
+
+        <!-- OTHER                                              -->
+        <container size="1" init="3">FS_ID</container>
+        <container size="1" init="16">FS_VAL</container>
+        <container size="1" init="3">ODR_ID</container>
+        <container size="1" init="100">ODR_VAL</container>
+        <container size="1" init="5">PERIOD</container>
+        <container size="1" >MAX_PERIOD</container>
+
+        <!-- DATA                                               -->
+        <container size="0" >TIME</container>
+        <container size="0" >X</container>
+        <container size="0" >Y</container>
+        <container size="0" >Z</container>
+
+        <!-- CALCULATIONS                                       -->
+        <container size="0" >ABS</container>
+
+        <!-- CALCULATE HELPER                                   -->
+        <container size="0" >X_CAL</container>
+        <container size="0" >Y_CAL</container>
+        <container size="0" >Z_CAL</container>
+        <container size="1" init="0">LAST_IND</container>
+    </data-containers>
+    <input>
+        <bluetooth id="Sense" mode="notification" >
+            <output char="c0880001-30f7-4671-8b43-5e40ba53514a" conversion="uInt8" offset="0">BT_INC</output>
+            <output char="c0880001-30f7-4671-8b43-5e40ba53514a" conversion="uInt8" offset="1">STATUS</output>
+
+            <output char="da1a0001-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="0">TIME</output>
+            <output char="da1a0001-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="4">X</output>
+            <output char="da1a0001-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="8">Y</output>
+            <output char="da1a0001-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="12">Z</output>
+        </bluetooth>
+    </input>
+    <output>
+        <bluetooth id="Sense" >
+            <config char="c0f10001-30f7-4671-8b43-5e40ba53514a" offset="0" conversion="uInt32LittleEndian">5</config>
+            <input char="c0880001-30f7-4671-8b43-5e40ba53514a" offset="0" conversion="uInt8">BT_OUTC</input>
+
+            <input char="c0880001-30f7-4671-8b43-5e40ba53514a" offset="1" conversion="uInt8">FS_ID</input>
+            <input char="c0880001-30f7-4671-8b43-5e40ba53514a" offset="2" conversion="uInt8">ODR_ID</input>
+            <input char="c0880001-30f7-4671-8b43-5e40ba53514a" offset="3" conversion="uInt16LittleEndian">PERIOD</input>
+        </bluetooth>
+    </output>
+    <analysis >
+        <!-- ================================================== -->
+        <!-- SETUPS                                             -->
+        <!-- ================================================== -->
+        <!-- WHILE THE MEASUREMENT HAS NOT STARTED YET RESET THE DATA BUFFERS SINCE THEY CAN ALSO RECIEVE DATA WITH AN OLD TIMESTAMP AT THE VERY BEGINNING AFTER STARTING THE EXPERIMENT.-->
+        <if equal="true">
+            <input as="a" keep="true">BT_INC</input>
+            <input as="b" type="value">0</input>
+            <input as="true" type="empty"></input>
+            <output as="result">TIME</output>
+        </if>
+        <if equal="true">
+            <input as="a" keep="true">BT_INC</input>
+            <input as="b" type="value">0</input>
+            <input as="true" type="empty"></input>
+            <output as="result">X</output>
+        </if>
+        <if equal="true">
+            <input as="a" keep="true">BT_INC</input>
+            <input as="b" type="value">0</input>
+            <input as="true" type="empty"></input>
+            <output as="result">Y</output>
+        </if>
+        <if equal="true">
+            <input as="a" keep="true">BT_INC</input>
+            <input as="b" type="value">0</input>
+            <input as="true" type="empty"></input>
+            <output as="result">Z</output>
+        </if>
+
+        <!-- CALCULATE THE MAXIMUM POSSIBLE MEASUREMENT TIME BASED ON THE CHOSEN
+        FREQUENCY. WE ASSUMED HERE A MAXIMUM MEASUREMENT LENGTH OF 7200 TIMES 4 (X,Y,Z,TIME)
+        DATAPOINTS. OTHERWISE THE ARDUINOS MEMORY IS TOO FULL. -->
+        <divide>
+            <input as="dividend" type="value">7200</input>
+            <input as="divisor" keep="true">ODR_VAL</input>
+            <output as="quotient">MAX_PERIOD</output>
+        </divide>
+        <!-- IF A TOO LARGE VALUE IS ENTERED FOR THE MEASUREMENT TIME, SET IT
+        MANUALLY BACK TO THE MAXIMUM MEASUREMENT TIME (MAX_PERIOD). -->
+        <if equal="false" greater="true">
+            <input as="a" keep="true">PERIOD</input>
+            <input as="b" keep="true">MAX_PERIOD</input>
+            <input as="true" keep="true">MAX_PERIOD</input>
+            <input as="false" keep="true">PERIOD</input>
+            <output as="result">PERIOD</output>
+        </if>
+        <!-- ================================================== -->
+        <!-- CALCULATIONS                                       -->
+        <!-- ================================================== -->
+        <!-- COPY NEW DATA INTO CALC BUFFERS                    -->
+        <subrange>
+            <input as="from">LAST_IND</input>
+            <input keep="true">X</input>
+            <input keep="true">Y</input>
+            <input keep="true">Z</input>
+            <output>X_CAL</output>
+            <output>Y_CAL</output>
+            <output>Z_CAL</output>
+        </subrange>
+
+        <!-- SET CURRENT INDEX AS LAST INDEX                    -->
+        <count>
+            <input keep="true">TIME</input>
+            <output>LAST_IND</output>
+        </count>
+
+        <!-- CALCULATE THE ABSOLUTE VALUE OF THE ACCELERATION   -->
+        <formula formula="sqrt([1_]^2+[2_]^2+[3_]^2)">
+            <input keep="true">X_CAL</input>
+            <input keep="true">Y_CAL</input>
+            <input keep="true">Z_CAL</input>
+            <output append="true">ABS</output>
+        </formula>
+    </analysis>
+    <views>
+        <view label="Info">
+            <info label="Dieses Experiment liest den Beschleunigungssensor des Laborinos für einen wählbaren Zeitraum mit einstellbarer Frequenz und Messbereich aus. Die Messdaten werden erst nach dem Ende der Messung übertragen, was höhere Messfrequenzen ermöglicht als bei der Messung in Echtzeit. Diese hohen Messfrequenzen sind insbesondere bei kurzen aber sehr schnellen Phänomenen von Vorteil, wenn eine hohe Zeitauflösung nötig ist. Befindet sich der Laborino in Ruhe oder bewegt sich gleichmäßig, so wirkt auf ihn nur die Erdbeschleunigung von etwa 9,81m/s². Wenn du ihn schüttelst, wirkt auf ihn noch eine weitere Beschleunigung. Wenn du ihn in die Luft wirfst, befindet er sich im freien Fall und es wirkt keine Beschleunigung auf ihn."/>
+            <info label=""/>
+            <info label="Probiere es doch gleich mal aus!" bold="true"/>
+            <info label=""/>
+            <info label="Mit dem ► Knopf oben rechts kannst du die Messung starten. Nach dem Starten der Messung kannst du sie mit dem Ⅱ Knopf stoppen. Das Papierkorb Symbol löscht den aktuellen Datensatz. Mit dem ⁝ Symbol kannst du weitere Optionen aufrufen und zum Beispiel die Messung mit einer Verzögerung starten oder die aktuellen Messdaten exportieren."/>
+            <info label=""/>
+            <info label="In dem GRAPH Tab kannst du dir alle gemessenen Beschleunigungen über der Zeit auftragen lassen. Der Tab EINSTELLUNGEN ermöglicht die Auswahl des Messbereichs, der Messfrequenz und der Messdauer."/>
+        </view>
+        <view label="Graph">
+          <info label="Status deiner Messung:" bold="true"/>
+            <value label="Status:">
+                <input>STATUS</input>
+                <map max="0">Bereit zum Messen (►)!</map>
+                <map max="1">Messung läuft...</map>
+                <map max="2">Datenübertragung läuft...</map>
+                <map max="3">Datenübertragung abgeschlossen!</map>
+            </value>
+            <info label=""/>
+            <info label="Betrag der Beschleunigung:"  bold="true"/>
+            <info label="Der Betrag des Beschleunigungsvektors |𝑎⃗| gibt die Gesamtbeschleunigung unabhängig von der Raumrichtung an."/>
+            <info label=""/>
+            <graph label="" aspectRatio="2.0" style="lines" lineWidth="1.5" color="ffffff" partialUpdate="true" labelX="Zeit 𝑡" labelY="Beschleunigung 𝑎" unitX="s" unitY="m/s²" xPrecision="3" yPrecision="3">
+                <input axis="x">TIME</input>
+                <input axis="y">ABS</input>
+            </graph>
+            <info label=""/>
+            <info label="Komponenten der Beschleunigung:"  bold="true"/>
+            <info label="Die folgenden 3 Graphen geben die Beschleunigung 𝑎 aufgeteilt in die 3 Raumrichtugen (X, Y und Z) wieder. Die Orientierung der Achsen kannst du auf dem Laborino nachlesen."/>
+            <info label=""/>
+            <image src="image.png" lightFilter="invert" darkFilter="invert"/>
+            <info label=""/>
+            <graph label="" aspectRatio="2.0" style="lines" lineWidth="1" color="ff7e22" partialUpdate="true" labelX="Zeit 𝑡" labelY="Beschleunigung 𝑎" unitX="s" unitY="m/s²" xPrecision="3" yPrecision="3">
+                <input axis="x"  color="red">TIME</input>
+                <input axis="y">X</input>
+                <input axis="x" color="green">TIME</input>
+                <input axis="y">Y</input>
+                <input axis="x"  color="blue">TIME</input>
+                <input axis="y">Z</input>
+            </graph>
+        </view>
+        <view label="Einstellungen">
+            <info label="Achtung!" bold="true"  color="red"/>
+            <info label="Eine Änderung der Einstellungen ist nur zwischen den Messungen möglich. Lösche dafür zunächst die aktuellen Messdaten, nehme die Änderungen an den Einstellungen vor und starte dann die Messung neu. Bitte beachte auch, dass nach jedem Löschen der Messung die Standardeinstellungen von 16 G und 100 Hz wiederhergestellt werden." color="red"/>
+            <info label=""/>
+            <info label="Messbereich:" bold="true"/>
+            <info label="Hier kannst du den Messbereich des Beschleunigungssensors einstellen. Ein großer Messbereich erlaubt es, höhere Beschleunigungen zu erfassen, allerdings leidet die Genauigkeit etwas darunter. Du kannst einen Messbereich von ±2 G, ±4 G, ±8 G oder ±16 G auswählen."/>
+            <info label=""/>
+            <value label="Aktueller Messbereich:" precision="0" signed="false" decimal="false"  unit="G">
+                <input>FS_VAL</input>
+            </value>
+            <info label=""/>
+            <button label="±2 G">
+                <input type="value">2</input>
+                <output>FS_VAL</output>
+                <input type="value">0</input>
+                <output>FS_ID</output>
+            </button>
+            <button label="±4 G">
+                <input type="value">4</input>
+                <output>FS_VAL</output>
+                <input type="value">1</input>
+                <output>FS_ID</output>
+            </button>
+            <button label="±8 G">
+                <input type="value">8</input>
+                <output>FS_VAL</output>
+                <input type="value">2</input>
+                <output>FS_ID</output>
+            </button>
+            <button label="±16 G">
+                <input type="value">16</input>
+                <output>FS_VAL</output>
+                <input type="value">3</input>
+                <output>FS_ID</output>
+            </button>
+            <info label=""/>
+            <info label="Messfrequenz:" bold="true"/>
+            <info label="Hier kannst du die Messfrequenz des Beschleunigungssensors einstellen. Du kannst zwischen 12.5 Hz, 25 Hz, 50 Hz und 100 Hz auswählen."/>
+            <info label=""/>
+            <value label="Aktuelle Messfrequenz:" signed="false" decimal="false"  unit="Hz" precision="1">
+                <input>ODR_VAL</input>
+            </value>
+            <info label=""/>
+            <button label="12.5 Hz">
+                <input type="value">12.5</input>
+                <output>ODR_VAL</output>
+                <input type="value">0</input>
+                <output>ODR_ID</output>
+            </button>
+            <button label="25 Hz">
+                <input type="value">25</input>
+                <output>ODR_VAL</output>
+                <input type="value">1</input>
+                <output>ODR_ID</output>
+            </button>
+            <button label="50 Hz">
+                <input type="value">50</input>
+                <output>ODR_VAL</output>
+                <input type="value">2</input>
+                <output>ODR_ID</output>
+            </button>
+            <button label="100 Hz">
+                <input type="value">100</input>
+                <output>ODR_VAL</output>
+                <input type="value">3</input>
+                <output>ODR_ID</output>
+            </button>
+            <info label=""/>
+            <info label="Messdauer:" bold="true"/>
+            <info label="Hier kannst du die Messdauer einstellen. Aufgrund des beschränkten Speicherplatzes auf dem Laborino, ist die Messdauer in Abhängigkeit der Messfrequenz begrenzt."/>
+            <info label=""/>
+            <value label="Maximale Messdauer:" precision="0" signed="false" decimal="false" unit="s">
+                <input>MAX_PERIOD</input>
+            </value>
+            <info label=""/>
+            <edit label="Wähle die Messdauer in Sekunden:" precision="0" signed="false" decimal="false" min="1" max="1000"  default="5">
+                <output>PERIOD</output>
+            </edit>
+        </view>
+    </views>
+    <export>
+        <set name="Beschleunigung">
+            <data name="Zeit t in s">TIME</data>
+            <data name="Betrag der Beschleunigung |a| in m/s²">ABS</data>
+            <data name="X-Beschleunigung a_x in m/s²">X</data>
+            <data name="Y-Beschleunigung a_y in m/s²">Y</data>
+            <data name="Z-Beschleunigung a_z in m/s²">Z</data>
+        </set>
+    </export>
+</phyphox>

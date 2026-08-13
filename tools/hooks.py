@@ -201,12 +201,19 @@ def _check_spec_against_docs():
 
 
 def _check_corpus():
-    """Fail the build if a corpus file no longer matches the spec.
+    """Fail the build if the corpus and the spec drift apart.
 
-    The corpus exists to hold the parser surface still, which only works if
-    the two cannot drift apart: a spec change that invalidates a corpus file
-    has to be noticed by whoever makes it, not by the next test run in an app
-    repository.
+    Three checks, so the corpus keeps holding the parser surface still:
+
+    * corpus/valid and corpus/generated must validate cleanly;
+    * the shipped experiment collection must too - checked only when the
+      Android checkout sits next to this repository, as it does on the
+      development machines, and skipped silently otherwise (CI checks out
+      phyphox-docs alone). A failure here may also mean the experiments
+      submodule is on an old commit, not that the spec is wrong;
+    * every file in corpus/invalid must still produce the findings recorded
+      in corpus/invalid/expected.yml. An invalid file going clean means the
+      spec silently started accepting its defect.
     """
     corpus = os.path.join(ROOT, "corpus")
     if not os.path.isdir(corpus):
@@ -214,17 +221,63 @@ def _check_corpus():
     _ensure_path()
     import io
     import contextlib
-    import validate_experiments
+    import xml.etree.ElementTree as ET
+    import validate_experiments as ve
+
+    clean_dirs = [os.path.join(corpus, d) for d in ("valid", "generated")
+                  if os.path.isdir(os.path.join(corpus, d))]
+    shipped = os.path.normpath(os.path.join(
+        ROOT, "..", "phyphox-android", "app", "src", "main", "assets",
+        "experiments"))
+    if os.path.isdir(shipped):
+        clean_dirs.append(shipped)
+
     argv = sys.argv
     buf = io.StringIO()
     try:
-        sys.argv = ["validate_experiments.py", corpus]
+        sys.argv = ["validate_experiments.py"] + clean_dirs
         with contextlib.redirect_stdout(buf):
-            rc = validate_experiments.main()
+            rc = ve.main()
     finally:
         sys.argv = argv
     if rc:
-        raise ValueError("corpus/ no longer matches spec/:\n" + buf.getvalue())
+        raise ValueError(
+            "corpus (or the shipped experiment collection) no longer matches "
+            "spec/:\n" + buf.getvalue())
+
+    invalid = os.path.join(corpus, "invalid")
+    if not os.path.isdir(invalid):
+        return
+    with open(os.path.join(invalid, "expected.yml")) as f:
+        expected = yaml.safe_load(f) or {}
+    spec, common, slots, components = ve.load_spec()
+    problems = []
+    names = sorted(n for n in os.listdir(invalid) if n.endswith(".phyphox"))
+    for extra in set(expected) - set(names):
+        problems.append(f"expected.yml lists {extra}, which does not exist")
+    for n in names:
+        if n not in expected:
+            problems.append(f"{n} has no entry in expected.yml")
+            continue
+        root = ve.normalize_namespace(
+            ET.parse(os.path.join(invalid, n)).getroot())
+        rep = ve.Report()
+        for child in root:
+            ve.check_element(child, "phyphox", spec, common, slots, components,
+                             rep, "phyphox", n)
+        details = [f"{kind}: {d}" for kind, lst in rep.items.items()
+                   for _, d in lst]
+        if not details:
+            problems.append(f"{n} validates cleanly - the spec now accepts "
+                            f"its documented defect")
+            continue
+        for sub in expected[n] or []:
+            if not any(sub in d for d in details):
+                problems.append(f"{n}: expected finding '{sub}' not produced; "
+                                f"got: {'; '.join(sorted(set(details))[:3])}")
+    if problems:
+        raise ValueError("corpus/invalid is out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 def _check_spec(entries):

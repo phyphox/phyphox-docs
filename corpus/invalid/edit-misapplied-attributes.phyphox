@@ -1,0 +1,300 @@
+<phyphox version="1.12">
+    <title>Neigungswinkel mit Tiefpass</title>
+    <category>Biomechanik</category>
+    <description>Misst den Neigungswinkel nach Rechts und Links des aufrechten Smartphones mit maximaler Frequenz und einem parametrischen Tiefpassfilter.</description>
+    <data-containers>
+        <container size="0">sensorx</container>
+        <container size="0">sensory</container>
+        <container size="0">sensort</container>
+        <container size="0">sensorx_new</container>
+        <container size="0">sensory_new</container>
+        <container size="0">sensort_new</container>
+        <container size="1">sensort_first_new</container>
+        <container size="0">Neigung</container>
+        <container size="0">Neigung_new</container>
+        <container size="0">fftX</container>
+        <container size="0">fftY</container>
+        <container size="0">fftX_weighted</container>
+        <container size="0">fftY_weighted</container>
+        <container size="0">filtered</container>
+        <container size="0">filtered_new</container>
+        <container size="0">filtered_candidate</container>
+        <container size="1">count_raw</container>
+        <container size="1">count_neigung</container>
+        <container size="1">count_filtered</container>
+        <container size="1">count</container>
+        <container size="1">count-1</container>
+        <container size="1">count/2</container>
+        <container size="0">index</container>
+        <container size="0">imdummy</container>
+        <container size="0">f</container>
+        <container size="1">f0</container>
+        <container size="1">order</container>
+        <container size="0">butterworth</container>
+        <container size="0">f_half</container>
+        <container size="0">fftX2</container>
+        <container size="0">fftX_max</container>
+        <container size="0">fftX_norm</container>
+        <container size="0">fftX_half</container>
+        <container size="0">butterworth_half</container>
+
+        <container size="1">n</container>
+        <container size="1">overlap</container>
+        <container size="1">count-overlap</container>
+        <container size="1">front</container>
+        <container size="1">new_start</container>
+        <container size="1">candidate_start</container>
+    </data-containers>
+    <input>
+        <sensor rate="0" type="accelerometer">
+            <output component="x">sensorx</output>
+            <output component="y">sensory</output>
+            <output component="t">sensort</output>
+        </sensor>
+    </input>
+    <output>
+    </output>
+    <analysis sleep="0" onUserInput="false">
+        <count>
+            <input clear="false">sensorx</input>
+            <output>count_raw</output>
+        </count>
+        <count>
+            <input clear="false">Neigung</input>
+            <output>count_neigung</output>
+        </count>
+        <count>
+            <input clear="false">filtered</input>
+            <output>count_filtered</output>
+        </count>
+ 
+
+        <subrange>
+            <input clear="false">sensorx</input>
+            <input clear="false" as="from">count_neigung</input>
+            <output>sensorx_new</output>
+        </subrange>
+        <subrange>
+            <input clear="false">sensory</input>
+            <input clear="false" as="from">count_neigung</input>
+            <output>sensory_new</output>
+        </subrange>
+        <formula formula="atan2([1_],[2_])*57.29577951">
+            <input clear="true">sensorx_new</input>
+            <input clear="true">sensory_new</input>
+            <output clear="false">Neigung</output>
+        </formula>
+        <count>
+            <input clear="false">Neigung</input>
+            <output>count_neigung</output>
+        </count>
+
+        <formula formula="max([1], [3]-[4]+[2])">
+            <input clear="false">overlap</input>
+            <input clear="false">n</input>
+            <input clear="false">count_filtered</input>
+            <input clear="false">count_neigung</input>
+            <output>front</output>
+        </formula>
+
+        <formula formula="max(0, [1]-[2])">
+            <input clear="false">count_filtered</input>
+            <input clear="false">front</input>
+            <output>new_start</output>
+        </formula>
+
+        <subrange>
+            <input clear="false">Neigung</input>
+            <input clear="false" as="from">new_start</input>
+            <input clear="false" as="length">n</input>
+            <output>Neigung_new</output>
+        </subrange>
+        <subrange>
+            <input clear="false">sensort</input>
+            <input clear="false" as="from">new_start</input>
+            <input clear="false" as="length">n</input>
+            <output>sensort_new</output>
+        </subrange>
+        <first>
+            <input clear="false">sensort_new</input>
+            <output>sensort_first_new</output>
+        </first>
+
+
+
+        <count>
+            <input clear="false">Neigung_new</input>
+            <output>count</output>
+        </count>
+        <subtract>
+            <input clear="false">count</input>
+            <input type="value">1</input>
+            <output>count-1</output>
+        </subtract>
+        <divide>
+            <input clear="false">count</input>
+            <input type="value">2</input>
+            <output>count/2</output>
+        </divide>
+        <const>
+            <input as="value" type="value">0</input>
+            <input as="length" clear="false">count</input>
+            <output>imdummy</output>
+        </const>
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop" clear="false">count-1</input>
+            <input as="length" clear="false">count</input>
+            <output>index</output>
+        </ramp>
+        <fft>
+            <input clear="false" as="re">Neigung_new</input>
+            <input clear="false" as="im">imdummy</input>
+            <output as="re">fftX</output>
+            <output as="im">fftY</output>
+        </fft>
+        <formula formula="([1]/2-abs([2_]-[1]/2))/([3]-[4])">
+            <input clear="false">count</input>
+            <input clear="false">index</input>
+            <input clear="false">sensort_new</input>
+            <input clear="false">sensort_first_new</input>
+            <output>f</output>
+        </formula>
+        <formula formula="1/sqrt(1+([1_]/[2])^(2*[3]))">
+            <input clear="false">f</input>
+            <input clear="false">f0</input>
+            <input clear="false">order</input>
+            <output>butterworth</output>
+        </formula>
+        <formula formula="[3_]*[1_]/[2]">
+            <input clear="false">fftX</input>
+            <input clear="false">count</input>
+            <input clear="false">butterworth</input>
+            <output>fftX_weighted</output>
+        </formula>
+        <formula formula="-[3_]*[1_]/[2]">
+            <input clear="false">fftY</input>
+            <input clear="false">count</input>
+            <input clear="false">butterworth</input>
+            <output>fftY_weighted</output>
+        </formula>
+        <fft>
+            <input as="re">fftX_weighted</input>
+            <input as="im">fftY_weighted</input>
+            <output as="re">filtered_new</output>
+        </fft>
+        <multiply>
+            <input clear="false">fftX</input>
+            <input clear="false">fftX</input>
+            <output>fftX2</output>
+        </multiply>
+        <max>
+            <input as="y" clear="false">fftX2</input>
+            <output as="max">fftX_max</output>
+        </max>
+        <divide>
+            <input clear="false">fftX2</input>
+            <input>fftX_max</input>
+            <output>fftX_norm</output>
+        </divide>
+        <subrange>
+            <input>fftX_norm</input>
+            <input as="to" clear="false">count/2</input>
+            <output>fftX_half</output>
+        </subrange>
+        <subrange>
+            <input clear="false">f</input>
+            <input as="to" clear="false">count/2</input>
+            <output>f_half</output>
+        </subrange>
+        <subrange>
+            <input clear="false">butterworth</input>
+            <input as="to" clear="false">count/2</input>
+            <output>butterworth_half</output>
+        </subrange>
+
+        <subtract>
+            <input clear="false">count</input>
+            <input clear="false">overlap</input>
+            <output>count-overlap</output>
+        </subtract>
+
+        <formula formula="[1]-[2]">
+            <input clear="false">count_filtered</input>
+            <input clear="false">new_start</input>
+            <output>candidate_start</output>
+        </formula>
+
+        <subrange>
+            <input clear="false">filtered_new</input>
+            <input clear="false" as="from">candidate_start</input>
+            <input clear="false" as="to">count-overlap</input>
+            <output>filtered_candidate</output>
+        </subrange>
+
+        <if greater="true" equal="true">
+            <input clear="false">count</input>
+            <input clear="false">n</input>
+            <input clear="false">filtered_candidate</input>
+            <output clear="false">filtered</output>
+        </if>
+            
+    </analysis>
+    <views>
+        <view label="Aufrecht">
+            <graph label="Rohdaten Sensor" labelX="Zeit" labelY="Beschleunigung" unitX="s" unitY="m/s²">
+                <input axis="x" color="red">sensort</input>
+                <input axis="y">sensorx</input>
+                <input axis="x" color="blue">sensort</input>
+                <input axis="y">sensory</input>
+            </graph>
+            <graph label="Neigung Links/Rechts" labelX="Zeit" labelY="Winkel" unitX="s" unitY="°">
+                <input axis="x" color="green">sensort</input>
+                <input axis="y">filtered</input>
+                <input axis="x" color="orange">sensort</input>
+                <input axis="y">Neigung</input>
+            </graph>
+            <value label="Neigung" size="1" precision="2" scientific="false" unit="°" factor="1" >
+                <input>Neigung</input>
+            </value>
+            <value label="Neigung gefiltert" size="1" precision="2" scientific="false" unit="°" factor="1" >
+                <input>filtered</input>
+            </value>
+        </view>
+        <view label="Tiefpass">
+            <graph label="Aktuell zu bearbeiten" labelX="t" labelY="Winkel" unitX="s" unitY="°">
+                <input axis="x" color="green">sensort_new</input>
+                <input axis="y">Neigung_new</input>
+            </graph>
+            <graph label="Normalized Spektrum" labelX="Frequenz" labelY="Amplitude" unitX="s" logY="true" scaleMaxY="fixed" minY="1e-6" maxY="2" unitY="a.u.">
+                <input axis="x" color="orange">f_half</input>
+                <input axis="y">fftX_half</input>
+            </graph>
+            <graph label="Butterworth Filter" labelX="Frequenz" labelY="Gewichtung" unitX="s" unitY="a.u.">
+                <input axis="x" color="green">f_half</input>
+                <input axis="y">butterworth_half</input>
+            </graph>
+            <edit label="Grenzfrequenz" size="1" decimal="true" signed="false" scientific="false" unit="Hz" factor="1" default="10">
+                <output>f0</output>
+            </edit>
+            <edit label="Ordnung" size="1" decimal="false" signed="false" scientific="false" factor="1" default="4">
+                <output>order</output>
+            </edit>
+            <edit label="n" size="1" decimal="false" signed="false" scientific="false" factor="1" default="128">
+                <output>n</output>
+            </edit>
+            <edit label="Overlap" size="1" decimal="false" signed="false" scientific="false" factor="1" default="32">
+                <output>overlap</output>
+            </edit>
+        </view>
+    </views>
+    <export>
+        <set name="Neigung">
+            <data name="Zeit in Sekunden">sensort</data>
+            <data name="Acc x in m/s²">sensorx</data>
+            <data name="Acc y in m/s²">sensory</data>
+            <data name="Neigung in °">Neigung</data>
+            <data name="Neigung in ° gefiltert">filtered</data>
+        </set>
+    </export>
+</phyphox>

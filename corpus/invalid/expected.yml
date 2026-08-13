@@ -1,0 +1,48 @@
+# Expected findings per invalid corpus file - checked by tools/hooks.py.
+#
+# Each file here is a real experiment configuration carrying a defect: dead
+# draft syntax that never shipped, a construct removed from the format, a
+# typo, or an attribute applied to the wrong element. The build fails if a
+# file stops producing its documented finding - that would mean the spec (or
+# the validator) silently started accepting it. Every listed substring must
+# match at least one finding for its file.
+
+graph-style-line.phyphox:            # "line" was never a valid graph style
+  - 'style="line"'
+network-mode-trigger.phyphox:        # draft network syntax that never shipped
+  - '<connection>: mode="trigger"'
+bluetooth-pre-ble.phyphox:           # pre-BLE bluetooth of phyphox 1.0x
+  - '<bluetooth>: protocol='
+  - '<bluetooth>: separator='
+camera-threshold.phyphox:            # dev-era camera attribute, removed
+  - '<camera>: threshold='
+camera-input-controls.phyphox:       # camera-gui attributes on the camera input
+  - '<camera>: exposure_adjustment_level='
+  - '<camera>: show_controls='
+camera-gui-locked-empty.phyphox:     # locked belongs to the camera input
+  - '<camera-gui>: locked='
+analysis-cycle-typo.phyphox:         # cycle= instead of cycles= - runs every cycle
+  - '<formula>: cycle='
+  - '<map>: cycle='
+container-site-typo.phyphox:         # site= instead of size=
+  - '<container>: site='
+view-misapplied-attributes.phyphox:  # edit attributes on value, value attribute on edit
+  - '<value>: signed='
+  - '<value>: decimal='
+  - '<edit>: precision='
+  - '<config>: offset='
+edit-misapplied-attributes.phyphox:  # value attributes on edit
+  - '<edit>: size='
+  - '<edit>: scientific='
+network-receive-type.phyphox:        # type belongs to send, not receive
+  - '<receive>: type='
+graph-value-attributes.phyphox:      # value attributes on graph
+  - '<graph>: size='
+  - '<graph>: precision='
+  - '<graph>: unit='
+value-input-axis.phyphox:            # axis belongs to graph inputs
+  - '<input>: axis='
+graph-precisionx.phyphox:            # dev syntax that never shipped
+  - '<graph>: precisionX='
+analysis-optimization.phyphox:       # stale attribute no parser ever read
+  - '<analysis>: optimization='

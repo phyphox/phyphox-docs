@@ -1,0 +1,35 @@
+<phyphox version="1.5">
+    <title>U42;</title>
+    <category>Bluetooth</category>
+    <description>Kompakte Formatierung</description>
+    <data-containers>
+        <container size="0">U</container>
+        <container size="0">I</container>
+        <container size="0">t</container>
+    </data-containers>
+    <input>
+        <bluetooth name="Default" mode="notification">
+            <output char="00000001-0001-0001-0001-000000000002" conversion="formattedString" separator=";" label="U">U</output>
+            <output char="00000001-0001-0001-0001-000000000002" conversion="formattedString" separator=";" label="I">I</output>
+            <output char="00000001-0001-0001-0001-000000000002" extra="time">t</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Raw Data">
+            <value label="Spannung" unit="V">
+                <input axis="y">U</input>
+            </value>
+            <graph label="Spannung" labelX="t (s)" labelY="U (V)" partialUpdate="true">
+                <input axis="x">t</input>
+                <input axis="y">U</input>
+            </graph>
+            <value label="Strom" unit="A">
+                <input axis="y">I</input>
+            </value>
+            <graph label="Strom" labelX="t (s)" labelY="I (A)" partialUpdate="true">
+                <input axis="x">t</input>
+                <input axis="y">I</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

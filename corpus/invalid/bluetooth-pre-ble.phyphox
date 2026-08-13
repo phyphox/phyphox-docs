@@ -1,0 +1,51 @@
+<phyphox version="1.0">
+    <title>Bluetooth</title>
+    <category>Raw Sensors</category>
+    <description>Get raw data from a bluetooth device.</description>
+    <data-containers>
+        <container size="0">t1</container>
+        <container size="0">value1</container>
+        <container size="0">t2</container>
+        <container size="0">value2</container>
+        <container size="0">diff</container>
+    </data-containers>
+    <input>
+        <bluetooth name="Adafruit EZ-Link 7228" protocol="csv" separator=";">
+            <output>t1</output>
+            <output>value1</output>
+            <output>t2</output>
+            <output>value2</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Raw Data">
+            <graph label="1" labelX="t (s)" labelY="value 1" partialUpdate="true">
+                <input axis="x">t1</input>
+                <input axis="y">value1</input>
+            </graph>
+            <graph label="2" labelX="t (s)" labelY="value 2" partialUpdate="true">
+                <input axis="x">t2</input>
+                <input axis="y">value2</input>
+            </graph>
+            <graph label="Difference" labelX="t (s)" labelY="v1-v2" partialUpdate="true">
+                <input axis="x">t1</input>
+                <input axis="y">diff</input>
+            </graph>
+        </view>
+    </views>
+    <analysis>
+        <subtract>
+            <input clear="false">value1</input>
+            <input clear="false">value2</input>
+            <output>diff</output>
+        </subtract>
+    </analysis>
+    <export>
+        <set name="Raw Data">
+            <data name="Time 1 (s)">t1</data>
+            <data name="value 1">value1</data>
+            <data name="Time 2 (s)">t2</data>
+            <data name="value 2">value2</data>
+        </set>
+    </export>
+</phyphox>

@@ -1,0 +1,107 @@
+<phyphox version="1.17">
+    <title>Moiré</title>
+    <category>Solid State Physics</category>
+    <description>
+        Simulation of Moiré patterns formed from two sheets of graphene.
+    </description>
+    <data-containers>
+        <container size="1">win</container>
+        <container size="1">xin</container>
+        <container size="1">yin</container>
+        <container size="1">zin</container>
+        <container size="1">yaw</container>
+        <container size="1">angle</container>
+        <container size="0">xgrid</container>
+        <container size="0">ygrid</container>
+        <container size="0">zgrid</container>
+        <container size="0">xmoire</container>
+        <container size="0">ymoire</container>
+        <container>empty</container>
+    </data-containers>
+    <input>
+        <sensor type="attitude">
+            <output component="x">xin</output>
+            <output component="y">yin</output>
+            <output component="z">zin</output>
+            <output component="abs">win</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="Moiré">
+            <graph label="Moiré pattern" labelX="x" labelY="y" aspectRatio="1" minX="-1" maxX="1" minY="-1" maxY="1" scaleMinX="fixed" scaleMaxX="fixed" scaleMinY="fixed" scaleMaxY="fixed" style="dots" lineWidth="2">
+                <input axis="x">xgrid</input>
+                <input axis="y">ygrid</input>
+                <input axis="x">xmoire</input>
+                <input axis="y">ymoire</input>
+            </graph>
+            <value label="Angle" unit="[[unit_short_degree]]">
+                <input>angle</input>
+            </value>
+        </view>
+    </views>
+    <analysis>
+        <formula formula="-atan2(2*([1_]*[4_]+[2_]*[3_]),1-2*([3_]*[3_]+[4_]*[4_]))">
+            <input clear="false">win</input>
+            <input clear="false">xin</input>
+            <input clear="false">yin</input>
+            <input clear="false">zin</input>
+            <output clear="false">yaw</output>
+        </formula>
+
+        <map cycle="0">
+            <input as="mapWidth" type="value">51</input>
+            <input as="minX" type="value">0</input>
+            <input as="maxX" type="value">51</input>
+            <input as="mapHeight" type="value">51</input>
+            <input as="minY" type="value">0</input>
+            <input as="maxY" type="value">50</input>
+            <input as="x">empty</input>
+            <input as="y">empty</input>
+            <input as="z">empty</input>
+            <output as="x">xgrid</output>
+            <output as="y">ygrid</output>
+            <output as="z">zgrid</output>
+        </map>
+
+        <formula formula="0.04*([2_] + 0.5*([1_] % 2))-1" cycle="0">
+            <input keep="true">xgrid</input>
+            <input keep="true">ygrid</input>
+            <output>ygrid</output>
+        </formula>
+
+        <formula formula="0.866025404*(0.04*[1_]-1)" cycle="0">
+            <input>xgrid</input>
+            <output>xgrid</output>
+        </formula>
+
+        <append>
+            <input keep="true">ygrid</input>
+            <output append="true">ygrid</output>
+        </append>
+
+        <add>
+            <input keep="true">xgrid</input>
+            <input type="value">0.023094011</input> <!-- 0.04*1/sqrt(3) -->
+            <output append="true">xgrid</output>
+        </add>
+
+        <formula formula="cos([3]) * [1_] - sin([3]) * [2_]">
+            <input keep="true">xgrid</input>
+            <input keep="true">ygrid</input>
+            <input keep="true">yaw</input>
+            <output>xmoire</output>
+        </formula>
+
+        <formula formula="sin([3]) * [1_] + cos([3]) * [2_]">
+            <input keep="true">xgrid</input>
+            <input keep="true">ygrid</input>
+            <input keep="true">yaw</input>
+            <output>ymoire</output>
+        </formula>
+
+        <formula formula="([1]*57.295779513) % 360">
+            <input keep="true">yaw</input>
+            <output>angle</output>
+        </formula>
+    </analysis>
+</phyphox>

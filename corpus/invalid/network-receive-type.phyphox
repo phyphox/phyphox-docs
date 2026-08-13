@@ -1,0 +1,32 @@
+<phyphox version="1.9" locale="en">
+  <title>http-get</title>
+  <category>Net examples</category>
+  <icon>://</icon>
+  <description>Test for http/get.</description>
+  <data-containers>
+    <container size="1">frequency</container>
+    <container size="100">a</container>
+    <container size="100">t</container>
+  </data-containers>
+  <network>
+    <connection address="https://phyphox.org/get-example.php" autoConnect="true" service="http/get" id="test" privacy="https://phyphox.org/disclaimer/" conversion="json">
+        <send id="f" type="buffer">frequency</send>
+        <receive id="curve.t" type="buffer">t</receive>
+        <receive id="curve.a" type="buffer">a</receive>
+    </connection>
+  </network>
+  <views>
+    <view label="Test">
+      <edit label="Frequency" precision="2" unit="Hz" default="1">
+        <output>frequency</output>
+      </edit>
+      <button label="Request">
+        <trigger>test</trigger>
+      </button>
+      <graph label="Test Data" labelX="t (s)" labelY="a">
+        <input axis="x">t</input>
+        <input axis="y">a</input>
+      </graph>
+    </view>
+  </views>
+</phyphox>

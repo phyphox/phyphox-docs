@@ -1,0 +1,37 @@
+<phyphox version="1.8" locale="en">
+  <title>http-get</title>
+  <category>Net tests</category>
+  <icon>://</icon>
+  <description>Test for http/get.</description>
+  <data-containers>
+    <container size="1">accX</container>
+    <container size="0">x</container>
+    <container size="0">y</container>
+  </data-containers>
+  <network>
+    <connection address="https://phyphox.org/json-test.php" autoConnect="true" service="http/get" mode="trigger" id="test" privacy="https://phyphox.org/disclaimer/" conversion="json">
+        <send id="accx" type="buffer">accX</send>
+        <receive id="data.x" clear="true">x</receive>
+        <receive id="data.y" clear="true">y</receive>
+    </connection>
+  </network>
+  <input>
+    <sensor type="accelerometer">
+      <output component="x">accX</output>
+    </sensor>
+  </input>
+  <views>
+    <view label="Test">
+      <value label="Accelerometer x" size="2" precision="2" unit="m/s²">
+        <input>accX</input>
+      </value>
+      <button label="Submit">
+        <trigger>test</trigger>
+      </button>
+      <graph label="Test Data" labelX="x" labelY="y">
+        <input axis="x">x</input>
+        <input axis="y">y</input>
+      </graph>
+    </view>
+  </views>
+</phyphox>

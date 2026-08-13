@@ -1,0 +1,276 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.9" locale="en">
+    <title>GPS-Simple</title>
+    <category>Test</category>
+    <description>
+        Very simple version of "Walk The Graph", just showing the distance from the starting point.
+    </description>
+    <data-containers>
+        <container site="1">lat</container>
+        <container site="1">lon</container>
+        <container site="1">status</container>
+        <container site="1">startLat</container>
+        <container site="1">startLon</container>
+        <container site="1">accuracy</container>
+        <container site="1">tgps</container>
+        <container site="1">xnew</container>
+
+        <container size="0">xin</container>
+        <container size="0">tin</container>
+        <container site="1">tlast</container>
+        <container site="1">tinfirst</container>
+        <container site="1">newoffset</container>
+        <container site="1" init="-1000">offset</container>
+        <container size="0">tcorrected</container>
+        <container size="0">x</container>
+        <container size="0">t</container>
+        <container size="0">xshow</container>
+        <container size="0">tshow</container>
+
+        <container site="1" init="0.5">dt</container> <!-- Schrittweite für Glättung (kann normalerweise so bleiben) -->
+        
+        <container site="1" init="0" static="true">linear_start</container>
+        <container site="1" init="30" static="true">linear_stop</container>
+        <container size="0" static="true">linear_time</container>
+        <container size="0" static="true">linear</container>
+
+        <container site="1" init="0" static="true">sin_start</container>
+        <container site="1" init="120" static="true">sin_stop</container>
+        <container size="0" static="true">sin_time</container>
+        <container size="0" static="true">sin</container>
+
+        <container site="1" init="1">plotselect</container>
+        <container size="0">reference_plot_time</container>
+        <container size="0">reference_plot</container>
+
+        <container site="1">temp</container>
+    </data-containers>
+    <input>
+        <location>
+            <output component="lat">lat</output>
+            <output component="lon">lon</output>
+            <output component="t">tgps</output>
+            <output component="status">status</output>
+            <output component="accuracy">accuracy</output>
+        </location>
+    </input>
+    <analysis sleep="1">
+
+        <!-- Gerade -->
+
+        <formula formula="([2]-[1])/[3]+1">
+            <input clear="false">linear_start</input>
+            <input clear="false">linear_stop</input>
+            <input clear="false">dt</input>
+            <output>temp</output>
+        </formula>
+
+        <ramp>
+            <input as="start" clear="false">linear_start</input>
+            <input as="stop" clear="false">linear_stop</input>
+            <input as="length">temp</input>
+            <output>linear_time</output>
+        </ramp>
+
+        <formula formula="20*([1_]/30)">              <!-- Formel für die Vorgabekurve. Normalerweise muss nur diese Zeile geändert werden. Start und Stop weiter oben <data-containers> ändern. -->
+            <input clear="false">linear_time</input>
+            <output>linear</output>
+        </formula>
+
+        <!-- Sinus -->
+
+        <formula formula="([2]-[1])/[3]+1">
+            <input clear="false">sin_start</input>
+            <input clear="false">sin_stop</input>
+            <input clear="false">dt</input>
+            <output>temp</output>
+        </formula>
+
+        <ramp>
+            <input as="start" clear="false">sin_start</input>
+            <input as="stop" clear="false">sin_stop</input>
+            <input as="length">temp</input>
+            <output>sin_time</output>
+        </ramp>
+
+        <formula formula="20*(1-cos(2*3.14*[1_]/60))">  <!-- Formel für die Vorgabekurve. Normalerweise muss nur diese Zeile geändert werden. Start und Stop weiter oben <data-containers> ändern. -->
+            <input clear="false">sin_time</input>
+            <output>sin</output>
+        </formula>
+
+        <!-- Auswahl des Nutzers (linear, sinus, piecewise) übernehmen -->
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">1</input>
+            <input clear="false">linear</input>
+            <output clear="true">reference_plot</output>
+        </if>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">1</input>
+            <input clear="false">linear_time</input>
+            <output clear="true">reference_plot_time</output>
+        </if>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">2</input>
+            <input clear="false">sin</input>
+            <output clear="true">reference_plot</output>
+        </if>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">2</input>
+            <input clear="false">sin_time</input>
+            <output clear="true">reference_plot_time</output>
+        </if>
+
+        <!-- MESSWERTE -->
+
+        <!-- GPS -->
+
+        <formula formula="6371000*acos(sin(0.01745329252*[1])*sin(0.01745329252*[3])+cos(0.01745329252*[1])*cos(0.01745329252*[3])*cos(0.01745329252*([2]-[4])))">
+          <input clear="false">startLat</input>
+          <input clear="false">startLon</input>
+          <input clear="false">lat</input>
+          <input clear="false">lon</input>
+          <output clear="true">xnew</output>
+        </formula>
+
+        <match>
+            <input clear="false">xnew</input>
+            <input clear="false">tgps</input>
+            <output clear="false">xin</output>
+            <output clear="false">tin</output>
+        </match>
+
+        <!-- Ersten Wert auf Null setzen -->
+
+        <first>
+            <input clear="false">tin</input>
+            <output clear="false">tinfirst</output>           <!-- First timestamp of new data from Arduino. This is in units of the Arduino and will have an offset -->
+        </first>
+
+        <append>
+            <input type="value">-10</input>      <!-- Startzeit für den allerersten Datenpunkt -->
+            <input clear="false">t</input>
+            <output>tlast</output>              <!-- Last timestamp already stored or start value. This is in units of the x axis -->
+        </append>
+
+        <formula formula="[1]-[2]-0.05">
+            <input clear="false">tinfirst</input>
+            <input clear="false">tlast</input>
+            <output clear="true">newoffset</output>    <!-- Possible new offset to continue existing data if there is no valid offset -->
+        </formula>
+
+        <if less="true">
+            <input clear="false">offset</input>
+            <input type="value">-100</input>
+            <input clear="false">newoffset</input>      <!-- Set offset to newoffset if it is no longer valid -->
+            <output clear="false">offset</output>
+        </if>
+
+        <subtract>
+            <input clear="true">tin</input>
+            <input clear="false">offset</input>
+            <output clear="true">tcorrected</output>    <!-- Timestamps corresponding to xin data, aligned such that it continues any previous measurement. -->
+        </subtract>
+
+        <append>
+            <input clear="true">xin</input>
+            <output clear="false">x</output>            <!-- Append new data if it is still there... -->
+        </append>
+
+        <append>
+            <input clear="true">tcorrected</input>
+            <output clear="false">t</output>            <!-- Append new data if it is still there... -->
+        </append>
+
+        <!-- Fill some graphs with empty data to allow plotting if we do not yet have data -->
+
+
+        <append>
+            <input clear="false">t</input>
+            <output>tshow</output>
+        </append>
+
+        <append>
+            <input clear="false">x</input>
+            <output>xshow</output>
+        </append>
+
+        <count>
+            <input clear="false">tshow</input>
+            <output>temp</output>
+        </count>
+
+        <if less="true">
+            <input clear="false">temp</input>
+            <input type="value">1</input>
+            <input type="value">0</input>
+            <output clear="false">tshow</output>
+        </if>
+
+        <if less="true">
+            <input clear="false">temp</input>
+            <input type="value">1</input>
+            <input type="value">0</input>
+            <output clear="false">xshow</output>
+        </if>
+
+    </analysis>
+    <views>
+        <view label="Data">
+            <value label="Status">
+                <input>status</input>
+                <map max="-1">GPS disabled</map>
+                <map min="0">GPS active</map>
+            </value>
+            <value label="GPS Accuracy" site="1" precision="1" unit="m">
+                <input>accuracy</input>
+            </value>
+            <button label="Reset">
+                <input type="value">-1000</input>
+                <output>offset</output>
+                <input type="empty" />
+                <output>t</output>
+                <input type="empty" />
+                <output>x</output>
+                <input type="empty" />
+                <output>startLat</output>
+                <input type="empty" />
+                <output>startLon</output>
+            </button>
+            <button label="Start">
+                <input>lat</input>
+                <output>startLat</output>
+                <input>lon</input>
+                <output>startLon</output>
+            </button>
+            <graph label="x(t)" partialUpdate="false" labelX="t" labelY="s" unitX="s" unitY="m">
+                <input axis="x" style="dots" color="white">tshow</input>
+                <input axis="y">xshow</input>
+                <input axis="x" color="green">reference_plot_time</input>
+                <input axis="y">reference_plot</input>
+            </graph>
+        </view>
+        <view label="Selection">
+            <button label="Linear">
+                <input type="value">1</input>
+                <output>plotselect</output>
+            </button>
+            <button label="Sine">
+                <input type="value">2</input>
+                <output>plotselect</output>
+            </button>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="t">tshow</data>
+            <data name="s">xshow</data>
+        </set>
+    </export>
+</phyphox>

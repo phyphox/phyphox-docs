@@ -71,6 +71,8 @@ def main():
              "# a systematic value sweep, a container form).",
              ""]
     for rel, root in sorted(usage(CORPUS)):
+        if rel.startswith("invalid" + os.sep):
+            continue     # documented in invalid/expected.yml, not here
         p, a = constructs(root)
         adds = sorted(f"{parent}>{el}" for parent, el in p - base_pairs) + \
                sorted(f"{el}@{attr}" for el, attr in a - base_attrs)

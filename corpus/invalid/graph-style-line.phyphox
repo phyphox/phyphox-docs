@@ -1,0 +1,125 @@
+<phyphox version="1.4" locale="en">
+    <title>Beleuchtungswinkel</title>
+    <category>Fortbildung</category>
+    <description>
+        Winkelabhängige Beleuchtungsstärke
+    </description>
+    <data-containers>
+        <container size="1">accX</container>
+        <container size="1">accX2</container>
+        <container size="1">accY</container>
+        <container size="1">accY2</container>
+        <container size="1">accZ</container>
+        <container size="1">accXY</container>
+        <container size="1">accXY2</container>
+        <container size="1">accT</container>
+        <container size="0">angle</container>
+        <container size="0">anglePlane</container>
+        <container size="0">t</container>
+        <container size="1">last_illum</container>
+        <container size="0">illum</container>
+        <container size="1" init="0">countT</container>
+        <container size="1" init="0">countIllum</container>
+    </data-containers>
+    <input>
+        <sensor type="accelerometer" rate="2" average="true">
+            <output component="x">accX</output>
+            <output component="y">accY</output>
+            <output component="z">accZ</output>
+            <output component="t">accT</output>
+        </sensor>
+
+        <sensor type="light">
+            <output component="x">last_illum</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="Angle">
+            <graph label="Winkelabhängigkeit" labelX="Neigung (°)" labelY="Ev (lx)" partialUpdate="false" style="dots">
+                <input axis="x">angle</input>
+                <input axis="y">illum</input>
+            </graph>
+            <separator height="1" />
+            <value label="Inclination" size="2" precision="2" scientific="false" unit="°" factor="1">
+                <input>angle</input>
+            </value>
+            <value label="Beleuchtungsstärke" size="2" precision="0" scientific="false" unit="lx" factor="1">
+                <input>illum</input>
+            </value>
+        </view>
+        <view label="Time">
+            <graph label="Neigung" labelX="t (s)" labelY="Neigung (°)" partialUpdate="true" style="line">
+                <input axis="x">t</input>
+                <input axis="y">angle</input>
+            </graph>
+            <value label="Neigung" size="2" precision="2" scientific="false" unit="°" factor="1">
+                <input>angle</input>
+            </value>
+            <separator height="1" />
+            <graph label="Beleuchtungsstärke" labelX="t (s)" labelY="Ev (lx)" partialUpdate="true" style="line">
+                <input axis="x">t</input>
+                <input axis="y">illum</input>
+            </graph>
+            <value label="Beleuchtungsstärke" size="2" precision="0" scientific="false" unit="lx" factor="1">
+                <input>illum</input>
+            </value>
+        </view>
+    </views>
+    <analysis>
+        <multiply>
+            <input clear="false">accX</input>
+            <input clear="false">accX</input>
+            <output clear="true">accX2</output>
+        </multiply>
+        <multiply>
+            <input clear="false">accY</input>
+            <input clear="false">accY</input>
+            <output clear="true">accY2</output>
+        </multiply>
+        <atan2 deg="true">
+            <input clear="true">accX</input>
+            <input clear="true">accY</input>
+            <output clear="false">anglePlane</output>
+        </atan2>
+        <add>
+            <input clear="true">accX2</input>
+            <input clear="true">accY2</input>
+            <output clear="true">accXY2</output>
+        </add>
+        <power>
+            <input as="base" clear="true">accXY2</input>
+            <input as="exponent" type="value">0.5</input>
+            <output clear="true">accXY</output>
+        </power>
+        <atan2 deg="true">
+            <input clear="true">accXY</input>
+            <input clear="true">accZ</input>
+            <output clear="false">angle</output>
+        </atan2>
+        <append>
+            <input clear="true">accT</input>
+            <output clear="false">t</output>
+        </append>
+        <count>
+            <input clear="false">t</input>
+            <output clear="false">countT</output>
+        </count>
+        <count>
+            <input clear="false">illum</input>
+            <output clear="false">countIllum</output>
+        </count>
+        <if less="true">
+            <input clear="false">countIllum</input>
+            <input clear="false">countT</input>
+            <input clear="false">last_illum</input>
+            <output clear="false">illum</output>
+        </if>
+    </analysis>
+    <export>
+        <set name="Inclination">
+            <data name="t (s)">t</data>
+            <data name="Angle (deg)">angle</data>
+            <data name="Illumination (lx)">illum</data>
+        </set>
+    </export>
+</phyphox>

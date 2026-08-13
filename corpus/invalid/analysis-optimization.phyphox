@@ -1,0 +1,79 @@
+<phyphox version="1.7">
+    <title>Luftballon</title>
+    <category>PocketLab Voyager</category>
+    <description>Simple readings from the rangefinder of a PocketLab Voyager.</description>
+    <data-containers>
+        <container size="0">dRaw</container>
+        <container size="0">dCal</container>
+        <container size="0">pRaw</container>
+        <container size="0">pCal</container>
+        <container size="0">t</container>
+        <container size="0">p</container>
+        <container size="1">count</container>
+        <container size="1">tmax</container>
+    </data-containers>
+    <input>
+        <bluetooth name="PL Voyager" mode="notification">
+            <config char="F000AA12-0452-4000-B000-000000000000" conversion="hexadecimal">0132</config>
+            <output char="F000AA13-0452-4000-B000-000000000000" conversion="int16BigEndian">dRaw</output>
+            <config char="F000AA16-0452-4000-B000-000000000000" conversion="hexadecimal">0132</config>
+            <output char="F000AA17-0452-4000-B000-000000000000" conversion="int24BigEndian">pRaw</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Ballon">
+            <value label="Durchmesser" unit="m">
+                <input>dCal</input>
+            </value>
+            <value label="Druck" unit="hPa">
+                <input>pCal</input>
+            </value>
+            <graph label="Druck gegen Durchmesser" labelX="d" unitX="cm" yPrecision="6" labelY="p" unitY="hPa">
+                <input axis="x">dCal</input>
+                <input axis="y">pCal</input>
+            </graph>
+        </view>
+        <view label="Zeit">
+            <graph label="Pressure" labelX="t" unitX="s" labelY="p" unitY="hPa" partialUpdate="true">
+                <input axis="x">t</input>
+                <input axis="y">pCal</input>
+            </graph>
+            <graph label="Rangefinder" labelX="t" unitX="s" labelY="distance" unitY="cm" minY="0" maxY="230" scaleMinY="fixed" scaleMaxY="fixed" partialUpdate="true">
+                <input axis="x">t</input>
+                <input axis="y">dCal</input>
+            </graph>
+        </view>
+    </views>
+    <analysis optimization="true">
+        <multiply>
+            <input clear="false">dRaw</input>
+            <input type="value">0.1</input> <!-- 2.3 / 0x1ffe -->
+            <output clear="true">dCal</output>
+        </multiply>
+        <count>
+            <input clear="false">dRaw</input>
+            <output>count</output>
+        </count>
+        <formula formula="([1]-1)*0.02">
+            <input clear="false">count</input>
+            <output>tmax</output>
+        </formula>
+        <formula formula="1850-[1_]*0.000175"> <!-- Estimate -->
+            <input clear="false">pRaw</input>
+            <output>pCal</output>
+        </formula>
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop">tmax</input>
+            <input as="length">count</input>
+            <output>t</output>
+        </ramp>
+    </analysis>
+    <export>
+        <set name="Rangefinder">
+            <data name="Time (s)">t</data>
+            <data name="Distance (cm)">dCal</data>
+            <data name="Pressure (hPa)">pCal</data>
+        </set>
+    </export>
+</phyphox>
