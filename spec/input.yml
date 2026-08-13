@@ -141,7 +141,7 @@ elements:
             the requested rate, the strategy automatically
             switches to generate, delivering the data points
             exactly at the desired rate. This strategy prevents
-            duplicate data points as both strategies cannot be
+            duplicate data points as neither strategy can be
             faster than what the sensor provides, and it picks the
             ideal method to get close to the target rate. However,
             in cases when it has to switch to generate it is
@@ -355,8 +355,8 @@ elements:
     attributes:
       - name: rate
         description: >-
-          The recording rate in Hz. The default of 48 kHz is not
-          recommended to change if the experiment targets a wide
+          The recording rate in Hz. Changing the default of 48 kHz
+          is not recommended if the experiment targets a wide
           audience, since supported recording rates are very device
           specific. The rate you set is not guaranteed either - read
           the actual rate from the rate output and use that for any

@@ -9,11 +9,11 @@
     if you want control over details the editor does not expose — or if you
     simply prefer a text editor.
 
-This page is highly technical and meant for advanced users who want to control every minute detail of their experiment. On this page you will learn, how the phyphox file format works and how to create a phyphox experiment - all you need is a text editor. Some experience about the XML format is recommended.
+This page is highly technical and meant for advanced users who want to control every minute detail of their experiment. On this page you will learn how the phyphox file format works and how to create a phyphox experiment - all you need is a text editor. Some experience with the XML format is recommended.
 
 ## Structure
 
-The phyphox format is based on xml. The entire experiment is encapsulated within a *phyphox* root tag. Within this block, there are multiple blocks which allow to define data-containers, inputs, outputs, translations, analysis etc.
+The phyphox format is based on XML. The entire experiment is encapsulated within a *phyphox* root tag. Within this block, there are multiple blocks which define data-containers, inputs, outputs, translations, analysis etc.
 
 ```xml
 <phyphox version="1.0">
@@ -93,19 +93,19 @@ Color can be defined as a 6-digit hex value or as one of the named [Colors](colo
 
 **Tag: description**
 
-A description of the experiment. The first line should be a very short information of what the experiment does as this line will be shown in the experiment list. Any white spaces at the beginning and end of DESCRIPTION as well as in each line will be stripped.
+A description of the experiment. The first line should be a very short summary of what the experiment does as this line will be shown in the experiment list. Any whitespace at the beginning and end of the description as well as in each line will be stripped.
 
 {{spec:root/phyphox/description}}
 
 **Tag: link**
 
-A link-Tag defines a link to some resource on the web. You may have multiple link tags in your phyphox file and they will be listed as a button each under the experiment description. When the user pushes the button, he will be redirected to the URL (usually in a web browser, but it might be a specific app for a specific URL - for example Youtube links usually open in the Youtube-App in Android).
+A link tag defines a link to some resource on the web. You may have multiple link tags in your phyphox file and each will be listed as a button under the experiment description. When the user pushes the button, they will be redirected to the URL (usually in a web browser, but it might be a specific app for a specific URL - for example, YouTube links usually open in the YouTube app on Android).
 
 {{spec:root/phyphox/link}}
 
 ## Block: translations
 
-The translations block may hold one or more *translation* (note: singular) blocks, describing the translations of strings shown to the user. Any string outside the translations block is considered to be in English and then translated to other languages from within the translations block, unless a different global language has been defined in the tag of the phyphox-block or if English appears explicitly as a translation block. If English is used in a translation block and no language has been defined in the phyphox-block, the text outside the translation block should be treated as a placeholder.
+The translations block may hold one or more *translation* (note: singular) blocks, describing the translations of strings shown to the user. Any string outside the translations block is considered to be in English and then translated to other languages from within the translations block, unless a different global language has been defined in the tag of the phyphox-block or English appears explicitly as a translation block. If English is used in a translation block and no language has been defined in the phyphox-block, the text outside the translation block should be treated as a placeholder.
 
 ```xml
 <phyphox version="1.0">
@@ -156,7 +156,7 @@ Localized version of the description tag in the phyphox-block (see above). If th
 
 **Tag: link**
 
-This is the localized version of the link-Tag. For example, if you link to a Demo video in English with
+This is the localized version of the link tag. For example, if you link to a Demo video in English with
 
 ```xml
 <link label="Demo">http://site.org/my/english/video</link>
@@ -178,7 +178,7 @@ Use the string-tag to translate any string shown to the user besides the title, 
 
 ## Block: data-containers
 
-In data-containers all buffers are defined. Any input (sensors, microphone) write to these buffers, any analysis module performs its operations on these buffers, the output modules read from these buffers and the results are shown to the user from these buffers. The buffers connect every module of the experiment.
+In data-containers all buffers are defined. Any input (sensors, microphone) writes to these buffers, any analysis module performs its operations on these buffers, the output modules read from these buffers and the results are shown to the user from these buffers. The buffers connect every module of the experiment.
 
 ```xml
 <phyphox version="1.0">
@@ -250,7 +250,7 @@ The views block describes the different layout groups (views) from which the use
 
 ## Block: export
 
-The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. The user may choose from these sets and for example select if he wants only the raw data, the analysis results or everything in his exported file.
+The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. The user may choose from these sets and for example select whether they want only the raw data, the analysis results or everything in their exported file.
 
 ```xml
 <phyphox version="1.0">
@@ -273,7 +273,7 @@ The export block may hold one or more *set* blocks, grouping and naming multiple
 
 ### Block: set
 
-The set block will define a group of data-containers to be exported. The attribute *name* will be shown to the user as he may pick which of the sets should be exported. Also these sets may be represented in the final file. For example a CSV export results in a ZIP file containing a separate CSV files for each set. In another example a Excel export will contain a separate sheet for each set.
+The set block will define a group of data-containers to be exported. The attribute *name* will be shown to the user when they pick which of the sets should be exported. These sets may also be represented in the final file. For example, a CSV export results in a ZIP file containing a separate CSV file for each set, and an Excel export will contain a separate sheet for each set.
 
 **Tag: data**
 
@@ -295,9 +295,9 @@ documented on a [separate page](network-connections.md), covering:
 
 ## Block: events
 
-The events block was introduced with file format 1.12 (phyphox version 1.1.8) as a temporary solution to store event and time reference data. It will be supported in the future to allow for reading old experiment state files, but at the time of this writing, there will be no specific use for this feature once the experiment state is stored in a form that separates measured data (and events) from the phyphox-configuration file.
+The events block was introduced with file format 1.12 (phyphox version 1.1.8) as a temporary solution to store event and time reference data. It will remain supported in the future to allow reading old experiment state files, but there will be no specific use for this feature once the experiment state is stored in a form that separates measured data (and events) from the phyphox configuration file.
 
-The events block contains a list of event-block with tags corresponding to any known event, which are currently *start* and *pause*. Each event needs to have an attribute *experimentTime* and an attribute *systemTime* giving the experiment time (seconds since first start, ignoring pauses) and the system time (milliseconds since 1970) of the event.
+The events block contains a list of event blocks with tags corresponding to any known event, which are currently *start* and *pause*. Each event needs to have an attribute *experimentTime* and an attribute *systemTime* giving the experiment time (seconds since first start, ignoring pauses) and the system time (milliseconds since 1970) of the event.
 
 ```xml
 <phyphox version="1.0">

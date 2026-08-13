@@ -106,9 +106,9 @@ elements:
       - name: align
         description: >-
           Can be set to left (default), center or right. The
-          alignment of the text. (Note, that phyphox does not yet
+          alignment of the text. (Note that phyphox does not yet
           support RTL languages, but this attribute is designed to
-          be reverse in such cases.)
+          be reversed in such cases.)
         since: "1.8"
         type: enum
         values: [left, right, center]
@@ -119,7 +119,7 @@ elements:
       - name: bold
         description: >-
           If set to true, the text will be displayed using a bold
-          font. (We cannot guarantee, that the combination of bold
+          font. (We cannot guarantee that the combination of bold
           and italic is available on every device.)
         since: "1.8"
         type: boolean
@@ -129,7 +129,7 @@ elements:
       - name: italic
         description: >-
           If set to true, the text will be displayed using an italic
-          font. (We cannot guarantee, that the combination of bold
+          font. (We cannot guarantee that the combination of bold
           and italic is available on every device.)
         since: "1.8"
         type: boolean
@@ -235,8 +235,8 @@ elements:
         description: >-
           A factor to be applied to the value before displaying it.
           This is usually used for unit conversion. Example: The
-          data is in meter, but should be displayed in cm. The
-          factor would be 0.01
+          data is in meters, but should be displayed in cm. The
+          factor would be 100
         type: float
         default: 1.0
         summary: The value is multiplied by this before display.
@@ -391,7 +391,7 @@ elements:
         agreement: agreed
       - name: unitYperX
         description: >-
-          An explicit unit for slopes, if not set, phyphox will use
+          An explicit unit for slopes. If not set, phyphox will use
           "unitY / unitX".
         since: "1.10"
         type: string
@@ -402,7 +402,7 @@ elements:
         description: >-
           If set to true, the x data needs to be time data in
           seconds relative to the first start of the experiment.
-          This allows to mark start/pause events and to switch to a
+          This allows marking start/pause events and switching to a
           system time scale (i.e. absolute date and time) on the x
           axis.
         since: "1.12"
@@ -414,7 +414,7 @@ elements:
         description: >-
           If set to true, the y data needs to be time data in
           seconds relative to the first start of the experiment.
-          This allows to mark start/pause events and to switch to a
+          This allows marking start/pause events and switching to a
           system time scale (i.e. absolute date and time) on the y
           axis.
         since: "1.12"
@@ -436,7 +436,7 @@ elements:
           If set to true, the time on each axis is interpreted as
           "linear" time, which is identical to "experiment" time
           with the difference that the time stamp increases even
-          when phyphox is paused. This especially allows to plot
+          when phyphox is paused. This especially allows plotting
           data from external sources that have their own internal
           clock. In these cases you can use the timer module to get
           a reference time to shift data from an external clock
@@ -500,7 +500,7 @@ elements:
       - name: history
         description: >-
           **Deprecation warning**: This feature has been marked as
-          depricated and will be removed soon. Please implement it
+          deprecated and will be removed soon. Please implement it
           in phyphox analysis logic by using additional
           data-containers and copying the shown graph into these on
           each update. This has several advantages like being able
@@ -549,7 +549,7 @@ elements:
         agreement: agreed
       - name: logZ
         description: >-
-          If set to true, the x axis will be on a logarithmic scale
+          If set to true, the z axis will be on a logarithmic scale
         type: boolean
         default: false
         summary: Logarithmic z axis.
@@ -607,7 +607,7 @@ elements:
         description: >-
           Method to scale the maximum of the x axis. auto always
           scales this value to the maximum of the data set. extend
-          scales to the historic maximum. fixed sets the minimum to
+          scales to the historic maximum. fixed sets the maximum to
           maxX.
         type: enum
         values: [auto, extend, fixed]
@@ -631,7 +631,7 @@ elements:
         description: >-
           Method to scale the maximum of the y axis. auto always
           scales this value to the maximum of the data set. extend
-          scales to the historic maximum. fixed sets the minimum to
+          scales to the historic maximum. fixed sets the maximum to
           maxY.
         type: enum
         values: [auto, extend, fixed]
@@ -655,7 +655,7 @@ elements:
         description: >-
           Method to scale the maximum of the z axis. auto always
           scales this value to the maximum of the data set. extend
-          scales to the historic maximum. fixed sets the minimum to
+          scales to the historic maximum. fixed sets the maximum to
           maxZ.
         type: enum
         values: [auto, extend, fixed]
@@ -793,11 +793,11 @@ elements:
       - name: interpolateMapColors
         description: >-
           Interpolate area between data points. If disabled, phyphox
-          expects the datapoints to be aligned on an even spaced
+          expects the datapoints to be aligned on an evenly spaced
           rectangular grid and will show each datapoint as a
           rectangular "pixel" centered on the data point's x/y
           coordinate. Default behavior is to assign colors to the
-          data point coordinates and interpolate colors inbetween.
+          data point coordinates and interpolate colors in between.
         type: boolean
         default: true
         summary: >-
@@ -808,7 +808,7 @@ elements:
         agreement: agreed
       - name: pickLabel
         description: >-
-          Rename the "Pick data" button to show to the user the
+          Rename the "Pick data" button to show the user the
           purpose of the data picker (see data picker feature
           below).
         type: string
@@ -944,11 +944,13 @@ elements:
         description: >-
           A factor to be applied to the value before displaying it.
           This is usually used for unit conversion. Example: The
-          data is in meter, but should be displayed in cm. The
-          factor would be 0.01
+          data is in meters, but should be displayed in cm. The
+          factor would be 100
         type: float
         default: 1.0
-        summary: The entered value is multiplied by this before being stored.
+        summary: >-
+          The buffer value is multiplied by this for display; an entered
+          value is divided by it before being stored.
         agreement: agreed
       - name: default
         description: >-
@@ -1135,7 +1137,7 @@ elements:
         agreement: agreed
       - name: stepSize
         description: >-
-          Determines the minimum distance between to values that can
+          Determines the minimum distance between two values that can
           be selected with the slider. This is always relative to
           minValue, so a stepSize of 0.2 and a minValue of 0.1 will
           force the user to pick 0.1, 0.3, 0.5, etc.
@@ -1155,7 +1157,7 @@ elements:
       - name: precision
         description: >-
           The number of decimal places shown in the field with the
-          current vlaue
+          current value
         type: integer
         default: 2
         summary: Digits shown for the current value.

@@ -10,13 +10,13 @@
 
 While the [remote interface](http://phyphox.org/remote-control/) of phyphox is a very powerful tool, you might be interested in communicating and controlling phyphox directly using your own software. The web page called by your browser when using the default remote interface is mostly based on some (not too complex) Javascript code. This code does a range of AJAX requests and receives responses in a JSON format, which are documented on this page. So, when the remote access feature is enabled, phyphox can be controlled through a REST API.
 
-In principle, with this information, you could embed phyphox into many other projects. For example, you could write an interface to perform measurements including more than one phones with phyphox or you could include phyphox into a more capable measurement software (LabView, Labber, Matlab) or control phyphox alongside other lab equipment like programmable voltage sources or power supplies of electro magnets.
+In principle, with this information, you could embed phyphox into many other projects. For example, you could write an interface to perform measurements including more than one phone with phyphox, or you could include phyphox in more capable measurement software (LabView, Labber, Matlab) or control phyphox alongside other lab equipment like programmable voltage sources or power supplies of electromagnets.
 
-Here is a little example on how to use this interface to control musical instruments: <https://www.youtube.com/watch?v=sFx9zZKe4E4>
+Here is a little example of how to use this interface to control musical instruments: <https://www.youtube.com/watch?v=sFx9zZKe4E4>
 
 The [Python script](https://phyphox.org/phyphox-files/phyphox2midi.py) from this video is a quick solution specific for the MIDI interface of musical experiments, but it may be useful as a starting point for other projects.
 
-As the interface is designed around a webserver running on the phone, all functions are available as documents below the devices URL. So, this documentation will list all these documents from the document root. For example "/get" can be called as <http://192.168.0.42:8080/get> (if the phone's IP is 192.168.0.42 and the server is running on port 8080. On iPhones, the server runs in port 80, so for http the port can usually be omitted.)
+As the interface is designed around a webserver running on the phone, all functions are available as documents below the device's URL. So, this documentation will list all these documents from the document root. For example "/get" can be called as <http://192.168.0.42:8080/get> (if the phone's IP is 192.168.0.42 and the server is running on port 8080. On iPhones, the server runs on port 80, so for http the port can usually be omitted.)
 
 Also, if you are developing a Java application, you might want to check out this [Java interface](https://github.com/tfassbender/phyphox_java_interface) created by Tobias Faßbender, FH Aachen.
 
@@ -24,7 +24,7 @@ Also, if you are developing a Java application, you might want to check out this
 
 ### /, /style.css and /logo
 
-These documents are not relevant for controlling phyphox with your own code. They make up the webpage that is the default remote interface. The document root itself serves an html file with the Javascript of the interface, while style.css and logo serve the Style Sheet and an image file of the phyphox logo.
+These documents are not relevant for controlling phyphox with your own code. They make up the webpage that is the default remote interface. The document root itself serves an HTML file with the Javascript of the interface, while style.css and logo serve the style sheet and an image file of the phyphox logo.
 
 ### /get
 
@@ -34,19 +34,19 @@ A call to get retrieves the measured data as well as the current status of phyph
 {"buffer": {...}, "status": {...}}
 ```
 
-Both, "buffer" and "status" again are JSON objects, containing buffer data and the app status respectively. The contents of "buffer" depend on the buffer that you request as parameters to /get. For example, you can request the buffers "abc" and "def" using the request "/get?abc&def". This request, however, will only return the last value in each buffer. To receive more values, you have to specify to either retrieve the full buffer or all values beyond a certain threshold: "/get?abc=full&def=42" will return all values of buffer "abc", but only the remaining values from buffer "def" after the first value exceeding 42.
+Both "buffer" and "status" are again JSON objects, containing buffer data and the app status respectively. The contents of "buffer" depend on the buffers that you request as parameters to /get. For example, you can request the buffers "abc" and "def" using the request "/get?abc&def". This request, however, will only return the last value in each buffer. To receive more values, you have to specify whether to retrieve the full buffer or all values beyond a certain threshold: "/get?abc=full&def=42" will return all values of buffer "abc", but only the remaining values from buffer "def" after the first value exceeding 42.
 
-Retrieving the full buffer is straight forward, but can be quite inefficient. Instead using the threshold can save a lot of bandwidth if you only need to retrieve new data from a monotonic reference. A typical example is a time axis - you have already received data from a sensor every second as pairs of (time\|value): (1,7), (2,-1), (3,4) As you know, that "time" will always increase monotonic. So from buffer "time", you only need to request anything after the value 3: "/get?t=3". Buffer "value" is slightly more complicated as it might have any value, but you know that you only need those values at the same index as the values of "time" larger than 3. So, when giving a threshold to a buffer in the get-request, you can add a specific reference buffer: "/get?time=3&value=3\|time". If the threshold value does not belong to the requested buffer itself, you have to provide it after the threshold with the symbol "\|".
+Retrieving the full buffer is straightforward, but can be quite inefficient. Instead, using the threshold can save a lot of bandwidth if you only need to retrieve new data from a monotonic reference. A typical example is a time axis - you have already received data from a sensor every second as pairs of (time\|value): (1,7), (2,-1), (3,4). You know that "time" will always increase monotonically. So from buffer "time", you only need to request anything after the value 3: "/get?t=3". Buffer "value" is slightly more complicated as it might have any value, but you know that you only need those values at the same index as the values of "time" larger than 3. So, when giving a threshold to a buffer in the get-request, you can add a specific reference buffer: "/get?time=3&value=3\|time". If the threshold value does not belong to the requested buffer itself, you have to provide it after the threshold with the symbol "\|".
 
 **Warning: Although this documentation uses a plain "\|", you should make sure that whatever you use to make the request properly encodes it to create a valid URL. If you need to encode it manually, you need to use "%7C" instead.**
 
-This is necessary as values are not explicitly paired in phyphox experiment. It may be absolutely valid, that you need a subset from the "time" buffer, and the full "value" buffer, which might be unrelated. So, a last example:
+This is necessary as values are not explicitly paired in a phyphox experiment. It may be absolutely valid that you need a subset from the "time" buffer, and the full "value" buffer, which might be unrelated. So, a last example:
 
 ```
 /get?abc&def=full&ghi=42&jkl=23|mno
 ```
 
-This request will return the last value of "abc", all values from "def", the values from "ghi" occuring after the first value above 42 and all values from "jkl" ocurring after the first index at which the value in buffer "mno" is larger than 23. Note, that "mno" itself is not requested.
+This request will return the last value of "abc", all values from "def", the values from "ghi" occurring after the first value above 42 and all values from "jkl" occurring after the first index at which the value in buffer "mno" is larger than 23. Note that "mno" itself is not requested.
 
 The "buffer" JSON object in the response looks like this:
 
@@ -71,7 +71,7 @@ The "status" JSON object contains four values:
 
 ### /control
 
-The document "control" is used to send commands to phyphox to start and stop the experiment. It will always respond with a simple confirmation object {"result": true} if successfull or {"result": false} if something went wrong.
+The document "control" is used to send commands to phyphox to start and stop the experiment. It will always respond with a simple confirmation object {"result": true} if successful or {"result": false} if something went wrong.
 
 Currently, there are four commands available:
 
@@ -79,7 +79,7 @@ Currently, there are four commands available:
 
 /control?cmd=stop stops the experiment
 
-/control?cmd=clear clears all buffer (and stops the experiment if running)
+/control?cmd=clear clears all buffers (and stops the experiment if running)
 
 /control?cmd=set&buffer=abc&value=42 Writes the value 42 into the buffer abc (typically used for edit fields)
 
@@ -94,7 +94,7 @@ When requesting "export", you are effectively triggering the export function of 
 "config" does not take any parameters and returns a JSON structure with information on the current experiment configuration, including the following details:
 
 crc32
-:   A hex repesentation of the CRC32 of the entire experiment configuration file, useful to precisely identify a specific configuration.
+:   A hex representation of the CRC32 of the entire experiment configuration file, useful to precisely identify a specific configuration.
 
 title
 :   Title of the experiment in its base language.
@@ -112,10 +112,10 @@ buffers
 :   An array of buffers in the experiment. Each entry provides the name (as usable in the /get command) and the size (defined size, not actual filled size) of each buffer. Note that there is no guarantee that they contain usable data. This will depend on the logic of the experiment as some buffers might only contain intermediate or temporary data. The *export* buffers (see below) are a much better indicator for good buffers to poll as they have been handpicked by the author of the configuration.
 
 inputs
-:   An array of inputs to the experiment. These include the microphone ("audio"), the sensors (named following the configuration naming scheme), GPS ("location") and Bluetooth. All inputs except for bluetooth will also provide information on which buffer is attached to which output. However, this will not assure that you can reliably access the data from this particular buffer as experiments might clear the buffer during analysis.
+:   An array of inputs to the experiment. These include the microphone ("audio"), the sensors (named following the configuration naming scheme), GPS ("location") and Bluetooth. All inputs except for bluetooth will also provide information on which buffer is attached to which output. However, this does not ensure that you can reliably access the data from this particular buffer as experiments might clear the buffer during analysis.
 
 export
-:   An array of export sets, which in turn contain combinations of labels and buffers. These are the buffers that have been chosen by the configuration author which should be included if the user exports the data. In properly designed experiments, these contain valid data.
+:   An array of export sets, which in turn contain combinations of labels and buffers. These are the buffers that have been chosen by the configuration author to be included if the user exports the data. In properly designed experiments, these contain valid data.
 
 ### /meta
 
@@ -129,9 +129,9 @@ export
 
 **Available since [version 1.1.8](../reference/version-history/1.1.8.md)**
 
-"time" does not take any parameters and returns a JSON structure with information helping to synchronize the data from this device to the real world using its system clock. The result is a simle JSON array with event objects representing events during experimentation, which at the moment are start and pause, when the user started or paused the experiment. Each event entry has the experiment time (seconds since first start of the experiment, ignoring pauses) and the system time (seconds since 1970) of the event, which allows to map the timestamp of sensor data (experiment time) to the real world.
+"time" does not take any parameters and returns a JSON structure with information helping to synchronize the data from this device to the real world using its system clock. The result is a simple JSON array with event objects representing events during experimentation, which at the moment are start and pause, when the user started or paused the experiment. Each event entry has the experiment time (seconds since first start of the experiment, ignoring pauses) and the system time (seconds since 1970) of the event, which allows mapping the timestamp of sensor data (experiment time) to the real world.
 
-Note, that the experiment time is based on the devices high resolution clock, which runs independently of the system clock. On each event phyphox reads both clocks right after each other to get a match that should be accurate to within few milliseconds. However, as both clocks run independently, they may diverge over time and especially if the system clock is updated, which is usually done automatically in the background by the operating system.
+Note that the experiment time is based on the device's high-resolution clock, which runs independently of the system clock. On each event phyphox reads both clocks right after each other to get a match that should be accurate to within a few milliseconds. However, as both clocks run independently, they may diverge over time, especially if the system clock is updated, which is usually done automatically in the background by the operating system.
 
 ### /res
 

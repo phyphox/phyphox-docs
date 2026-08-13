@@ -26,7 +26,7 @@ Calculates the inverse sine of a single input (in radians) element-wise and writ
 
 ## atan
 
-Calculates the inverse tangens of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the inverse tangent of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
 
 *deg*
 :   *attribute*, **Available since phyphox file format 1.2 (phyphox 1.0.3)**
@@ -38,7 +38,7 @@ Calculates the inverse tangens of a single input (in radians) element-wise and w
 
 ## atan2
 
-Calculates the two-argument variant of the inverse tangens (corresponding to atan(y/x), see [Wikipadia](https://en.wikipedia.org/wiki/Atan2) for an explanation) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the two-argument variant of the inverse tangent (corresponding to atan(y/x), see [Wikipedia](https://en.wikipedia.org/wiki/Atan2) for an explanation) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
 
 *deg*
 :   *attribute*, **Available since phyphox file format 1.2 (phyphox 1.0.3)**
@@ -86,7 +86,7 @@ Calculates the hyperbolic sine of a single input (in radians) element-wise and w
 
 ## tan
 
-Calculates the tangens of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the tangent of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
 
 *deg*
 :   *attribute*, **Available since phyphox file format 1.2 (phyphox 1.0.3)**
@@ -98,6 +98,6 @@ Calculates the tangens of a single input (in radians) element-wise and writes it
 
 ## tanh
 
-Calculates the hyperbolic tangens of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
+Calculates the hyperbolic tangent of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
 
 {{spec:analysis/analysis/tanh}}

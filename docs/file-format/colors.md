@@ -1,6 +1,6 @@
 # Colors
 
-When creating your own experiments, you can use arbitrary colors by a 6-digit hex code representing the byte values or red, green and blue (see [1](https://en.wikipedia.org/wiki/Web_colors#Hex_triplet) for details), with or without a leading hash "#".
+When creating your own experiments, you can use arbitrary colors specified by a 6-digit hex code representing the byte values of red, green and blue (see [1](https://en.wikipedia.org/wiki/Web_colors#Hex_triplet) for details), with or without a leading hash "#".
 
 These are the only two accepted forms: a color value that is neither a named color from the table below (names are matched case-insensitively) nor exactly six hex digits is an error, and the experiment will not load.
 
@@ -23,4 +23,4 @@ Alternatively, you can use the names of defined colors. Phyphox often uses orang
 | `weakyellow` | `e7e09b` | <span style="display:inline-block;width:3em;height:1em;vertical-align:middle;background:#e7e09b;border:1px solid rgba(128,128,128,.4)"></span> |
 | `weakwhite` | `c4c4c4` | <span style="display:inline-block;width:3em;height:1em;vertical-align:middle;background:#c4c4c4;border:1px solid rgba(128,128,128,.4)"></span> |
 
-The advantage of using these color (besides using intuitive names) is that phyphox can adapt them even for future functions. For example, a bright mode or an export function for printing is introduced, which requires colors to work on a bright (or even white) background. Yellow from the list above could automatically be replaced by a darker variation working well on the bright background.
+The advantage of using these colors (besides using intuitive names) is that phyphox can adapt them even for future functions. For example, if a bright mode or an export function for printing is introduced, which requires colors to work on a bright (or even white) background, yellow from the list above could automatically be replaced by a darker variation that works well on the bright background.

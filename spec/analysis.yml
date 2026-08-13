@@ -294,7 +294,7 @@ elements:
   - name: atan
     parent: analysis
     summary: >-
-      Calculates the inverse tangens of a single input (in radians) element-
+      Calculates the inverse tangent of a single input (in radians) element-
       wise and writes it to a single output buffer.
     children: [input, output]
     attributes:
@@ -318,9 +318,9 @@ elements:
   - name: atan2
     parent: analysis
     summary: >-
-      Calculates the two-argument variant of the inverse tangens
+      Calculates the two-argument variant of the inverse tangent
       (corresponding to atan(y/x), see
-      [Wikipadia](https://en.wikipedia.org/wiki/Atan2) for an ex
+      [Wikipedia](https://en.wikipedia.org/wiki/Atan2) for an explanation).
     children: [input, output]
     attributes:
       - name: deg
@@ -657,7 +657,7 @@ elements:
     since: "1.18"
     summary: >-
       This is a convenient and faster substitute for stopwatch
-      implementations like it is used in the acoustic stopwatch.
+      implementations like the one used in the acoustic stopwatch.
     children: [input, output]
     attributes:
       - name: mode
@@ -730,7 +730,7 @@ elements:
   - name: fft
     parent: analysis
     summary: >-
-      This module will perform a fast fourier transform of a complex input
+      This module will perform a fast Fourier transform of a complex input
       and will write the complex result to the output buffers.
     children: [input, output]
     attributes: []
@@ -804,12 +804,12 @@ elements:
   - name: gausssmooth
     parent: analysis
     summary: >-
-      This module will smooth the data provided from the only input.
+      This module will smooth the data provided by the only input.
     children: [input, output]
     attributes:
       - name: sigma
         description: >-
-          Width of the gaussian distribution used to smooth the
+          Width of the Gaussian distribution used to smooth the
           data, in terms of value indices.
         default: 3.0
         type: float
@@ -1258,7 +1258,7 @@ elements:
   - name: match
     parent: analysis
     summary: >-
-      This module takes multiple inputs and match valid values to the same
+      This module takes multiple inputs and matches valid values to the same
       number of outputs.
     children: [input, output]
     attributes: []
@@ -1359,7 +1359,7 @@ elements:
     parent: analysis
     since: "1.18"
     summary: >-
-      Take data as input and calculate the moving average of its items.
+      Takes data as input and calculates the moving average of its items.
     children: [input, output]
     attributes:
       - name: dropIncomplete
@@ -1497,7 +1497,7 @@ elements:
   - name: ramp
     parent: analysis
     summary: >-
-      This module will create a ramp of values, i.e.
+      This module will create a ramp of values, i.e. a linear range of values.
     children: [input, output]
     attributes: []
     inputs:
@@ -1528,7 +1528,7 @@ elements:
   - name: rangefilter
     parent: analysis
     summary: >-
-      This module takes multiple inputs and allows to set min and max limits
+      This module takes multiple inputs and allows setting min and max limits
       for each of them.
     children: [input, output]
     attributes: []
@@ -1624,7 +1624,7 @@ elements:
     parent: analysis
     since: "1.5"
     summary: >-
-      Round the values from the single input element-wise and writes the
+      Rounds the values from the single input element-wise and writes the
       results to a single output buffer.
     children: [input, output]
     attributes:
@@ -1828,7 +1828,7 @@ elements:
   - name: tan
     parent: analysis
     summary: >-
-      Calculates the tangens of a single input (in radians) element-wise and
+      Calculates the tangent of a single input (in radians) element-wise and
       writes it to a single output buffer.
     children: [input, output]
     attributes:
@@ -1852,7 +1852,7 @@ elements:
   - name: tanh
     parent: analysis
     summary: >-
-      Calculates the hyperbolic tangens of a single input (in radians)
+      Calculates the hyperbolic tangent of a single input (in radians)
       element-wise and writes it to a single output buffer.
     children: [input, output]
     attributes: []
@@ -1872,8 +1872,8 @@ elements:
   - name: threshold
     parent: analysis
     summary: >-
-      This module takes at least one input y and looks for position at which
-      the values cross a given threshold.
+      This module takes at least one input y and looks for the position at
+      which the values cross a given threshold.
     children: [input, output]
     attributes:
       - name: falling
@@ -1913,9 +1913,9 @@ elements:
   - name: timer
     parent: analysis
     summary: >-
-      Simple module which outputs the (fractional) seconds that have past
+      Simple module which outputs the (fractional) seconds that have passed
       since the experiment started (referred to as "experiment time") and
-      the current an
+      the current analysis run began.
     children: [output]
     attributes:
       - name: linearTime

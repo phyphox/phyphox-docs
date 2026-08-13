@@ -24,9 +24,9 @@ The audio tag defines audio as an output (i.e. a speaker). The audio waveform ca
 
 **noise** A **noise** block represents a generator for white noise. Its parameters **amplitude** and **duration** can either be fixed values (type="value") or a buffer (type="buffer", default) to control it dynamically. Only one *noise* block is supported.
 
-Playback is triggered after each analysis process and each source can have individual durations (in seconds) and amplitudes (float value with 0.0 being silent and 1.0 maximum amplitude without clipping). If loop is set to true, the playback will loop. The default playback rate is 48kHz, but can be changed using the *rate* attribute (in Hz). However, this is not recommended if the experiment targets a wide audience since supported playback rates are very device specific.
+Playback is triggered after each analysis process and each source can have individual durations (in seconds) and amplitudes (float value with 0.0 being silent and 1.0 maximum amplitude without clipping). If loop is set to true, the playback will loop. The default playback rate is 48kHz, but it can be changed using the *rate* attribute (in Hz). However, this is not recommended if the experiment targets a wide audience since supported playback rates are very device specific.
 
-Since **file format 1.20 (phyphox version 1.2.1)** the tone and noise generators support panning from left to right, mapped to values from -1 (left) to +1 (right) with 0 being center. Note that this does not compensate for amplitude or loudness, but instead a center tone will be played at full amplitude on both channels and a pan to the right will not change the amplitude on the right channel but reduce the one on the left (and vice versa). The direct source cannot be panned — it always plays centred on both channels.
+Since **file format 1.20 (phyphox version 1.2.1)** the tone and noise generators support panning from left to right, mapped to values from -1 (left) to +1 (right) with 0 being center. Note that this does not compensate for amplitude or loudness, but instead a center tone will be played at full amplitude on both channels and a pan to the right will not change the amplitude on the right channel but reduce the one on the left (and vice versa). The direct source cannot be panned — it always plays centered on both channels.
 
 A waveform composed from two tone generators and a noise generator, each driven by its own data containers:
 
@@ -77,7 +77,7 @@ The bluetooth block defines an output to a Bluetooth Low Energy device. Please r
 
 The flashlight tag defines the phone's flashlight (usually part of the camera group) as an output. If frequency and dutycycle are not set, you can simply control the brightness of the flashlight (including turning it off) via the **intensity** input. If **frequency** is set to a value above 0, the flashlight acts as a stroboscope with the given frequency. You can also change the duty cycle through the **dutycycle** input.
 
-Note, that most phones cannot switch the flash state faster than 25ms. High frequencies or duty cycles far from 0.5 will require faster changes and may not be reproduced correctly by the phone. Phyphox cannot measure how fast the flashlight reacts and the reaction time may even vary from switch event to switch event. So be careful to verify if it is working correctly if fast switches are required.
+Note that most phones cannot switch the flash state faster than 25ms. High frequencies or duty cycles far from 0.5 will require faster changes and may not be reproduced correctly by the phone. Phyphox cannot measure how fast the flashlight reacts and the reaction time may even vary from switch event to switch event. So be careful to verify that it is working correctly if fast switches are required.
 
 {{spec:output/output/flashlight}}
 

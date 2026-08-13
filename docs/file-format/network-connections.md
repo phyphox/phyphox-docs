@@ -1,16 +1,16 @@
 # Network Connections
 
-Since version 1.1.3 (December 2019) (file format 1.8), phyphox features a versatile interface for network connections. This is done on an experiment configuration level, so to use the network communication for your own project, you need create your own [experiment configuration](index.md). In it, you can then define, how network services should be discovered, when and which data should be sent, where to put received data and which protocols to use for the communication.
+Since version 1.1.3 (December 2019) (file format 1.8), phyphox features a versatile interface for network connections. This is done on an experiment configuration level, so to use the network communication for your own project, you need to create your own [experiment configuration](index.md). In it, you can then define how network services should be discovered, when and which data should be sent, where to put received data and which protocols to use for the communication.
 
-This network interface is designed to be easily extended, so while at the time of this writing not many services (protocols) are supported, you can expect more to come in the future and if you think something relevant is missing, let us know, so we can implement it.
+This network interface is designed to be easily extended, so while at the time of this writing not many services (protocols) are supported, you can expect more to come in the future, and if you think something relevant is missing, let us know so we can implement it.
 
-Note, that there is no network service provided by phyphox for your experiments. While we set up our own servers for project like our [sensor data base](https://phyphox.org/sensordb) using the interface described here, we can not offer a generic service. If you want to use these features, you need to set up your own server on the receiving end and you to know how to receive the data there (or know someone who knows this). Of course, we are happy to help you and give you insight into how we do this.
+Note that there is no network service provided by phyphox for your experiments. While we set up our own servers for projects like our [sensor database](https://phyphox.org/sensordb) using the interface described here, we cannot offer a generic service. If you want to use these features, you need to set up your own server on the receiving end and you need to know how to receive the data there (or know someone who knows this). Of course, we are happy to help you and give you insight into how we do this.
 
 ## General implementation and syntax
 
 ### How network connections work in phyphox
 
-A network connection can define phyphox buffers from which data should be sent to a network service and buffers that should receive data from the network service. The communication can either be triggered by the user through a button press or automatically at a defined interval. However, due to the nature of network communication, a response does not need to come immediately and data may even be received independent of a prior request, if the protocol allows this. For example, some protocols only receive updated data as a response to a request (HTTP) while others might subscribe to updates upon connection and receive new data at random times.
+A network connection can define phyphox buffers from which data should be sent to a network service and buffers that should receive data from the network service. The communication can either be triggered by the user through a button press or automatically at a defined interval. However, due to the nature of network communication, a response does not need to come immediately and data may even be received independently of a prior request if the protocol allows this. For example, some protocols only receive updated data as a response to a request (HTTP) while others might subscribe to updates upon connection and receive new data at random times.
 
 In any case, the sending part of the network communication is only triggered between analysis runs of phyphox and any received data is only written to the phyphox buffers in-between analysis runs as well.
 
@@ -23,7 +23,7 @@ When an experiment using the network interface is loaded by the user, phyphox wi
 - The submission of device information
 - The submission of technical information on the sensors, including a list of these sensors
 
-You need to provide a URL that points to a privacy policy that tells the user how his/her data will be handled.
+You need to provide a URL that points to a privacy policy that tells the user how their data will be handled.
 
 ### General syntax
 
@@ -41,10 +41,10 @@ The send and receive tags within the connection tag define which data should be 
 
 ### Metadata
 
-If type="meta" is set for a send-tag, the following identifiers may be used to select metadata to be send to the network service. Note, that device specific information is not available on all devices (especially not on Apple devices)
+If type="meta" is set for a send-tag, the following identifiers may be used to select metadata to be sent to the network service. Note that device-specific information is not available on all devices (especially not on Apple devices).
 
 uniqueID
-:   This is a md5 hash that is unique to the user and the address of the network service. It can be used to match subsequent submissions by a single user, but only as long as it was submitted to the same address. (You can not match users across different remote servers as different addresses!)
+:   This is an md5 hash that is unique to the user and the address of the network service. It can be used to match subsequent submissions by a single user, but only as long as it was submitted to the same address. (You cannot match users across different remote servers as different addresses!)
 
 version
 :   The version of phyphox
@@ -76,7 +76,7 @@ deviceCodename
 deviceRelease
 :   The version of the device
 
-Additionally, you can get detailed metadata on the sensors supported by phyphox. These are not available on Apple devices and on Android devices, their meaning and accuracy can vary.
+Additionally, you can get detailed metadata on the sensors supported by phyphox. These are not available on Apple devices, and on Android devices their meaning and accuracy can vary.
 
 \[sensor\]Name
 :   Usually the model of the sensor
@@ -115,7 +115,7 @@ depthFrontResolution
 :   Highest resolution of all front depth sensors (usually, there is only one sensor supporting one resolution)
 
 depthFrontRate
-:   Highest frame rate of all front depth sensors (usually, there is only one sensor supporting one rate, if not, this rate is not guaranteed to work with the resolution reported by depthFrontResolution)
+:   Highest frame rate of all front depth sensors (usually, there is only one sensor supporting one rate; if not, this rate is not guaranteed to work with the resolution reported by depthFrontResolution)
 
 depthBackSensor
 :   Number of depth sensors on the back of the device (typically 0 or 1)
@@ -124,13 +124,13 @@ depthBackResolution
 :   Highest resolution of all back depth sensors (usually, there is only one sensor supporting one resolution)
 
 depthBackRate
-:   Highest frame rate of all back depth sensors (usually, there is only one sensor supporting one rate, if not, this rate is not guaranteed to work with the resolution reported by depthBackResolution)
+:   Highest frame rate of all back depth sensors (usually, there is only one sensor supporting one rate; if not, this rate is not guaranteed to work with the resolution reported by depthBackResolution)
 
 camera2apiFull
-:   JSON object with information on the cameras exposed through Android's camera2 API. Be warned, this dataset can be massive and will include many details about the camera system. Still it is only what we implemented and does by far not include everything accessible via camera2.
+:   JSON object with information on the cameras exposed through Android's camera2 API. Be warned, this dataset can be massive and will include many details about the camera system. Still, it is only what we implemented and by no means includes everything accessible via camera2.
 
 camera2api
-:   Shorter version of camera2apiFull with selected general data about available cameras. Note that this is still significant larger than other metadata results.
+:   Shorter version of camera2apiFull with selected general data about available cameras. Note that this is still significantly larger than other metadata results.
 
 ## Network Services (Protocols)
 
@@ -140,7 +140,7 @@ Attribute service="http/get"
 
 Does not support array data
 
-The HTTP/GET service makes a http request to a webserver. The GET version will do a GET request and encode the submitted data in the request URL. It only supports the last value in each buffer. The response may occur delayed and this service will give up on a request after the default timeout time of the device.
+The HTTP/GET service makes an http request to a webserver. The GET version will do a GET request and encode the submitted data in the request URL. It only supports the last value in each buffer. The response may be delayed, and this service will give up on a request after the default timeout time of the device.
 
 #### Meaning of id
 
@@ -152,7 +152,7 @@ Attribute service="http/post"
 
 Supports array data
 
-The HTTP/POST service makes a http request to a webserver. The POST version will do a POST request and encode the submitted data as JSON. It will always encode the buffers as JSON arrays, even if they only contain a single value. Metadata is encoded as strings. The response may occur delayed and this service will give up on a request after the default timeout time of the device.
+The HTTP/POST service makes an http request to a webserver. The POST version will do a POST request and encode the submitted data as JSON. It will always encode the buffers as JSON arrays, even if they only contain a single value. Metadata is encoded as strings. The response may be delayed, and this service will give up on a request after the default timeout time of the device.
 
 Note for PHP users: Encoding POST data as JSON will not fill \$\_POST by default. Instead, you will need to do the following first:
 
@@ -165,7 +165,7 @@ Then, if you submitted <send id="abc">buffer</send> you can access an array with
 
 #### Meaning of id
 
-The ids of the send tags are used to label the JSON arrays and string within the JSON object. A buffer with id "abc" (<send id="abc">buffer</send>) and metadata with id "def" (<send id="def" type="meta">deviceBrand</send>) would be encoded as
+The ids of the send tags are used to label the JSON arrays and strings within the JSON object. A buffer with id "abc" (<send id="abc">buffer</send>) and metadata with id "def" (<send id="def" type="meta">deviceBrand</send>) would be encoded as
 
 ```json
 {
@@ -202,9 +202,9 @@ Attribute service="mqtt/csv"
 
 Supports array data
 
-The MQTT/CSV service connects to an MQTT broker at the given address and will send the data of "send" blocks there. Each entry of "send" will generate an individual message, using the ID as the MQTT topic. You may set a datatype for each send with "array" (default) sending a comma-separated list of all values in the buffer and "number" only sending the last value.
+The MQTT/CSV service connects to an MQTT broker at the given address and will send the data of "send" blocks there. Each entry of "send" will generate an individual message, using the ID as the MQTT topic. You may set a datatype for each send, with "array" (default) sending a comma-separated list of all values in the buffer and "number" only sending the last value.
 
-If a `receiveTopic` is set, it will subscribe to this topic (or set of topics if MQTT-typical wildcards are used) and will treat the payload of each received message as response (note that there is no mechanism to assign responses to requests - it is very likely that this received message was received before a message was sent).
+If a `receiveTopic` is set, it will subscribe to this topic (or set of topics if MQTT-typical wildcards are used) and will treat the payload of each received message as a response (note that there is no mechanism to assign responses to requests - it is very likely that this received message was received before a message was sent).
 
 If the broker requires authentication, set the optional `username` and `password` attributes (this applies to `mqtt/json` as well). Note that on a plain (non-TLS) connection these credentials travel unencrypted; use the mqtts services if that matters.
 
@@ -218,7 +218,7 @@ Example:
     </connection>
 ```
 
-In this setup, phyphox would connect to "some.service.com/your/endpoint:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" as a comma separated list to the topic "phone/pressure" and the last value from "h" to the topic "phone/altitude". Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
+In this setup, phyphox would connect to "some.service.com/your/endpoint:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" as a comma-separated list to the topic "phone/pressure" and the last value from "h" to the topic "phone/altitude". Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
 
 ### MQTT/JSON
 
@@ -228,9 +228,9 @@ Attribute service="mqtt/json"
 
 Supports array data
 
-The MQTT/JSON service connects to an MQTT broker at the given address and will send the data of "send" blocks there. All entries of "send" will be combined into a single JSON object using their resective ID (also see "HTTP/POST"). The JSON string will be send to the MQTT topic set as sendTopic. You may set a datatype for each send with "array" (default) sending a JSON Array of all values in the buffer and "number" only sending the last value as individual number.
+The MQTT/JSON service connects to an MQTT broker at the given address and will send the data of "send" blocks there. All entries of "send" will be combined into a single JSON object using their respective ID (also see "HTTP/POST"). The JSON string will be sent to the MQTT topic set as sendTopic. You may set a datatype for each send, with "array" (default) sending a JSON Array of all values in the buffer and "number" only sending the last value as an individual number.
 
-If a `receiveTopic` is set, it will subscribe to this topic (or set of topics if MQTT-typical wildcards are used) and will treat the payload of the all received message as response (note that there is no mechanism to assign responses to requests - it is very likely that this received message was received before a message was sent).
+If a `receiveTopic` is set, it will subscribe to this topic (or set of topics if MQTT-typical wildcards are used) and will treat the payload of each received message as a response (note that there is no mechanism to assign responses to requests - it is very likely that this received message was received before a message was sent).
 
 Example:
 
@@ -288,7 +288,7 @@ The `persistence` attribute applies to `mqtt/json` and `mqtts/json`. When set to
 
 **default**
 
-Simply ignores the retrieved data. Good for testing data submission form phyphox to a server to avoid error messages from an empty response. However, we highly recommend that the server response with some kind of acknowledgement that is interpreted by a proper conversion function to give feedback to the user. If you want actually retrieve data from a server, of course, *none* is not an option anyway.
+Simply ignores the retrieved data. Good for testing data submission from phyphox to a server to avoid error messages from an empty response. However, we highly recommend that the server respond with some kind of acknowledgement that is interpreted by a proper conversion function to give feedback to the user. If you actually want to retrieve data from a server, of course, *none* is not an option anyway.
 
 #### Meaning of id
 
@@ -300,11 +300,11 @@ Not applicable as response data is discarded and no data will ever be written to
 
 Attribute conversion="csv"
 
-Interpretes the data as comma-spearated values. It accepts multiple lines based on line-break characters (Windows or Unix style) and splits columns either by comma or semicolon.
+Interprets the data as comma-separated values. It accepts multiple lines based on line-break characters (Windows or Unix style) and splits columns either by comma or semicolon.
 
 #### Meaning of id
 
-If ID is set to an integer number, only values from the respective column (starting at zero) will be used. Otherwise (we suggest id="\*"), all data will be copied to the associated buffer, allowing to parse a single line of comma-separated values as an array on its own.
+If ID is set to an integer number, only values from the respective column (starting at zero) will be used. Otherwise (we suggest id="\*"), all data will be copied to the associated buffer, allowing a single line of comma-separated values to be parsed as an array on its own.
 
 ### JSON
 
@@ -332,13 +332,13 @@ A receive tag with id="other" will receive a single value, 42. id="yetanother" w
 
 ## Discovery methods for network services
 
-A discovery service is a protocol or method to get a list of possible network services. These can either be picked by the user (if "autoConnect" connect is set to false, see general syntax above) or phyphox will connect to the first one available (autoConnect set to true). The discovery method is set by the attribute "discovery" of the connection-block (see above). If left out, you need to set a fixed connection target depending on the network service you want to use (typically, you will have to set a fixed address like for HTTP requests).
+A discovery service is a protocol or method to get a list of possible network services. These can either be picked by the user (if "autoConnect" is set to false, see general syntax above) or phyphox will connect to the first one available (autoConnect set to true). The discovery method is set by the attribute "discovery" of the connection-block (see above). If left out, you need to set a fixed connection target depending on the network service you want to use (typically, you will have to set a fixed address like for HTTP requests).
 
 Discovery methods like mDNS are not yet implemented, but will follow soon. For now, you can only work with fixed targets.
 
 ## Examples
 
-Here are some example XML files for different scenarios, which might help you getting started. Note that most of them will not work out of the box as they require a server to provide or receive data, so you will need to adapt them to your needs.
+Here are some example XML files for different scenarios, which might help you get started. Note that most of them will not work out of the box as they require a server to provide or receive data, so you will need to adapt them to your needs.
 
 **The network connections are not supported by our web editor. If you want to use this function, you need to download the configuration files and edit them with a text editor.**
 
@@ -348,7 +348,7 @@ Here are some example XML files for different scenarios, which might help you ge
 
 This minimalistic example collects data from the accelerometer at a rate of 4Hz and sends the last 20 collected values every 5 seconds to a php script via HTTP POST. Any reply from the server is ignored (you might want to consider using the response as a confirmation to the user by mapping response values to texts via the mapping function of the [value element](views.md#view-element-value)).
 
-The following is a minimalistic example for a PHP script receiving the data and writing it to a simple text file. Note, that you need to explicitly parse the JSON data from `php://input` instead of directly accessing POST as you might be used to when receiving data from web forms.
+The following is a minimalistic example for a PHP script receiving the data and writing it to a simple text file. Note that you need to explicitly parse the JSON data from `php://input` instead of directly accessing POST as you might be used to when receiving data from web forms.
 
 ```xml
 <?php
@@ -365,9 +365,9 @@ The following is a minimalistic example for a PHP script receiving the data and 
 
 #### [Send a value via HTTP/GET and receive a plot in JSON format](https://phyphox.org/wiki/images/6/69/Http-get-example.phyphox)
 
-This example demonstrates sending a value as URL-parameter via HTTP (GET method), which in this case is a frequency that the user may enter. Moreover, the value is sent when the user pushes a button and a PHP script will respond with a JSON package that contains 100 value pairs that form a sine function with the given frequency. The received sine function is then plotted in phyphox.
+This example demonstrates sending a value as a URL parameter via HTTP (GET method), which in this case is a frequency that the user may enter. Moreover, the value is sent when the user pushes a button and a PHP script will respond with a JSON package that contains 100 value pairs that form a sine function with the given frequency. The received sine function is then plotted in phyphox.
 
-The following is the PHP script that takes the frequency and generates JSON object with the sine function as a response for phyphox. Note that this script packs the data as `{"curve": {"t": [...], "a": [...]}}`, but the extra step of packing it into a "curve" object is not really necessary. It is only done here to demonstrate how to access a JSON path from within phyphox by using `id="curve.t"`.
+The following is the PHP script that takes the frequency and generates a JSON object with the sine function as a response for phyphox. Note that this script packs the data as `{"curve": {"t": [...], "a": [...]}}`, but the extra step of packing it into a "curve" object is not really necessary. It is only done here to demonstrate how to access a JSON path from within phyphox by using `id="curve.t"`.
 
 ```xml
 <?php
@@ -394,16 +394,16 @@ The following is the PHP script that takes the frequency and generates JSON obje
 
 #### [Send CSV via MQTT](https://phyphox.org/wiki/images/2/23/Mqtt-csv-example.phyphox)
 
-In this example, time and x acceleration a acquired from the accelerometer (averaging to a rate of 1 Hz) and the last ten readings are sent every 10 seconds as a comma-separated list (CSV) to an MQTT broker at 192.168.2.5. As this example uses comma-separated lists, time and acceleration are sent to separate topics,
+In this example, time and x acceleration are acquired from the accelerometer (averaging to a rate of 1 Hz) and the last ten readings are sent every 10 seconds as a comma-separated list (CSV) to an MQTT broker at 192.168.2.5. As this example uses comma-separated lists, time and acceleration are sent to separate topics.
 
 #### [Send JSON via MQTT](https://phyphox.org/wiki/images/8/86/Mqtt-json-example.phyphox)
 
-This example only sends data when a button is pressed. It then takes the latest readings from the accelerometer and send x, y and z component as a JSON object to the topic "phyphox/acc" on an MQTT broker at 192.168.2.5.
+This example only sends data when a button is pressed. It then takes the latest readings from the accelerometer and sends the x, y and z components as a JSON object to the topic "phyphox/acc" on an MQTT broker at 192.168.2.5.
 
 #### [Octoprint tool temperature](https://phyphox.org/wiki/images/1/1d/Octoprint.phyphox)
 
-This example connects to an MQTT broker at 192.168.2.5 and subscribes to the topic octoPrint/temperature/tool0 which is used by the 3d printing software "octoprint" to report the current tool temperature. The phyphox experiment adds a timestamp and plots the current temperature and the target temperature over time. Note, that Octoprint sends JSON messages, but as this example should not write anything to the topic, it uses "mqtt/csv" as a service and "json" as a conversion function to decode the json data.
+This example connects to an MQTT broker at 192.168.2.5 and subscribes to the topic octoPrint/temperature/tool0 which is used by the 3d printing software "octoprint" to report the current tool temperature. The phyphox experiment adds a timestamp and plots the current temperature and the target temperature over time. Note that Octoprint sends JSON messages, but as this example should not write anything to the topic, it uses "mqtt/csv" as a service and "json" as a conversion function to decode the json data.
 
 #### [Octoprint tool and bed temperature](https://phyphox.org/wiki/images/0/0f/Octoprint2.phyphox)
 
-Like the simpler Octoprint example above, but this example subscribes to two topics to print the bed temperature as well. Note that adding a timestamp to both temperatures is what makes this example so rather large.
+Like the simpler Octoprint example above, but this example subscribes to two topics to print the bed temperature as well. Note that adding a timestamp to both temperatures is what makes this example rather large.

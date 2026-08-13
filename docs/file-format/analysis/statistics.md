@@ -2,7 +2,7 @@
 
 ## average
 
-This module calculates the average of all values in the input buffer. Optionally (i.e. if the output is connected), the standard deviation is calculated as well (Corrected sample standard deviation).
+This module calculates the average of all values in the input buffer. Optionally (i.e. if the output is connected), the standard deviation is calculated as well (corrected sample standard deviation).
 
 {{spec:analysis/analysis/average}}
 
@@ -16,8 +16,8 @@ The output can directly be used to display a histogram. *binStarts* will receive
 
 ## movingaverage
 
-Take *data* as input and calculate the moving average of its items. This means, that for each item an additional number of previous items is taken into account for averaging and the this average is sent to the output for each input item. The number of previous items is given by *width*, so a total of *width*+1 elements are used for each average.
+Takes *data* as input and calculates the moving average of its items. This means that for each item an additional number of previous items is taken into account for averaging and this average is sent to the output for each input item. The number of previous items is given by *width*, so a total of *width*+1 elements are used for each average.
 
-The optional parameter *dropIncomplete* determines whether values are emitted for which less than *width* previous elements are available. This means that with *dropIncomplete* set to *true*, it will output n-*width*+1 values for an input of n data values. With *dropIncomplete* set to *false*, it will output exactly n values.
+The optional parameter *dropIncomplete* determines whether values are emitted for which fewer than *width* previous elements are available. This means that with *dropIncomplete* set to *true*, it will output n-*width*+1 values for an input of n data values. With *dropIncomplete* set to *false*, it will output exactly n values.
 
 {{spec:analysis/analysis/movingaverage}}

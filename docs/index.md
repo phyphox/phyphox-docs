@@ -38,7 +38,7 @@ experiments, and this documentation exists to describe exactly how.
 
 - **[Version history](reference/version-history/index.md)** — what changed in each release.
 - **[Known inconsistencies](reference/known-inconsistencies.md)** — where the
-  implementations currently disagree with each other, and which behaviour is correct.
+  implementations currently disagree with each other, and which behavior is correct.
 
 ## Experiments, sensors and devices
 

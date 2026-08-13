@@ -52,7 +52,7 @@ Calculates the power of a base and an exponent element-wise and writes it to a s
 
 ## round
 
-Round the values from the single input element-wise and writes the results to a single output buffer. This module will write as many values as there are values in the input buffer. By default it will round to the nearest integer. The attributes *ceil* and *floor* can change that to the nearest larger integer or the nearest smaller integer.
+Rounds the values from the single input element-wise and writes the results to a single output buffer. This module will write as many values as there are values in the input buffer. By default it will round to the nearest integer. The attributes *ceil* and *floor* can change that to the nearest larger integer or the nearest smaller integer.
 
 {{spec:analysis/analysis/round}}
 
