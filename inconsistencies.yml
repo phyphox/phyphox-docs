@@ -107,43 +107,6 @@
     dft module (slower, exact input length, consistent across platforms) is planned
     for callers that need non-power-of-two transforms.
 
-- id: android-get-duplicate-buffer-entries
-  title: Duplicate buffer entries when /get takes body and query parameters
-  area: remote-interface
-  status: decided
-  canonical: >-
-    Body parameters take precedence over query parameters of the same name -
-    the rule every endpoint follows since POST was defined for the API. /get
-    answers with one entry per requested buffer: when the same buffer is
-    requested in both the body and the query, the body's request form is the
-    one served and the buffer appears exactly once in the response.
-  affects:
-    android: >-
-      handleGet() iterates requestParamsList() without deduplication, so a
-      buffer named in both body and query is answered twice - the JSON object
-      carries the same key twice, body form first, query form second. Standard
-      JSON parsers keep the last duplicate, so a client effectively sees the
-      query win, inverting the decided precedence. The map-form endpoints
-      (/control, /export, /res) read requestParams(), which deduplicates
-      first-occurrence-wins, and are unaffected (RemoteServer.java,
-      requestParamsList()/handleGet()).
-    ios: >-
-      Conforms: requestParams merges the body over the query into a dictionary
-      before the handler runs, so the body wins and each buffer appears once
-      (ExperimentWebServer.swift, requestParams).
-  verified: >-
-    2026-08-13 against current development builds ("Acceleration with g" on
-    both): POST /get?acc_time=full with JSON body {"acc_time": ""} answers
-    with duplicate acc_time keys (single, then full) on Android and a single
-    entry (single) on iOS; a form-encoded body behaves identically. /control
-    body-over-query precedence was checked in both directions on both
-    platforms and conforms.
-  summary: >-
-    When the same buffer is requested in both the POST body and the query,
-    Android's /get answers with two entries for it - a duplicate JSON key that
-    makes most clients see the query value, although the body is supposed to
-    win. Until this is fixed, request each buffer in one place only.
-
 - id: error-response-content-type
   title: Content-Type of empty error responses
   area: remote-interface
@@ -166,8 +129,8 @@
       The same responses carry no Content-Type header at all
       (ExperimentWebServer.swift via GCDWebServer, no body set).
   verified: >-
-    2026-08-13 against current development builds, same setup as
-    android-get-duplicate-buffer-entries.
+    2026-08-13 against current development builds ("Acceleration with g" on
+    both).
   summary: >-
     The two servers disagree on whether an empty error response names a
     content type: Android sends application/octet-stream, iOS sends no

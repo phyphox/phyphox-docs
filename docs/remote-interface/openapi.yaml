@@ -257,7 +257,6 @@ paths:
         $ref: "#/components/requestBodies/Parameters"
       responses: *getResponses
       x-phyphox-inconsistency:
-        - android-get-duplicate-buffer-entries
         - error-response-content-type
 
   /control:
