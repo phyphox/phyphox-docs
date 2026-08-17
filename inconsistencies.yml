@@ -106,3 +106,44 @@
     platform allows, and other lengths are left undefined. A separate general-purpose
     dft module (slower, exact input length, consistent across platforms) is planned
     for callers that need non-power-of-two transforms.
+
+- id: translation-link-matching
+  title: How translated links map onto the base links
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Base links and translated links land in the same label-to-URL map
+      (PhyphoxFile.java, phyphoxBlockParser and translationBlockParser, both
+      "experiment.links.put(label, link)"), so a translated link whose label
+      matches no base link is added as an additional button. Labels are
+      displayed raw - the description buttons and the menu entries show the map
+      key as written (Experiment.java, "btn.setText(label)" and
+      "link.setTitle((String)entry.getKey())"), and string translations are
+      never applied to them, so a link's button text cannot be localised
+      without creating a second button. highlight is honoured on a translated
+      link, but it updates a separate map: a translated link that does not
+      repeat highlight="true" leaves the menu entry of a highlighted base link
+      pointing at the untranslated URL while the description button gets the
+      translated one.
+    ios: >-
+      Only the base links are ever displayed. The localised list is built by
+      mapping over the base links (Experiment.swift, localizedLinks): the URL
+      is looked up in the selected translation by the base label
+      (ExperimentTranslationCollection.localizeLink), so a translated link
+      whose label matches no base link is silently dropped. The button text is
+      localised by passing the base label through the string-translation
+      mechanism (localizeString), so the label is translated with a <string>
+      element, not by the translated link. highlight on a translated link is
+      ignored; highlighting comes solely from the base link.
+  summary: >-
+    Both platforms agree on the core: a link element inside the matching
+    translation block replaces the URL of the base link that carries exactly
+    the same label, so a translation only has to declare the links it changes.
+    Everything around that core diverges. A translated link whose label matches
+    no base link becomes an extra button on Android and disappears on iOS; the
+    button text is localised through the string mechanism on iOS but is not
+    localisable at all on Android; and the highlight attribute on a translated
+    link is honoured (with a stale-URL quirk for the menu entry) on Android and
+    ignored on iOS. There is currently no portable way to translate a link's
+    label.
