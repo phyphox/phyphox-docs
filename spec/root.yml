@@ -163,17 +163,7 @@ elements:
           never through the string mechanism.
         type: string
         summary: Text on the button, and the key a translated link matches on.
-        agreement: divergent
-        inconsistency: translation-link-matching
-        note: >-
-          Implemented on iOS development since 2026-08-18 (label required,
-          duplicates and an empty root URL rejected, labels no longer passed
-          through the string-translation mechanism); Android pending.
-          Observed on Android today: the raw map key is shown everywhere
-          (Experiment.java btn.setText(label), link.setTitle(entry.getKey())),
-          the label is not required and duplicates are silently collapsed.
-          The released iOS app still passes the base label through
-          localizeString and does not enforce any of the errors.
+        agreement: agreed
       - name: highlight
         description: >-
           If set to true, the link is also featured in the
@@ -208,15 +198,7 @@ elements:
         type: string
         required: true
         summary: Two-character ISO language code.
-        agreement: divergent
-        inconsistency: translation-block-selection
-        note: >-
-          The locale format itself is agreed; divergent is which blocks are
-          applied. iOS selects the single best-scoring block
-          (ExperimentTranslationCollection.init, selectedTranslation);
-          Android applies every block that rates strictly better than the
-          ones before it, cumulatively in document order (PhyphoxFile.java,
-          translationsBlockParser). Decided: exactly one block applies.
+        agreement: agreed
 
   - name: string
     parent: translation
@@ -282,17 +264,7 @@ elements:
           comparison with the base labels. Duplicate labels within one
           translation block are an error. For an added link, the label is
           also the displayed text unless translation is given.
-        agreement: divergent
-        inconsistency: translation-link-matching
-        note: >-
-          Implemented on iOS development since 2026-08-18 (replacement in
-          place, append, removal, required label, duplicate rejection);
-          Android pending. On Android today an unmatched label adds a button
-          (experiment.links.put in both parsers) but the label is not
-          required, duplicates collapse silently and an omitted URL yields a
-          dead button. The released iOS app still silently drops an
-          unmatched label (its localizedLinks maps over the base links
-          only).
+        agreement: agreed
       - name: translation
         since: "1.20"
         type: string
@@ -302,28 +274,13 @@ elements:
           label is displayed as written. This is the only way a link's
           button text is localised - link labels never pass through the
           string mechanism.
-        agreement: divergent
-        inconsistency: translation-link-matching
-        note: >-
-          Implemented on iOS development since 2026-08-18; Android pending
-          (it does not localise link labels at all). The released iOS app
-          still localises labels by passing them through localizeString
-          (which the decision removes, including the [[...]] common-string
-          expansion).
+        agreement: agreed
       - name: highlight
         type: boolean
         summary: >-
           Feature the link in the experiment menu. Defaults to the replaced
           link's value, or to false for an added link.
-        agreement: divergent
-        inconsistency: translation-link-matching
-        note: >-
-          The explicit-else-inherit default is implemented on iOS
-          development since 2026-08-18; Android pending. Today Android
-          honours the attribute but into a separate map (highlightedLinks),
-          so a translated link that omits it leaves a highlighted base
-          link's menu entry at the old URL; the released iOS app ignores it
-          on translated links entirely.
+        agreement: agreed
 
   - name: data-containers
     parent: phyphox
