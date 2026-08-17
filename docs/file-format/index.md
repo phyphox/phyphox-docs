@@ -15,40 +15,6 @@ This page is highly technical and meant for advanced users who want to control e
 
 The phyphox format is based on XML. The entire experiment is encapsulated within a *phyphox* root tag. Within this block, there are multiple blocks which define data-containers, inputs, outputs, translations, analysis etc.
 
-```xml
-<phyphox version="1.0">
-    <title>Experiment title</title>
-    <category>Experiment category</category>
-    <icon>
-        ... Defines which icon should be shown ...
-    </icon>
-    <description>
-        ... A description of the experiment ...
-    </description>
-    <translations>
-        ... Translations into other languages than English ...
-    </translations>
-    <data-containers>
-        ... Defines data buffers to hold sensor and result data ...
-    </data-containers>
-    <input>
-        ... Inputs like sensors or the microphone ...
-    </input>
-    <output>
-        ... Outputs like the speaker ...
-    </output>
-    <views>
-        ... Different views, defining how the results are presented to the user ...
-    </views>
-    <analysis>
-        ... All the math goes in here ...
-    </analysis>
-    <export>
-        ... Export sets define how data-containers are grouped and named when exporting them to a file ...
-    </export>
-</phyphox>
-```
-
 Elements from a *foreign XML namespace* — any namespace other than the one of the root element, which is usually none — are ignored along with their entire content. This allows tools like experiment editors to embed their own metadata in an experiment file without breaking it for the apps. Elements in the file's own namespace remain strictly checked: an unknown element name is an error and the file will not load.
 
 ## Block: phyphox
@@ -108,7 +74,7 @@ A link tag defines a link to some resource on the web. You may have multiple lin
 The translations block may hold one or more *translation* (note: singular) blocks, describing the translations of strings shown to the user. Any string outside the translations block is considered to be in English and then translated to other languages from within the translations block, unless a different global language has been defined in the tag of the phyphox-block or English appears explicitly as a translation block. If English is used in a translation block and no language has been defined in the phyphox-block, the text outside the translation block should be treated as a placeholder.
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     <title>My experiment</title>
     <category>Example</category>
     ...
