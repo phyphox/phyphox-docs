@@ -166,13 +166,14 @@ elements:
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
-          Decided but not yet implemented on either platform. Observed today:
-          iOS passes the base label through the string-translation mechanism
-          when displaying it (Experiment.swift localizedLinks ->
-          localizeString), which the decision removes; Android shows the raw
-          map key everywhere (Experiment.java btn.setText(label),
-          link.setTitle(entry.getKey())). Neither app yet requires the label,
-          rejects duplicates, or rejects an empty URL at the root.
+          Implemented on iOS development since 2026-08-18 (label required,
+          duplicates and an empty root URL rejected, labels no longer passed
+          through the string-translation mechanism); Android pending.
+          Observed on Android today: the raw map key is shown everywhere
+          (Experiment.java btn.setText(label), link.setTitle(entry.getKey())),
+          the label is not required and duplicates are silently collapsed.
+          The released iOS app still passes the base label through
+          localizeString and does not enforce any of the errors.
       - name: highlight
         description: >-
           If set to true, the link is also featured in the
@@ -284,13 +285,14 @@ elements:
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
-          Matching by label is what both apps already do for a replacement
-          (Android experiment.links.put in both parsers; iOS localizeLink
-          looks up translatedLinks by the base label). The rest of the
-          decided behaviour is not yet implemented: an unmatched label
-          currently adds a button on Android and is silently dropped on iOS
-          (Experiment.swift localizedLinks maps over the base links only),
-          and neither app requires the label or rejects duplicates.
+          Implemented on iOS development since 2026-08-18 (replacement in
+          place, append, removal, required label, duplicate rejection);
+          Android pending. On Android today an unmatched label adds a button
+          (experiment.links.put in both parsers) but the label is not
+          required, duplicates collapse silently and an omitted URL yields a
+          dead button. The released iOS app still silently drops an
+          unmatched label (its localizedLinks maps over the base links
+          only).
       - name: translation
         since: "1.20"
         type: string
@@ -303,10 +305,11 @@ elements:
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
-          Part of the decided behaviour; no parser implements it yet. iOS
-          currently localises labels by passing them through localizeString
+          Implemented on iOS development since 2026-08-18; Android pending
+          (it does not localise link labels at all). The released iOS app
+          still localises labels by passing them through localizeString
           (which the decision removes, including the [[...]] common-string
-          expansion); Android does not localise labels at all.
+          expansion).
       - name: highlight
         type: boolean
         summary: >-
@@ -315,12 +318,12 @@ elements:
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
-          The explicit-else-inherit default is decided but not yet
-          implemented. Today Android honours the attribute but into a
-          separate map (highlightedLinks), so a translated link that omits
-          it leaves a highlighted base link's menu entry at the old URL; iOS
-          ignores it on translated links entirely (Experiment.swift
-          localizedLinks copies $0.highlighted).
+          The explicit-else-inherit default is implemented on iOS
+          development since 2026-08-18; Android pending. Today Android
+          honours the attribute but into a separate map (highlightedLinks),
+          so a translated link that omits it leaves a highlighted base
+          link's menu entry at the old URL; the released iOS app ignores it
+          on translated links entirely.
 
   - name: data-containers
     parent: phyphox

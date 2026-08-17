@@ -49,6 +49,8 @@ DECLARED_BUT_UNREAD = {
     ("noise", "input"): {"clear"},
     ("input", "bluetooth"): {"mtu"},          # honoured on Android, ignored here
     ("phyphox", "events"): {"experimentTime", "systemTime"},  # copy of its child's enum
+    ("phyphox", "link"): {"translation"},     # declared only to reject it with a clear
+                                              # error: allowed on translation/link only
 }
 
 # Elements iOS reaches through a computed childHandler rather than a literal

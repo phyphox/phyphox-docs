@@ -150,16 +150,20 @@
       link that does not repeat highlight="true" leaves the menu entry of a
       highlighted base link pointing at the untranslated URL.
     ios: >-
-      Only the base links are ever displayed. The localised list is built by
-      mapping over the base links (Experiment.swift, localizedLinks): a
-      translated link whose label matches no base link is silently dropped,
-      the button text is localised by passing the base label through the
-      string-translation mechanism (localizeString) including the [[...]]
-      common-string expansion - both removed by the decision - the
-      translation attribute is not implemented, an omitted URL does not
-      remove a link, label is not required, duplicates within a translation
-      block are collapsed (first wins, TranslationsElementHandler), and
-      highlight on a translated link is ignored entirely.
+      Conforms to the decided behaviour on the development branch since
+      2026-08-18 (LinkElementHandler and TranslationsElementHandler parse
+      and validate, PhyphoxElementHandler rejects duplicate root labels and
+      unmatched labels without a URL, ExperimentLink.localizedLinks in
+      Experiment.swift applies the block; pinned by TranslatedLinkTests and
+      the incorrect-files fixtures). The released app still shows the old
+      behaviour: a translated link whose label matches no base link is
+      silently dropped, the button text is localised by passing the base
+      label through the string-translation mechanism (localizeString)
+      including the [[...]] common-string expansion, the translation
+      attribute is not implemented, an omitted URL does not remove a link,
+      label is not required, duplicates within a translation block are
+      collapsed (first wins), and highlight on a translated link is ignored
+      entirely.
   summary: >-
     Both platforms agree on the core: a link element inside the applied
     translation block replaces the URL of the base link that carries exactly
