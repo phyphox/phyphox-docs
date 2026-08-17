@@ -388,7 +388,8 @@ elements:
     parent: phyphox
     since: "1.0"
     summary: >-
-      Groups data containers into the sets offered when the user exports data.
+      Groups data containers into the sets an export writes. All sets are
+      written on every export; the user only chooses the file format.
     attributes: []
     children: [set]
 
@@ -400,11 +401,20 @@ elements:
     attributes:
       - name: name
         description: >-
-          Shown to the user when they pick which sets to export, and
-          often represented in the exported file - a CSV export
-          produces a ZIP with one file per set, an Excel export one
-          sheet per set.
+          Names the set in the exported file - a CSV export produces
+          a ZIP with one file per set named like the set, an Excel
+          export one sheet per set.
         type: string
+        note: >-
+          Old prose said the name is "shown to the user when they pick which
+          sets to export". Verified gone on both platforms 2026-08-18: the
+          user picks only the format, and every set is always written.
+          Android's DataExport.export() runs getData() on all sets and goes
+          straight to showFormatDialog (the chosenSets parameter name is a
+          leftover of the removed flow); iOS's ExperimentExport.runExport
+          loops over all sets, and ExperimentExportSetSelectionView -
+          despite its name - contains only formatSwitches. The remote
+          interface matches: /export takes only a format parameter.
         translatable: true
         required: true
         summary: Name of the set, used as the sheet or file name.

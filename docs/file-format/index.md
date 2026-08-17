@@ -215,6 +215,8 @@ The analysis block describes all the math required for the experiment. Its attri
 
 The views block describes the different layout groups (views) from which the user may choose to view the experiment data. It is documented on a [separate page](views.md).
 
+Each view can be built from individual view elements:
+
 - [info](views.md#view-element-info)
 - [separator](views.md#view-element-separator)
 - [value](views.md#view-element-value)
@@ -230,7 +232,7 @@ The views block describes the different layout groups (views) from which the use
 
 ## Block: export
 
-The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. The user may choose from these sets and for example select whether they want only the raw data, the analysis results or everything in their exported file.
+The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. All sets are written on every export — the user only chooses the file format. Grouping for example the raw data and the analysis results into separate sets keeps them apart in the exported file.
 
 ```xml
 <phyphox version="...">
@@ -253,7 +255,7 @@ The export block may hold one or more *set* blocks, grouping and naming multiple
 
 ### Block: set
 
-The set block will define a group of data-containers to be exported. The attribute *name* will be shown to the user when they pick which of the sets should be exported. These sets may also be represented in the final file. For example, a CSV export results in a ZIP file containing a separate CSV file for each set, and an Excel export will contain a separate sheet for each set.
+The set block will define a group of data-containers to be exported. The sets are represented in the final file: a CSV export results in a ZIP file containing a separate CSV file for each set, and an Excel export will contain a separate sheet for each set, in both cases named by the *name* attribute.
 
 #### Tag: data
 
