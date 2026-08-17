@@ -81,6 +81,10 @@
     - receive@clear
     - send@datatype
     - send@keep
+- file: generated/translated-links.phyphox
+  version: "1.20"
+  adds:
+    - link@translation
 - file: generated/views-details.phyphox
   version: "1.20"
   adds:

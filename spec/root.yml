@@ -146,28 +146,33 @@ elements:
     since: "1.0"
     summary: >-
       A link shown as a button under the description. Several may be given.
-    text: The URL.
+    description: >-
+      The links are shown in declaration order. Each label may be given only
+      once: the label identifies the link, and a link element inside the
+      applied translation block replaces the link carrying the same label.
+    text: The URL. Must not be empty for a link at the root.
     attributes:
       - name: label
+        required: true
         description: >-
-          The text on the button offered under the experiment
-          description. The label also identifies the link: a link element
-          inside a translation block replaces the URL of the base link
-          carrying the same label. How the label itself is localised
-          differs between the platforms.
+          The text on the button offered under the experiment description.
+          The label also identifies the link: a link element inside the
+          applied translation block matches it with an exact, case-sensitive
+          comparison, and duplicate labels are an error. The button text is
+          localised with the translation attribute of the translated link,
+          never through the string mechanism.
         type: string
-        translatable: true
-        summary: Text on the button.
+        summary: Text on the button, and the key a translated link matches on.
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
+          Decided but not yet implemented on either platform. Observed today:
           iOS passes the base label through the string-translation mechanism
           when displaying it (Experiment.swift localizedLinks ->
-          localizeString); Android shows the raw map key everywhere
-          (Experiment.java btn.setText(label), link.setTitle(entry.getKey()))
-          and applies string translations to link labels nowhere. The
-          translatable flag above is therefore iOS behaviour only until the
-          entry is decided.
+          localizeString), which the decision removes; Android shows the raw
+          map key everywhere (Experiment.java btn.setText(label),
+          link.setTitle(entry.getKey())). Neither app yet requires the label,
+          rejects duplicates, or rejects an empty URL at the root.
       - name: highlight
         description: >-
           If set to true, the link is also featured in the
@@ -185,6 +190,10 @@ elements:
     parent: phyphox
     since: "1.0"
     summary: Container for the translations of everything shown to the user.
+    description: >-
+      Exactly one of its translation blocks is applied - the one whose locale
+      best matches the user's locale, with the base strings of the file used
+      where no block matches better. Blocks are never combined.
     attributes: []
     children: [translation]
 
@@ -198,7 +207,15 @@ elements:
         type: string
         required: true
         summary: Two-character ISO language code.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: translation-block-selection
+        note: >-
+          The locale format itself is agreed; divergent is which blocks are
+          applied. iOS selects the single best-scoring block
+          (ExperimentTranslationCollection.init, selectedTranslation);
+          Android applies every block that rates strictly better than the
+          ones before it, cumulatively in document order (PhyphoxFile.java,
+          translationsBlockParser). Decided: exactly one block applies.
 
   - name: string
     parent: translation
@@ -240,39 +257,69 @@ elements:
   - name: link
     parent: translation
     since: "1.0"
-    summary: Localised link, replacing the one with the same label.
+    summary: Localised link - replaces, adds or removes a link, matched by label.
     description: >-
-      Replaces the URL of the base link that carries exactly the same label,
-      so only the links whose URL changes with the language have to be
-      declared. What happens to a link whose label matches no base link, and
-      how the button text itself is localised, currently differ between the
-      platforms.
-    text: The URL.
+      Matched by label against the links declared at the root. A link whose
+      label equals a base link's label replaces it in its original position;
+      a link whose label matches none is an additional link, appended after
+      the base links in declaration order. Only the links that change with
+      the language have to be declared. A link that carries no attribute
+      besides label and an empty URL removes the matched base link; a
+      translation that wants a different link order removes all base links
+      and declares its own.
+    text: >-
+      The URL. May be empty (after trimming) on a link that matches a base
+      link, which keeps the base link's URL; empty on an unmatched label it
+      is an error and the experiment will not load.
     attributes:
       - name: label
+        required: true
         type: string
-        summary: The label of the base link whose URL is replaced.
+        summary: The label of the base link to replace or remove, or a new label.
+        description: >-
+          The key this link is matched on - an exact, case-sensitive
+          comparison with the base labels. Duplicate labels within one
+          translation block are an error. For an added link, the label is
+          also the displayed text unless translation is given.
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
-          Matching by label is agreed (Android experiment.links.put(label, ...)
-          in both parsers; iOS localizeLink looks up translatedLinks by the
-          base label). Divergent is the rest: an unmatched label adds a button
-          on Android and is dropped on iOS, and the label doubles as display
-          text on Android while iOS displays the string-translated base label.
+          Matching by label is what both apps already do for a replacement
+          (Android experiment.links.put in both parsers; iOS localizeLink
+          looks up translatedLinks by the base label). The rest of the
+          decided behaviour is not yet implemented: an unmatched label
+          currently adds a button on Android and is silently dropped on iOS
+          (Experiment.swift localizedLinks maps over the base links only),
+          and neither app requires the label or rejects duplicates.
+      - name: translation
+        since: "1.20"
+        type: string
+        summary: The localised button text; the label is shown if absent.
+        description: >-
+          The displayed text of the link in this language. If absent, the
+          label is displayed as written. This is the only way a link's
+          button text is localised - link labels never pass through the
+          string mechanism.
+        agreement: divergent
+        inconsistency: translation-link-matching
+        note: >-
+          Part of the decided behaviour; no parser implements it yet. iOS
+          currently localises labels by passing them through localizeString
+          (which the decision removes, including the [[...]] common-string
+          expansion); Android does not localise labels at all.
       - name: highlight
         type: boolean
-        default: false
         summary: >-
-          Meant to feature the link in the experiment menu; its effect on a
-          translated link differs between the platforms.
+          Feature the link in the experiment menu. Defaults to the replaced
+          link's value, or to false for an added link.
         agreement: divergent
         inconsistency: translation-link-matching
         note: >-
-          Android honours it but into a separate map (highlightedLinks), so a
-          translated link that omits it leaves a highlighted base link's menu
-          entry at the old URL. iOS ignores it on translated links entirely -
-          highlighting comes from the base link (Experiment.swift
+          The explicit-else-inherit default is decided but not yet
+          implemented. Today Android honours the attribute but into a
+          separate map (highlightedLinks), so a translated link that omits
+          it leaves a highlighted base link's menu entry at the old URL; iOS
+          ignores it on translated links entirely (Experiment.swift
           localizedLinks copies $0.highlighted).
 
   - name: data-containers

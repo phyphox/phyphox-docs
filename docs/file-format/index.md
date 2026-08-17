@@ -73,6 +73,10 @@ A link tag defines a link to some resource on the web. You may have multiple lin
 
 The translations block may hold one or more *translation* (note: singular) blocks, describing the translations of strings shown to the user. Any string outside the translations block is considered to be in English and then translated to other languages from within the translations block, unless a different global language has been defined in the tag of the phyphox-block or English appears explicitly as a translation block. If English is used in a translation block and no language has been defined in the phyphox-block, the text outside the translation block should be treated as a placeholder.
 
+Exactly one translation block is applied: the one whose locale best matches the user's locale. Where no block matches better than the file's base language, the base strings are used as they are. Blocks are never combined, so each translation block has to be complete in itself.
+
+{{inconsistency:translation-block-selection}}
+
 ```xml
 <phyphox version="...">
     <title>My experiment</title>
@@ -122,16 +126,28 @@ Localized version of the description tag in the phyphox-block (see above). If th
 
 #### Tag: link
 
-This is the localized version of the link tag. For example, if you link to a Demo video in English with
+This is the localized version of the link tag. The label identifies which link is meant: a link element carrying the label of a base link changes that link, one with a new label adds a link only shown in this language. The button text is localized with the *translation* attribute — the label itself always stays as written, since it is the key the two declarations are matched on. For example, if you link to a Demo video in English with
 
 ```xml
 <link label="Demo">http://site.org/my/english/video</link>
 ```
 
-you can link to a German version in the translation block with
+you can point the button at a German version, with a German button text, in the translation block with
 
 ```xml
-<link label="Demo">http://site.org/my/german/video</link>
+<link label="Demo" translation="Demo (deutsch)">http://site.org/my/german/video</link>
+```
+
+The URL may be left out to keep the original URL and only change the button text:
+
+```xml
+<link label="Demo" translation="Demo (deutsch)" />
+```
+
+And a link element with nothing but a label removes that link from this language:
+
+```xml
+<link label="Demo" />
 ```
 
 {{spec:root/translation/link}}
