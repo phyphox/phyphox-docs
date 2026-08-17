@@ -161,7 +161,7 @@ Use the string-tag to translate any string shown to the user besides the title, 
 In data-containers all buffers are defined. Any input (sensors, microphone) writes to these buffers, any analysis module performs its operations on these buffers, the output modules read from these buffers and the results are shown to the user from these buffers. The buffers connect every module of the experiment.
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     ...
     <data-containers>
         <container>Buffer 1</container>
@@ -233,7 +233,7 @@ The views block describes the different layout groups (views) from which the use
 The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. The user may choose from these sets and for example select whether they want only the raw data, the analysis results or everything in their exported file.
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     ...
     <export>
         <set name="Results">
@@ -280,7 +280,7 @@ The events block was introduced with file format 1.12 (phyphox version 1.1.8) as
 The events block contains a list of event blocks with tags corresponding to any known event, which are currently *start* and *pause*. Each event needs to have an attribute *experimentTime* and an attribute *systemTime* giving the experiment time (seconds since first start, ignoring pauses) and the system time (milliseconds since 1970) of the event.
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     ...
     <events>
         <start experimentTime="0.0" systemTime="1608126693705"/>

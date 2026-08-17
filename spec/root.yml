@@ -304,9 +304,21 @@ elements:
           Setting the size to zero makes the buffer infinite, which
           needs care - never keep filling an infinite buffer that is
           the base for complex analysis, as the load grows without
-          bound as the experiment runs. An infinite buffer is also
-          not allowed to hold the recording from an audio input.
+          bound as the experiment runs. An audio input recording
+          into an infinite buffer is the extreme case: with
+          append="true" the entire recording accumulates in memory
+          at the full sample rate.
         type: integer
+        note: >-
+          The old wiki claimed an infinite buffer is "not allowed" to hold an
+          audio recording. Verified wrong on both platforms 2026-08-18:
+          neither parser rejects it, and both runtimes handle size 0 -
+          Android caps its read chunk at max(min(recording.size, 4800),
+          minBufferSize) (PhyphoxExperiment.java, handleDataInput) and iOS
+          maps size 0 to Int.max (DataBuffer.effectiveMemorySize) with no
+          audio-specific check (ExperimentAudioInput has none). Without
+          append the buffer is cleared each analysis cycle anyway, so only
+          the append case grows without bound.
         default: 1
         summary: >-
           Capacity in values. A full buffer discards its oldest value. 0 means
