@@ -23,19 +23,19 @@ The entire experiment is defined within the phyphox block. Its most important at
 
 {{spec:root/phyphox}}
 
-**Tag: title**
+### Tag: title
 
 The title of the experiment. This is just a simple string. Try to keep it short and concise.
 
 {{spec:root/phyphox/title}}
 
-**Tag: state-title**
+### Tag: state-title
 
 This should not be used for an experiment which will be distributed. This tag contains the title given by the user when saving the state of an experiment. If this is set, the app will show this experiment in the saved-states section.
 
 {{spec:root/phyphox/state-title}}
 
-**Tag: category**
+### Tag: category
 
 The category of the experiment. This is just a simple string used by the app to group the experiments. Try to keep it short and concise.
 
@@ -43,13 +43,13 @@ Note that this can and *should* be translated if you use translations (see below
 
 {{spec:root/phyphox/category}}
 
-**Tag: icon**
+### Tag: icon
 
 The icon of the experiment. We recommend a small PNG with few colors; there are various web-based tools to create a base64-encoded PNG from a PNG file.
 
 {{spec:root/phyphox/icon}}
 
-**Tag: color**
+### Tag: color
 
 The base color for the experiment. This is used as a background of the icon (if a text-based icon is used or if it has a transparent background) and for the label of the category. If a category contains experiments with different colors, the most common color is used.
 
@@ -57,13 +57,13 @@ Color can be defined as a 6-digit hex value or as one of the named [Colors](colo
 
 {{spec:root/phyphox/color}}
 
-**Tag: description**
+### Tag: description
 
 A description of the experiment. The first line should be a very short summary of what the experiment does as this line will be shown in the experiment list. Any whitespace at the beginning and end of the description as well as in each line will be stripped.
 
 {{spec:root/phyphox/description}}
 
-**Tag: link**
+### Tag: link
 
 A link tag defines a link to some resource on the web. You may have multiple link tags in your phyphox file and each will be listed as a button under the experiment description. When the user pushes the button, they will be redirected to the URL (usually in a web browser, but it might be a specific app for a specific URL - for example, YouTube links usually open in the YouTube app on Android).
 
@@ -102,25 +102,25 @@ Each translation block holds all the translations for a single language.
 
 {{spec:root/translations/translation|attributes}}
 
-**Tag: title**
+#### Tag: title
 
 Localized version of the title tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the title will be replaced by this entry.
 
 {{spec:root/translation/title}}
 
-**Tag: category**
+#### Tag: category
 
 Localized version of the category tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the category will be replaced by this entry. Note that phyphox will group experiments by the localized version of the category.
 
 {{spec:root/translation/category}}
 
-**Tag: description**
+#### Tag: description
 
 Localized version of the description tag in the phyphox-block (see above). If the user's locale matches the locale of the translation block, the description will be replaced by this entry.
 
 {{spec:root/translation/description}}
 
-**Tag: link**
+#### Tag: link
 
 This is the localized version of the link tag. For example, if you link to a Demo video in English with
 
@@ -136,7 +136,7 @@ you can link to a German version in the translation block with
 
 {{spec:root/translation/link}}
 
-**Tag: string**
+#### Tag: string
 
 Use the string-tag to translate any string shown to the user besides the title, description or category. If the text of a label, view etc. matches the string given in *original*, phyphox will display the tag's text instead. Of course, this only applies if the user's locale matches the translation locale.
 
@@ -241,7 +241,7 @@ The export block may hold one or more *set* blocks, grouping and naming multiple
 
 The set block will define a group of data-containers to be exported. The attribute *name* will be shown to the user when they pick which of the sets should be exported. These sets may also be represented in the final file. For example, a CSV export results in a ZIP file containing a separate CSV file for each set, and an Excel export will contain a separate sheet for each set.
 
-**Tag: data**
+#### Tag: data
 
 Within each set, you can define multiple data entries. Each of them maps a data-container to a name displayed to the user.
 

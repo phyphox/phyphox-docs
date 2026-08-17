@@ -39,7 +39,7 @@ The bluetooth block defines an input from a Bluetooth Low Energy device. Please 
 
 Get data from the phone's camera(s). At the time of phyphox file format 1.19 (phyphox 1.2.0) this data is photometric data, but this is expected to be expanded in the future.
 
-**Photometric measurements**
+### Photometric measurements
 
 When *feature* is set to "photometric" (the default if you omit this attribute), you can collect various photometric properties from a stream of camera frames. For each frame you will get a single value like luminance or hue. The coordinates x1, y1 and x2, y2 mark a rectangle from the camera image (ranging from 0 to 1 from one edge of the image to the other) that is taken into account to calculate the value.
 

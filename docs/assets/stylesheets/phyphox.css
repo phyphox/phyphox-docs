@@ -101,6 +101,18 @@
   --md-typeset-a-color: var(--phyphox-orange);
 }
 
+/* ------------------------------------------------------------ headings ---- */
+
+/* The reference pages nest four heading levels deep (page › block › element ›
+ * subsection), and the generated attribute lists use bold run-in labels below
+ * that. Material's defaults collapse the bottom of this ladder: its h4 is 1em
+ * bold — indistinguishable from bold body text. Widen the whole ladder so each
+ * level is visibly larger than the one below and h4 clears bold prose. */
+.md-typeset h1 { font-size: 2.2em; }
+.md-typeset h2 { font-size: 1.75em; }
+.md-typeset h3 { font-size: 1.4em; }
+.md-typeset h4 { font-size: 1.15em; }
+
 /* ------------------------------------------------------------- swagger ---- */
 
 /* The API reference renders in an iframe with Swagger UI's own stylesheet, so

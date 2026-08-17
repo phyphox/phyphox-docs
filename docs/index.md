@@ -42,4 +42,4 @@ Also, phyphox features a REST API, which is documented here as well.
   implementations currently disagree with each other, and which behavior is correct.
 
 
-For more information, check out [phyphox.org](phyphox.org), where you can find our forum, a wiki with some additional info and further less ressources.
+For more information, check out [phyphox.org](https://phyphox.org), where you can find our forum, a wiki with some additional info and further resources.

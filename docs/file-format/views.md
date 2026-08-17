@@ -124,13 +124,13 @@ A formula node can then be used to calculate a linear calibration from these two
 
 **Available since phyphox file format 1.7 (phyphox 1.1.0)**
 
-**Bar charts**
+#### Bar charts
 
 Since file format 1.7, you can also use bar charts by setting style to "hbars" or "vbars" for horizontal or vertical bars, respectively. For bar charts, you also define x and y values as you do for line charts, but the x value represents the left edge of a bar while y represents its height (for horizontal bars, y defines the bottom and x the width). Each bar ends where the next one begins and the last height will not be drawn as it only marks the end of the previous bar. Therefore, to draw 4 bars, you need to provide 5 value pairs.
 
 For bar charts, the line width describes the gap between bars. A line width of 1 means that there is no gap, while a line width of 0.5 means that the bars only occupy 50% of the available width (they will be centered in this space).
 
-**Color map charts**
+#### Color map charts
 
 File format 1.7 also introduces color map charts (also known as false color plots). These do not plot y values as a function of x values, but z values as a function of x and y. z is encoded as a color and the result is a map of different colors.
 
@@ -170,7 +170,7 @@ You can also define your own color palette. Phyphox uses a black-orange-white gr
 
 This example shows the colorful palette of the sonar experiment.
 
-**Multiple graphs**
+#### Multiple graphs
 
 Since file format 1.7 (phyphox 1.1.0) you can also combine multiple graph types (except for the color map). To do so, you can simply define more than one dataset for x and y:
 

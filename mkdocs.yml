@@ -4,7 +4,11 @@ site_description: >-
   remote-interface API.
 site_url: https://phyphox.org/docs/
 repo_url: https://github.com/phyphox/phyphox-docs
-edit_uri: edit/main/docs/
+# No edit_uri: the per-page edit buttons invited drive-by edits on GitHub, and
+# with the spec-generated reference sections most of them would land in the
+# wrong place anyway (the facts live in spec/, not on the page). Contributions
+# go through issues and pull requests on the repository instead.
+edit_uri: ""
 copyright: >-
   RWTH Aachen University. "phyphox" and "RWTH Aachen University" as well as the
   RWTH Aachen logo are registered trademarks.
@@ -39,7 +43,6 @@ theme:
     - search.suggest
     - search.highlight
     - content.code.copy
-    - content.action.edit
   # Two schemes, picked by the visitor's system preference and switchable from
   # the header. Both are styled - check both after any colour change.
   #
