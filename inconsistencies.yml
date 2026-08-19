@@ -370,7 +370,10 @@
       Divides by abs(m-n) in double precision
       (CrosscorrelationAnalysis.swift, vDSP_vsdivD by compRange). With one
       empty input it appends that many zeros instead of nothing (vDSP_convD
-      with a zero-length filter).
+      with a zero-length filter). Fully conforms to the canonical behaviour
+      on the development branch since 2026-08-19, with the vDSP result
+      verified elementwise against a plain-sum reference in the unit tests;
+      only Android remains.
   summary: >-
     The output scale differs between the Android build users run and iOS
     (factor 2(m+n)/abs(m-n)), Android's two code paths disagree with each
