@@ -464,19 +464,20 @@ elements:
           summary: >-
             Altitude above mean sea level.
           description: >-
-            Elevation in meters, using the EGM84 geoid as reference, that is
-            above sea level. Note that elevation provided by GPS is
-            generally rather imprecise.
+            Altitude in meters above mean sea level, using the EGM84 geoid
+            as reference. Note that the altitude provided by satellite
+            navigation is generally rather imprecise.
         - name: zwgs84
           summary: >-
             Altitude above the WGS84 ellipsoid.
           description: >-
             Same as z but taking the WGS84 ellipsoid as reference, that is
-            the coordinate system used by GPS. Note that the Android API
-            provides WGS84 ellipsoid elevation while the iOS API provides
-            EGM84 geoid elevation. Phyphox calculates the difference using a
-            port of GeographicLib's algorithm with a 30' resolution EGM84
-            dataset.
+            the coordinate system used by GPS (this quantity is also known
+            as the ellipsoidal height). Note that the Android API provides
+            the altitude above the WGS84 ellipsoid while the iOS API
+            provides the altitude above the EGM84 geoid. Phyphox calculates
+            the difference using a port of GeographicLib's algorithm with a
+            30' resolution EGM84 dataset.
         - name: v
           summary: >-
             Speed over ground.
@@ -521,11 +522,17 @@ elements:
           description: >-
             -1 means that GPS is unavailable (usually deactivated by the
             user), 0 means that it is searching for a signal, 1 means that
-            it is active. 2 means active but with the altitude given above
-            the WGS84 ellipsoid instead of the geoid, which can happen with
-            very basic GPS implementations on some (mostly cheap) phones.
-            Note that this value is updated independently from the other
-            outputs.
+            it is active. Note that this value is updated independently
+            from the other outputs.
+          note: >-
+            The docs used to describe a status 2 - active, but with the
+            altitude above the WGS84 ellipsoid instead of the geoid because
+            the device did not provide the difference. Removed 2026-08-19:
+            neither app can emit it. Android's onStatusUpdate writes only
+            -1/0/1 (GpsInput.java) and iOS derives only -1/0/1 from
+            horizontalAccuracy (ExperimentGPSInput.swift). The state died
+            with app version 1.1.3, which introduced the bundled EGM84
+            dataset so the geoid offset is always known.
         - name: satellites
           summary: >-
             Number of satellites in view.
