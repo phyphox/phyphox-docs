@@ -671,7 +671,8 @@
     ios: >-
       getSingleValueAsInt() returns nil for non-finite values, which falls
       back to the default - a NaN "to" yields the full range
-      (SubrangeAnalysis.swift).
+      (SubrangeAnalysis.swift). Fully conforms to the canonical behaviour on
+      the development branch since 2026-08-19; only Android remains.
   summary: >-
     Non-finite range parameters produce empty output on Android and the
     full input on iOS. All finite behavior was verified identical.
