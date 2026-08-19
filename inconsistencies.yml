@@ -117,7 +117,14 @@
 - id: average-single-value-stddev
   title: "average: standard deviation for a single input value"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A single input value yields exactly one stddev value, NaN - iOS's
+    behavior; Android's fall-through double append is the bug. Additionally
+    (general error-state rule), an empty or all-non-finite input writes NaN
+    to each connected output instead of nothing, since average delivers
+    single values - a change to both platforms.
+  decided: 2026-08-19
   affects:
     android: >-
       With exactly one finite input value the stddev output receives two
@@ -136,7 +143,12 @@
 - id: binning-dx-zero
   title: "binning: dx of exactly zero"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Any invalid dx - zero, negative or non-finite - and a NaN x0 yield empty
+    outputs. Neither Android's runaway loop and NaN-to-1 sanitization nor
+    iOS's silent dx=1 substitution is correct; both change.
+  decided: 2026-08-19
   affects:
     android: >-
       Only NaN is sanitized (binningAM.update). With dx=0 the bin index
@@ -151,7 +163,19 @@
 - id: analysis-nonfinite-parameter-crashes
   title: Non-finite or negative single-value parameters crash iOS
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Analysis modules never crash. The scheme: an absent optional input falls
+    back to its documented default; a present but invalid parameter value
+    produces the module's error state - NaN when a single value is expected,
+    an empty output when a list is expected. Non-finite values that are
+    mathematically meaningful, such as an infinite threshold or bound,
+    participate in comparisons normally and are not errors. iOS replaces its
+    unguarded Int()/UInt() conversions; Android's blanket NaN-to-0 casts
+    change where they fabricate plausible parameters (a NaN movingaverage
+    width no longer acts as width 0). Residual per-parameter classifications
+    are being settled with the maintainer.
+  decided: 2026-08-19
   affects:
     android: >-
       Sanitizes throughout: Double.intValue() turns NaN into 0 and clamps
@@ -178,7 +202,13 @@
 - id: complex-module-operand-order
   title: "subtract/divide/power/atan2: operand order with explicit as attributes"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Operands follow the as attributes, matched case-insensitively, with
+    unnamed inputs filling the remaining slots in declaration order -
+    Android's behavior. iOS must consume the validated slot mapping instead
+    of document order with an exact-match priority key.
+  decided: 2026-08-19
   affects:
     android: >-
       ioBlockParser reorders inputs into slot order, matching "as"
@@ -203,7 +233,12 @@
 - id: atan2-unequal-lengths
   title: "atan2: inputs of different lengths"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    atan2 follows add/subtract/multiply/divide: the shorter input repeats
+    its last value and the output has the length of the longest input.
+    Android's min-length truncation is the bug.
+  decided: 2026-08-19
   affects:
     android: >-
       Truncates to the shorter input (atan2AM.update, size = min) - unlike
@@ -220,7 +255,11 @@
 - id: power-native-empty-input
   title: "power: empty input buffer on Android's native path"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Any empty input yields an empty output, as documented. Android's native
+    path must stop substituting default operands.
+  decided: 2026-08-19
   affects:
     android: >-
       The shipping native path (analysis.cpp, nativePower) initializes
@@ -239,7 +278,14 @@
 - id: gcd-lcm-domain
   title: "gcd/lcm: inputs outside the positive-integer domain"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The domain is non-negative integers: fractional values are rounded (C
+    rounding, half away from zero, matching the formula-round ruling),
+    negative and non-finite inputs yield NaN, overflow yields NaN, and
+    lcm(0,x) is 0 by the usual convention, including lcm(0,0) - no crash on
+    either platform.
+  decided: 2026-08-19
   affects:
     android: >-
       Rounds each value to a signed long (Math.round: 2.7 -> 3, NaN -> 0,
@@ -261,7 +307,13 @@
 - id: round-nonfinite
   title: "round: non-finite input in default mode"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Non-finite values pass through unchanged (NaN stays NaN, infinities stay
+    infinite) and ties round half away from zero (C rounding), like the
+    formula language's round. Android's long-conversion semantics and half-
+    up ties both change.
+  decided: 2026-08-19
   affects:
     android: >-
       Math.round returns a long: NaN -> 0, +-infinity and |x| > 2^63 ->
@@ -279,7 +331,16 @@
 - id: crosscorrelation-normalization
   title: "crosscorrelation: normalization and empty inputs"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    No normalization: raw correlation sums, matching the default of
+    numpy.correlate, scipy.signal.correlate and MATLAB xcorr (researched
+    2026-08-19). Both current normalizations disappear, which also removes
+    the Android-internal native/fallback disagreement. An empty input yields
+    an empty output on both. The Android native FFT path must additionally
+    be verified against the plain-sum reference on real hardware before this
+    entry is closed.
+  decided: 2026-08-19
   affects:
     android: >-
       The shipping native path normalizes by 1/(2*(m+n)) in single
@@ -303,7 +364,10 @@
 - id: autocorrelation-omitted-x-output
   title: "autocorrelation: omitted optional x output crashes iOS"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    An omitted x output is simply skipped, as on Android; no crash.
+  decided: 2026-08-19
   affects:
     android: >-
       Runs normally and simply skips the x output (autocorrelationAM,
@@ -321,7 +385,12 @@
 - id: fft-imaginary-input-length
   title: "fft: imaginary input shorter than the real input"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A provided im input truncates the transform to the shorter of re and im,
+    matching similar multi-input functions; only an absent im input is zero-
+    filled to re's length. Android's zero-padding of a shorter im changes.
+  decided: 2026-08-19
   affects:
     android: >-
       Takes the length from the real input and zero-pads the imaginary part
@@ -337,7 +406,11 @@
 - id: value-type-inputs-rejected-by-ios
   title: "interpolate/loess xi and map x/y/z: type=value inputs rejected by iOS"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Value-type inputs are allowed wherever the slot tables declare them; iOS
+    treats them as one-element buffers like Android does.
+  decided: 2026-08-19
   affects:
     android: >-
       Runs normally - a value input acts as a one-element buffer
@@ -356,7 +429,12 @@
 - id: loess-parameter-edges
   title: "loess: non-positive d and multi-value d buffers"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A non-positive or non-finite d yields empty outputs on both platforms,
+    and a multi-value d buffer is read at its last element - the convention
+    for single-value inputs everywhere else.
+  decided: 2026-08-19
   affects:
     android: >-
       d <= 0 or NaN returns without output (loessAM guard); d is read from
@@ -373,7 +451,12 @@
 - id: periodicity-parameter-edges
   title: "periodicity: non-positive dx and fractional min/max"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Invalid parameters yield empty outputs on both platforms; fractional
+    min/max are floored/ceiled as on Android (conservative, including the
+    boundary).
+  decided: 2026-08-19
   affects:
     android: >-
       dx <= 0 - including NaN or an empty buffer, which cast to 0 - produces
@@ -391,7 +474,12 @@
 - id: gausssmooth-empty-sigma
   title: "gausssmooth: empty sigma attribute"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    An empty sigma attribute is treated like an absent one and selects the
+    default of 3, consistent with the format-wide empty-equals-omitted
+    convention; iOS's rejection changes.
+  decided: 2026-08-19
   affects:
     android: >-
       sigma="" is treated like an absent attribute and the default 3 is used
@@ -406,7 +494,11 @@
 - id: max-min-multiple-trailing-set
   title: "max/min: multiple mode drops the trailing set on iOS"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The final set is emitted even when the data ends inside it; iOS adds the
+    missing post-loop flush.
+  decided: 2026-08-19
   affects:
     android: >-
       After the loop, an open set is flushed - the final maximum/minimum is
@@ -426,7 +518,13 @@
 - id: max-min-degenerate-inputs
   title: "max/min: empty y input and x shorter than y"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    An empty or all-invalid y input yields NaN on each connected output with
+    multiple=false and empty outputs with multiple=true. An x buffer shorter
+    than y truncates processing to the common length; only an omitted x
+    input keeps auto-generating indices.
+  decided: 2026-08-19
   affects:
     android: >-
       Empty (or all-NaN) y emits nothing (the -infinity position guard);
@@ -447,7 +545,11 @@
 - id: first-multiple-pairs
   title: "first: several inputs and outputs"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Android's pairing is canonical: output i receives the first value of
+    input i, and an empty input skips only its own pair.
+  decided: 2026-08-19
   affects:
     android: >-
       Pairs input i with output i - each output receives exactly the first
@@ -466,7 +568,11 @@
 - id: match-extra-outputs
   title: "match: more outputs than inputs"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Android's behavior is canonical: outputs beyond the input count are left
+    empty; no crash.
+  decided: 2026-08-19
   affects:
     android: >-
       Extra outputs are left empty (matchAM, i < outputs.size() guard).
@@ -480,7 +586,13 @@
 - id: map-edge-cases
   title: "map: non-finite points, missing z, degenerate ranges"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Points with a non-finite x, y or z are skipped; degenerate ranges (such
+    as minX equal to maxX) are clamped instead of crashing; and a missing z
+    input with zMode sum or average rejects the file at load, since that is
+    a permanent configuration error, not an intermediate state.
+  decided: 2026-08-19
   affects:
     android: >-
       Non-finite x/y round to bin 0 and a NaN z poisons that bin (mapAM, no
@@ -500,7 +612,13 @@
 - id: rangefilter-row-alignment
   title: "rangefilter: row alignment and non-finite values on iOS"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Android's behavior is canonical throughout: strictly row-wise filtering
+    that keeps outputs aligned, non-finite values compared like any number,
+    extra outputs ignored, and a min/max before the first in bound to the
+    first group.
+  decided: 2026-08-19
   affects:
     android: >-
       Filters strictly row-wise, so outputs stay aligned; +-infinity is
@@ -523,7 +641,12 @@
 - id: reduce-edge-cases
   title: "reduce: y shorter than x, and the x output requirement"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Processing truncates to the shortest present buffer; a missing y output
+    is skipped; a file without the x output is rejected at load on both
+    platforms, as the spec now models (x output min 1).
+  decided: 2026-08-19
   affects:
     android: >-
       A y buffer shorter than x substitutes 0 for the missing values
@@ -542,7 +665,13 @@
 - id: sort-unequal-lengths
   title: "sort: co-buffers of different lengths and NaN ordering"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    All buffers are truncated to the shortest input before sorting -
+    Android's behavior - and NaN ordering is deterministic on both
+    platforms, sorting NaN as the largest value like Android's
+    Double.compareTo.
+  decided: 2026-08-19
   affects:
     android: >-
       Truncates all buffers to the shortest input and sorts that prefix of
@@ -561,7 +690,11 @@
 - id: split-negative-index
   title: "split: negative index"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Negative and out-of-range positive indices are clamped into range on
+    both platforms; no exceptions. Android's negative-index crash changes.
+  decided: 2026-08-19
   affects:
     android: >-
       Arrays.copyOfRange(data, 0, negative) throws - crash (splitAM).
@@ -576,7 +709,10 @@
 - id: subrange-nonfinite-parameters
   title: "subrange: NaN or infinite from/to/length"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Non-finite from/to/length values yield empty outputs on both platforms.
+  decided: 2026-08-19
   affects:
     android: >-
       (int) casts turn NaN into 0 - a NaN "to" yields empty outputs
@@ -592,7 +728,16 @@
 - id: threshold-nan-handling
   title: "threshold: NaN values around the crossing"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    NaN values are skipped by the triggering logic and the trigger fires on
+    the next value on the other side - iOS's sticky-side formulation.
+    Additionally (general error-state rule), when no crossing is found the
+    module outputs NaN instead of the last sample's x or -1, on both
+    platforms; the shipped experiments consuming threshold output
+    (audio_scope, frequency_history, pendulum, sonar, spring) must be re-
+    checked with this change.
+  decided: 2026-08-19
   affects:
     android: >-
       Requires an adjacent valid pair on opposite sides: a NaN suppresses
@@ -610,7 +755,14 @@
 - id: const-ramp-length-handling
   title: "const/ramp: length 0 and empty parameter buffers"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    An explicit length of 0, an empty length buffer and a non-finite length
+    value all yield an empty output; only an absent length input falls back
+    to the output buffer's size. Empty value/start/stop buffers yield empty
+    outputs as well (neither NaN- nor zero-filled), and a non-finite ramp
+    start or stop is an error yielding an empty output.
+  decided: 2026-08-19
   affects:
     android: >-
       Uses -1 as the "unset" sentinel: an explicit length of 0 writes
@@ -631,7 +783,14 @@
 - id: formula-parse-divergences
   title: "formula: missing attribute, positive exponents, malformed expressions"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A missing formula attribute rejects the file (as on Android); scientific
+    notation with an explicit positive exponent such as 1e+5 is accepted (as
+    on iOS); and structurally broken formulas - wrong arity, dangling
+    operands - reject the file at load on both platforms, since that is a
+    permanent failure state.
+  decided: 2026-08-19
   affects:
     android: >-
       A missing formula attribute rejects the file ("Formula module needs a
@@ -654,7 +813,11 @@
 - id: formula-round-semantics
   title: "formula: round() tie-breaking and NaN"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    C rounding on both platforms: half away from zero, NaN stays NaN.
+    Android's Math.round semantics change.
+  decided: 2026-08-19
   affects:
     android: >-
       Java Math.round - half toward positive infinity (round(-2.5) = -2)
@@ -670,7 +833,11 @@
 - id: append-nan-value-input
   title: "append: NaN as a type=value input"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A literal NaN value input is appended like any other value; Android's
+    skip changes.
+  decided: 2026-08-19
   affects:
     android: >-
       Skips NaN value inputs (appendAM, isNaN check).
@@ -704,7 +871,17 @@
 - id: analysis-clear-edit-buffers
   title: Buffers bound to edit fields are exempt from clearing on iOS only
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Buffers bound to interactive view elements can be cleared; the element
+    then re-initializes both the buffer and the displayed value to its
+    default, as Android's edit element does (ExpView.java setValue's NaN
+    branch). iOS drops the attachedToTextField guard and gains the same re-
+    init mechanism - for every interactive element (edit, toggle, dropdown,
+    slider), not only the edit field, since Android's toggle/dropdown/slider
+    already re-init and iOS's are currently unprotected against clears
+    anyway.
+  decided: 2026-08-19
   affects:
     android: >-
       No exemption: an analysis input with the default keep=false clears an
