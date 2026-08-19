@@ -171,9 +171,7 @@ This module takes a buffer with multiple values and reduces the number of items 
 
 This module takes at least one input and sorts it. Values in additional inputs will follow the sorting of the first input buffer. By default, the values in the first buffer will be sorted in ascending order. This can be reversed with the attribute *descending*.
 
-The number of values returned matches the number of values in the shortest buffer.
-
-{{inconsistency:sort-unequal-lengths}}
+The number of values returned matches the number of values in the shortest buffer. NaN sorts as the largest value.
 
 {{spec:analysis/analysis/sort}}
 

@@ -581,31 +581,6 @@
     is a load error on iOS but a runtime crash on Android. The spec now
     models x as required, matching what both implementations need.
 
-- id: sort-unequal-lengths
-  title: "sort: co-buffers of different lengths and NaN ordering"
-  area: file-format
-  status: decided
-  canonical: >-
-    All buffers are truncated to the shortest input before sorting -
-    Android's behavior - and NaN ordering is deterministic on both
-    platforms, sorting NaN as the largest value like Android's
-    Double.compareTo.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Truncates all buffers to the shortest input and sorts that prefix of
-      the first buffer; NaN sorts deterministically as the largest value
-      (Double.compareTo) (sortAM).
-    ios: >-
-      Sorts the entire first buffer and emits its full length per output,
-      substituting NaN where a co-buffer is shorter
-      (SortAnalysis.swift); the </> sort closures violate strict weak
-      ordering when NaN is present, so NaN placement is unspecified.
-  summary: >-
-    With unequal input lengths the two platforms return different lengths
-    and different data (the prose documents Android's shortest-buffer rule),
-    and NaN ordering is deterministic only on Android.
-
 - id: split-negative-index
   title: "split: negative index"
   area: file-format
