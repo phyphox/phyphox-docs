@@ -429,6 +429,21 @@ elements:
     parent: input
     since: "1.0"
     summary: GPS.
+    description: >-
+      Location from satellite navigation (GPS/GNSS). On Android, phyphox
+      prefers satellite-based fixes: while a recent GNSS fix is available,
+      locations from other providers (Wi-Fi, cell towers) are ignored. iOS
+      delivers a single fused location and does not tell apps which source
+      produced it, so this filtering is not possible there and Wi-Fi- or
+      cell-based locations cannot be separated from GNSS-based ones.
+    note: >-
+      Android's provider filtering is in GpsInput.onLocationChanged: non-GNSS
+      providers are ignored for 10 s after a satellite-based fix. On the iOS
+      side re-checked 2026-08-19: Core Location still exposes no per-source
+      information beyond CLLocationSourceInformation (iOS 15), which only
+      flags simulated and accessory-produced locations - nothing distinguishes
+      GNSS from Wi-Fi or cellular, and there is no raw-GNSS or satellite-count
+      API either.
     children: [output]
     attributes: []
     outputs:
@@ -490,7 +505,16 @@ elements:
             Vertical accuracy.
           description: >-
             An estimate by the system of the vertical accuracy in meters.
-            Not available on Android.
+            Android provides this since Android 8; on older devices phyphox
+            writes 0, which is also what Android reports when no estimate is
+            available. On iOS a negative value means that the altitude is
+            invalid.
+          note: >-
+            The old claim "Not available on Android" was wrong - verified
+            2026-08-19: GpsInput.java appends
+            Location.getVerticalAccuracyMeters() from API 26 (Android 8) and
+            0 below; iOS appends CLLocation.verticalAccuracy unfiltered,
+            which Apple documents as negative when the altitude is invalid.
         - name: status
           summary: >-
             Fix status.
@@ -506,8 +530,18 @@ elements:
           summary: >-
             Number of satellites in view.
           description: >-
-            Number of satellites used for this measurement. Not available on
-            iOS.
+            Number of satellites used for this measurement. iOS does not
+            make this information available to apps, so on iOS this output
+            is always -1.
+          note: >-
+            Verified 2026-08-19. iOS accepts the component and hard-codes
+            -1 for every fix (ExperimentGPSInput.swift) - Core Location has
+            no satellite-count API, re-checked against current
+            documentation. Android reads the legacy "satellites" integer
+            from the location extras (GpsInput.java), defaulting to 0 when
+            the extra is missing and -1 when there are no extras at all;
+            modern Android exposes satellite status via GnssStatus instead,
+            so on many devices this extra may simply be 0.
       agreement: agreed
       rules: [output-component-validation]
 
