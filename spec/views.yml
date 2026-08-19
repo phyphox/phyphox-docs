@@ -1,4 +1,4 @@
-# The <views> block, modelled completely.
+# The <views> block, modeled completely.
 #
 # Sources compared for every entry below:
 #   Android  PhyphoxFile.java, viewsBlockParser / viewBlockParser (b4564695)
@@ -19,7 +19,7 @@
 #    <map> carries the label to show. Those are recorded with `text:`.
 #  * Android additionally reads `unit` and `factor` before dispatching, so they
 #    are accepted syntactically on every element, but only `value` and `edit` do
-#    anything with them - which is also where iOS declares them. Modelled here as
+#    anything with them - which is also where iOS declares them. Modeled here as
 #    belonging to those two elements.
 
 block: views
@@ -92,7 +92,7 @@ elements:
         since: "1.7"
         type: color
         rules: [color-invalid-value]
-        summary: Text colour.
+        summary: Text color.
         agreement: agreed
       - name: size
         description: >-
@@ -141,7 +141,7 @@ elements:
   - name: separator
     parent: view
     since: "1.0"
-    summary: Blank space, optionally coloured, to group elements visually.
+    summary: Blank space, optionally colored, to group elements visually.
     attributes:
       - name: visibility
         type: string
@@ -162,7 +162,7 @@ elements:
           [Colors](colors.md)
         type: color
         rules: [color-invalid-value]
-        summary: Fill colour. Defaults to the background, making it invisible.
+        summary: Fill color. Defaults to the background, making it invisible.
         agreement: agreed
 
   # ------------------------------------------------------------------ value --
@@ -197,7 +197,7 @@ elements:
         since: "1.7"
         type: color
         rules: [color-invalid-value]
-        summary: Text colour.
+        summary: Text color.
         agreement: agreed
       - name: size
         description: >-
@@ -531,7 +531,7 @@ elements:
           named choice from the phyphox [Colors](colors.md)
         type: color
         rules: [color-invalid-value]
-        summary: Colour of the first dataset.
+        summary: Color of the first dataset.
         agreement: agreed
       - name: logX
         description: >-
@@ -737,56 +737,56 @@ elements:
         since: "1.19"
         type: boolean
         default: true
-        summary: Show the colour scale beside a map.
+        summary: Show the color scale beside a map.
         agreement: agreed
       - name: mapColor1
         type: color
         rules: [color-invalid-value]
         summary: >-
-          First stop of the colour scale for a map style. The stops are read in
+          First stop of the color scale for a map style. The stops are read in
           order and the scale ends at the first one that is absent, so they must
           be numbered without gaps.
         agreement: agreed
       - name: mapColor2
         type: color
         rules: [color-invalid-value]
-        summary: Second stop of the map colour scale.
+        summary: Second stop of the map color scale.
         agreement: agreed
       - name: mapColor3
         type: color
         rules: [color-invalid-value]
-        summary: Third stop of the map colour scale.
+        summary: Third stop of the map color scale.
         agreement: agreed
       - name: mapColor4
         type: color
         rules: [color-invalid-value]
-        summary: Fourth stop of the map colour scale.
+        summary: Fourth stop of the map color scale.
         agreement: agreed
       - name: mapColor5
         type: color
         rules: [color-invalid-value]
-        summary: Fifth stop of the map colour scale.
+        summary: Fifth stop of the map color scale.
         agreement: agreed
       - name: mapColor6
         type: color
         rules: [color-invalid-value]
-        summary: Sixth stop of the map colour scale.
+        summary: Sixth stop of the map color scale.
         agreement: agreed
       - name: mapColor7
         type: color
         rules: [color-invalid-value]
-        summary: Seventh stop of the map colour scale.
+        summary: Seventh stop of the map color scale.
         agreement: agreed
       - name: mapColor8
         type: color
         rules: [color-invalid-value]
-        summary: Eighth stop of the map colour scale.
+        summary: Eighth stop of the map color scale.
         agreement: agreed
       - name: mapColor9
         type: color
         rules: [color-invalid-value]
         summary: >-
-          Ninth stop of the map colour scale. There is no upper limit - the scale
+          Ninth stop of the map color scale. There is no upper limit - the scale
           ends at the first gap in the numbering - so mapColor10 and beyond are
           valid on both platforms.
         agreement: agreed
@@ -835,7 +835,7 @@ elements:
       - name: color
         type: color
         rules: [color-invalid-value]
-        summary: Colour of this dataset, overriding the graph's colour.
+        summary: Color of this dataset, overriding the graph's color.
         agreement: agreed
       - name: lineWidth
         type: float
@@ -852,7 +852,7 @@ elements:
     since: "1.20"
     summary: >-
       Configures the data picker: one button offered to the user when they pick a
-      point on the maximised graph, writing a coordinate of that point into a
+      point on the maximized graph, writing a coordinate of that point into a
       data container. Any number may be given.
     text: Name of the data container receiving the picked coordinate.
     attributes:
@@ -1186,7 +1186,7 @@ elements:
       - name: color
         type: color
         rules: [color-invalid-value]
-        summary: Colour of the slider.
+        summary: Color of the slider.
         agreement: agreed
 
   - name: output
@@ -1242,7 +1242,7 @@ elements:
       - name: color
         type: color
         rules: [color-invalid-value]
-        summary: Colour of the menu.
+        summary: Color of the menu.
         agreement: agreed
 
   - name: output
@@ -1365,14 +1365,14 @@ elements:
         agreement: agreed
         note: >-
           The literal defaults differ - Android 1, iOS 0 - but iOS maps anything
-          outside 1..3 to the basic level, so both start at basic. Modelled as 1
+          outside 1..3 to the basic level, so both start at basic. Modeled as 1
           because that is the value that means what the default does.
       - name: grayscale
         description: >-
           Show a grayscale image instead of colors
         type: boolean
         default: false
-        summary: Show the preview without colour.
+        summary: Show the preview without color.
         agreement: agreed
       - name: markOverexposure
         description: >-
@@ -1380,15 +1380,15 @@ elements:
           color
         type: color
         rules: [color-invalid-value]
-        summary: Colour used to highlight overexposed pixels. Unset disables it.
+        summary: Color used to highlight overexposed pixels. Unset disables it.
         agreement: agreed
       - name: markUnderexposure
         description: >-
           Underexposed parts of the image are replaced by the given
-          colour.
+          color.
         type: color
         rules: [color-invalid-value]
-        summary: Colour used to highlight underexposed pixels. Unset disables it.
+        summary: Color used to highlight underexposed pixels. Unset disables it.
         agreement: agreed
       - name: show_controls
         value_notes:

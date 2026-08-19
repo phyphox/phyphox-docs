@@ -1,4 +1,4 @@
-# The <input> block, modelled completely.
+# The <input> block, modeled completely.
 #
 # Sources compared for every entry below:
 #   Android  PhyphoxFile.java, inputBlockParser        (phyphox-android b4564695)
@@ -8,7 +8,7 @@
 #
 # `agreement:` records what that comparison found. See README.md. Where an entry
 # has since been decided, `rules:` names the rule in rules.yml that settles it -
-# so this file states the agreed behaviour of the format, not just the fact that
+# so this file states the agreed behavior of the format, not just the fact that
 # two apps disagree today.
 
 block: input
@@ -199,7 +199,7 @@ elements:
             different devices if the target rate is in the range
             of typical sensor rates. Note that this was the only
             rate strategy before file format 1.14, and that this
-            is the default behaviour if your phyphox file targets
+            is the default behavior if your phyphox file targets
             a file format before 1.14.
         description: >-
           Defines the strategy to achieve the rate set with the
@@ -382,7 +382,7 @@ elements:
           installed with the input node's actual hardware format, no
           resampling). Maintainer ruling 2026-08-19: not a divergence -
           the attribute is for device-specific use, the prose just has
-          to be clear about the platform behaviour.
+          to be clear about the platform behavior.
         type: integer
         default: 48000
         unit: Hz
@@ -692,7 +692,7 @@ elements:
         type: enum
         values: [mean, avoidOverexposure, avoidUnderexposure, prioritizeFramerate]
         default: mean
-        summary: What phyphox's auto exposure should optimise for.
+        summary: What phyphox's auto exposure should optimize for.
         value_notes:
           mean: >-
             Aims for a mean luma of 0.5 over the selected area. Exposure times
@@ -792,7 +792,7 @@ elements:
           summary: >-
             Luma of the region.
           description: >-
-            Luma - non-linear brightness relative to the image's colour
+            Luma - non-linear brightness relative to the image's color
             range - of the selected area, in the range from 0 to 1.
         - name: luminance
           summary: >-
@@ -806,20 +806,20 @@ elements:
           summary: >-
             Hue.
           description: >-
-            Hue according to the HSV colour model, ranging from 0 to 360
+            Hue according to the HSV color model, ranging from 0 to 360
             degrees. Note that this is a cyclic average of the pixels in the
             selected area.
         - name: saturation
           summary: >-
             Saturation.
           description: >-
-            Saturation according to the HSV colour model, ranging from 0 to
+            Saturation according to the HSV color model, ranging from 0 to
             1.
         - name: value
           summary: >-
             Value, in the HSV sense.
           description: >-
-            Value according to the HSV colour model, ranging from 0 to 1.
+            Value according to the HSV color model, ranging from 0 to 1.
         - name: threshold
           summary: >-
             Fraction of pixels above the threshold.
@@ -945,7 +945,7 @@ elements:
         summary: >-
           Connect only to the device with this hardware address. **Using this
           attribute makes the experiment Android-only**: iOS gives no access to
-          BLE hardware addresses, so the criterion cannot be honoured there.
+          BLE hardware addresses, so the criterion cannot be honored there.
         agreement: platform
         platforms: [android]
       - name: id
@@ -953,7 +953,7 @@ elements:
           Combines two functions for managing several BLE devices in
           one experiment. It is shown to the user to identify what a
           device is for during scanning - two sensor boxes could be
-          labelled "wheel" and "distance" - and for that purpose it
+          labeled "wheel" and "distance" - and for that purpose it
           is translatable. It also groups entries: phyphox treats
           devices with the same id as one device, so several
           bluetooth elements, across input and output blocks alike,

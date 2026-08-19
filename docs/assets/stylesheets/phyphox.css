@@ -1,4 +1,4 @@
-/* phyphox colours for Material.
+/* phyphox colors for Material.
  *
  * The values here are not invented: they are the app's own palette, taken from
  * phyphox-android/app/src/main/res/values/colors.xml, which the remote-interface
@@ -13,7 +13,7 @@
  *   #202020   phyphox_black_60     the dark background
  *   #101010   phyphox_black_80
  *
- * Material has no "custom" primary colour in this version, so mkdocs.yml still
+ * Material has no "custom" primary color in this version, so mkdocs.yml still
  * names a stock palette entry and everything below overrides it. This file is
  * loaded after the theme's palette stylesheet, so equal specificity is enough —
  * hence plain :root rather than anything more contrived.

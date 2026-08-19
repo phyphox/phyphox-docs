@@ -1,6 +1,6 @@
 # Rules that hold across the whole file format.
 #
-# The probe on the input block found that most questions raised while modelling
+# The probe on the input block found that most questions raised while modeling
 # it were not about that block at all - they were about how parsers should behave
 # in general. Answering them once settles the same question wherever it appears,
 # which is why they live here rather than being repeated per attribute.
@@ -9,7 +9,7 @@
 # its inconsistencies.yml entry, so the rule and the to-do list cannot drift
 # apart. Once every implementation conforms, that entry is deleted and the
 # reference here goes with it - the rule itself stays, as settled format
-# behaviour. `decided:` records when the behaviour was chosen.
+# behavior. `decided:` records when the behavior was chosen.
 
 rules:
 
@@ -103,9 +103,9 @@ rules:
 
   - id: color-invalid-value
     decided: 2026-08-12
-    summary: A colour attribute whose value is not parseable is an error.
+    summary: A color attribute whose value is not parseable is an error.
     rule: >-
-      A colour value must be a named phyphox colour (matched case-insensitively,
+      A color value must be a named phyphox color (matched case-insensitively,
       like enumerated values) or a hexadecimal RGB value of exactly six hex
       digits, optionally prefixed with '#'. Anything else rejects the
       experiment file, exactly as an invalid enumerated value does. For the
@@ -114,34 +114,34 @@ rules:
       an error, not the end of the scale.
     history: >-
       Supersedes the first decision on views-map-color-unparseable (2026-08-10,
-      "an unparseable colour ends the scale like a missing one"), which was
-      made on the incorrect record that Android substituted its default colour
+      "an unparseable color ends the scale like a missing one"), which was
+      made on the incorrect record that Android substituted its default color
       and read on. In fact Android has always rejected the file - via an
       accidental unhandled NumberFormatException with an unhelpful message -
-      and iOS silently substitutes its defaults for every colour attribute, not
+      and iOS silently substitutes its defaults for every color attribute, not
       just the map scale. Given the corrected facts the maintainer decided
-      (2026-08-12) to extend the strictness of enum-invalid-value to colours.
+      (2026-08-12) to extend the strictness of enum-invalid-value to colors.
     applies_to: >-
       every attribute with type: color, and the numbered mapColorN attributes
       of the graph element.
     state:
       android: >-
         Conforms as of the development branch (2026-08-12): a present but
-        unparseable colour anywhere throws ("Could not parse color \"...\" of
+        unparseable color anywhere throws ("Could not parse color \"...\" of
         attribute \"...\"."), via a strict parser accepting exactly the named
-        colours and six-digit hex (RGB.fromPhyphoxStringStrict). Previously it
+        colors and six-digit hex (RGB.fromPhyphoxStringStrict). Previously it
         rejected most garbage by accident (unhandled NumberFormatException,
         "Unhandled RuntimeException ... For input string: ...") while quietly
         accepting some (any parseable hex number of other lengths, e.g. "abc"
         as 0x000abc). The experiment-list scanner stays lenient on purpose - a
-        bad colour there falls back to the default instead of breaking the
+        bad color there falls back to the default instead of breaking the
         list, which previously crashed it.
       ios: >-
         Conforms as of the development branch (2026-08-12): mapColorString
-        accepts exactly the named colours and six-digit hex with an optional
+        accepts exactly the named colors and six-digit hex with an optional
         '#' (the lenient NSScanner hex path is no longer reachable from the
         file format), and a present but unparseable value throws Android's
-        message at every colour site, including the per-set graph colour and
+        message at every color site, including the per-set graph color and
         the numbered mapColorN stops (KeyedAttributeContainer.optionalColor,
         GraphViewElementHandler.swift). The released app silently substitutes
         its defaults.

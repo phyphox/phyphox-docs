@@ -1,4 +1,4 @@
-# The <output> block, modelled completely.
+# The <output> block, modeled completely.
 #
 # Sources compared for every entry below:
 #   Android  PhyphoxFile.java: outputBlockParser, AudioOutputPluginBlockParser,
@@ -53,7 +53,7 @@ elements:
         type: boolean
         default: false
         since: "1.10"
-        summary: Normalise the amplitude of all inputs.
+        summary: Normalize the amplitude of all inputs.
         agreement: agreed
 
   # <input> appears at two levels and means different things. Directly under
@@ -110,8 +110,8 @@ elements:
         summary: Which parameter of the generator this input drives.
         value_notes:
           pan: >-
-            Stereo position, from -1 (left) through 0 (centre) to +1 (right).
-            A centred signal plays at full amplitude on both channels, and
+            Stereo position, from -1 (left) through 0 (center) to +1 (right).
+            A centered signal plays at full amplitude on both channels, and
             panning reduces the opposite channel rather than boosting the near
             one. Available from file format 1.20.
           amplitude: >-

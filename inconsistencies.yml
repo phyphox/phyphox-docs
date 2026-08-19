@@ -11,15 +11,15 @@
 #   id         short slug, used in the marker. Required.
 #   title      one line, shown as the admonition heading. Required.
 #   area       file-format | remote-interface | editor. Required.
-#   status     open      - nobody has decided which behaviour is correct yet
-#              decided   - canonical behaviour chosen, implementations not yet fixed
+#   status     open      - nobody has decided which behavior is correct yet
+#              decided   - canonical behavior chosen, implementations not yet fixed
 #              There is no "fixed" status: once every implementation agrees,
 #              delete the entry (and its markers and spec references) in the
-#              same commit as the fix. Readers learn about corrected behaviour
+#              same commit as the fix. Readers learn about corrected behavior
 #              from the release changelog; a lingering "recently corrected"
 #              note only clutters the documentation.
-#   canonical  what the correct behaviour is. Required once status is decided.
-#   affects    map of implementation -> observed behaviour. Use the keys
+#   canonical  what the correct behavior is. Required once status is decided.
+#   affects    map of implementation -> observed behavior. Use the keys
 #              android, ios, editor, arduino, micropython, wiki.
 #   since      optional: format version or app version the divergence appeared in
 #   issue      optional: URL of the tracking issue
@@ -28,7 +28,7 @@
 #              source. Absence means nobody has checked on a device.
 #   summary    reader-facing explanation, one short paragraph. Required.
 #
-# Keep entries factual and cite where the behaviour was observed, so the next
+# Keep entries factual and cite where the behavior was observed, so the next
 # person can re-check it rather than trusting this file.
 
 - id: meta-sensors

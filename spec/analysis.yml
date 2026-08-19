@@ -1,4 +1,4 @@
-# The <analysis> block and its modules, modelled completely.
+# The <analysis> block and its modules, modeled completely.
 #
 # Sources compared for every entry below:
 #   Android  PhyphoxFile.java, analysisBlockParser                 (b4564695)
@@ -76,7 +76,7 @@ common:
       type: boolean
       default: true
       summary: >-
-        Deprecated in file format 1.17 in favour of keep, which is the more
+        Deprecated in file format 1.17 in favor of keep, which is the more
         intuitive spelling. clear=true corresponds to keep=false.
       deprecated: true
       superseded_by: keep
@@ -98,7 +98,7 @@ common:
       type: boolean
       default: true
       summary: >-
-        Deprecated in file format 1.17 in favour of append. clear=true
+        Deprecated in file format 1.17 in favor of append. clear=true
         corresponds to append=false.
       deprecated: true
       superseded_by: append
@@ -1459,7 +1459,7 @@ elements:
     parent: analysis
     summary: >-
       Mathematically, this module is similar to the autocorrelation module,
-      but is meant to analyse large amounts of data in small subsets.
+      but is meant to analyze large amounts of data in small subsets.
     children: [input, output]
     attributes: []
     inputs:

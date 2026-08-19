@@ -1,5 +1,5 @@
 # The root <phyphox> element and the blocks that describe the experiment itself
-# rather than its behaviour: translations, data containers, export and events.
+# rather than its behavior: translations, data containers, export and events.
 #
 # Sources compared for every entry below:
 #   Android  PhyphoxFile.java: phyphoxBlockParser, translationsBlockParser,
@@ -115,7 +115,7 @@ elements:
           string or as a base64-encoded image. From a string phyphox
           takes the first three characters - fewer is fine - and
           draws a simple icon with them. A base64 image is decoded
-          and displayed; a small PNG with few colours works best.
+          and displayed; a small PNG with few colors works best.
         type: enum
         values: [string, base64]
         default: string
@@ -127,9 +127,9 @@ elements:
     parent: phyphox
     since: "1.0"
     summary: >-
-      Base colour of the experiment, used behind the icon and for the category
+      Base color of the experiment, used behind the icon and for the category
       label.
-    text: A six-digit hex value or a named colour.
+    text: A six-digit hex value or a named color.
     attributes: []
 
   - name: description
@@ -473,7 +473,7 @@ elements:
     summary: The experiment was paused.
     attributes: *event_attributes
 
-# The named colours every attribute of type color accepts, matched
+# The named colors every attribute of type color accepts, matched
 # case-insensitively; the alternative is exactly six hex digits, optionally
 # prefixed with '#' (rules.yml, color-invalid-value). The names and values are
 # duplicated per implementation; tools/hooks.py checks the table on the Colors

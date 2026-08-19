@@ -1,7 +1,7 @@
 # Machine-readable specification of the phyphox file format
 
 **This directory is a probe, not a commitment.** It contains one block of the format —
-`input` — modelled completely, to find out what phase 3 actually costs before ~540
+`input` — modeled completely, to find out what phase 3 actually costs before ~540
 attributes are written in the same shape. `FINDINGS.md` has the result.
 
 Nothing consumes these files yet. They are not wired into the docs build.
@@ -9,7 +9,7 @@ Nothing consumes these files yet. They are not wired into the docs build.
 ## Why a schema rather than RELAX NG
 
 A grammar can say that `rate` is a float. It cannot say that `rateStrategy` defaults to
-`auto` from file format 1.14 and to `limit` below it, which is real behaviour in both
+`auto` from file format 1.14 and to `limit` below it, which is real behavior in both
 parsers (`InputElementHandler.swift`, `SensorInputDescriptor.defaults(forVersion:)`;
 `PhyphoxFile.java`, `inputBlockParser`). Version-dependent *defaults* are the reason this
 is structured YAML that generates a validator, rather than a validator written by hand.
@@ -53,8 +53,8 @@ plausible:
 
 | value | meaning |
 |---|---|
-| `agreed` | Android and iOS behave the same; the spec states that behaviour. |
-| `divergent` | They differ. Requires `inconsistency:` naming an entry in `../inconsistencies.yml`. The spec states the behaviour only if that entry has been decided. |
+| `agreed` | Android and iOS behave the same; the spec states that behavior. |
+| `divergent` | They differ. Requires `inconsistency:` naming an entry in `../inconsistencies.yml`. The spec states the behavior only if that entry has been decided. |
 | `undecided` | They differ and nobody has chosen. Also requires `inconsistency:`. |
 | `platform` | Deliberately one-sided, because the feature only exists on one platform. Requires `platforms:`. |
 
@@ -69,7 +69,7 @@ decision count from growing with the attribute count.
 `tools/spec_vs_docs.py` diffs the spec against the documentation pages and runs as part of
 `mkdocs build --strict`. Anything the docs describe that the spec does not model fails the
 build. The other direction is reported but tolerated — the docs are often behind, and being
-behind is not a modelling error.
+behind is not a modeling error.
 
 The prose is not a source: it has been caught three times naming an attribute no
 implementation accepts (`autoExposure`, `showControls`, `logy`). Its value is as an
@@ -78,7 +78,7 @@ independent list of what exists.
 ### Child elements are checked, not trusted
 
 `tools/hooks.py` fails the build if an element declares a child in `children:` that is not
-modelled, or models an element whose parent does not list it. Both directions matter: the
+modeled, or models an element whose parent does not list it. Both directions matter: the
 graph data picker and the button's `trigger` tag were both lost by writing a name into
 `children:` and stopping there.
 
@@ -121,7 +121,7 @@ Of twelve names that first looked like Android-only analysis modules, exactly tw
 Many child elements carry their meaning in their text rather than in an attribute: an
 `<output>` names a buffer, a `<trigger>` names an id, a `<map>` carries the label to display.
 Record that with `text:`. A model that only lists attributes silently loses it — the
-dropdown's option labels were briefly modelled as a `replacement` attribute, which iOS
+dropdown's option labels were briefly modeled as a `replacement` attribute, which iOS
 declares but never reads and which appears nowhere in the documentation.
 
 ### Read the prose under a definition-list term, not just the term
@@ -147,7 +147,7 @@ dynamic names and attributes read by the class that consumes them.
 ### Verifying a one-sided attribute
 
 Before recording an attribute as read by only one app, check *how* the other parser names
-attributes. Android builds the map-graph colour stops as `"mapColor" + index` in a loop, so
+attributes. Android builds the map-graph color stops as `"mapColor" + index` in a loop, so
 `mapColor1` appears nowhere in its source and a grep for it wrongly suggested the attribute
 was iOS-only. That is currently the only dynamically constructed attribute name in either
 codebase, but the failure is silent, so a negative grep is not on its own evidence of a

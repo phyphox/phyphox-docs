@@ -1,6 +1,6 @@
 # Phase 3 estimate
 
-The `input` block of the file format was modelled completely in `input.yml`, by comparing
+The `input` block of the file format was modeled completely in `input.yml`, by comparing
 `PhyphoxFile.java`'s `inputBlockParser` against `InputElementHandler.swift` attribute by
 attribute, with `docs/file-format/input.md` and the Blockly editor as third and fourth
 opinions where they had something to say. This is what that cost, and what it implies for
@@ -22,7 +22,7 @@ Plus all 5 output-component sets, which diverge for the same single reason.
 
 | question | facts it settles |
 |---|---|
-| `input-one-sided-attributes` — six attributes one app honours and the other ignores | 6 |
+| `input-one-sided-attributes` — six attributes one app honors and the other ignores | 6 |
 | `input-output-component-validation` — Android validates component names and counts, iOS does not | 5 |
 | `input-invalid-enum-handling` — invalid enum value: refuse the file, or silently use the default? | 2 |
 | `input-enum-case-sensitivity` — is `mode="Closest"` the same as `mode="closest"`? | 2 |
@@ -50,13 +50,13 @@ appears. Only `input-one-sided-attributes` is a genuine list of individual cases
 ## What this means for the remaining ~215 attributes
 
 The file-format pages carry 262 documented attributes, of which 37 are in `input`. So the
-block modelled here is about 14% of the format — a fair sample in size, though not in
+block modeled here is about 14% of the format — a fair sample in size, though not in
 character: `input` has more platform-specific hardware in it than `analysis`, and fewer
 elements than `views`.
 
 Extrapolating the *mechanical* work is safe: it was steady, roughly a minute of comparison
 per attribute, and it scales linearly. Extrapolating the decisions is not, and the direction
-of the error is favourable:
+of the error is favorable:
 
 - The four questions here are already **format-wide**. Enum handling, case sensitivity and
   component validation apply to `output`, `views` and `analysis` too — so the same four
@@ -72,13 +72,13 @@ maintainer's involvement is a handful of policy calls made once, plus a review p
 
 ## Three things the probe changed about the plan
 
-**1. The spec must record agreement, not just behaviour.** Every attribute in `input.yml`
+**1. The spec must record agreement, not just behavior.** Every attribute in `input.yml`
 carries an `agreement:` field saying whether the two parsers were found to agree. Without
 it a reader cannot tell a fact that was verified from one that was assumed, and neither can
 the next person to touch the file. This is the same lesson the phase 2 hardware run taught:
 reading code reliably gives the happy path and unreliably gives the edges.
 
-**2. Defaults are the easy part; error behaviour is the hard part.** The version-dependent
+**2. Defaults are the easy part; error behavior is the hard part.** The version-dependent
 default that motivated the structured-YAML approach (`rateStrategy`: `auto` from 1.14,
 `limit` below) turned out to be the *simplest* kind of entry — both parsers implement it
 identically and it is trivially expressible. Every genuine difficulty was about what happens
@@ -106,7 +106,7 @@ size of `input`, and the block least like it.
 fall under `enum-invalid-value` and `enum-case-insensitive`, decided already — `align`,
 `style`, `scaleMin*`/`scaleMax*`, `axis`, slider `type`, `darkFilter`, `lightFilter`,
 `show_controls`. That is the prediction from the `input` probe holding: the format-wide
-rules do the work, and modelling a new block mostly consumes them rather than adding to
+rules do the work, and modeling a new block mostly consumes them rather than adding to
 them.
 
 The new entries are `views-one-sided-attributes` (five attributes) and
@@ -122,7 +122,7 @@ iOS cannot discover that half their audience gets a different experiment.
 
 ### A correction, and the method lesson behind it
 
-The first version of this section claimed the two apps colour map graphs *incompatibly* —
+The first version of this section claimed the two apps color map graphs *incompatibly* —
 that `mapColor1`…`mapColor9` were iOS-only and Android offered `interpolateMapColors` over a
 built-in scale instead. That was wrong, and the maintainer caught it.
 
@@ -134,14 +134,14 @@ end the scale at the first gap, so scales of up to nine stops behave identically
 
 **Grepping for literal attribute names does not find dynamically constructed ones.** A
 search of both codebases turned up exactly one such case — this one — so nothing else in the
-182 attributes modelled so far is affected. But the failure mode is silent and it produced a
+182 attributes modeled so far is affected. But the failure mode is silent and it produced a
 confident, wrong, and quite dramatic claim, which is worth remembering when the remaining
-blocks are modelled: an attribute that appears one-sided deserves a second look at *how* the
+blocks are modeled: an attribute that appears one-sided deserves a second look at *how* the
 other parser reads attributes before it is written down as a divergence.
 
 ### A second correction: a whole feature was missed
 
-`graph` was modelled with one child element, `input`. It has two. The `output` tag configures
+`graph` was modeled with one child element, `input`. It has two. The `output` tag configures
 the **data picker** — the graph's outputs name data containers that receive the coordinates of
 a point the user picks, with `axis` values `x`, `xcal`, `y`, `ycal`, `z`, `zcal` and a `label`
 per button — and it was omitted completely, along with the finding that goes with it.
@@ -163,15 +163,15 @@ belongs to** — `calibrationParameter` was filed under `input` when it is an `o
 attribute. Neither error would have been caught by any check in the repo; both were caught by
 the maintainer knowing the feature existed.
 
-### A third correction: child elements were declared but not modelled
+### A third correction: child elements were declared but not modeled
 
 `children:` lists were written on every view element, but only three child elements were
-actually modelled. Nine were missing, including the button's `trigger` tag — the mechanism
+actually modeled. Nine were missing, including the button's `trigger` tag — the mechanism
 that fires a network connection, in the format since 1.8 — and every plain `<output>` and
 `<input>` that names a buffer.
 
 Two related errors came out of the same pass. The dropdown's entries are `<map>`, not
-`<mapping>` as modelled; and their text was recorded as a `replacement` attribute, which iOS
+`<mapping>` as modeled; and their text was recorded as a `replacement` attribute, which iOS
 declares but never reads and which is in neither Android nor the documentation. The option
 label is the element's text.
 
@@ -183,8 +183,8 @@ There is now a `text:` key.
 barely moved, which is the point: the missing surface was structural, not attributive, and
 counting attributes would never have revealed it.
 
-**The build now checks this.** An element declaring a child that is not modelled, or a
-modelled element its parent does not list, fails the build. Verified against the exact
+**The build now checks this.** An element declaring a child that is not modeled, or a
+modeled element its parent does not list, fails the build. Verified against the exact
 omission: deleting the `trigger` element while leaving it in `children:` is now an error.
 That check would have caught two of the three corrections in this section.
 
@@ -219,11 +219,11 @@ is a plain documentation gap.
 Finding `decimalPoint` also demonstrated the Bluetooth hazard before reaching that block.
 It appears nowhere in `PhyphoxFile.java`, because Android's BLE conversion classes read
 their own attributes straight from the parser inside `ConversionsInput.java`. Reading the
-block parser alone would have declared it iOS-only. The BLE block must be modelled from the
+block parser alone would have declared it iOS-only. The BLE block must be modeled from the
 conversion classes outward, not from the element that names them.
 
 The check now runs as part of `mkdocs build --strict`, in the direction that matters:
-documented-but-not-modelled fails the build.
+documented-but-not-modeled fails the build.
 
 ### What the maintainer's review of those four attributes changed
 
@@ -234,7 +234,7 @@ Reviewing the undocumented attributes settled more than the four:
 | `bluetooth/address` | Android-only by platform limitation, and now documented with a plain warning that using it makes an experiment Android-only. iOS must **reject** the file rather than silently connect to a different device. |
 | `camera/threshold` | An untested planned feature that reached the parser ahead of the decision to ship it. Not part of the format; removed from the spec, to be removed from the parser. |
 | `edit/editable` | Makes little sense on an element whose purpose is user input, and is believed unused. Same treatment. |
-| `bluetooth/output/decimalPoint` | A plain documentation gap, to be filled when the bluetooth block is modelled. |
+| `bluetooth/output/decimalPoint` | A plain documentation gap, to be filled when the bluetooth block is modeled. |
 
 Checking `address` prompted a re-read of the whole bluetooth element, which turned up two more
 of my own errors:
@@ -255,7 +255,7 @@ projection further towards "a few rules and a short tail".
 ### The "one-sided attributes" category dissolved
 
 The `input` probe predicted a category that would scale with attribute count: attributes one
-app honours and the other ignores, each needing its own decision. It started with six. On
+app honors and the other ignores, each needing its own decision. It started with six. On
 review, **not one of them was what it looked like**:
 
 | attribute | what it actually was |
@@ -274,7 +274,7 @@ iOS has yet to implement.
 **That removes the only category that was projected to grow with the format.** What remains is
 a small set of format-wide rules plus a handful of genuine one-offs. Two of the six were my
 own misreadings and two were answered by documentation I had not read carefully enough —
-which says the modelling needs to consult the prose *for meaning*, not only diff it for names.
+which says the modeling needs to consult the prose *for meaning*, not only diff it for names.
 `depth/smooth` was documented as iOS-only in the very entry I had classified as an unexplained
 divergence.
 
@@ -282,7 +282,7 @@ divergence.
 
 An attribute cannot predate the element it belongs to. Adding that check found the
 `aeFPSTarget` error it was written for — and one more the same second: `bluetooth` was
-modelled as arriving in file format 1.11, a number I had guessed. The Bluetooth page says
+modeled as arriving in file format 1.11, a number I had guessed. The Bluetooth page says
 plainly that BLE arrived in 1.7. Corrected, along with its two child elements.
 
 The `since` values in this spec came from the documentation where it stated them and from
@@ -389,7 +389,7 @@ Re-extracted properly, with Android's defaults applied rather than only the fiel
 
 Two of those defaults are traps. `asRequired` defaults to **true**, so a slot is
 `as`-required unless a module explicitly says otherwise — the opposite of what the sparse
-Java initialisers suggest at a glance. And `maxCount = 0` means *no maximum*, not *none
+Java initializers suggest at a glance. And `maxCount = 0` means *no maximum*, not *none
 allowed*, which the first pass had recorded as "repeatable" and conflated with
 `repeatableOffset`.
 
@@ -466,7 +466,7 @@ contributed by a user for Android alone in 2021, have no iOS counterpart and are
 tested — so the feature is not considered complete, which is why it is undocumented. Removed
 from the specification and recorded, so that anyone finding `mqtts` in the parser or in an
 experiment file knows what it is. iOS throwing "Unkown network service" is the right
-behaviour for something unfinished.
+behavior for something unfinished.
 
 **`container/type` should be checked by iOS**, which currently ignores it where Android throws
 for anything but `"buffer"`. Decided. No exposure today, but the attribute is reserved so a
@@ -489,12 +489,12 @@ implement the attribute — only the list parser does. Not an omission, an archi
 
 That is a third distinct reason an attribute can be absent from the parser you are reading,
 after dynamically built names and attributes read by the class that consumes them.
-`decimalPoint`, `cycles` and the map-colour loop were the others. **An attribute absent from a
+`decimalPoint`, `cycles` and the map-color loop were the others. **An attribute absent from a
 block parser means nothing on its own.**
 
 ### What the documentation cross-check caught that reading did not
 
-`clearGroup` on `<container>`. I modelled the root block from both parsers and missed it
+`clearGroup` on `<container>`. I modeled the root block from both parsers and missed it
 entirely; `tools/spec_vs_docs.py` reported it against `index.md` immediately.
 
 It matters more than a missed attribute usually would. `clearGroup` is what exempts
@@ -508,14 +508,14 @@ what they do; only a third source tells you what is missing from both readings.
 
 ### Checking completeness instead of asserting it
 
-The blocks were modelled by reading both parsers, which is exactly the process that has been
+The blocks were modeled by reading both parsers, which is exactly the process that has been
 wrong repeatedly. `tools/spec_vs_ios.py` now checks the result independently: iOS declares its
 accepted surface unusually plainly — an `enum Attribute` per handler, children registered by
 name — so walking that from the root element gives an inventory of the format that does not
 depend on my having read the right lines.
 
 It found one **real structural error**: `<input>` under `<tone>` and `<noise>` in the audio
-output. The spec had modelled `input` only under `<audio>`, conflating the direct waveform
+output. The spec had modeled `input` only under `<audio>`, conflating the direct waveform
 source (no `parameter`) with the generator parameter inputs (`parameter`, `type`) — three
 elements collapsed into one. Corrected, and `frequency` is now recorded as applying to `tone`
 only, which `noise` does not accept.
@@ -525,7 +525,7 @@ something:
 
 - **Class bodies must be brace-matched.** A regex ending at the first `\n}` runs past the end
   of a class into the next. That produced `experimentTime` on `<events>` and `stride` on a
-  bluetooth output, both belonging to neighbouring classes.
+  bluetooth output, both belonging to neighboring classes.
 - **Class names are not unique.** `OutputElementHandler.swift` declares its *own* private
   `AudioElementHandler` and `BluetoothElementHandler`, with the same names as the input
   block's. Merging them made the output audio appear to take `append` and the output bluetooth
@@ -540,7 +540,7 @@ reported nothing missing.
 
 Five attributes are declared by an iOS handler and never read: `stride` on a bluetooth output,
 `replacement` on a dropdown map, `clear` on the audio generator inputs, `mtu`, and a copy of
-its child's enum on `<events>`. They are listed in the tool rather than modelled — in the
+its child's enum on `<events>`. They are listed in the tool rather than modeled — in the
 source, but not part of the format.
 
 One piece of latitude worth knowing: iOS accepts any `<events>` child whose name matches a
@@ -604,7 +604,7 @@ attribute name.
 
 ### Revised projection
 
-All six blocks are modelled: 128 elements, 302 attributes and 194 named analysis slots, leaving roughly 80,
+All six blocks are modeled: 128 elements, 302 attributes and 194 named analysis slots, leaving roughly 80,
 spread across `analysis`, `bluetooth-low-energy`, `network-connections`, `output` and the
 root block.
 
@@ -617,12 +617,12 @@ which is the opposite of what a pessimistic estimate would predict.
 ## Suggested sequence, if this goes ahead
 
 1. ~~Decide the four questions above.~~ Done for three; `input-one-sided-attributes` is
-   case by case and does not block modelling, since each attribute can carry `undecided`
+   case by case and does not block modeling, since each attribute can carry `undecided`
    until its turn comes.
 2. ~~Model `views` next.~~ Done, and it confirmed the estimate rather than breaking it.
    `bluetooth-low-energy` (74 attributes) is the largest untouched block and the next
-   worthwhile test, since its conversion machinery is unlike anything modelled so far.
-3. Document `bluetooth/output/decimalPoint` while modelling that block — implemented by both
+   worthwhile test, since its conversion machinery is unlike anything modeled so far.
+3. Document `bluetooth/output/decimalPoint` while modeling that block — implemented by both
    apps, described nowhere. `EXPECTED_UNDOCUMENTED` in `tools/spec_vs_docs.py` carries the
    reminder.
 4. Only then write the generator. Generating reference pages from a spec that is still

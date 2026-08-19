@@ -1,4 +1,4 @@
-# The <network> block, modelled completely.
+# The <network> block, modeled completely.
 #
 # Sources compared for every entry below:
 #   Android  PhyphoxFile.java: networkBlockParser, networkConnectionBlockParser
