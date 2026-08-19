@@ -304,7 +304,9 @@
       Converts via UInt(Double), which truncates (2.7 -> 2) and crashes the
       app for any negative value; non-finite values are caught and yield NaN
       (GCDAnalysis.swift, LCMAnalysis.swift). lcm(0,0) traps (0/0 in UInt);
-      large products trap on overflow.
+      large products trap on overflow. Fully conforms to the canonical
+      behaviour on the development branch since 2026-08-19; only Android
+      remains.
   summary: >-
     Outside non-negative integers the two implementations disagree on
     everything: rounding vs truncation, wrong values vs crash for negatives,
