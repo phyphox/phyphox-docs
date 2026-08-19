@@ -3,7 +3,7 @@
 The input block defines all hardware inputs such as sensors or the microphone used in the experiment.
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     ...
     <input>
         <sensor type="pressure">
@@ -57,9 +57,9 @@ The photometric properties are calculated on the GPU, so keeping up a high frame
 
 Get a depth measurement from the depth sensor, which is typically a dedicated optical sensor as part of the camera array. On iOS, this type of sensor is called "LiDAR", while on Android you usually have to look for "ToF". Both systems have very different APIs to access this data with various advantages and drawbacks:
 
-On iOS we access the LiDAR sensor through ARKit, which is the framework for augmented reality applications. The depth data is almost perfectly aligned with the camera image, but it is not raw data from the sensor, but processed and remapped for AR applications. Therefore, the data might have been fused with depth data derived from the normal color camera (for example depth estimation from parallax effects). Newer iOS devices also feature a depth sensor on the front, which is designed for FaceID, but this is available through an entirely different API and may be supported by phyphox in the future. (Details on Apple's API can be found at <https://developer.apple.com/documentation/arkit/ardepthdata>)
+On iOS we access the LiDAR sensor through ARKit, which is the framework for augmented reality applications. The depth data is almost perfectly aligned with the camera image, but it is not raw data from the sensor, but processed and remapped for AR applications. Therefore, the data might have been fused with depth data derived from the normal color camera (for example depth estimation from parallax effects). Most current iOS devices also feature a depth sensor on the front, which is designed for FaceID. This is often also available on the base models that do not support LiDAR on the back of the phone. However, note that this to our knowledge uses a different technology as it projects a pattern onto a viewers face and might therefore not be suitable for some physics experients.
 
-On Android we decided against using ARCore, Google's augmented reality framework, as a more direct API is available and dependencies on Google Services could be avoided in favor of platforms that do not have Google support. Here we use the camera2 API to access the sensor data, which has the benefit that we do not expect any fusion with AR data. However, the disadvantage is that the depth data has not been remapped to align with the regular camera image and you will experience an offset, which in particular will depend on the viewing distance as camera and sensor are placed at a distance in the phone's case. The camera2 API allows for accessing front and back facing depth sensors, but be aware that some phones advertise a ToF sensor for camera autofocus without exposing its data through the camera2 API. (Details on the camera2 API can be found at: <https://developer.android.com/reference/android/hardware/camera2/package-summary>)
+On Android we decided against using ARCore, Google's augmented reality framework, as a more direct API is available and dependencies on Google Services could be avoided in favor of platforms that do not have Google support. Here we use the camera2 API to access the sensor data, which has the benefit that we do not expect any fusion with AR data. However, the disadvantage is that the depth data has not been remapped to align with the regular camera image and you will experience an offset, which in particular will depend on the viewing distance as camera and sensor are not in the same lens. The camera2 API allows for accessing front and back facing depth sensors, but be aware that some phones advertise a ToF sensor in their specs for camera autofocus without exposing its data through the camera2 API. (Details on the camera2 API can be found at: <https://developer.android.com/reference/android/hardware/camera2/package-summary>)
 
 Typically the user selects an area within the camera/depth data (which can be preset using the attributes x1, x2, y1, y2) that is aggregated into one depth value per frame. For each frame a pair of an aggregated depth value "z" and the corresponding timestamp "t" will be returned.
 
@@ -69,7 +69,7 @@ In order to give the user a preview and control over the depth input, you will w
 
 ## Input module: location
 
-The location block defines an input from the GPS sensor. The data will be written to the output buffers at the rate at which it is provided by the sensor. On Android, the location data is expected to come from satellite navigation exclusively (although some unusual implementations may occur), but on iOS we cannot deactivate other sources. Therefore, in most cases on iOS the first reading is based on the mobile and Wi-Fi networks.
+The location block defines an input from the GPS sensor. The data will be written to the output buffers at the rate at which it is provided by the sensor. On Android, the user can select in the experiment menu that location data should come exclusively from satellite navigation (although some unusual implementations may occur), but on iOS we cannot deactivate other sources. Therefore, in most cases on iOS (and Android default settings) the first reading is usually based on the mobile and Wi-Fi networks rather than satellite position systems.
 
 {{spec:input/input/location}}
 
