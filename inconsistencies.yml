@@ -173,8 +173,13 @@
     participate in comparisons normally and are not errors. iOS replaces its
     unguarded Int()/UInt() conversions; Android's blanket NaN-to-0 casts
     change where they fabricate plausible parameters (a NaN movingaverage
-    width no longer acts as width 0). Residual per-parameter classifications
-    are being settled with the maintainer.
+    width no longer acts as width 0). Settled residual cases (2026-08-19):
+    eventstream's index/skip/last inputs are the module's own state loop, not
+    user parameters - they keep their documented start defaults (0/0/NaN)
+    when empty, and only the iOS conversion traps are fixed; NaN threshold
+    values participate in comparisons (see threshold-nan-handling and
+    max-min-degenerate-inputs); a NaN const value is a permitted deliberate
+    NaN-fill (see const-ramp-length-handling).
   decided: 2026-08-19
   affects:
     android: >-
@@ -523,7 +528,11 @@
     An empty or all-invalid y input yields NaN on each connected output with
     multiple=false and empty outputs with multiple=true. An x buffer shorter
     than y truncates processing to the common length; only an omitted x
-    input keeps auto-generating indices.
+    input keeps auto-generating indices. In multiple mode a NaN threshold
+    value participates like any number - no comparison is ever true, so the
+    whole input forms one set - while an absent threshold input or an empty
+    threshold buffer selects the documented default of 0 (ruled 2026-08-19;
+    Android currently lets an empty buffer's NaN participate instead).
   decided: 2026-08-19
   affects:
     android: >-
@@ -731,7 +740,11 @@
   status: decided
   canonical: >-
     NaN values are skipped by the triggering logic and the trigger fires on
-    the next value on the other side - iOS's sticky-side formulation.
+    the next value on the other side - iOS's sticky-side formulation. A NaN
+    threshold value participates like any number: no comparison with it is
+    ever true, so no crossing is found and NaN is output - the NaN-to-0
+    sanitization is dropped (ruled 2026-08-19). An absent threshold input or
+    an empty threshold buffer selects the documented default of 0.
     Additionally (general error-state rule), when no crossing is found the
     module outputs NaN instead of the last sample's x or -1, on both
     platforms; the shipped experiments consuming threshold output
@@ -761,7 +774,10 @@
     value all yield an empty output; only an absent length input falls back
     to the output buffer's size. Empty value/start/stop buffers yield empty
     outputs as well (neither NaN- nor zero-filled), and a non-finite ramp
-    start or stop is an error yielding an empty output.
+    start or stop is an error yielding an empty output. A present NaN value
+    for const is allowed and fills the output with NaN, as a deliberate NaN
+    initialization (ruled 2026-08-19); an empty value buffer remains an
+    error with empty output.
   decided: 2026-08-19
   affects:
     android: >-
