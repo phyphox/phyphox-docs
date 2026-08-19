@@ -401,31 +401,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: value-type-inputs-rejected-by-ios
-  title: "interpolate/loess xi and map x/y/z: type=value inputs rejected by iOS"
-  area: file-format
-  status: decided
-  canonical: >-
-    Value-type inputs are allowed wherever the slot tables declare them; iOS
-    treats them as one-element buffers like Android does.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Runs normally - a value input acts as a one-element buffer
-      (DataInput.getArray()).
-    ios: >-
-      The slot tables declare valueAllowed like Android's, so validation
-      passes, but the modules fetch these slots with io.data(), which is nil
-      for a value input, and throw at load time ("No input for xi provided",
-      InterpolateAnalysis.swift/LoessAnalysis.swift init) or at update
-      ("Input x for map module has to be a buffer", MapAnalysis.swift).
-      Progress on the development branch: interpolate and loess accept
-      value-type xi since 2026-08-19; map is still open on iOS.
-  summary: >-
-    Files using a literal value for interpolate's or loess's xi, or for
-    map's x/y/z, work on Android and are refused (or fail) on iOS, although
-    the spec and both parsers' slot tables allow the value type there.
-
 - id: loess-parameter-edges
   title: "loess: non-positive d and multi-value d buffers"
   area: file-format
@@ -504,7 +479,9 @@
       Non-finite points are skipped (MapAnalysis.swift isFinite check); a
       missing z in sum/average mode runs with z = 0 and produces a zero
       grid; a degenerate range makes the bin index NaN/inf and
-      Int(round(...)) traps - crash.
+      Int(round(...)) traps - crash. Fully conforms to the canonical
+      behaviour on the development branch since 2026-08-20 (load rejection
+      and clamped bin indices); only Android remains.
   summary: >-
     Three map edge cases diverge: NaN points (binned vs skipped), missing z
     outside count mode (no output vs zero grid), and equal min/max ranges

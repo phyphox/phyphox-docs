@@ -95,8 +95,6 @@ The example above takes xData, yData and zData and creates a grid of 100 by 100 
 
 {{inconsistency:map-edge-cases}}
 
-{{inconsistency:value-type-inputs-rejected-by-ios}}
-
 {{spec:analysis/analysis/map}}
 
 ## max
