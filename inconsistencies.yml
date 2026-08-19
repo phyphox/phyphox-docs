@@ -202,8 +202,8 @@
       negative length traps in Array(repeating:count:), also in
       RampGeneratorAnalysis.swift). The guarded getSingleValueAsInt() exists
       in ExperimentAnalysisDataIO.swift but is not used in these places.
-      Progress on the development branch: the binning sub-case conforms
-      since 2026-08-19; movingaverage, split, eventstream and const/ramp
+      Progress on the development branch: the binning and movingaverage
+      sub-cases conform since 2026-08-19; split, eventstream and const/ramp
       are still open on iOS.
   summary: >-
     Where a single-value parameter (width, length, index, distance, ...)
