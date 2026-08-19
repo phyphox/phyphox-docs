@@ -24,8 +24,6 @@ Calculates the two-argument variant of the inverse tangent (corresponding to ata
 
 {{inconsistency:atan2-unequal-lengths}}
 
-{{inconsistency:complex-module-operand-order}}
-
 {{spec:analysis/analysis/atan2}}
 
 ## cos

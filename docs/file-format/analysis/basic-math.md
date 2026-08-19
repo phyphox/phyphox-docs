@@ -18,8 +18,6 @@ Calculates the quotient of multiple divisors from a single dividend element-wise
 
 For this simple function you can leave out the *as* attribute. If you do so, the first input will be used as dividend and all subsequent values as divisors.
 
-{{inconsistency:complex-module-operand-order}}
-
 {{spec:analysis/analysis/divide}}
 
 ## gcd (greatest common divisor)
@@ -56,8 +54,6 @@ Calculates the power of a base and an exponent element-wise and writes it to a s
 
 {{inconsistency:power-native-empty-input}}
 
-{{inconsistency:complex-module-operand-order}}
-
 {{spec:analysis/analysis/power}}
 
 ## round
@@ -73,7 +69,5 @@ Rounds the values from the single input element-wise and writes the results to a
 Calculates the difference of multiple subtrahends from a single minuend element-wise and writes it to a single output buffer. This module will write as many values as there are values in the biggest input buffer. If a buffer is shorter than the others (especially if one input is a single value), its last value will be repeated. (Exception: If any buffer is empty, the result will be an empty buffer, too.)
 
 For this simple function you can leave out the *as* attribute. If you do so, the first input will be used as minuend and all subsequent values as subtrahends.
-
-{{inconsistency:complex-module-operand-order}}
 
 {{spec:analysis/analysis/subtract}}

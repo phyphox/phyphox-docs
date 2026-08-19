@@ -211,37 +211,6 @@
     degrades gracefully while iOS crashes with an unguarded integer
     conversion or array construction.
 
-- id: complex-module-operand-order
-  title: "subtract/divide/power/atan2: operand order with explicit as attributes"
-  area: file-format
-  status: decided
-  canonical: >-
-    Operands follow the as attributes, matched case-insensitively, with
-    unnamed inputs filling the remaining slots in declaration order -
-    Android's behavior. iOS must consume the validated slot mapping instead
-    of document order with an exact-match priority key.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      ioBlockParser reorders inputs into slot order, matching "as"
-      case-insensitively, and unnamed inputs fill the remaining slots
-      (PhyphoxFile.java), so minuend/dividend/base/y is always operand one
-      regardless of document order or case.
-    ios: >-
-      IOMappingValidation accepts the same files (case-folded), but the
-      runtime keeps document order and only moves an input whose raw as
-      string exactly equals the priority key to the front
-      (ExperimentComplexUpdateValueAnalysis.updateAllWithMethod,
-      "input.asString == priorityInputKey!"). Naming only the second operand
-      ("<input as='subtrahend'>S</input><input>M</input>") or writing the
-      priority key with different case ("as='Minuend'") silently swaps the
-      operands on iOS.
-  summary: >-
-    Valid attribute combinations that Android resolves via the slot mapping
-    compute swapped results on iOS (S-M instead of M-S, exponent^base
-    instead of base^exponent). Latent: no shipped or corpus experiment uses
-    such a pattern (scanned 2026-08-19), but hand-written files can.
-
 - id: atan2-unequal-lengths
   title: "atan2: inputs of different lengths"
   area: file-format
