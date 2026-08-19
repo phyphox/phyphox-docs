@@ -71,14 +71,10 @@ elements:
       takes no parameter inputs. Only one direct source is supported.
     text: Name of the data container holding the waveform.
     agreement: agreed
-    attributes:
-      - name: type
-        type: enum
-        values: [buffer, value]
-        default: buffer
-        summary: Whether the text names a data container or is a literal value.
-        agreement: agreed
-        rules: [enum-invalid-value, enum-case-insensitive]
+    attributes: []
+    # The type attribute was removed from the direct input on 2026-08-19:
+    # type="value" never makes sense for a waveform. Android used to honor it
+    # (audio-direct-input-type in inconsistencies.yml); iOS never read it.
 
   - name: tone
     parent: audio
@@ -103,7 +99,7 @@ elements:
     since: "1.10"
     summary: Drives one parameter of the tone generator.
     text: Name of a data container, or a literal number when type is value.
-    attributes: &plugin_input
+    attributes:
       - name: parameter
         type: enum
         values: [pan, amplitude, duration, frequency]
@@ -118,8 +114,7 @@ elements:
             Amplitude, from 0.0 (silent) to 1.0 (the loudest without clipping).
           duration: Duration of the generated signal, in seconds.
           frequency: >-
-            Frequency of the tone, in Hz. Only the tone generator uses this;
-            it does not apply to noise.
+            Frequency of the tone, in Hz.
         agreement: agreed
       - name: type
         type: enum
@@ -142,9 +137,35 @@ elements:
     parent: noise
     since: "1.10"
     summary: >-
-      Drives one parameter of the noise generator. `frequency` does not apply.
+      Drives one parameter of the noise generator.
     text: Name of a data container, or a literal number when type is value.
-    attributes: *plugin_input
+    attributes:
+      - name: parameter
+        type: enum
+        values: [pan, amplitude, duration]
+        summary: Which parameter of the generator this input drives.
+        value_notes:
+          pan: >-
+            Stereo position, from -1 (left) through 0 (center) to +1 (right),
+            like on the tone generator. Available from file format 1.20.
+          amplitude: >-
+            Amplitude, from 0.0 (silent) to 1.0 (the loudest without clipping).
+          duration: Duration of the generated signal, in seconds.
+        agreement: agreed
+        note: >-
+          frequency was listed here until 2026-08-19 with a "does not apply"
+          remark, but both parsers have always rejected it at load - Android
+          via AudioOutputPluginNoise.setParameter returning false, iOS via the
+          explicit throw in PhyphoxElementHandler's noise mapping. Removed per
+          maintainer ruling; the parsers already conform.
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: type
+        type: enum
+        values: [buffer, value]
+        default: buffer
+        summary: Whether the text names a data container or is a literal value.
+        agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]
 
   # -------------------------------------------------------------- flashlight --
   - name: flashlight

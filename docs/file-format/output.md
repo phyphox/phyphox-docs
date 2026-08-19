@@ -3,7 +3,7 @@
 The output block defines all hardware outputs such as the speaker used in the experiment.
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     ...
     <output>
         <audio rate="48000" loop="true">
@@ -20,7 +20,7 @@ The audio tag defines audio as an output (i.e. a speaker). The audio waveform ca
 
 **input** An input tag on the immediate level below *audio* denotes a direct source. At the end of an analysis period phyphox will write the input buffer to an internal audio buffer and start the playback, so the sound is played after each analysis execution. It has a fixed amplitude of 1 and the duration is defined by the number of samples in the input buffer. Audio data is represented by values ranging from -1 to +1. The mono signal is played identically on both stereo channels; a direct source takes no parameter inputs. Only one direct source is supported.
 
-**tone** A **tone** block represents a parametric tone generator. Its parameters **amplitude**, **duration** and **frequency** can either be fixed values (type="value") or a buffer (type="buffer", default) to control it dynamically. Each tone block (multiple are allowed) generates a sine tone and keeps track of the momentary phase of the sine function to avoid click noises due to mismatch of the frequency and the sampling rate or when changing the frequency.
+**tone** A **tone** block represents a parametric tone generator. Its parameters **amplitude**, **duration** and **frequency** can either be fixed values (type="value") or a buffer (type="buffer", default) to control it dynamically. Each tone block (multiple are allowed) generates a tone of a chosen waveform (like sine or square) and keeps track of the momentary phase of the sine function to avoid click noises due to mismatch of the frequency and the sampling rate or when changing the frequency.
 
 **noise** A **noise** block represents a generator for white noise. Its parameters **amplitude** and **duration** can either be fixed values (type="value") or a buffer (type="buffer", default) to control it dynamically. Only one *noise* block is supported.
 
@@ -28,7 +28,9 @@ Playback is triggered after each analysis process and each source can have indiv
 
 Since **file format 1.20 (phyphox version 1.2.1)** the tone and noise generators support panning from left to right, mapped to values from -1 (left) to +1 (right) with 0 being center. Note that this does not compensate for amplitude or loudness, but instead a center tone will be played at full amplitude on both channels and a pan to the right will not change the amplitude on the right channel but reduce the one on the left (and vice versa). The direct source cannot be panned — it always plays centered on both channels.
 
-A waveform composed from two tone generators and a noise generator, each driven by its own data containers:
+{{spec:output/output/audio}}
+
+Example for a waveform composed from two tone generators and a noise generator, each driven by its own data containers:
 
 ```xml
 <audio rate="48000" loop="true" normalize="true">
@@ -49,9 +51,9 @@ A waveform composed from two tone generators and a noise generator, each driven 
 </audio>
 ```
 
-{{spec:output/output/audio}}
-
 ### The direct source
+
+{{inconsistency:audio-direct-input-type}}
 
 {{spec:output/audio/input}}
 
