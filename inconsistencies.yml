@@ -461,30 +461,6 @@
     it at full rate on iOS, and fractional search bounds cover a different
     period range on each platform.
 
-- id: max-min-multiple-trailing-set
-  title: "max/min: multiple mode drops the trailing set on iOS"
-  area: file-format
-  status: decided
-  canonical: >-
-    The final set is emitted even when the data ends inside it; iOS adds the
-    missing post-loop flush.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      After the loop, an open set is flushed - the final maximum/minimum is
-      emitted even if the data ends inside a set (maxAM/minAM, post-loop
-      append guarded by !isInfinite(x)).
-    ios: >-
-      A set is only emitted when a value crosses back over the threshold; a
-      set still open at the end of the data is silently discarded
-      (MaxAnalysis.swift/MinAnalysis.swift multiple branch, no flush after
-      the loop).
-  summary: >-
-    In multiple mode, data ending inside a set yields one more
-    maximum/minimum on Android than on iOS. Reachable in shipped
-    experiments: magnetic_ruler and audio_autocorrelation use
-    multiple="true" on max.
-
 - id: max-min-degenerate-inputs
   title: "max/min: empty y input and x shorter than y"
   area: file-format
@@ -510,8 +486,11 @@
       output x = xIn.data[0] traps on an empty x buffer). An x buffer
       shorter than y traps with index-out-of-range in both the single and
       multiple branches (MaxAnalysis.swift:99/126 pattern, the ?? only
-      covers a missing x input). The single-value branches' NaN semantics
-      follow vDSP and are unverified on a device.
+      covers a missing x input). The single-value branches followed vDSP,
+      which was measured (2026-08-19, iOS runtime) to propagate NaN. Fully
+      conforms to the canonical behaviour on the development branch since
+      2026-08-19 (comparison loops like Android, truncation, NaN/empty error
+      states); only Android remains.
   summary: >-
     Degenerate max/min inputs emit nothing on Android but bogus values or a
     crash on iOS.
