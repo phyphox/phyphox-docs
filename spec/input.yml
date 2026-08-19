@@ -120,17 +120,21 @@ elements:
           The rate at which sensor data will be provided in Hz. A
           value of 0.0 means "as fast as possible". Note that the
           maximum rate of a sensor is device-specific and will limit
-          the rate that can be achieved. Both apps store the
-          reciprocal internally, so a rate of 0 is kept as 0 rather
-          than becoming an infinite period.
+          the rate that can be achieved.
         type: float
         default: 0.0
         unit: Hz
         summary: >-
           Requested acquisition rate. 0 means as fast as the device delivers.
-          Both apps store the reciprocal internally, so a rate of 0 is kept as 0
-          rather than becoming an infinite period.
         agreement: agreed
+        note: >-
+          Internal detail, not reader-facing: both apps store the reciprocal
+          (the acquisition period) rather than the rate, with 0 special-cased
+          to stay 0 instead of becoming an infinite period - Android in
+          SensorInput.java (period in ns), iOS in InputElementHandler.swift
+          (1.0/frequency in s, and its runtime variable is confusingly named
+          "rate" although it holds the period). Only relevant when comparing
+          spec and source. Verified 2026-08-19.
 
       - name: rateStrategy
         value_notes:
