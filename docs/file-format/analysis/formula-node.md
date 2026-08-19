@@ -20,3 +20,9 @@ The formula parser respects brackets ("(" and ")"), understands simple binary op
 ¹ *atan2*, *min* and *max* take two parameters (for example *min(2,5)* yields 2)
 
 ² *heaviside*, *min* and *max* are available since file format 1.10 (phyphox [version 1.1.6](../../reference/version-history/1.1.6.md))
+
+{{inconsistency:formula-parse-divergences}}
+
+{{inconsistency:formula-round-semantics}}
+
+{{spec:analysis/analysis/formula}}

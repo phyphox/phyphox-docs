@@ -107,3 +107,618 @@
     dft module (slower, exact input length, consistent across platforms) is planned
     for callers that need non-power-of-two transforms.
 
+
+# ---------------------------------------------------------------------------
+# Entries below stem from the 2026-08-19 audit of all 54 analysis modules
+# (spec + prose vs. Analysis.java/PhyphoxFile.java and Modules/*.swift on the
+# development branches). Grouped by the decision each entry needs, not one
+# entry per symptom.
+
+- id: average-single-value-stddev
+  title: "average: standard deviation for a single input value"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      With exactly one finite input value the stddev output receives two
+      values, NaN twice: the count<2 branch appends NaN but does not return,
+      and the general path then appends sqrt(0/0)=NaN again (Analysis.java,
+      averageAM.update, missing else). With append="true" the buffer grows by
+      two per run and the average/stddev outputs lose their pairing.
+    ios: >-
+      Appends exactly one NaN (AverageAnalysis.swift, count<2 branch with
+      else).
+  summary: >-
+    For a single-value input, Android writes the standard deviation twice per
+    run while iOS writes it once, so the two outputs go out of step on
+    Android.
+
+- id: binning-dx-zero
+  title: "binning: dx of exactly zero"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Only NaN is sanitized (binningAM.update). With dx=0 the bin index
+      becomes (int)Infinity = Integer.MAX_VALUE and the bin-fill loop tries
+      to append ~2^31 empty bins - the app hangs or runs out of memory.
+    ios: >-
+      Substitutes dx=1 silently (BinningAnalysis.swift, "if dx == 0.0").
+  summary: >-
+    A dx of 0 effectively kills the Android app and is silently replaced by 1
+    on iOS.
+
+- id: analysis-nonfinite-parameter-crashes
+  title: Non-finite or negative single-value parameters crash iOS
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Sanitizes throughout: Double.intValue() turns NaN into 0 and clamps
+      infinities (movingaverage width, eventstream distance/index/skip,
+      split index/overlap), explicit NaN guards default binning's x0/dx,
+      and a negative const/ramp length falls back to the output buffer size
+      (Analysis.java, the respective modules).
+    ios: >-
+      Uses unguarded Int(Double) conversions, which trap: a NaN or infinite
+      value reaching Int() crashes the app in BinningAnalysis.swift (bin
+      index from NaN x0/dx in the buffer), MovingAverageAnalysis.swift
+      (width; a negative width also traps in the reversed range),
+      SplitAnalysis.swift (index/overlap), EventStreamAnalysis.swift
+      (distance/index/skip) and ConstGeneratorAnalysis.swift (length; a
+      negative length traps in Array(repeating:count:), also in
+      RampGeneratorAnalysis.swift). The guarded getSingleValueAsInt() exists
+      in ExperimentAnalysisDataIO.swift but is not used in these places.
+  summary: >-
+    Where a single-value parameter (width, length, index, distance, ...)
+    carries NaN, an infinity or - for lengths - a negative value, Android
+    degrades gracefully while iOS crashes with an unguarded integer
+    conversion or array construction.
+
+- id: complex-module-operand-order
+  title: "subtract/divide/power/atan2: operand order with explicit as attributes"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      ioBlockParser reorders inputs into slot order, matching "as"
+      case-insensitively, and unnamed inputs fill the remaining slots
+      (PhyphoxFile.java), so minuend/dividend/base/y is always operand one
+      regardless of document order or case.
+    ios: >-
+      IOMappingValidation accepts the same files (case-folded), but the
+      runtime keeps document order and only moves an input whose raw as
+      string exactly equals the priority key to the front
+      (ExperimentComplexUpdateValueAnalysis.updateAllWithMethod,
+      "input.asString == priorityInputKey!"). Naming only the second operand
+      ("<input as='subtrahend'>S</input><input>M</input>") or writing the
+      priority key with different case ("as='Minuend'") silently swaps the
+      operands on iOS.
+  summary: >-
+    Valid attribute combinations that Android resolves via the slot mapping
+    compute swapped results on iOS (S-M instead of M-S, exponent^base
+    instead of base^exponent). Latent: no shipped or corpus experiment uses
+    such a pattern (scanned 2026-08-19), but hand-written files can.
+
+- id: atan2-unequal-lengths
+  title: "atan2: inputs of different lengths"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Truncates to the shorter input (atan2AM.update, size = min) - unlike
+      Android's own add/subtract/multiply/divide/power/gcd/lcm, which pad
+      the shorter input by repeating its last value.
+    ios: >-
+      Pads to the longer input by repeating the last value, like all other
+      multi-input modules (ExperimentComplexUpdateValueAnalysis).
+  summary: >-
+    With y and x of different lengths, Android outputs min(len) values and
+    iOS max(len) values. Android's atan2 is also the odd one out within its
+    own codebase.
+
+- id: power-native-empty-input
+  title: "power: empty input buffer on Android's native path"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      The shipping native path (analysis.cpp, nativePower) initializes
+      base=0, exponent=1 and loops to max(n,m): an empty base yields
+      pow(0, e_i) per exponent value, an empty exponent copies the base
+      through. Android's own Java fallback (used only if the .so fails to
+      load) outputs nothing, like iOS.
+    ios: >-
+      Any empty input produces an empty output
+      (ExperimentComplexUpdateValueAnalysis, emptyVector).
+  summary: >-
+    The documented rule that any empty input yields an empty output is
+    violated by the Android build everyone actually runs - power emits
+    values computed with a default operand instead.
+
+- id: gcd-lcm-domain
+  title: "gcd/lcm: inputs outside the positive-integer domain"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Rounds each value to a signed long (Math.round: 2.7 -> 3, NaN -> 0,
+      +-inf -> +-Long.MAX_VALUE) and runs Euclid with a "while (b > 0)"
+      loop that mishandles negatives - gcd(-4, 6) returns 6 (Analysis.java,
+      gcdAM/lcmAM). lcm(0,0) throws an ArithmeticException (division by
+      zero); large products overflow silently.
+    ios: >-
+      Converts via UInt(Double), which truncates (2.7 -> 2) and crashes the
+      app for any negative value; non-finite values are caught and yield NaN
+      (GCDAnalysis.swift, LCMAnalysis.swift). lcm(0,0) traps (0/0 in UInt);
+      large products trap on overflow.
+  summary: >-
+    Outside non-negative integers the two implementations disagree on
+    everything: rounding vs truncation, wrong values vs crash for negatives,
+    garbage vs NaN for non-finite input - and lcm(0,0) crashes both, each in
+    its own way.
+
+- id: round-nonfinite
+  title: "round: non-finite input in default mode"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Math.round returns a long: NaN -> 0, +-infinity and |x| > 2^63 ->
+      +-Long.MAX_VALUE = +-9.223e18 (Analysis.java, roundAM default path;
+      the floor/ceil paths keep NaN/inf).
+    ios: >-
+      vvnint keeps NaN as NaN and infinities as infinities
+      (RoundAnalysis.swift).
+  summary: >-
+    Rounding a NaN yields 0 on Android and NaN on iOS; infinities become
+    +-9.2e18 on Android and stay infinite on iOS. (The tie-breaking rule at
+    .5 is also suspected to differ - Java rounds half up, C nint depends on
+    the rounding mode - but this has not been verified on a device.)
+
+- id: crosscorrelation-normalization
+  title: "crosscorrelation: normalization and empty inputs"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      The shipping native path normalizes by 1/(2*(m+n)) in single
+      precision: the Java side passes size = 2*(sizeA+sizeB) and appends the
+      inverse-FFT result unscaled beyond the 1/n^2 spectral division
+      (Analysis.java crosscorrelationAM native branch, analysis.cpp
+      fftw3crosscorrelation). The Java fallback divides each sum by
+      abs(m-n) in double precision, like iOS. Empty inputs output nothing
+      on either Android path.
+    ios: >-
+      Divides by abs(m-n) in double precision
+      (CrosscorrelationAnalysis.swift, vDSP_vsdivD by compRange). With one
+      empty input it appends that many zeros instead of nothing (vDSP_convD
+      with a zero-length filter).
+  summary: >-
+    The output scale differs between the Android build users run and iOS
+    (factor 2(m+n)/abs(m-n)), Android's two code paths disagree with each
+    other, and an empty input yields nothing on Android but zeros on iOS.
+    The docs specify no normalization at all.
+
+- id: autocorrelation-omitted-x-output
+  title: "autocorrelation: omitted optional x output crashes iOS"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Runs normally and simply skips the x output (autocorrelationAM,
+      outputs.size() check).
+    ios: >-
+      The x array is only built when an x output exists, but is
+      force-unwrapped unconditionally once the input is non-empty
+      (AutocorrelationAnalysis.swift, "minimizedX = x.filter"/"= x") - a
+      nil trap. Unexercised so far because every bundled experiment declares
+      the x output.
+  summary: >-
+    The spec marks the x output optional and Android treats it that way;
+    on iOS omitting it crashes the app as soon as data arrives.
+
+- id: fft-imaginary-input-length
+  title: "fft: imaginary input shorter than the real input"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Takes the length from the real input and zero-pads the imaginary part
+      (fftAM, both native and fallback paths).
+    ios: >-
+      Truncates to the shorter of the two inputs (FFTAnalysis.swift,
+      bufferCount = min) - different output length and values.
+  summary: >-
+    With im shorter than re, Android pads and iOS truncates. Not covered by
+    the fft-non-power-of-two-input entry, which is about the length of a
+    single input.
+
+- id: value-type-inputs-rejected-by-ios
+  title: "interpolate/loess xi and map x/y/z: type=value inputs rejected by iOS"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Runs normally - a value input acts as a one-element buffer
+      (DataInput.getArray()).
+    ios: >-
+      The slot tables declare valueAllowed like Android's, so validation
+      passes, but the modules fetch these slots with io.data(), which is nil
+      for a value input, and throw at load time ("No input for xi provided",
+      InterpolateAnalysis.swift/LoessAnalysis.swift init) or at update
+      ("Input x for map module has to be a buffer", MapAnalysis.swift).
+  summary: >-
+    Files using a literal value for interpolate's or loess's xi, or for
+    map's x/y/z, work on Android and are refused (or fail) on iOS, although
+    the spec and both parsers' slot tables allow the value type there.
+
+- id: loess-parameter-edges
+  title: "loess: non-positive d and multi-value d buffers"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      d <= 0 or NaN returns without output (loessAM guard); d is read from
+      the first element of its buffer.
+    ios: >-
+      No guard: d <= 0 makes every window empty and the module appends NaN
+      for every xi (det = 0); d is read from the last element
+      (LoessAnalysis.swift, getSingleValue).
+  summary: >-
+    A degenerate window width yields empty outputs on Android and NaN-filled
+    outputs on iOS, and the two read opposite ends of a multi-value d
+    buffer.
+
+- id: periodicity-parameter-edges
+  title: "periodicity: non-positive dx and fractional min/max"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      dx <= 0 - including NaN or an empty buffer, which cast to 0 - produces
+      no output (periodicityAM guard); min is floored and max is ceiled to
+      integers.
+    ios: >-
+      The same dx values silently become dx = 1 and the analysis runs
+      (PeriodicityAnalysis.swift); min and max are truncated toward zero
+      instead of floor/ceil.
+  summary: >-
+    A missing or invalid step width disables the module on Android but runs
+    it at full rate on iOS, and fractional search bounds cover a different
+    period range on each platform.
+
+- id: gausssmooth-empty-sigma
+  title: "gausssmooth: empty sigma attribute"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      sigma="" is treated like an absent attribute and the default 3 is used
+      (PhyphoxFile.java, explicit isEmpty check).
+    ios: >-
+      Double("") fails to parse and the file is rejected
+      (unexpectedAttributeValue).
+  summary: >-
+    An empty sigma attribute loads with the default on Android and refuses
+    the file on iOS.
+
+- id: max-min-multiple-trailing-set
+  title: "max/min: multiple mode drops the trailing set on iOS"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      After the loop, an open set is flushed - the final maximum/minimum is
+      emitted even if the data ends inside a set (maxAM/minAM, post-loop
+      append guarded by !isInfinite(x)).
+    ios: >-
+      A set is only emitted when a value crosses back over the threshold; a
+      set still open at the end of the data is silently discarded
+      (MaxAnalysis.swift/MinAnalysis.swift multiple branch, no flush after
+      the loop).
+  summary: >-
+    In multiple mode, data ending inside a set yields one more
+    maximum/minimum on Android than on iOS. Reachable in shipped
+    experiments: magnetic_ruler and audio_autocorrelation use
+    multiple="true" on max.
+
+- id: max-min-degenerate-inputs
+  title: "max/min: empty y input and x shorter than y"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Empty (or all-NaN) y emits nothing (the -infinity position guard);
+      an x buffer shorter than y keeps counting x up from the last x value
+      (maxAM/minAM).
+    ios: >-
+      Empty y appends a value anyway (vDSP_maxvD/minvD on zero elements:
+      -inf for max, the 0.0/-inf initializers for min, and with a position
+      output x = xIn.data[0] traps on an empty x buffer). An x buffer
+      shorter than y traps with index-out-of-range in both the single and
+      multiple branches (MaxAnalysis.swift:99/126 pattern, the ?? only
+      covers a missing x input). The single-value branches' NaN semantics
+      follow vDSP and are unverified on a device.
+  summary: >-
+    Degenerate max/min inputs emit nothing on Android but bogus values or a
+    crash on iOS.
+
+- id: first-multiple-pairs
+  title: "first: several inputs and outputs"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Pairs input i with output i - each output receives exactly the first
+      value of its own input, empty inputs skip only their pair (firstAM).
+    ios: >-
+      Collects the first values of all non-empty inputs into one list and
+      appends the whole list to every output (FirstAnalysis.swift).
+  summary: >-
+    With more than one input/output pair the module writes completely
+    different data on the two platforms (pairwise single values vs. the
+    full list broadcast to every output). The spec's repeat_offset implies
+    Android's pairing; the prose sentence reads like the iOS behavior. No
+    shipped or corpus experiment uses more than one pair (scanned
+    2026-08-19).
+
+- id: match-extra-outputs
+  title: "match: more outputs than inputs"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Extra outputs are left empty (matchAM, i < outputs.size() guard).
+    ios: >-
+      Index-out-of-range trap (MatchAnalysis.swift, out[i] with out sized to
+      the input count).
+  summary: >-
+    Both parsers accept more outputs than inputs; Android ignores the
+    extras, iOS crashes.
+
+- id: map-edge-cases
+  title: "map: non-finite points, missing z, degenerate ranges"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Non-finite x/y round to bin 0 and a NaN z poisons that bin (mapAM, no
+      finite check); a missing z input in sum/average mode returns without
+      output; degenerate ranges (minX == maxX) yield clamped bin indices
+      rather than a crash.
+    ios: >-
+      Non-finite points are skipped (MapAnalysis.swift isFinite check); a
+      missing z in sum/average mode runs with z = 0 and produces a zero
+      grid; a degenerate range makes the bin index NaN/inf and
+      Int(round(...)) traps - crash.
+  summary: >-
+    Three map edge cases diverge: NaN points (binned vs skipped), missing z
+    outside count mode (no output vs zero grid), and equal min/max ranges
+    (garbage bins vs crash).
+
+- id: rangefilter-row-alignment
+  title: "rangefilter: row alignment and non-finite values on iOS"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Filters strictly row-wise, so outputs stay aligned; +-infinity is
+      compared like any number and filtered; extra outputs beyond the input
+      count are ignored (rangefilterAM).
+    ios: >-
+      Removes already-appended elements using the global deletion count
+      instead of the count of deletions below the current index
+      (RangefilterAnalysis.swift, "i-deleteCount"), so when a later input
+      filters a lower row than an earlier input already filtered, the wrong
+      element is removed and rows misalign. Non-finite values are exempt
+      from filtering (isFinite check), so +-inf always passes. More outputs
+      than inputs trap. A min/max given before the first in input is
+      discarded (Android binds it to the first group).
+  summary: >-
+    The documented row-wise filtering guarantee can break on iOS with
+    multiple filtered inputs, and infinities pass iOS filters that would
+    remove them on Android.
+
+- id: reduce-edge-cases
+  title: "reduce: y shorter than x, and the x output requirement"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      A y buffer shorter than x substitutes 0 for the missing values
+      (reduceAM); a file without an x output loads and then crashes in
+      update() (outputs.get(0) on a null-padded list).
+    ios: >-
+      A y buffer shorter than x traps with index-out-of-range in the
+      factor>1 branch (ReduceAnalysis.swift, y![index] unbounded; the
+      factor<1 branch does bounds-check); a file without an x output is
+      rejected at load with a clear error.
+  summary: >-
+    Short y inputs give zeros on Android and crash iOS; a missing x output
+    is a load error on iOS but a runtime crash on Android. The spec now
+    models x as required, matching what both implementations need.
+
+- id: sort-unequal-lengths
+  title: "sort: co-buffers of different lengths and NaN ordering"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Truncates all buffers to the shortest input and sorts that prefix of
+      the first buffer; NaN sorts deterministically as the largest value
+      (Double.compareTo) (sortAM).
+    ios: >-
+      Sorts the entire first buffer and emits its full length per output,
+      substituting NaN where a co-buffer is shorter
+      (SortAnalysis.swift); the </> sort closures violate strict weak
+      ordering when NaN is present, so NaN placement is unspecified.
+  summary: >-
+    With unequal input lengths the two platforms return different lengths
+    and different data (the prose documents Android's shortest-buffer rule),
+    and NaN ordering is deterministic only on Android.
+
+- id: split-negative-index
+  title: "split: negative index"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Arrays.copyOfRange(data, 0, negative) throws - crash (splitAM).
+    ios: >-
+      Clamps gracefully: out1 empty, out2 receives everything
+      (SplitAnalysis.swift, limit > 0 and max(...,0) guards).
+  summary: >-
+    A negative split index crashes Android and degrades gracefully on iOS -
+    the reverse of the usual pattern. (NaN/infinite index values crash iOS
+    instead; see analysis-nonfinite-parameter-crashes.)
+
+- id: subrange-nonfinite-parameters
+  title: "subrange: NaN or infinite from/to/length"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      (int) casts turn NaN into 0 - a NaN "to" yields empty outputs
+      (subrangeAM).
+    ios: >-
+      getSingleValueAsInt() returns nil for non-finite values, which falls
+      back to the default - a NaN "to" yields the full range
+      (SubrangeAnalysis.swift).
+  summary: >-
+    Non-finite range parameters produce empty output on Android and the
+    full input on iOS. All finite behavior was verified identical.
+
+- id: threshold-nan-handling
+  title: "threshold: NaN values around the crossing"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Requires an adjacent valid pair on opposite sides: a NaN suppresses
+      the comparison with the next value (thresholdAM, isNaN(last) ||
+      isNaN(v) guard).
+    ios: >-
+      Uses a sticky flag: any value not on the trigger side - including NaN
+      - arms the trigger, and the next value on the trigger side fires
+      (ThresholdAnalysis.swift, onOppositeSide).
+  summary: >-
+    With NaN in the data ([2, NaN, 5], rising, threshold 3) iOS reports a
+    crossing where Android reports none. Without NaN the two formulations
+    coincide (verified, including that equality never triggers on either).
+
+- id: const-ramp-length-handling
+  title: "const/ramp: length 0 and empty parameter buffers"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Uses -1 as the "unset" sentinel: an explicit length of 0 writes
+      nothing, and an empty length buffer casts NaN to 0 - also nothing. An
+      empty value/start/stop buffer reads as NaN and fills NaN values
+      (constGeneratorAM/rampGeneratorAM).
+    ios: >-
+      Uses 0 as the "unset" sentinel: an explicit length of 0 - and an empty
+      or NaN length buffer - fills the whole output buffer. Empty
+      value/start/stop buffers fall back to the defaults of 0
+      (ConstGeneratorAnalysis.swift/RampGeneratorAnalysis.swift).
+  summary: >-
+    A length of 0 writes nothing on Android and fills the entire buffer on
+    iOS, and empty parameter buffers generate NaN data on Android but zeros
+    on iOS. (Negative lengths additionally crash iOS; see
+    analysis-nonfinite-parameter-crashes.)
+
+- id: formula-parse-divergences
+  title: "formula: missing attribute, positive exponents, malformed expressions"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      A missing formula attribute rejects the file ("Formula module needs a
+      formula", PhyphoxFile.java); scientific notation with an explicit
+      positive exponent (1e+5) rejects the file (FormulaParser.java treats
+      the + as an operator); a structurally broken term (min(5), 5+) loads
+      and produces an empty output at runtime (swallowed
+      NullPointerException).
+    ios: >-
+      A missing attribute is accepted and the module silently outputs
+      nothing (FormulaAnalysis.swift, ?? ""); 1e+5 parses as 100000
+      (FormulaParser.swift checks the preceding character); a broken term
+      loads and produces NaN per element (missing operands evaluate to NaN).
+  summary: >-
+    The two formula parsers disagree on what loads and on what a broken
+    expression produces. The function list, precedence, left-associativity
+    (including ^), the loose-binding unary minus and the [n]/[n_]
+    semantics were verified identical.
+
+- id: formula-round-semantics
+  title: "formula: round() tie-breaking and NaN"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Java Math.round - half toward positive infinity (round(-2.5) = -2)
+      and round(NaN) = 0 (FormulaParser.java).
+    ios: >-
+      C round - half away from zero (round(-2.5) = -3) and round(NaN) = NaN
+      (FormulaParser.swift).
+  summary: >-
+    The formula language's round() differs at .5 ties for negative values
+    and for NaN. (This is the formula function; the round analysis module's
+    own divergence is round-nonfinite.)
+
+- id: append-nan-value-input
+  title: "append: NaN as a type=value input"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Skips NaN value inputs (appendAM, isNaN check).
+    ios: >-
+      Appends the NaN (AppendAnalysis.swift, unconditional).
+  summary: >-
+    A literal NaN value input is dropped by Android and written by iOS.
+    Buffer contents including NaN pass through identically on both.
+
+- id: input-type-empty-case
+  title: "input type attribute: case sensitivity of \"empty\""
+  area: file-format
+  status: decided
+  canonical: >-
+    Enumerated attribute values are matched case-insensitively, as the
+    enum-case-insensitive rule (decided 2026-08-12) already settles.
+    type="Empty" must be accepted; Android's exact-match comparison for this
+    one value is the bug.
+  affects:
+    android: >-
+      Matches "value" and "buffer" case-insensitively but "empty"
+      case-sensitively - type="Empty" is "Unknown input type" and the file
+      is rejected (PhyphoxFile.java, ioBlockParser).
+    ios: >-
+      All three values fold case (DataInputTypeAttribute,
+      CaseInsensitiveAttributeDecodable).
+  summary: >-
+    type="Empty" loads on iOS and rejects the file on Android, contradicting
+    the already-decided enum-case-insensitive rule.
+
+- id: analysis-clear-edit-buffers
+  title: Buffers bound to edit fields are exempt from clearing on iOS only
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      No exemption: an analysis input with the default keep=false clears an
+      edit element's buffer after the first read, and the edit element only
+      rewrites it on user interaction - the setting is lost for subsequent
+      cycles (Analysis.java updateIfNotStatic, ExpView.editElement
+      onMayWriteToBuffers/triggered).
+    ios: >-
+      A buffer with attachedToTextField set (every edit element's buffer)
+      is never cleared - not by an analysis input with keep=false, not as a
+      non-append analysis output, and not by the experiment-level clear
+      (ExperimentAnalysisDataIO.clear, Experiment.swift clearData).
+  summary: >-
+    An experiment author who forgets keep="true" on an edit-field buffer
+    gets away with it on iOS and loses the user's setting on Android. All
+    shipped experiments set keep="true" on such inputs, so the divergence is
+    latent there.

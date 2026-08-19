@@ -4,11 +4,19 @@
 
 This module will initialize a buffer to a constant value. Both inputs are optional, and without any inputs it will fill the entire buffer with zero. If *value* is set, the buffer gets filled with this value, and if *length* is set, only *length* values will be initialized. (This is useful in combination with the *append* module to zero-pad a buffer.)
 
+{{inconsistency:const-ramp-length-handling}}
+
+{{inconsistency:analysis-nonfinite-parameter-crashes}}
+
 {{spec:analysis/analysis/const}}
 
 ## ramp
 
 This module will create a ramp of values, i.e. a linear range of values. This is very useful to create time bases, for example for audio recordings. The module takes as inputs *start*, *stop* and the optional *length*. It will make sure that the first value is exactly *start* and the last value is *stop*. It will return *length* values or, if *length* is not provided, as many values as the size of the output buffer.
+
+{{inconsistency:const-ramp-length-handling}}
+
+{{inconsistency:analysis-nonfinite-parameter-crashes}}
 
 {{spec:analysis/analysis/ramp}}
 

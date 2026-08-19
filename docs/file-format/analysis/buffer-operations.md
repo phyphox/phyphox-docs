@@ -4,6 +4,8 @@
 
 This module appends all the values of the input buffers to a single output buffer. The order of the buffers will match the order in which their values appear in the output buffer. This module will return as many values as the sum of the input buffer sizes.
 
+{{inconsistency:append-nan-value-input}}
+
 {{spec:analysis/analysis/append}}
 
 ## count
@@ -23,6 +25,8 @@ Furthermore, it takes *index*, *skip* and *last* as inputs. These represent the 
 The output is mainly *events*, which will hold the indices of detected events. Additionally, there are also index, skip and last as outputs, corresponding to the inputs.
 
 The criterion is set by the attribute "mode" determining whether raw values, derivatives or absolutes are used for triggering:
+
+{{inconsistency:analysis-nonfinite-parameter-crashes}}
 
 {{spec:analysis/analysis/eventstream}}
 
@@ -56,6 +60,8 @@ The criterion is set by the attribute "mode" determining whether raw values, der
 
 Retrieves the first entry of each buffer and appends it to each output buffer.
 
+{{inconsistency:first-multiple-pairs}}
+
 {{spec:analysis/analysis/first}}
 
 ## match
@@ -63,6 +69,8 @@ Retrieves the first entry of each buffer and appends it to each output buffer.
 This module takes multiple inputs and matches valid values to the same number of outputs. The module will go through all inputs simultaneously and only return those values for which **all** inputs have a finite value.
 
 If for example input1 provides \[1, 2, NaN, 4, 5\] and input2 provides \[11, +Inf, 13, 14\], the result will be \[1, 4\] for output1 and \[11, 14\] for output2. The other value pairs (more than two inputs are allowed though) were filtered because one of the inputs was infinite, not a number ("NaN") or just did not have any more values.
+
+{{inconsistency:match-extra-outputs}}
 
 {{spec:analysis/analysis/match}}
 
@@ -89,6 +97,10 @@ This module takes three buffers representing x, y and z data. The data may be sc
 
 The example above takes xData, yData and zData and creates a grid of 100 by 100 data points covering x values from 0 to 10 and y values from 1 to 2.
 
+{{inconsistency:map-edge-cases}}
+
+{{inconsistency:value-type-inputs-rejected-by-ios}}
+
 {{spec:analysis/analysis/map}}
 
 ## max
@@ -99,6 +111,10 @@ If you want to find multiple local maxima, you can set the attribute "multiple" 
 
 This module will return exactly one value per call if multiple is deactivated (default).
 
+{{inconsistency:max-min-multiple-trailing-set}}
+
+{{inconsistency:max-min-degenerate-inputs}}
+
 {{spec:analysis/analysis/max}}
 
 ## min
@@ -108,6 +124,10 @@ Returns the minimum and its position. This module takes at least one input *y* a
 If you want to find multiple local minima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets of consecutive values at or below the threshold and return a minimum and position for each set.
 
 This module will return exactly one value per call if multiple is deactivated (default).
+
+{{inconsistency:max-min-multiple-trailing-set}}
+
+{{inconsistency:max-min-degenerate-inputs}}
 
 {{spec:analysis/analysis/min}}
 
@@ -133,6 +153,8 @@ In the following example, in1 will trigger the filter if not in the range of 0 t
 </rangefilter>
 ```
 
+{{inconsistency:rangefilter-row-alignment}}
+
 {{spec:analysis/analysis/rangefilter}}
 
 ## reduce
@@ -149,6 +171,8 @@ This module takes a buffer with multiple values and reduces the number of items 
 </reduce>
 ```
 
+{{inconsistency:reduce-edge-cases}}
+
 {{spec:analysis/analysis/reduce}}
 
 ## sort
@@ -157,11 +181,17 @@ This module takes at least one input and sorts it. Values in additional inputs w
 
 The number of values returned matches the number of values in the shortest buffer.
 
+{{inconsistency:sort-unequal-lengths}}
+
 {{spec:analysis/analysis/sort}}
 
 ## split
 
 Takes *data* as input and splits it into two buffers at the given *index*. A third parameter *overlap* makes it possible to set a number of elements from before the split index that will also end up in the second buffer. *index* defaults to the length of the input data if not given, i.e. the entire input is returned as the first output without any splitting, which only makes sense in combination with an overlap, for example to take all data from a buffer associated with the input from a sensor and set "overlap" such that a certain number of values is retained as a starting point for the next iteration.
+
+{{inconsistency:split-negative-index}}
+
+{{inconsistency:analysis-nonfinite-parameter-crashes}}
 
 {{spec:analysis/analysis/split}}
 
@@ -180,6 +210,8 @@ This module takes multiple inputs and returns all values within a given index ra
 </subrange>
 ```
 
+{{inconsistency:subrange-nonfinite-parameters}}
+
 {{spec:analysis/analysis/subrange}}
 
 ## threshold
@@ -189,5 +221,7 @@ This module takes at least one input *y* and looks for the position at which the
 You can also define the attribute *falling* as true to search for a crossing from larger to smaller values.
 
 This module will return exactly one value per call.
+
+{{inconsistency:threshold-nan-handling}}
 
 {{spec:analysis/analysis/threshold}}

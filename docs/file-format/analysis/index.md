@@ -43,6 +43,10 @@ You can then set the attribute *cycles* for any analysis module. If not set, the
 
 {{spec:analysis/phyphox/analysis|common}}
 
+{{inconsistency:input-type-empty-case}}
+
+{{inconsistency:analysis-clear-edit-buffers}}
+
 ## List of analysis modules
 
 The specific mappings, attributes and functionality of the analysis modules are documented by category:

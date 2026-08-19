@@ -4,6 +4,8 @@
 
 This module calculates the average of all values in the input buffer. Optionally (i.e. if the output is connected), the standard deviation is calculated as well (corrected sample standard deviation).
 
+{{inconsistency:average-single-value-stddev}}
+
 {{spec:analysis/analysis/average}}
 
 ## binning
@@ -12,6 +14,10 @@ The binning module distributes the values from its input *in* into ranges (bins)
 
 The output can directly be used to display a histogram. *binStarts* will receive the starting values of each range (bin) while the count is written to *binCounts*.
 
+{{inconsistency:binning-dx-zero}}
+
+{{inconsistency:analysis-nonfinite-parameter-crashes}}
+
 {{spec:analysis/analysis/binning}}
 
 ## movingaverage
@@ -19,5 +25,7 @@ The output can directly be used to display a histogram. *binStarts* will receive
 Takes *data* as input and calculates the moving average of its items. This means that for each item an additional number of previous items is taken into account for averaging and this average is sent to the output for each input item. The number of previous items is given by *width*, so a total of *width*+1 elements are used for each average.
 
 The optional parameter *dropIncomplete* determines whether values are emitted for which fewer than *width* previous elements are available. This means that with *dropIncomplete* set to *true*, it will output n-*width* values for an input of n data values. With *dropIncomplete* set to *false*, it will output exactly n values.
+
+{{inconsistency:analysis-nonfinite-parameter-crashes}}
 
 {{spec:analysis/analysis/movingaverage}}
