@@ -366,27 +366,6 @@
     other, and an empty input yields nothing on Android but zeros on iOS.
     The docs specify no normalization at all.
 
-- id: autocorrelation-omitted-x-output
-  title: "autocorrelation: omitted optional x output crashes iOS"
-  area: file-format
-  status: decided
-  canonical: >-
-    An omitted x output is simply skipped, as on Android; no crash.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Runs normally and simply skips the x output (autocorrelationAM,
-      outputs.size() check).
-    ios: >-
-      The x array is only built when an x output exists, but is
-      force-unwrapped unconditionally once the input is non-empty
-      (AutocorrelationAnalysis.swift, "minimizedX = x.filter"/"= x") - a
-      nil trap. Unexercised so far because every bundled experiment declares
-      the x output.
-  summary: >-
-    The spec marks the x output optional and Android treats it that way;
-    on iOS omitting it crashes the app as soon as data arrives.
-
 - id: fft-imaginary-input-length
   title: "fft: imaginary input shorter than the real input"
   area: file-format
