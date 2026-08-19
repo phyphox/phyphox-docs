@@ -487,35 +487,6 @@
     outside count mode (no output vs zero grid), and equal min/max ranges
     (garbage bins vs crash).
 
-- id: rangefilter-row-alignment
-  title: "rangefilter: row alignment and non-finite values on iOS"
-  area: file-format
-  status: decided
-  canonical: >-
-    Android's behavior is canonical throughout: strictly row-wise filtering
-    that keeps outputs aligned, non-finite values compared like any number,
-    extra outputs ignored, and a min/max before the first in bound to the
-    first group.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Filters strictly row-wise, so outputs stay aligned; +-infinity is
-      compared like any number and filtered; extra outputs beyond the input
-      count are ignored (rangefilterAM).
-    ios: >-
-      Removes already-appended elements using the global deletion count
-      instead of the count of deletions below the current index
-      (RangefilterAnalysis.swift, "i-deleteCount"), so when a later input
-      filters a lower row than an earlier input already filtered, the wrong
-      element is removed and rows misalign. Non-finite values are exempt
-      from filtering (isFinite check), so +-inf always passes. More outputs
-      than inputs trap. A min/max given before the first in input is
-      discarded (Android binds it to the first group).
-  summary: >-
-    The documented row-wise filtering guarantee can break on iOS with
-    multiple filtered inputs, and infinities pass iOS filters that would
-    remove them on Android.
-
 - id: reduce-edge-cases
   title: "reduce: y shorter than x, and the x output requirement"
   area: file-format

@@ -123,7 +123,7 @@ This module will return exactly one value per call if multiple is deactivated (d
 
 ## rangefilter
 
-This module takes multiple inputs and makes it possible to set min and max limits for each of them. The module will go through all inputs simultaneously and only return those values for which **all** inputs fall within their set min and max range. If one input is shorter than the others, its values are set to NaN and will not trigger the filter.
+This module takes multiple inputs and makes it possible to set min and max limits for each of them. The module will go through all inputs simultaneously and only return those values for which **all** inputs fall within their set min and max range. If one input is shorter than the others, its values are set to NaN and will not trigger the filter. Non-finite values are compared like any number: infinities can be filtered, while NaN never triggers the filter.
 
 Min and max have to be defined immediately after the corresponding input and are treated as a single value (last value for buffers). The outputs correspond to the order of the inputs. Here multiple outputs can be defined with the same name!
 
@@ -142,8 +142,6 @@ In the following example, in1 will trigger the filter if not in the range of 0 t
     <output>out3</output>
 </rangefilter>
 ```
-
-{{inconsistency:rangefilter-row-alignment}}
 
 {{spec:analysis/analysis/rangefilter}}
 
