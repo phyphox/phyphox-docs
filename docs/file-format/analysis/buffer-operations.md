@@ -66,9 +66,7 @@ Retrieves the first entry of each input buffer and appends it to the output buff
 
 This module takes multiple inputs and matches valid values to the same number of outputs. The module will go through all inputs simultaneously and only return those values for which **all** inputs have a finite value.
 
-If for example input1 provides \[1, 2, NaN, 4, 5\] and input2 provides \[11, +Inf, 13, 14\], the result will be \[1, 4\] for output1 and \[11, 14\] for output2. The other value pairs (more than two inputs are allowed though) were filtered because one of the inputs was infinite, not a number ("NaN") or just did not have any more values.
-
-{{inconsistency:match-extra-outputs}}
+If for example input1 provides \[1, 2, NaN, 4, 5\] and input2 provides \[11, +Inf, 13, 14\], the result will be \[1, 4\] for output1 and \[11, 14\] for output2. The other value pairs (more than two inputs are allowed though) were filtered because one of the inputs was infinite, not a number ("NaN") or just did not have any more values. Outputs beyond the number of inputs are left empty.
 
 {{spec:analysis/analysis/match}}
 

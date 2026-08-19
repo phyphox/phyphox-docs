@@ -532,24 +532,6 @@
     Degenerate max/min inputs emit nothing on Android but bogus values or a
     crash on iOS.
 
-- id: match-extra-outputs
-  title: "match: more outputs than inputs"
-  area: file-format
-  status: decided
-  canonical: >-
-    Android's behavior is canonical: outputs beyond the input count are left
-    empty; no crash.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Extra outputs are left empty (matchAM, i < outputs.size() guard).
-    ios: >-
-      Index-out-of-range trap (MatchAnalysis.swift, out[i] with out sized to
-      the input count).
-  summary: >-
-    Both parsers accept more outputs than inputs; Android ignores the
-    extras, iOS crashes.
-
 - id: map-edge-cases
   title: "map: non-finite points, missing z, degenerate ranges"
   area: file-format
