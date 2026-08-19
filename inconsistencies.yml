@@ -681,38 +681,6 @@
     type="Empty" loads on iOS and rejects the file on Android, contradicting
     the already-decided enum-case-insensitive rule.
 
-- id: analysis-clear-edit-buffers
-  title: Buffers bound to edit fields are exempt from clearing on iOS only
-  area: file-format
-  status: decided
-  canonical: >-
-    Buffers bound to interactive view elements can be cleared; the element
-    then re-initializes both the buffer and the displayed value to its
-    default, as Android's edit element does (ExpView.java setValue's NaN
-    branch). iOS drops the attachedToTextField guard and gains the same re-
-    init mechanism - for every interactive element (edit, toggle, dropdown,
-    slider), not only the edit field, since Android's toggle/dropdown/slider
-    already re-init and iOS's are currently unprotected against clears
-    anyway.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      No exemption: an analysis input with the default keep=false clears an
-      edit element's buffer after the first read, and the edit element only
-      rewrites it on user interaction - the setting is lost for subsequent
-      cycles (Analysis.java updateIfNotStatic, ExpView.editElement
-      onMayWriteToBuffers/triggered).
-    ios: >-
-      A buffer with attachedToTextField set (every edit element's buffer)
-      is never cleared - not by an analysis input with keep=false, not as a
-      non-append analysis output, and not by the experiment-level clear
-      (ExperimentAnalysisDataIO.clear, Experiment.swift clearData).
-  summary: >-
-    An experiment author who forgets keep="true" on an edit-field buffer
-    gets away with it on iOS and loses the user's setting on Android. All
-    shipped experiments set keep="true" on such inputs, so the divergence is
-    latent there.
-
 - id: audio-direct-input-type
   title: "audio output: type attribute on the direct input"
   area: file-format

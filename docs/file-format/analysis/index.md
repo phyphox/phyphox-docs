@@ -45,7 +45,7 @@ You can then set the attribute *cycles* for any analysis module. If not set, the
 
 {{inconsistency:input-type-empty-case}}
 
-{{inconsistency:analysis-clear-edit-buffers}}
+Buffers bound to interactive view elements (edit, toggle, dropdown, slider) are not exempt from clearing: an analysis input without keep="true" clears them like any other buffer, and the element then re-initializes both the buffer and the displayed value to its default. Use keep="true" on such inputs to preserve the user's setting across analysis cycles.
 
 ## List of analysis modules
 
