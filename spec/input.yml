@@ -548,17 +548,21 @@ elements:
           Left edge of the initial acquisition area, which the user
           can still modify. The value is a floating point number
           from 0.0 to 1.0, with 0.0 referring to the left/top edge
-          of the image and 1.0 to the right/bottom edge. Both apps
-          convert the four edges from the user's coordinate system
-          to the camera's, so the stored values are not the ones
-          written here.
+          of the image and 1.0 to the right/bottom edge.
         type: float
         default: 0.4
-        summary: >-
-          Left edge of the region of interest, as a fraction of the frame. Both
-          apps convert the four edges from the user's coordinate system to the
-          camera's, so the stored values are not the ones written here.
+        summary: Left edge of the region of interest, as a fraction of the frame.
         agreement: agreed
+        note: >-
+          Internal detail, not reader-facing: both apps rotate the four
+          edges from this documented user frame (the portrait preview, origin
+          top left) into the camera sensor's landscape frame at parse time -
+          x1 = 1 - y1user and so on (x -> -y, y -> -x). So the values stored
+          in the runtime objects are not the attribute values, which is only
+          relevant when comparing spec and source. The transformation is
+          byte-identical in all four places: Android depth and camera in
+          PhyphoxFile.java, iOS depth and camera in InputElementHandler.swift.
+          Verified 2026-08-19.
       - name: x2
         description: >-
           Right edge of the initial acquisition area, which the user
@@ -642,6 +646,10 @@ elements:
         default: 0.4
         summary: Left edge of the region of interest, as a fraction of the frame.
         agreement: agreed
+        note: >-
+          Both apps rotate the four edges into the camera sensor's frame at
+          parse time; see the note on depth's x1, which covers all four
+          places including this element.
       - name: x2
         description: >-
           Right edge of the initial acquisition area, which the user
