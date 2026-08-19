@@ -573,7 +573,9 @@
       A y buffer shorter than x traps with index-out-of-range in the
       factor>1 branch (ReduceAnalysis.swift, y![index] unbounded; the
       factor<1 branch does bounds-check); a file without an x output is
-      rejected at load with a clear error.
+      rejected at load with a clear error. Fully conforms to the canonical
+      behaviour on the development branch since 2026-08-19 (truncation in
+      both branches); only Android remains.
   summary: >-
     Short y inputs give zeros on Android and crash iOS; a missing x output
     is a load error on iOS but a runtime crash on Android. The spec now
