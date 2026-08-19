@@ -80,8 +80,6 @@ The *x* and *y* inputs take the data to be analyzed and you also need to define 
 
 The algorithm expects the autocorrelation to be periodic. It looks for the first offset i0 at which it becomes negative and then searches for a maximum in the next positive period at 3\*i0..5\*i0. You may define an offset range (in samples) by setting *min* and/or *max*. If you do so, the algorithm will just search for a maximum between *min* and *max*. If you can set this range quite narrow, this will speed up the calculation vastly, but if min/max cover multiple periods, this will quite certainly be slower and give wrong results.
 
-While all parameters are defined in samples, the resulting output *time* will be in units of the input *x*.
-
-{{inconsistency:periodicity-parameter-edges}}
+While all parameters are defined in samples, the resulting output *time* will be in units of the input *x*. A non-positive, non-finite or empty *dx* yields empty outputs. Fractional bounds are treated conservatively: *min* is rounded down and *max* is rounded up, so periods on the boundary are included in the search.
 
 {{spec:analysis/analysis/periodicity}}

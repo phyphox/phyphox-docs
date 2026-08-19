@@ -443,29 +443,6 @@
     outputs on iOS, and the two read opposite ends of a multi-value d
     buffer.
 
-- id: periodicity-parameter-edges
-  title: "periodicity: non-positive dx and fractional min/max"
-  area: file-format
-  status: decided
-  canonical: >-
-    Invalid parameters yield empty outputs on both platforms; fractional
-    min/max are floored/ceiled as on Android (conservative, including the
-    boundary).
-  decided: 2026-08-19
-  affects:
-    android: >-
-      dx <= 0 - including NaN or an empty buffer, which cast to 0 - produces
-      no output (periodicityAM guard); min is floored and max is ceiled to
-      integers.
-    ios: >-
-      The same dx values silently become dx = 1 and the analysis runs
-      (PeriodicityAnalysis.swift); min and max are truncated toward zero
-      instead of floor/ceil.
-  summary: >-
-    A missing or invalid step width disables the module on Android but runs
-    it at full rate on iOS, and fractional search bounds cover a different
-    period range on each platform.
-
 - id: max-min-degenerate-inputs
   title: "max/min: empty y input and x shorter than y"
   area: file-format
