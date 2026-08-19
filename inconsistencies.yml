@@ -740,7 +740,10 @@
     ios: >-
       Uses a sticky flag: any value not on the trigger side - including NaN
       - arms the trigger, and the next value on the trigger side fires
-      (ThresholdAnalysis.swift, onOppositeSide).
+      (ThresholdAnalysis.swift, onOppositeSide). Fully conforms to the
+      canonical behaviour (NaN-to-0 sanitization dropped, NaN output when no
+      crossing is found) on the development branch since 2026-08-19; only
+      Android remains.
   summary: >-
     With NaN in the data ([2, NaN, 5], rising, threshold 3) iOS reports a
     crossing where Android reports none. Without NaN the two formulations
