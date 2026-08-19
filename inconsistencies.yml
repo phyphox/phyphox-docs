@@ -158,6 +158,8 @@
       to append ~2^31 empty bins - the app hangs or runs out of memory.
     ios: >-
       Substitutes dx=1 silently (BinningAnalysis.swift, "if dx == 0.0").
+      Fully conforms to the canonical behaviour on the development branch
+      since 2026-08-19; only Android remains.
   summary: >-
     A dx of 0 effectively kills the Android app and is silently replaced by 1
     on iOS.
@@ -200,6 +202,9 @@
       negative length traps in Array(repeating:count:), also in
       RampGeneratorAnalysis.swift). The guarded getSingleValueAsInt() exists
       in ExperimentAnalysisDataIO.swift but is not used in these places.
+      Progress on the development branch: the binning sub-case conforms
+      since 2026-08-19; movingaverage, split, eventstream and const/ramp
+      are still open on iOS.
   summary: >-
     Where a single-value parameter (width, length, index, distance, ...)
     carries NaN, an infinity or - for lengths - a negative value, Android
