@@ -134,7 +134,9 @@
       two per run and the average/stddev outputs lose their pairing.
     ios: >-
       Appends exactly one NaN (AverageAnalysis.swift, count<2 branch with
-      else).
+      else). Fully conforms to the canonical behaviour including the
+      empty/all-non-finite NaN rule on the development branch since
+      2026-08-19; only Android remains.
   summary: >-
     For a single-value input, Android writes the standard deviation twice per
     run while iOS writes it once, so the two outputs go out of step on
