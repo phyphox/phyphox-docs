@@ -775,9 +775,21 @@ elements:
             One value per frame - luma, luminance, hue, saturation or value -
             averaged over the selected area.
           spectroscopy: >-
-            A spectrum per frame, taken across the selected area.
+            A spectrum per frame, taken across the selected area. Only the
+            luminance output receives the spectrum, paired with the
+            pixelPosition output; no other component carries spectral data.
         agreement: agreed
         rules: [enum-case-insensitive, enum-invalid-value]
+        note: >-
+          Verified 2026-08-19 in Android's AnalyzingOpenGLRenderer constructor
+          and iOS's AnalyzingRenderer.initializeCameraBuffer: with
+          feature=spectroscopy the luminance buffer is handed to the
+          SpectroscopyAnalyzer together with pixelPosition, and the photometric
+          LuminanceAnalyzer is not registered. The luma, hue, saturation and
+          value analyzers are registered regardless of the feature on both
+          platforms, so those outputs keep delivering their per-frame
+          photometric averages even in spectroscopy mode - the docs do not
+          promise that, it is just what both implementations happen to do.
 
     outputs:
       attribute: component
@@ -829,37 +841,43 @@ elements:
           summary: >-
             Shutter speed in use.
           description: >-
-            Shutter speed used to take this frame. Note that shutter speed,
-            aperture and ISO can change value even though it takes a few
-            more frames for them to take effect, either because the phone
-            ramps the values smoothly or because there is a delay between a
-            setting change and its execution.
+            Shutter speed used to take this frame. Note that a change to
+            shutter speed, aperture or ISO does not necessarily take effect
+            immediately - the phone may ramp the setting smoothly or execute
+            it with a delay of a few frames. On individual frames around such
+            a change, this output can therefore mismatch the shutter speed
+            the frame was actually captured with.
         - name: iso
           summary: >-
             ISO in use.
           description: >-
-            ISO value used to take this frame.
+            ISO value used to take this frame. Like shutterSpeed, this can
+            mismatch on individual frames around a setting change, because
+            the phone may ramp the setting smoothly or execute it with a
+            delay of a few frames.
         - name: aperture
           summary: >-
             Aperture in use.
           description: >-
-            Aperture used to take this frame.
+            Aperture used to take this frame. Like shutterSpeed, this can
+            mismatch on individual frames around a setting change, because
+            the phone may ramp the setting smoothly or execute it with a
+            delay of a few frames.
         - name: pixelPosition
           summary: >-
             Position within the spectrum.
           description: >-
-            Position within the spectrum, for the spectroscopy feature.
-        # Reached by iOS's handler (PhyphoxElementHandler.swift, buffer(for:
-        # "wavelength")) and absent from Android's outputMapping table. It is
-        # part of the same superseded calibration draft as calibrationMode and
-        # calibrationParameter: iOS stores the buffer and never writes to it.
-        - name: wavelength
-          summary: >-
-            Part of the superseded calibration draft. Accepted by iOS and never
-            filled; the data picker replaces it.
-          deprecated: true
-          superseded_by: the data picker, configured by the graph's output tags
-          platforms: [ios]
+            Position within the spectrum, for the spectroscopy feature. This
+            output holds exactly as many values as the matching luminance
+            output - the two are written together, so the i-th luminance
+            value belongs to the i-th position. The positions are absolute
+            pixel indices along the dispersion axis of the camera image, so
+            a calibration stays valid when the user moves the selected area.
+        # A "wavelength" component existed here as part of a superseded
+        # calibration draft. It never shipped in any release or beta - the
+        # data picker replaced it - and was removed from the format on
+        # 2026-08-19. Android never accepted it; iOS still accepts (and never
+        # fills) the buffer, which is recorded as an iOS-TODO item.
       agreement: agreed
       rules: [output-component-validation]
 
