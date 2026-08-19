@@ -202,9 +202,9 @@
       negative length traps in Array(repeating:count:), also in
       RampGeneratorAnalysis.swift). The guarded getSingleValueAsInt() exists
       in ExperimentAnalysisDataIO.swift but is not used in these places.
-      Progress on the development branch: the binning, movingaverage, split
-      and eventstream sub-cases conform since 2026-08-19; const/ramp is
-      still open on iOS.
+      Fully conforms to the canonical behaviour on the development branch
+      since 2026-08-19 (binning, movingaverage, split, eventstream and
+      const/ramp all guarded); only Android remains.
   summary: >-
     Where a single-value parameter (width, length, index, distance, ...)
     carries NaN, an infinity or - for lengths - a negative value, Android
@@ -702,7 +702,10 @@
       Uses 0 as the "unset" sentinel: an explicit length of 0 - and an empty
       or NaN length buffer - fills the whole output buffer. Empty
       value/start/stop buffers fall back to the defaults of 0
-      (ConstGeneratorAnalysis.swift/RampGeneratorAnalysis.swift).
+      (ConstGeneratorAnalysis.swift/RampGeneratorAnalysis.swift). Fully
+      conforms to the canonical behaviour on the development branch since
+      2026-08-19 (including a single-point ramp emitting its start value);
+      only Android remains.
   summary: >-
     A length of 0 writes nothing on Android and fills the entire buffer on
     iOS, and empty parameter buffers generate NaN data on Android but zeros
