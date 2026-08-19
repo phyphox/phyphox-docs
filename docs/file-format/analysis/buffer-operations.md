@@ -58,9 +58,7 @@ The criterion is set by the attribute "mode" determining whether raw values, der
 
 ## first
 
-Retrieves the first entry of each buffer and appends it to each output buffer.
-
-{{inconsistency:first-multiple-pairs}}
+Retrieves the first entry of each input buffer and appends it to the output buffer at the same position: output *i* receives exactly the first value of input *i*. An empty input skips only its own pair; outputs beyond the number of inputs stay empty.
 
 {{spec:analysis/analysis/first}}
 

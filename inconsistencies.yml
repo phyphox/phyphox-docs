@@ -532,29 +532,6 @@
     Degenerate max/min inputs emit nothing on Android but bogus values or a
     crash on iOS.
 
-- id: first-multiple-pairs
-  title: "first: several inputs and outputs"
-  area: file-format
-  status: decided
-  canonical: >-
-    Android's pairing is canonical: output i receives the first value of
-    input i, and an empty input skips only its own pair.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Pairs input i with output i - each output receives exactly the first
-      value of its own input, empty inputs skip only their pair (firstAM).
-    ios: >-
-      Collects the first values of all non-empty inputs into one list and
-      appends the whole list to every output (FirstAnalysis.swift).
-  summary: >-
-    With more than one input/output pair the module writes completely
-    different data on the two platforms (pairwise single values vs. the
-    full list broadcast to every output). The spec's repeat_offset implies
-    Android's pairing; the prose sentence reads like the iOS behavior. No
-    shipped or corpus experiment uses more than one pair (scanned
-    2026-08-19).
-
 - id: match-extra-outputs
   title: "match: more outputs than inputs"
   area: file-format
