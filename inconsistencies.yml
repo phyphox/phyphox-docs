@@ -330,12 +330,14 @@
       the floor/ceil paths keep NaN/inf).
     ios: >-
       vvnint keeps NaN as NaN and infinities as infinities
-      (RoundAnalysis.swift).
+      (RoundAnalysis.swift). Fully conforms to the canonical behaviour on
+      the development branch since 2026-08-19 (vvnint, which rounds ties to
+      even, was replaced); only Android remains.
   summary: >-
     Rounding a NaN yields 0 on Android and NaN on iOS; infinities become
-    +-9.2e18 on Android and stay infinite on iOS. (The tie-breaking rule at
-    .5 is also suspected to differ - Java rounds half up, C nint depends on
-    the rounding mode - but this has not been verified on a device.)
+    +-9.2e18 on Android and stay infinite on iOS. The tie-breaking rule at
+    .5 also differed - Java rounds half up, and vvnint was measured
+    (2026-08-19, iOS runtime) to round ties to even.
 
 - id: crosscorrelation-normalization
   title: "crosscorrelation: normalization and empty inputs"
