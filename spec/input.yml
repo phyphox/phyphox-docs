@@ -278,13 +278,23 @@ elements:
         agreement: platform
         platforms: [android]
         remark: >-
-          iOS accepts the attribute so that a file using it still loads, and
-          then ignores it: CoreMotion offers no equivalent choice.
+          The attribute has no effect on iOS: CoreMotion offers no equivalent
+          choice, so it is ignored there. The file still loads.
         note: >-
-          iOS declares the attribute so that a file using it still parses, and
-          then ignores it - the comment in InputElementHandler.swift says it is
-          "only part of the file format for Android sensors". CoreMotion exposes
-          no equivalent choice, so this is a genuine platform difference.
+          iOS declares the attribute in its handler enum with a comment that it
+          is "only part of the file format for Android sensors"
+          (InputElementHandler.swift), but the declaration is
+          documentation-in-code, not what keeps the file loading: verified
+          2026-08-19 that the iOS parser never rejects unknown attributes -
+          KeyedAttributeContainer reads known keys and has no completeness
+          check; the only unexpectedAttribute throw in the codebase is the
+          explicit translation check on root links. Android likewise reads
+          attributes by name and cannot reject unknowns. So "accepted and
+          ignored" is observable behaviour everywhere, and an earlier version
+          of this note wrongly implied the file would otherwise fail to load.
+          That both parsers silently ignore unknown attributes (typos
+          included) is not recorded as a rule in rules.yml - surfaced to the
+          maintainer 2026-08-19.
 
       - name: typeFilter
         description: >-
