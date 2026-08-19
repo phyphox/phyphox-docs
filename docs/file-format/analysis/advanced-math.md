@@ -40,9 +40,7 @@ Provide a **power-of-two** number of input samples: only then is the output guar
 
 ## gausssmooth
 
-This module will smooth the data provided from the only input. The data of each point will be calculated from neighboring points with a Gaussian distribution. The width of this distribution can be controlled by the attribute *sigma* and is interpreted in terms of value indices. This module will output as many values as there are values in the input buffer.
-
-{{inconsistency:gausssmooth-empty-sigma}}
+This module will smooth the data provided from the only input. The data of each point will be calculated from neighboring points with a Gaussian distribution. The width of this distribution can be controlled by the attribute *sigma* and is interpreted in terms of value indices. An omitted or empty *sigma* attribute selects the default of 3; a present value must be greater than zero. This module will output as many values as there are values in the input buffer.
 
 {{spec:analysis/analysis/gausssmooth}}
 

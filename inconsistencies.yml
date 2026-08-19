@@ -459,26 +459,6 @@
     it at full rate on iOS, and fractional search bounds cover a different
     period range on each platform.
 
-- id: gausssmooth-empty-sigma
-  title: "gausssmooth: empty sigma attribute"
-  area: file-format
-  status: decided
-  canonical: >-
-    An empty sigma attribute is treated like an absent one and selects the
-    default of 3, consistent with the format-wide empty-equals-omitted
-    convention; iOS's rejection changes.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      sigma="" is treated like an absent attribute and the default 3 is used
-      (PhyphoxFile.java, explicit isEmpty check).
-    ios: >-
-      Double("") fails to parse and the file is rejected
-      (unexpectedAttributeValue).
-  summary: >-
-    An empty sigma attribute loads with the default on Android and refuses
-    the file on iOS.
-
 - id: max-min-multiple-trailing-set
   title: "max/min: multiple mode drops the trailing set on iOS"
   area: file-format
