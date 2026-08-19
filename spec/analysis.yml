@@ -1125,8 +1125,7 @@ elements:
       - name: out
         as_required: false
         min: 1
-        max: unlimited
-        repeat_offset: 0
+        max: 1
 
   - name: lcm
     parent: analysis
@@ -1185,19 +1184,16 @@ elements:
       - name: yi0
         as_required: false
         min: 1
-        max: unlimited
-        repeat_offset: 0
+        max: 1
       - name: yi1
         as_required: true
         min: 0
-        max: unlimited
-        repeat_offset: 0
+        max: 1
         agreement: agreed
       - name: yi2
         as_required: true
         min: 0
-        max: unlimited
-        repeat_offset: 0
+        max: 1
         agreement: agreed
 
   - name: log

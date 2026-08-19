@@ -419,6 +419,8 @@
       for a value input, and throw at load time ("No input for xi provided",
       InterpolateAnalysis.swift/LoessAnalysis.swift init) or at update
       ("Input x for map module has to be a buffer", MapAnalysis.swift).
+      Progress on the development branch: interpolate and loess accept
+      value-type xi since 2026-08-19; map is still open on iOS.
   summary: >-
     Files using a literal value for interpolate's or loess's xi, or for
     map's x/y/z, work on Android and are refused (or fail) on iOS, although
@@ -440,7 +442,9 @@
     ios: >-
       No guard: d <= 0 makes every window empty and the module appends NaN
       for every xi (det = 0); d is read from the last element
-      (LoessAnalysis.swift, getSingleValue).
+      (LoessAnalysis.swift, getSingleValue). Fully conforms to the canonical
+      behaviour on the development branch since 2026-08-19; only Android's
+      first-element read remains.
   summary: >-
     A degenerate window width yields empty outputs on Android and NaN-filled
     outputs on iOS, and the two read opposite ends of a multi-value d
