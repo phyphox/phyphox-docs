@@ -544,11 +544,20 @@ elements:
             Verified 2026-08-19. iOS accepts the component and hard-codes
             -1 for every fix (ExperimentGPSInput.swift) - Core Location has
             no satellite-count API, re-checked against current
-            documentation. Android reads the legacy "satellites" integer
-            from the location extras (GpsInput.java), defaulting to 0 when
-            the extra is missing and -1 when there are no extras at all;
-            modern Android exposes satellite status via GnssStatus instead,
-            so on many devices this extra may simply be 0.
+            documentation. Android reads the "satellites" integer from the
+            location extras (GpsInput.java), defaulting to 0 when the extra
+            is missing and -1 when there are no extras at all. That extra
+            is documented behaviour of the GPS provider
+            (LocationManager.GPS_PROVIDER docs) and current AOSP still
+            populates it with the number of satellites used for the fix
+            (maintainer-confirmed on a Pixel 9 Pro on latest Android,
+            2026-08-19) - an earlier version of this note wrongly called it
+            legacy. It is only absent on locations from other providers.
+            The richer modern API is GnssStatus
+            (registerGnssStatusCallback, API 24+): per-satellite
+            constellation, C/N0, azimuth/elevation and usedInFix,
+            independent of location fixes. Switching to it would be an
+            enhancement, not a correction.
       agreement: agreed
       rules: [output-component-validation]
 
