@@ -355,12 +355,34 @@ elements:
     attributes:
       - name: rate
         description: >-
-          The recording rate in Hz. Changing the default of 48 kHz
-          is not recommended if the experiment targets a wide
-          audience, since supported recording rates are very device
-          specific. The rate you set is not guaranteed either - read
-          the actual rate from the rate output and use that for any
-          calculation with a time base.
+          The recording rate in Hz. This attribute exists for specific
+          needs on a specific device: supported recording rates are
+          very device specific, so do not change the default of 48 kHz
+          in an experiment that targets a wide audience. The platforms
+          also enforce a changed rate differently. Android uses the
+          requested rate exactly and refuses to load or start the
+          experiment if the device does not support it. iOS only
+          requests it as a preference and silently records at whatever
+          rate the hardware chooses - read the actual rate from the
+          rate output and use that for any calculation with a time
+          base. On iOS, if the experiment also contains an audio
+          output, the output's rate takes precedence and this
+          attribute is ignored.
+        note: >-
+          Verified 2026-08-19. Android: PhyphoxFile.java case "audio"
+          (getIntAttribute("rate", 48000), getMinBufferSize failure is
+          a load error) and PhyphoxExperiment.java startAllIO (new
+          AudioRecord(..., micRate, ...), uninitialized recorder
+          throws). iOS: InputElementHandler.swift AudioElementHandler
+          (UInt, so a malformed value is a load error where Android
+          silently falls back to the default - the family-wide
+          lenient/strict pattern, not audio-specific) and
+          AudioEngine.swift startEngine (setPreferredSampleRate with
+          playbackOut?.sampleRate ?? recordIn?.sampleRate, tap
+          installed with the input node's actual hardware format, no
+          resampling). Maintainer ruling 2026-08-19: not a divergence -
+          the attribute is for device-specific use, the prose just has
+          to be clear about the platform behaviour.
         type: integer
         default: 48000
         unit: Hz
@@ -391,12 +413,14 @@ elements:
           summary: >-
             The rate actually achieved.
           description: >-
-            The rate the device actually recorded at, which is not
-            guaranteed to be the rate you requested. Use this for any
-            calculation with a time base. It is written independently of the
-            recording output - mostly when the rate changes, which normally
-            only happens if the audio setup changes - so do not clear this
-            data container while reading it.
+            The rate the device actually recorded at. On iOS this is not
+            guaranteed to be the rate you requested, since the requested
+            rate is only a preference to the system; on Android it always
+            matches the request, because an unsupported rate is an error.
+            Use this value for any calculation with a time base. It is
+            written independently of the recording output - mostly when the
+            rate changes, which normally only happens if the audio setup
+            changes - so do not clear this data container while reading it.
       agreement: agreed
       rules: [output-component-validation]
 
