@@ -614,6 +614,9 @@
       nothing (FormulaAnalysis.swift, ?? ""); 1e+5 parses as 100000
       (FormulaParser.swift checks the preceding character); a broken term
       loads and produces NaN per element (missing operands evaluate to NaN).
+      Fully conforms to the canonical behaviour on the development branch
+      since 2026-08-20 (missing/empty formula and broken terms reject at
+      load); only Android remains.
   summary: >-
     The two formula parsers disagree on what loads and on what a broken
     expression produces. The function list, precedence, left-associativity
