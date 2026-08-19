@@ -41,50 +41,6 @@ Additionally, some analysis modules take parameters that are not dynamically def
 
 You can then set the attribute *cycles* for any analysis module. If not set, the module is executed in every cycle (including 0). If set, it is only executed in the cycles that you specify by a space-separated list. For example, cycles="1 3 42" means that the module is only executed in cycles 1, 3 and 42. You can also define ranges with a simple dash, so cycles="3-6" means that it will be executed in 3, 4, 5 and 6. Open-ended lists can be achieved by simply omitting a number, so cycles="1-" will run in every cycle except for 0 and cycles="-5" will run in every cycle up to and including number 5. As a final example, mixing all these, cycles="0 3 5-7 10-" will run in cycles 0, 3, 5, 6, 7, 10 and then every subsequent cycle.
 
-attributes
-:   for all analysis modules
-
-    cycles
-    :   Determines in which cycles the module should be executed, see above. default: Execute in every cycle.
-
-<!-- -->
-
-input-tag
-:   Attributes for input tags:
-
-    as
-    :   The mapping of the input to a function
-    :   *optional* or *required* depending on the module
-
-    type
-    :   Can be set to *buffer* or *value* and indicates whether the content of the tag is a numeric value or refers to a data-container
-    :   *optional*, default: *buffer*
-
-    keep
-    :   *true* means that the buffer retains its data after reading. If set to false, the buffer is cleared after reading, which can be used to process each dataset from an input only once.
-    :   *optional*, default: *false*
-
-    clear (deprecated in file format 1.17)
-    :   *false* means that the buffer retains its data after reading. If set to true, the buffer is cleared after reading, which can be used to process each dataset from an input only once. Note that this attribute has been deprecated with file format 1.17 (phyphox 1.1.13) and should be replaced with the more intuitive keep attribute. clear=true corresponds to keep=false.
-    :   *optional*, default: *true*
-
-<!-- -->
-
-output-tag
-:   Attributes for output tags:
-
-    as
-    :   The mapping of the input to a function
-    :   *optional* or *required* depending on the module
-
-    append
-    :   *true* means that new data is appended to the content that is already in the buffer. *false* will clear the buffer first, effectively replacing its content with new data.
-    :   *optional*, default: *false*
-
-    clear (deprecated in file format 1.17)
-    :   *false* means that the buffer retains its data (from another module writing to this buffer or from the previous analysis run) and new data is appended. *true* will clear the buffer first. Note that this attribute has been deprecated with file format 1.17 (phyphox 1.1.13) and should be replaced with the more intuitive append attribute. clear=true corresponds to append=false.
-    :   *optional*, default: *true*
-
 {{spec:analysis/phyphox/analysis|common}}
 
 ## List of analysis modules

@@ -240,14 +240,15 @@ elements:
   - name: acos
     parent: analysis
     summary: >-
-      Calculates the inverse cosine of a single input (in radians) element-
-      wise and writes it to a single output buffer.
+      Calculates the inverse cosine of a single input element-wise and
+      writes the resulting angle to a single output buffer.
     children: [input, output]
     attributes:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Return the angle in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: value
@@ -307,14 +308,15 @@ elements:
   - name: asin
     parent: analysis
     summary: >-
-      Calculates the inverse sine of a single input (in radians) element-
-      wise and writes it to a single output buffer.
+      Calculates the inverse sine of a single input element-wise and
+      writes the resulting angle to a single output buffer.
     children: [input, output]
     attributes:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Return the angle in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: value
@@ -332,14 +334,15 @@ elements:
   - name: atan
     parent: analysis
     summary: >-
-      Calculates the inverse tangent of a single input (in radians) element-
-      wise and writes it to a single output buffer.
+      Calculates the inverse tangent of a single input element-wise and
+      writes the resulting angle to a single output buffer.
     children: [input, output]
     attributes:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Return the angle in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: value
@@ -365,7 +368,8 @@ elements:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Return the angle in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: y
@@ -406,12 +410,14 @@ elements:
         allows_value: false
         allows_empty: false
       - name: minX
+        default: "no lower bound"
         as_required: true
         min: 0
         max: 1
         allows_value: true
         allows_empty: false
       - name: maxX
+        default: "no upper bound"
         as_required: true
         min: 0
         max: 1
@@ -571,7 +577,8 @@ elements:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Interpret the input in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: value
@@ -589,7 +596,7 @@ elements:
   - name: cosh
     parent: analysis
     summary: >-
-      Calculates the hyperbolic cosine of a single input (in radians)
+      Calculates the hyperbolic cosine of a single input
       element-wise and writes it to a single output buffer.
     children: [input, output]
     attributes: []
@@ -822,6 +829,10 @@ elements:
 
   - name: formula
     parent: analysis
+    since: "1.7"
+    summary: >-
+      Evaluates a mathematical expression, given in the formula attribute,
+      over the values of its input buffers.
     children: [input, output]
     attributes:
       - name: formula
@@ -901,16 +912,24 @@ elements:
     children: [input, output]
     attributes:
       - name: equal
-        type: float
-        summary: See the module description.
+        type: boolean
+        default: false
+        summary: Take the true branch when a equals b.
         agreement: agreed
+        note: >-
+          Was modeled as type float with no default; both platforms parse a
+          strict boolean defaulting to false (PhyphoxFile.java
+          getBooleanAttribute, IfAnalysis.swift optionalValue ?? false).
+          Corrected 2026-08-19 during the analysis-module audit.
       - name: greater
-        type: float
-        summary: See the module description.
+        type: boolean
+        default: false
+        summary: Take the true branch when a is greater than b.
         agreement: agreed
       - name: less
-        type: float
-        summary: See the module description.
+        type: boolean
+        default: false
+        summary: Take the true branch when a is less than b.
         agreement: agreed
     inputs:
       - name: a
@@ -1226,7 +1245,7 @@ elements:
         values: [average, count, sum]
         summary: See the module description.
         agreement: agreed
-        rules: [enum-case-insensitive]
+        rules: [enum-case-insensitive, enum-invalid-value]
     inputs:
       - name: mapWidth
         as_required: true
@@ -1326,6 +1345,7 @@ elements:
     attributes:
       - name: multiple
         type: boolean
+        default: false
         summary: See the module description.
         agreement: agreed
     inputs:
@@ -1342,6 +1362,7 @@ elements:
         allows_value: false
         allows_empty: false
       - name: threshold
+        default: 0
         as_required: true
         min: 0
         max: 1
@@ -1365,6 +1386,7 @@ elements:
     attributes:
       - name: multiple
         type: boolean
+        default: false
         summary: See the module description.
         agreement: agreed
     inputs:
@@ -1381,6 +1403,7 @@ elements:
         allows_value: false
         allows_empty: false
       - name: threshold
+        default: 0
         as_required: true
         min: 0
         max: 1
@@ -1407,13 +1430,19 @@ elements:
         description: >-
           Determines whether values are emitted for which fewer than
           width previous elements are available. With dropIncomplete
-          set to true the module outputs n-width+1 values for an
+          set to true the module outputs n-width values for an
           input of n data values; with it set to false it outputs
           exactly n values.
         default: false
         type: boolean
         summary: See the module description.
         agreement: agreed
+        note: >-
+          The count used to be given as n-width+1, an off-by-one also present
+          in a comment in Analysis.java. Verified 2026-08-19 on both
+          platforms: the loop starts at index width (Analysis.java
+          movingaverageAM, MovingAverageAnalysis.swift), so n-width values
+          are emitted, each averaging width+1 elements.
     inputs:
       - name: data
         as_required: true
@@ -1654,8 +1683,13 @@ elements:
     outputs:
       - name: x
         as_required: true
-        min: 0
+        min: 1
         max: 1
+        # Modeled as optional (min 0) before the 2026-08-19 audit, but neither
+        # implementation works without it: iOS rejects the file at parse time
+        # (ReduceAnalysis.swift) and Android crashes in update() (Analysis.java
+        # reduceAM assumes outputs.get(0) exists). The differing failure mode
+        # is recorded in inconsistencies.yml (reduce-and-map-edge-cases).
       - name: y
         as_required: true
         min: 0
@@ -1700,7 +1734,8 @@ elements:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Interpret the input in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: value
@@ -1718,7 +1753,7 @@ elements:
   - name: sinh
     parent: analysis
     summary: >-
-      Calculates the hyperbolic sine of a single input (in radians) element-
+      Calculates the hyperbolic sine of a single input element-
       wise and writes it to a single output buffer.
     children: [input, output]
     attributes: []
@@ -1793,6 +1828,7 @@ elements:
         allows_value: true
         allows_empty: false
       - name: overlap
+        default: 0
         as_required: true
         min: 0
         max: 1
@@ -1831,7 +1867,7 @@ elements:
         allows_value: true
         allows_empty: false
       - name: length
-        default: "the length of the input; supersedes to"
+        default: "unused; if given, it supersedes to"
         as_required: true
         min: 0
         max: 1
@@ -1888,7 +1924,8 @@ elements:
       - name: deg
         type: boolean
         since: "1.2"
-        summary: Calculate in degrees instead of radians.
+        default: false
+        summary: Interpret the input in degrees instead of radians.
         agreement: agreed
     inputs:
       - name: value
@@ -1906,7 +1943,7 @@ elements:
   - name: tanh
     parent: analysis
     summary: >-
-      Calculates the hyperbolic tangent of a single input (in radians)
+      Calculates the hyperbolic tangent of a single input
       element-wise and writes it to a single output buffer.
     children: [input, output]
     attributes: []
@@ -1973,6 +2010,7 @@ elements:
     children: [output]
     attributes:
       - name: linearTime
+        since: "1.12"
         default: false
         type: boolean
         summary: See the module description.
@@ -1983,6 +2021,7 @@ elements:
         min: 0
         max: 1
       - name: offset1970
+        since: "1.12"
         as_required: true
         min: 0
         max: 1

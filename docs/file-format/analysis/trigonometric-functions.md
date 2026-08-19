@@ -2,25 +2,25 @@
 
 ## acos
 
-Calculates the inverse cosine of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the inverse cosine of a single input element-wise and writes the resulting angle to a single output buffer. This module will write as many values as there are values in the input buffer. The angle is returned in radians unless degrees are requested using the *deg* attribute.
 
 {{spec:analysis/analysis/acos}}
 
 ## asin
 
-Calculates the inverse sine of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the inverse sine of a single input element-wise and writes the resulting angle to a single output buffer. This module will write as many values as there are values in the input buffer. The angle is returned in radians unless degrees are requested using the *deg* attribute.
 
 {{spec:analysis/analysis/asin}}
 
 ## atan
 
-Calculates the inverse tangent of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the inverse tangent of a single input element-wise and writes the resulting angle to a single output buffer. This module will write as many values as there are values in the input buffer. The angle is returned in radians unless degrees are requested using the *deg* attribute.
 
 {{spec:analysis/analysis/atan}}
 
 ## atan2
 
-Calculates the two-argument variant of the inverse tangent (corresponding to atan(y/x), see [Wikipedia](https://en.wikipedia.org/wiki/Atan2) for an explanation) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer. The module will calculate in radians unless degrees are specified using the *deg* attribute.
+Calculates the two-argument variant of the inverse tangent (corresponding to atan(y/x), see [Wikipedia](https://en.wikipedia.org/wiki/Atan2) for an explanation) element-wise and writes it to a single output buffer. The angle is returned in radians unless degrees are requested using the *deg* attribute.
 
 {{spec:analysis/analysis/atan2}}
 
@@ -32,7 +32,7 @@ Calculates the cosine of a single input (in radians) element-wise and writes it 
 
 ## cosh
 
-Calculates the hyperbolic cosine of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
+Calculates the hyperbolic cosine of a single input element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
 
 {{spec:analysis/analysis/cosh}}
 
@@ -44,7 +44,7 @@ Calculates the sine of a single input (in radians) element-wise and writes it to
 
 ## sinh
 
-Calculates the hyperbolic sine of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
+Calculates the hyperbolic sine of a single input element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
 
 {{spec:analysis/analysis/sinh}}
 
@@ -56,6 +56,6 @@ Calculates the tangent of a single input (in radians) element-wise and writes it
 
 ## tanh
 
-Calculates the hyperbolic tangent of a single input (in radians) element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
+Calculates the hyperbolic tangent of a single input element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.
 
 {{spec:analysis/analysis/tanh}}

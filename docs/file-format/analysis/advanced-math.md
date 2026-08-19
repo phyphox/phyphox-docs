@@ -2,19 +2,19 @@
 
 ## autocorrelation
 
-This module will calculate the autocorrelation. It takes at least one input buffer *y*, but can take a second input *x* as well. If *x* is omitted, it will be filled with indices. Additionally, single value inputs *minX* and *maxX* can be set as well. These limit the x range over which the autocorrelation is calculated to improve performance. The module will return as many values as provided by the input buffer and fill the output buffer *y* with the normalized autocorrelation of the *y* input buffer. The *x* output buffer will be filled with the relative *x* of the autocorrelation based on the *x* input buffer.
+This module will calculate the autocorrelation. It takes at least one input buffer *y*, but can take a second input *x* as well. If *x* is omitted, it will be filled with indices. Additionally, single value inputs *minX* and *maxX* can be set as well. These restrict the output to the given x range. Without them the module returns as many values as provided by the input buffer; with them only the lags within the range are returned. The output buffer *y* is filled with the autocorrelation of the *y* input buffer, each lag divided by the number of samples that overlap at that lag - so the value at lag zero is the mean square of the input, not 1. The *x* output buffer will be filled with the relative *x* of the autocorrelation based on the *x* input buffer.
 
 {{spec:analysis/analysis/autocorrelation}}
 
 ## butterworth
 
-This module represents the transfer function of a Butterworth filter. It takes the order *n* and (upper) *cutoff* frequency as inputs and acts as a low pass. Optionally, you can also provide a lower cutoff frequency as *cutoffLow*, in which case it acts as a bandpass. The *x* input needs to provide frequencies for each data point of the *y* input. Frequencies are taken as absolute values for the filter. Note that this is only the transfer function, so you want to use it together with the *fft* module.
+This module represents the transfer function of a Butterworth filter. It takes the order *n* and (upper) *cutoff* frequency as inputs and acts as a low pass. Optionally, you can also provide a positive lower cutoff frequency as *cutoffLow*, in which case it acts as a bandpass (a *cutoffLow* of zero keeps it a low pass). The *x* input needs to provide frequencies for each data point of the *y* input. Frequencies are taken as absolute values for the filter. The module multiplies the *y* values by the magnitude of the filter's transfer function at their frequencies, so you want to use it together with the *fft* module.
 
 {{spec:analysis/analysis/butterworth}}
 
 ## crosscorrelation
 
-This module will calculate a crosscorrelation of two inputs. It will only calculate the part of the crosscorrelation for which the smaller buffer is entirely covered by the larger one. So with one input buffer of size n and one input of size m it will return exactly abs(m-n) values. If you need the crosscorrelation of two buffers of similar size, you will need to pad one of them with zeros first.
+This module will calculate a crosscorrelation of two inputs. It will only calculate offsets at which the smaller buffer is entirely covered by the larger one, leaving out the last such offset. So with one input buffer of size n and one input of size m it will return exactly abs(m-n) values. If you need the crosscorrelation of two buffers of similar size, you will need to pad one of them with zeros first.
 
 {{spec:analysis/analysis/crosscorrelation}}
 
@@ -56,7 +56,7 @@ Performs a simple integration of a single input by summing all elements and retu
 
 ## loess
 
-Smooths data using locally estimated scatterplot smoothing (LOESS) aka local regression. It takes x and y data as well as a list of x values at which to generate smoothed y values. Additionally, you have to set the width of the windowing function (tri-cubic window). Smoothed data can be generated at the same x positions as the source data or anywhere as long as it is near the source data, so that it contributes within the window width. The data does not need to be ordered.
+Smooths data using locally estimated scatterplot smoothing (LOESS) aka local regression. It takes x and y data as well as a list of x values at which to generate smoothed y values. Additionally, you have to set the width of the windowing function (tri-cubic window). Smoothed data can be generated at the same x positions as the source data or anywhere as long as it is near the source data, so that it contributes within the window width. Both the x data and the xi values need to be monotonically increasing.
 
 Optionally, you can use three outputs to directly get the local fit parameters yi0, yi1 and yi2 to the function y(x) = yi0 + yi1 \* x + yi2 \* x². In this formula, the axis for x is shifted such that x=0 is in place of the evaluated position xi. If the input is position data versus time, these parameters are great estimates for a (smoothed) position, the momentary velocity and the momentary acceleration. Note that if you describe the location as a function of time from an initial location, velocity and acceleration, you would have the formula y(t) = y0 + v\*t + 1/2 a\*t², so if you want to extract location y0, velocity v and acceleration a from the fit parameters, you need to multiply yi2 by two as yi2 = a/2.
 

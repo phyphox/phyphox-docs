@@ -95,7 +95,7 @@ The example above takes xData, yData and zData and creates a grid of 100 by 100 
 
 Returns the maximum and its position. This module takes at least one input *y* and looks for the maximum of this buffer, but may also take a second input *x*. If *x* is defined, it will return the position of this maximum in terms of the associated x value. If *x* is not defined, position will be the index of the maximum.
 
-If you want to find multiple local maxima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets that are entirely above the threshold and return a maximum and position for each set.
+If you want to find multiple local maxima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets of consecutive values at or above the threshold and return a maximum and position for each set.
 
 This module will return exactly one value per call if multiple is deactivated (default).
 
@@ -105,7 +105,7 @@ This module will return exactly one value per call if multiple is deactivated (d
 
 Returns the minimum and its position. This module takes at least one input *y* and looks for the minimum of this buffer, but may also take a second input *x*. If *x* is defined, it will return the position of this minimum in terms of the associated x value. If *x* is not defined, position will be the index of the minimum.
 
-If you want to find multiple local minima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets that are entirely above the threshold and return a minimum and position for each set.
+If you want to find multiple local minima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets of consecutive values at or below the threshold and return a minimum and position for each set.
 
 This module will return exactly one value per call if multiple is deactivated (default).
 
