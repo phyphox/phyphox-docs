@@ -202,9 +202,9 @@
       negative length traps in Array(repeating:count:), also in
       RampGeneratorAnalysis.swift). The guarded getSingleValueAsInt() exists
       in ExperimentAnalysisDataIO.swift but is not used in these places.
-      Progress on the development branch: the binning and movingaverage
-      sub-cases conform since 2026-08-19; split, eventstream and const/ramp
-      are still open on iOS.
+      Progress on the development branch: the binning, movingaverage, split
+      and eventstream sub-cases conform since 2026-08-19; const/ramp is
+      still open on iOS.
   summary: >-
     Where a single-value parameter (width, length, index, distance, ...)
     carries NaN, an infinity or - for lengths - a negative value, Android
@@ -620,8 +620,9 @@
       (SplitAnalysis.swift, limit > 0 and max(...,0) guards).
   summary: >-
     A negative split index crashes Android and degrades gracefully on iOS -
-    the reverse of the usual pattern. (NaN/infinite index values crash iOS
-    instead; see analysis-nonfinite-parameter-crashes.)
+    the reverse of the usual pattern. (NaN/infinite index values crashed iOS
+    instead - see analysis-nonfinite-parameter-crashes - fixed on the iOS
+    development branch since 2026-08-19.)
 
 - id: subrange-nonfinite-parameters
   title: "subrange: NaN or infinite from/to/length"
