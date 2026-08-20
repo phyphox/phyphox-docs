@@ -66,6 +66,10 @@ Marker syntax
                                         one example instead of a bare parent
                                         skeleton followed by the child's
     {{spec:BLOCK/PARENT/NAME|attributes}}
+    {{spec:BLOCK/PARENT/NAME|attributes:GROUP}}  only attributes with that
+                                        group: value; :own = ungrouped only.
+                                        Also valid on |full (= the default
+                                        mode with a filter attached)
     {{spec:BLOCK/PARENT/NAME|slots}}    input/output slots or components alone
     {{spec:BLOCK/NAME}}                 a root element, which has no parent
     {{spec:BLOCK/PARENT/NAME|common}}   the block's shared attributes, from
@@ -98,7 +102,7 @@ LIST_PAGE = "reference/known-inconsistencies.md"
 # {{spec:BLOCK/PARENT/NAME}}, or {{spec:BLOCK/NAME}} for a root element, which
 # has no parent - <phyphox> is the only one.
 MARKER = re.compile(r"\{\{spec:([a-zA-Z0-9_\-]+)/(?:([a-zA-Z0-9_\-]+)/)?"
-                    r"([a-zA-Z0-9_\-]+)(?:\|([a-z]+))?\}\}")
+                    r"([a-zA-Z0-9_\-]+)(?:\|([a-z]+)(?::([a-z]+))?)?\}\}")
 
 # Placeholder shown for an attribute value in a generated skeleton.
 PLACEHOLDER = {
@@ -381,13 +385,21 @@ def _divergence_pointer(ref, spec, state):
             f"[{entry['title']}]({link}).")
 
 
-def render_attributes(element, spec, state):
+def render_attributes(element, spec, state, group=None):
     # `undocumented: intentionally` keeps an attribute out of the documentation
     # while the spec still models it. appleBan is the case it exists for: iOS
     # reads it, so a specification of the format has to record it, and it is
     # App Store housekeeping that no experiment author should be reaching for.
     attrs = [a for a in (element.get("attributes") or [])
              if not a.get("undocumented")]
+    # A group filter renders a subset: attributes carrying that `group:`
+    # value, or - for "own" - only the ungrouped ones. The bluetooth element
+    # uses this to document its device-matching attributes once for the
+    # input and output variants and the specific ones per section.
+    if group == "own":
+        attrs = [a for a in attrs if not a.get("group")]
+    elif group:
+        attrs = [a for a in attrs if a.get("group") == group]
     if not attrs:
         return ""
     return "\n\n".join(_attribute(a, spec, state) for a in attrs)
@@ -640,7 +652,13 @@ def _wrap_skeleton(skeleton, parent):
                      + [f"</{parent}>", lines[-1]])
 
 
-def render_element(block, parent, name, spec, state, mode=None):
+def render_element(block, parent, name, spec, state, mode=None, group=None):
+    """group filters the attribute list: a group name renders only the
+    attributes carrying that `group:` value, and "own" renders only the
+    ungrouped ones. `full` is mode None spelled out, so a filter can be
+    attached to the full render ({{spec:...|full:own}})."""
+    if mode == "full":
+        mode = None
     element = spec.get(block, parent, name)
     parts = []
 
@@ -666,7 +684,7 @@ def render_element(block, parent, name, spec, state, mode=None):
             parts.append(_sentence(element["remark"]))
 
     if mode in (None, "wrapped", "attributes"):
-        attrs = render_attributes(element, spec, state)
+        attrs = render_attributes(element, spec, state, group)
         if attrs:
             parts.append("**Attributes**\n\n" + attrs)
         elif mode == "attributes":
@@ -712,8 +730,8 @@ def _element_warnings(element, spec, state):
 def expand(markdown, spec, state):
     """Replace every {{spec:...}} marker in a page."""
     def one(m):
-        block, parent, name, mode = m.groups()
-        return render_element(block, parent, name, spec, state, mode)
+        block, parent, name, mode, group = m.groups()
+        return render_element(block, parent, name, spec, state, mode, group)
     return MARKER.sub(one, markdown)
 
 

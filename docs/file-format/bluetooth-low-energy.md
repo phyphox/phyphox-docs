@@ -12,7 +12,7 @@ Phyphox can communicate with almost any Bluetooth Low Energy (BLE) device to rec
 
 This page describes how the Bluetooth Low Energy integration works in phyphox files, which applies to both the editor and direct editing of the phyphox-file. It also explains in detail the syntax in the phyphox file and the protocol by which a device can offer its own phyphox-file to the app, so you can, for example, program an Arduino so it can be used without the need to manually transfer a phyphox-file.
 
-If this is the first time that you use the editor, you should start with our [experiment editor](https://phyphox.org/editor) and if you just started to learn about our file format (without using the editor), you should start on the main page about our [file format](index.md). Also, if you are new to Bluetooth Low Energy, you should look for a short introduction, so you know what the terms "GATT", "UUID", "service", "characteristic" and "notification" mean.
+If this is the first time that you create your own experiment for phyphox, you should start with our [experiment editor](https://phyphox.org/editor) and if you just started to learn about our file format (without using the editor), you should start on the main page about our [file format](index.md). Also, if you are new to Bluetooth Low Energy, you should look for a short introduction, so you know what the terms "GATT", "UUID", "service", "characteristic" and "notification" mean.
 
 In order to write a phyphox-file for a BLE device, you will need to know how its communication works. If the device is supported by phyphox out of the box, you can open the existing phyphox-file in our editor to see how we communicate with it. If this is not the case and you try to communicate with the device for the first time, you can often use some documentation by the manufacturer or some similar source of information. Finally, you can try to figure out the communication yourself by using apps that list the services and characteristics and by capturing the communication from other apps (please make sure that you are legally allowed to do so).
 
@@ -35,6 +35,8 @@ The other method works just like opening any other custom experiment in phyphox.
 BLE devices can be either used as an input to phyphox or as an output to receive data acquired by phyphox.
 
 When used as an input, the characteristics are read from the device, their data is interpreted and then written to a phyphox buffer. When used as an output, the values from a phyphox buffer are converted to a binary representation and then written to a characteristic on the device.
+
+If a device should do both, you can match input and output definitions via an ID (see below).
 
 ### Notifications and polling
 
@@ -62,51 +64,25 @@ Whenever a BLE device is defined in phyphox, you will need to set up how it is m
 
 The device-matching attributes are the same wherever a bluetooth element appears, in the input block and in the output block alike.
 
-{{spec:input/input/bluetooth|attributes}}
+{{spec:input/input/bluetooth|attributes:matching}}
 
 ### BLE as input
 
-If data should be read from a BLE device and displayed in phyphox, the device should be defined within the input block of the phyphox file:
-
-```
-    ...
-    <input>
-        <bluetooth name="..." uuid="..." id="..." autoConnect="..." mode="..." rate="..." subscribeOnStart="...">
-            ...
-            <config ...>...</config>
-            ...
-            <output ...>...</output>
-            ...
-        </bluetooth>
-    </input>
-    ...
-```
+If data should be read from a BLE device and displayed in phyphox, the device should be defined within the input block of the phyphox file.
 
 When using the "bluetooth" tag within an "input" tag, values are read from the device and written to buffers specified in output tags (more on these below). Additionally, "config" tags can be used to set up the device by writing configuration values to the device after connecting.
 
 In addition to the device-matching attributes above, these define how and when data is read from the device:
 
-{{spec:input/input/bluetooth}}
+{{spec:input/input/bluetooth|wrapped:own}}
 
 ### BLE as output
 
-If data should be transmitted to a BLE device (i.e. a characteristic), the device should be defined within the output block of the phyphox file:
+If data should be transmitted to a BLE device (i.e. a characteristic), the device should be defined within the output block of the phyphox file.
 
-```
-    ...
-    <output>
-        <bluetooth name="..." uuid="..." id="..." autoConnect="...">
-            ...
-            <config ...>...</config>
-            ...
-            <input ...>...</input>
-            ...
-        </bluetooth>
-    </output>
-    ...
-```
+In contrast to using the tag "bluetooth" within an input tag, you cannot specify a mode or a poll rate — the output variant takes exactly the device-matching attributes above and nothing else. The values are read from buffers defined in input tags and written to the device when the analysis process of the experiment has finished. Config tags work as usual.
 
-In contrast to using the tag "bluetooth" within an input tag, you cannot specify a mode or a poll rate. The values are read from buffers defined in input tags and written to the device when the analysis process of the experiment has finished. Config tags work as usual.
+{{spec:output/output/bluetooth|wrapped:own}}
 
 Since phyphox file format 1.19 (phyphox version 1.2.0) you can also set the attribute "keep" for each input tag. This works like the keep attribute in analysis modules: If you set keep="false", the data container is cleared after the data has been sent, allowing you to send data only once. The default is keep="true", matching the behavior of older versions, in which the data container is not altered after data has been sent.
 

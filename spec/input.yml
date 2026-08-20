@@ -961,6 +961,7 @@ elements:
     children: [output, config]
     attributes:
       - name: name
+        group: matching
         description: >-
           If this name is contained in the name of a device found
           while scanning, the device matches the criterion.
@@ -968,6 +969,7 @@ elements:
         summary: Connect only to a device advertising this name.
         agreement: agreed
       - name: uuid
+        group: matching
         description: >-
           The UUID of a service advertised by the device. Note that
           even if the device advertises a short 16-bit UUID
@@ -1021,6 +1023,7 @@ elements:
         summary: Subscribe when the measurement starts rather than on connect.
         agreement: agreed
       - name: autoConnect
+        group: matching
         description: >-
           If set to true, phyphox shows no scan dialog and connects
           to the first device matching the other criteria. Only use
@@ -1031,6 +1034,7 @@ elements:
         summary: Connect without asking the user to pick a device.
         agreement: agreed
       - name: address
+        group: matching
         type: string
         summary: >-
           Connect only to the device with this hardware address. **Using this
@@ -1039,6 +1043,7 @@ elements:
         agreement: platform
         platforms: [android]
       - name: id
+        group: matching
         description: >-
           Combines two functions for managing several BLE devices in
           one experiment. It is shown to the user to identify what a
@@ -1056,6 +1061,7 @@ elements:
           asked to pick it only once even across input and output blocks.
         agreement: agreed
       - name: mtu
+        group: matching
         description: >-
           Requests a specific MTU size. Note that this always fails
           on Android devices before Android 5.0.

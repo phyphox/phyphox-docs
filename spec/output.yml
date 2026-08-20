@@ -219,6 +219,7 @@ elements:
     children: [input, config]
     attributes:
       - name: id
+        group: matching
         type: string
         translatable: true
         summary: >-
@@ -227,19 +228,23 @@ elements:
           output blocks alike, so the user picks it only once.
         agreement: agreed
       - name: name
+        group: matching
         type: string
         summary: Connect only to a device whose name contains this text.
         agreement: agreed
       - name: uuid
+        group: matching
         type: string
         summary: Connect only to a device advertising this service UUID.
         agreement: agreed
       - name: autoConnect
+        group: matching
         type: boolean
         default: false
         summary: Connect to the first match without showing a scan dialog.
         agreement: agreed
       - name: address
+        group: matching
         type: string
         summary: >-
           Connect only to the device with this hardware address. **Using this
@@ -248,6 +253,7 @@ elements:
         agreement: platform
         platforms: [android]
       - name: mtu
+        group: matching
         type: integer
         default: 0
         since: "1.9"
