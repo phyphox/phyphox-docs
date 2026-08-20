@@ -294,23 +294,6 @@
     and for NaN. (This is the formula function; the round analysis module's
     own divergence is round-nonfinite.)
 
-- id: append-nan-value-input
-  title: "append: NaN as a type=value input"
-  area: file-format
-  status: decided
-  canonical: >-
-    A literal NaN value input is appended like any other value; Android's
-    skip changes.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Skips NaN value inputs (appendAM, isNaN check).
-    ios: >-
-      Appends the NaN (AppendAnalysis.swift, unconditional).
-  summary: >-
-    A literal NaN value input is dropped by Android and written by iOS.
-    Buffer contents including NaN pass through identically on both.
-
 - id: input-type-empty-case
   title: "input type attribute: case sensitivity of \"empty\""
   area: file-format
