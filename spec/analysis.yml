@@ -722,7 +722,36 @@ elements:
         type: enum
         values: [above, below, aboveAbsolute, belowAbsolute, aboveDerivative, belowDerivative, aboveDerivativeAbsolute, belowDerivativeAbsolute]
         default: above
-        summary: See the module description.
+        summary: >-
+          Whether raw values, absolutes or derivatives are compared against the
+          threshold, and in which direction.
+        value_notes:
+          above: >-
+            Triggers if a raw value of the data stream is greater than the
+            threshold.
+          below: >-
+            Triggers if a raw value of the data stream is less than the
+            threshold.
+          aboveAbsolute: >-
+            Triggers if an absolute value of the data stream is greater than
+            the threshold.
+          belowAbsolute: >-
+            Triggers if an absolute value of the data stream is less than the
+            threshold.
+          aboveDerivative: >-
+            Triggers if the derivative (difference of current minus previous
+            value) of the data stream is greater than the threshold.
+          belowDerivative: >-
+            Triggers if the derivative (difference of current minus previous
+            value) of the data stream is less than the threshold.
+          aboveDerivativeAbsolute: >-
+            Triggers if the absolute of the derivative (difference of current
+            minus previous value) of the data stream is greater than the
+            threshold.
+          belowDerivativeAbsolute: >-
+            Triggers if the absolute of the derivative (difference of current
+            minus previous value) of the data stream is less than the
+            threshold.
         agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
     inputs:

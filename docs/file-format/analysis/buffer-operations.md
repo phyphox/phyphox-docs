@@ -30,32 +30,6 @@ The criterion is set by the attribute "mode" determining whether raw values, der
 
 {{spec:analysis/analysis/eventstream}}
 
-    *mode="above"*
-    :   triggers if a raw value of the data stream is greater than the threshold
-
-    *mode="below"*
-    :   triggers if a raw value of the data stream is less than the threshold
-
-    *mode="aboveAbsolute"*
-    :   triggers if an absolute value of the data stream is greater than the threshold
-
-    *mode="belowAbsolute"*
-    :   triggers if an absolute value of the data stream is less than the threshold
-
-    *mode="aboveDerivative"*
-    :   triggers if the derivative (difference of current minus previous value) of the data stream is greater than the threshold
-
-    *mode="belowDerivative"*
-    :   triggers if the derivative (difference of current minus previous value) of the data stream is less than the threshold
-
-    *mode="aboveDerivativeAbsolute"*
-    :   triggers if the absolute of the derivative (difference of current minus previous value) of the data stream is greater than the threshold
-
-    *mode="belowDerivativeAbsolute"*
-    :   triggers if the absolute of the derivative (difference of current minus previous value) of the data stream is less than the threshold
-
-<!-- -->
-
 ## first
 
 Retrieves the first entry of each input buffer and appends it to the output buffer at the same position: output *i* receives exactly the first value of input *i*. An empty input skips only its own pair; outputs beyond the number of inputs stay empty.
