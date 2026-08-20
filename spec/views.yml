@@ -773,8 +773,8 @@ elements:
       Several datasets are defined by several inputs: every y input is one
       dataset, plotted against the most recent preceding x input - so
       several datasets share one x by naming it once - or against its
-      element index if no x input preceded it. An x input that is not
-      followed by any y input is an error. The per-dataset attributes
+      element index if no x input preceded it. Any x input that no y input
+      uses - trailing or shadowed - is an error. The per-dataset attributes
       color, lineWidth and style may sit on either input of a dataset; the
       last one wins, and the graph-level attributes are the defaults for
       every dataset.

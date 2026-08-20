@@ -186,8 +186,9 @@
   canonical: >-
     With inheritance decided, ordering needs no pairing rules: every y input
     is one dataset, plotted against the most recent preceding x input, or
-    against the element index if none preceded it. An x input that is not
-    followed by any y input is an error (ruled 2026-08-20). Android replaces
+    against the element index if none preceded it. Any x input that no y
+    input uses - trailing, or shadowed by a later x before any y consumed it
+    - is an error (ruled 2026-08-20). Android replaces
     its slot-group machinery accordingly; iOS drops the more-than-two-inputs
     special case and the backward attachment of an x to an earlier y, and
     both add the unused-trailing-x error.
@@ -238,7 +239,15 @@
 - id: graph-input-attribute-case
   title: "graph: attribute-name case on input tags"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Attribute names are matched exactly, on input tags like everywhere else
+    in the format (ruled 2026-08-20) - Android's lowercasing of the
+    per-input attribute names was the single case-insensitive exception in
+    either codebase and is dropped. A lowercase linewidth on an input tag
+    then joins the silently-ignored unknown attributes, as it always has on
+    iOS and as it does on the graph element itself on both platforms.
+  decided: 2026-08-20
   affects:
     android: >-
       The per-input attributes are collected with lowercased names

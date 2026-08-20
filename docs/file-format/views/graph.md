@@ -119,7 +119,7 @@ Since file format 1.7 (phyphox 1.1.0) you can also combine multiple graph types 
 
 This example just creates four line charts for the "multi" page of the raw accelerometer experiment.
 
-How the input tags form datasets: every *y* input is one dataset (one curve), plotted against the most recent preceding *x* input — so several datasets can share one x axis by naming its data container once, before the first y. A dataset with no preceding x at all is plotted against its element index. An x input that is not followed by any y input is an error, and every input must name its axis. Until both apps implement these decided rules (see the notices below), the portable form remains the strictly interleaved order used by the example above: each x input directly followed by its y input, repeating a shared x before every y.
+How the input tags form datasets: every *y* input is one dataset (one curve), plotted against the most recent preceding *x* input — so several datasets can share one x axis by naming its data container once, before the first y. A dataset with no preceding x at all is plotted against its element index. Any x input that no y input uses — trailing, or shadowed by a later x before any y consumed it — is an error, and every input must name its axis. Until both apps implement these decided rules (see the notices below), the portable form remains the strictly interleaved order used by the example above: each x input directly followed by its y input, repeating a shared x before every y.
 
 {{inconsistency:graph-multiset-input-order}}
 
