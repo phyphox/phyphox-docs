@@ -245,7 +245,9 @@ def _check_corpus():
 
     Three checks, so the corpus keeps holding the parser surface still:
 
-    * corpus/valid and corpus/generated must validate cleanly;
+    * corpus/valid and corpus/generated must validate cleanly, and so must
+      the example experiment files shipped with the documentation itself
+      (docs/assets/examples);
     * the shipped experiment collection must too - checked only when the
       Android checkout sits next to this repository, as it does on the
       development machines, and skipped silently otherwise (CI checks out
@@ -266,6 +268,9 @@ def _check_corpus():
 
     clean_dirs = [os.path.join(corpus, d) for d in ("valid", "generated")
                   if os.path.isdir(os.path.join(corpus, d))]
+    doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
+    if os.path.isdir(doc_examples):
+        clean_dirs.append(doc_examples)
     shipped = os.path.normpath(os.path.join(
         ROOT, "..", "phyphox-android", "app", "src", "main", "assets",
         "experiments"))
@@ -282,8 +287,8 @@ def _check_corpus():
         sys.argv = argv
     if rc:
         raise ValueError(
-            "corpus (or the shipped experiment collection) no longer matches "
-            "spec/:\n" + buf.getvalue())
+            "corpus, docs examples or the shipped experiment collection no "
+            "longer match spec/:\n" + buf.getvalue())
 
     invalid = os.path.join(corpus, "invalid")
     if not os.path.isdir(invalid):
