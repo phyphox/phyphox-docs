@@ -1682,10 +1682,8 @@ elements:
         min: 1
         max: 1
         # Modeled as optional (min 0) before the 2026-08-19 audit, but neither
-        # implementation works without it: iOS rejects the file at parse time
-        # (ReduceAnalysis.swift) and Android crashes in update() (Analysis.java
-        # reduceAM assumes outputs.get(0) exists). The differing failure mode
-        # is recorded in inconsistencies.yml (reduce-edge-cases).
+        # implementation works without it; since 2026-08-20 both reject such a
+        # file at load.
       - name: y
         as_required: true
         min: 0

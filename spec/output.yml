@@ -74,7 +74,7 @@ elements:
     attributes: []
     # The type attribute was removed from the direct input on 2026-08-19:
     # type="value" never makes sense for a waveform. Android used to honor it
-    # (audio-direct-input-type in inconsistencies.yml); iOS never read it.
+    # (fixed 2026-08-20); iOS never read it.
 
   - name: tone
     parent: audio
