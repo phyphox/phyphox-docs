@@ -161,28 +161,6 @@
     degrades gracefully while iOS crashes with an unguarded integer
     conversion or array construction.
 
-- id: atan2-unequal-lengths
-  title: "atan2: inputs of different lengths"
-  area: file-format
-  status: decided
-  canonical: >-
-    atan2 follows add/subtract/multiply/divide: the shorter input repeats
-    its last value and the output has the length of the longest input.
-    Android's min-length truncation is the bug.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Truncates to the shorter input (atan2AM.update, size = min) - unlike
-      Android's own add/subtract/multiply/divide/power/gcd/lcm, which pad
-      the shorter input by repeating its last value.
-    ios: >-
-      Pads to the longer input by repeating the last value, like all other
-      multi-input modules (ExperimentComplexUpdateValueAnalysis).
-  summary: >-
-    With y and x of different lengths, Android outputs min(len) values and
-    iOS max(len) values. Android's atan2 is also the odd one out within its
-    own codebase.
-
 - id: power-native-empty-input
   title: "power: empty input buffer on Android's native path"
   area: file-format
