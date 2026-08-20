@@ -119,13 +119,15 @@ Since file format 1.7 (phyphox 1.1.0) you can also combine multiple graph types 
 
 This example just creates four line charts for the "multi" page of the raw accelerometer experiment.
 
-How the input tags form datasets: each pair of an *x* input directly followed by its *y* input defines one dataset (one curve). Write the pairs in exactly this interleaved order — x, then y, dataset by dataset — even when several datasets share the same x data container: repeat the x input before each y, as the example above does with `acc_time`. A dataset may also consist of a y input alone, which is plotted against the element index. Assign every input to an axis.
+How the input tags form datasets: every *y* input is one dataset (one curve), plotted against the most recent preceding *x* input — so several datasets can share one x axis by naming its data container once, before the first y. A dataset with no preceding x at all is plotted against its element index. An x input that is not followed by any y input is an error, and every input must name its axis. Until both apps implement these decided rules (see the notices below), the portable form remains the strictly interleaved order used by the example above: each x input directly followed by its y input, repeating a shared x before every y.
 
 {{inconsistency:graph-multiset-input-order}}
 
 {{inconsistency:graph-multiset-omitted-x}}
 
 {{inconsistency:graph-input-axis-required}}
+
+{{inconsistency:graph-input-mapwidth}}
 
 Per dataset you can override the graph-level *color*, *lineWidth* and *style* (as lines, dots, vbars or hbars) by applying these attributes to one of the dataset's input tags — it does not matter whether to the x or the y input; if both carry an attribute, the later tag wins. Datasets without an explicit color cycle through six default colors (orange, green, blue, yellow, magenta, red, then repeating), while a *color* attribute on the graph tag itself colors every dataset the same.
 

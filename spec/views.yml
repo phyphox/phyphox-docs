@@ -770,13 +770,14 @@ elements:
     summary: One dataset axis of a graph, naming the data container to plot.
     text: Name of the data container to plot on this axis.
     remark: >-
-      Several datasets are defined by several input pairs. Write each
-      dataset as its x input directly followed by its y input (or a y input
-      alone for an index axis) - this interleaved order is the only one the
-      platforms pair identically. The per-dataset attributes color,
-      lineWidth and style may sit on either input of the pair; the last one
-      wins, and the graph-level attributes are the defaults for every
-      dataset.
+      Several datasets are defined by several inputs: every y input is one
+      dataset, plotted against the most recent preceding x input - so
+      several datasets share one x by naming it once - or against its
+      element index if no x input preceded it. An x input that is not
+      followed by any y input is an error. The per-dataset attributes
+      color, lineWidth and style may sit on either input of a dataset; the
+      last one wins, and the graph-level attributes are the defaults for
+      every dataset.
     attributes:
       - name: axis
         type: enum
@@ -808,13 +809,10 @@ elements:
         values: [lines, dots, hbars, vbars, map]
         summary: Style of this dataset, overriding the graph's.
         agreement: agreed
-      - name: mapWidth
-        type: integer
-        summary: >-
-          Row length of this dataset for the map style, overriding the
-          graph's.
-        agreement: divergent
-        inconsistency: graph-input-mapwidth
+      # mapWidth is a graph-level attribute only (ruled 2026-08-20,
+      # graph-input-mapwidth): map plots cannot be combined with other graph
+      # types and multiple map plots make no sense. Android still reads a
+      # per-input mapWidth until it conforms.
 
   - name: output
     parent: graph

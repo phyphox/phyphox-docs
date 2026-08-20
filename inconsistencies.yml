@@ -134,7 +134,12 @@
 - id: graph-input-axis-required
   title: "graph: input without an axis attribute"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The axis attribute is required on every graph input - anything else
+    leads to chaos in this complicated setup (ruled 2026-08-20). Android
+    adds the requirement; iOS already conforms.
+  decided: 2026-08-20
   affects:
     android: >-
       The axis attribute is optional and an unnamed input becomes a y
@@ -151,7 +156,14 @@
 - id: graph-multiset-omitted-x
   title: "graph: a later dataset without its own x input"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A dataset without its own x input inherits the most recent preceding x
+    input, as on iOS - so several datasets share one x by naming it once. If
+    no x input has preceded the dataset at all, it is plotted against its
+    element index, as on Android (ruled 2026-08-20). Each platform adopts
+    the other's half.
+  decided: 2026-08-20
   affects:
     android: >-
       A dataset group without an x input plots its y values against the
@@ -170,7 +182,16 @@
 - id: graph-multiset-input-order
   title: "graph: dataset pairing for input orders other than x,y per set"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    With inheritance decided, ordering needs no pairing rules: every y input
+    is one dataset, plotted against the most recent preceding x input, or
+    against the element index if none preceded it. An x input that is not
+    followed by any y input is an error (ruled 2026-08-20). Android replaces
+    its slot-group machinery accordingly; iOS drops the more-than-two-inputs
+    special case and the backward attachment of an x to an earlier y, and
+    both add the unused-trailing-x error.
+  decided: 2026-08-20
   affects:
     android: >-
       Slot-group machinery: each y opens a group and an x attaches to the
@@ -192,7 +213,14 @@
 - id: graph-input-mapwidth
   title: "graph: per-dataset mapWidth on input tags"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    mapWidth is a graph-level attribute only and is not read from input
+    tags: map plots cannot be combined with other graph types and multiple
+    map plots make no sense, so a per-dataset row length has no use (ruled
+    2026-08-20). Android drops the per-input reading; the attribute is
+    removed from the input tag's documented surface.
+  decided: 2026-08-20
   affects:
     android: >-
       Reads mapWidth from individual input tags, overriding the graph-level
