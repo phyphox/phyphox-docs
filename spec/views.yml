@@ -773,7 +773,10 @@ elements:
       Several datasets are defined by several inputs: every y input is one
       dataset. When the file provides exactly as many x inputs as y inputs
       (z inputs do not count), they are matched 1-on-1 in order of
-      appearance, regardless of interleaving. With fewer x than y inputs,
+      appearance, regardless of interleaving - but write new files with
+      each x before its y: the other orders are only supported for
+      backwards compatibility and re-pair silently when an input is
+      removed. With fewer x than y inputs,
       each y is plotted against the most recent preceding x input - so
       several datasets share one x by naming it once - or against its
       element index if no x input preceded it; any x input that no y input

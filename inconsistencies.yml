@@ -196,8 +196,11 @@
     an equal-count file is either the strict x-then-y interleave, where the
     sequential rule pairs identically, or a file the sequential rule would
     reject - so the special case only turns errors into defined pairings.
-    Both platforms implement this model; the shipped-experiment validation
-    checks it.
+    The y-first orders it legitimizes exist for backwards compatibility
+    with published experiments and are discouraged for new files: they
+    re-pair silently when an input is removed, where the x-then-y style
+    degrades gracefully. Both platforms implement this model; the
+    shipped-experiment validation checks it.
   decided: 2026-08-20
   affects:
     android: >-
