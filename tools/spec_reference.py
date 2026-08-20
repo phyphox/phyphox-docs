@@ -225,16 +225,26 @@ def _code_list(values):
     return ", ".join(f"`{v}`" for v in values)
 
 
-def _version_note(version, spec, prefix="", capitalise=True):
-    """"since file format 1.16 (phyphox 1.1.12)", with a link to the release."""
+def _since_badge(version, spec, prefix=""):
+    """Compact right-aligned "added in X.Y" badge linking to the release.
+
+    The full information - file format version plus the phyphox release that
+    introduced it - lives in the tooltip; the badge itself stays out of the
+    reading flow (small font, floated right via the phyphox-since class in
+    phyphox.css). A markdown link is used where a release page exists so
+    mkdocs rewrites the URL; the class and title ride along via attr_list.
+    """
     if not version or str(version) == "1.0":
         return ""
     rel = spec.releases.get(str(version))
-    note = f"since file format {version}"
     if rel:
         release, page = rel
-        note += f" ([phyphox {release}]({prefix}reference/version-history/{page}))"
-    return note[0].upper() + note[1:] if capitalise else note
+        tooltip = (f"Added in file format {version}, introduced with "
+                   f"phyphox {release}")
+        return (f"[added in {version}]({prefix}reference/version-history/"
+                f'{page}){{: .phyphox-since title="{tooltip}" }}')
+    return (f'<span class="phyphox-since" title="Added in file format '
+            f'{version}">added in {version}</span>')
 
 
 class PageState:
@@ -281,9 +291,6 @@ def _meta_line(attr, spec, link_prefix):
     elif default is not None:
         bits.append(f"default: {_render_value(default)}")
 
-    if attr.get("since"):
-        bits.append(_version_note(attr["since"], spec, link_prefix,
-                                  capitalise=False))
     if attr.get("translatable"):
         bits.append("translatable")
 
@@ -293,7 +300,9 @@ def _meta_line(attr, spec, link_prefix):
         bits.append("**" + " and ".join(names.get(p, p) for p in platforms)
                     + " only**")
 
-    return ":   " + ", ".join(b for b in bits if b)
+    badge = _since_badge(attr.get("since"), spec, link_prefix)
+    return (":   " + (badge + " " if badge else "")
+            + ", ".join(b for b in bits if b))
 
 
 def _render_value(value):
@@ -461,11 +470,10 @@ def _components(element, mapping, spec, state):
         bits = []
         if comp.get("required"):
             bits.append("*required*")
-        if comp.get("since"):
-            bits.append(_version_note(comp["since"], spec, state.link_prefix,
-                                      capitalise=False))
-        if bits:
-            entry.append(":   " + ", ".join(bits))
+        badge = _since_badge(comp.get("since"), spec, state.link_prefix)
+        if bits or badge:
+            entry.append(":   " + (badge + " " if badge else "")
+                         + ", ".join(bits))
         if comp.get("deprecated"):
             note = "*Deprecated.*"
             if comp.get("superseded_by"):
@@ -620,9 +628,9 @@ def render_element(block, parent, name, spec, state, mode=None):
         return "\n\n".join(parts)
 
     if mode is None:
-        note = _version_note(element.get("since"), spec, state.link_prefix)
-        if note:
-            parts.append(f"*{note}.*")
+        badge = _since_badge(element.get("since"), spec, state.link_prefix)
+        if badge:
+            parts.append(badge)
         if element.get("text"):
             parts.append("**Text content:** " + _sentence(element["text"]))
         if element.get("remark"):
