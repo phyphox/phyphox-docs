@@ -346,7 +346,7 @@ Here are some example XML files for different scenarios, which might help you ge
 
 #### [Send data via HTTP/POST in JSON format](https://phyphox.org/wiki/images/8/82/Http-post-example.phyphox)
 
-This minimalistic example collects data from the accelerometer at a rate of 4Hz and sends the last 20 collected values every 5 seconds to a php script via HTTP POST. Any reply from the server is ignored (you might want to consider using the response as a confirmation to the user by mapping response values to texts via the mapping function of the [value element](views/index.md#view-element-value)).
+This minimalistic example collects data from the accelerometer at a rate of 4Hz and sends the last 20 collected values every 5 seconds to a php script via HTTP POST. Any reply from the server is ignored (you might want to consider using the response as a confirmation to the user by mapping response values to texts via the mapping function of the [value element](views/basics.md#view-element-value)).
 
 The following is a minimalistic example for a PHP script receiving the data and writing it to a simple text file. Note that you need to explicitly parse the JSON data from `php://input` instead of directly accessing POST as you might be used to when receiving data from web forms.
 

@@ -217,9 +217,9 @@ The views block describes the different layout groups (views) from which the use
 
 Each view can be built from individual view elements:
 
-- [info](views/index.md#view-element-info)
-- [separator](views/index.md#view-element-separator)
-- [value](views/index.md#view-element-value)
+- [info](views/basics.md#view-element-info)
+- [separator](views/basics.md#view-element-separator)
+- [value](views/basics.md#view-element-value)
 - [graph](views/graph.md)
 - [edit](views/user-input.md#view-element-edit)
 - [button](views/user-input.md#view-element-button)
@@ -228,7 +228,7 @@ Each view can be built from individual view elements:
 - [dropdown](views/user-input.md#view-element-dropdown)
 - [camera-gui](views/preview.md#view-element-camera-gui)
 - [depth-gui](views/preview.md#view-element-depth-gui)
-- [image](views/index.md#view-element-image)
+- [image](views/basics.md#view-element-image)
 
 ## Block: export
 

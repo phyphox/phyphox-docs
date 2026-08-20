@@ -4,7 +4,7 @@
 #   Android  PhyphoxFile.java, viewsBlockParser / viewBlockParser (b4564695)
 #   iOS      Serialization/Handlers/ViewsElementHandler.swift and
 #            Serialization/Handlers/ViewHandlers/*.swift            (a0643729)
-#   docs     docs/file-format/views/ (index, graph, user-input, preview)
+#   docs     docs/file-format/views/ (index, basics, graph, user-input, preview)
 #
 # `agreement:` records what that comparison found. See README.md. Where an entry
 # has since been decided, `rules:` names the rule in rules.yml that settles it.

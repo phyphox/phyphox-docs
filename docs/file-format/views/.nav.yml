@@ -2,6 +2,7 @@
 # ordered roughly as elements appear in typical experiments.
 nav:
   - index.md
+  - basics.md
   - graph.md
   - user-input.md
   - preview.md
