@@ -61,6 +61,10 @@ Marker syntax
 
     {{spec:BLOCK/PARENT/NAME}}          skeleton, attributes, slots, warnings
     {{spec:BLOCK/PARENT/NAME|xml}}      the XML skeleton alone
+    {{spec:BLOCK/PARENT/NAME|wrapped}}  like the full render, but the skeleton
+                                        is wrapped in the parent's plain tags -
+                                        one example instead of a bare parent
+                                        skeleton followed by the child's
     {{spec:BLOCK/PARENT/NAME|attributes}}
     {{spec:BLOCK/PARENT/NAME|slots}}    input/output slots or components alone
     {{spec:BLOCK/NAME}}                 a root element, which has no parent
@@ -624,6 +628,16 @@ def render_common(block, spec, state):
     return "\n\n".join(parts)
 
 
+def _wrap_skeleton(skeleton, parent):
+    """Wrap an element skeleton in its parent's plain open/close tags."""
+    if not parent:
+        return skeleton
+    lines = skeleton.split("\n")
+    inner = ["    " + l if l else l for l in lines[1:-1]]
+    return "\n".join([lines[0], f"<{parent}>"] + inner
+                     + [f"</{parent}>", lines[-1]])
+
+
 def render_element(block, parent, name, spec, state, mode=None):
     element = spec.get(block, parent, name)
     parts = []
@@ -631,12 +645,15 @@ def render_element(block, parent, name, spec, state, mode=None):
     if mode == "common":
         return render_common(block, spec, state)
 
-    if mode in (None, "xml"):
-        parts.append(render_skeleton(element, spec, block))
+    if mode in (None, "xml", "wrapped"):
+        skeleton = render_skeleton(element, spec, block)
+        if mode == "wrapped":
+            skeleton = _wrap_skeleton(skeleton, element.get("parent"))
+        parts.append(skeleton)
     if mode == "xml":
         return "\n\n".join(parts)
 
-    if mode is None:
+    if mode in (None, "wrapped"):
         badge = _since_badge(element.get("since"), spec, state.link_prefix,
                              element_level=True)
         if badge:
@@ -646,19 +663,19 @@ def render_element(block, parent, name, spec, state, mode=None):
         if element.get("remark"):
             parts.append(_sentence(element["remark"]))
 
-    if mode in (None, "attributes"):
+    if mode in (None, "wrapped", "attributes"):
         attrs = render_attributes(element, spec, state)
         if attrs:
             parts.append("**Attributes**\n\n" + attrs)
         elif mode == "attributes":
             parts.append("This element takes no attributes.")
 
-    if mode in (None, "slots"):
+    if mode in (None, "wrapped", "slots"):
         slots = render_slots(element, spec, state, block)
         if slots:
             parts.append(slots)
 
-    if mode is None:
+    if mode in (None, "wrapped"):
         parts.extend(_element_warnings(element, spec, state))
 
     return "\n\n".join(p for p in parts if p)

@@ -310,7 +310,10 @@ carries a marker where its reference belongs:
 `tools/spec_reference.py` renders it and `tools/hooks.py` expands it during the build. Nothing is
 generated into the repository — the Markdown keeps the marker — so there is no second copy to keep
 in step and no generated file to edit by mistake. `|xml`, `|attributes` and `|slots` restrict the
-output to one part; a root element with no parent is named `{{spec:BLOCK/NAME}}`.
+output to one part; `|wrapped` renders the full reference with the skeleton
+wrapped in the parent's plain tags (one example instead of a bare parent
+skeleton followed by the child's); a root element with no parent is named
+`{{spec:BLOCK/NAME}}`.
 
 **So an element's facts are edited in `spec/`, not on the page.** What stays hand-written is
 everything the spec does not know: how the two depth APIs differ, why "acceleration with g" is

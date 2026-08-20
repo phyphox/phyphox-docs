@@ -29,9 +29,7 @@ You need to provide a URL that points to a privacy policy that tells the user ho
 
 The network connections are defined in a network block in the document root:
 
-{{spec:network/phyphox/network|xml}}
-
-{{spec:network/network/connection}}
+{{spec:network/network/connection|wrapped}}
 
 The send and receive tags within the connection tag define which data should be sent and received. Each entry has an id with varying meanings.
 
