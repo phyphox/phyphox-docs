@@ -157,23 +157,3 @@
     other, and an empty input yields nothing on Android but zeros on iOS.
     The docs specify no normalization at all.
 
-- id: fft-imaginary-input-length
-  title: "fft: imaginary input shorter than the real input"
-  area: file-format
-  status: decided
-  canonical: >-
-    A provided im input truncates the transform to the shorter of re and im,
-    matching similar multi-input functions; only an absent im input is zero-
-    filled to re's length. Android's zero-padding of a shorter im changes.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Takes the length from the real input and zero-pads the imaginary part
-      (fftAM, both native and fallback paths).
-    ios: >-
-      Truncates to the shorter of the two inputs (FFTAnalysis.swift,
-      bufferCount = min) - different output length and values.
-  summary: >-
-    With im shorter than re, Android pads and iOS truncates. Not covered by
-    the fft-non-power-of-two-input entry, which is about the length of a
-    single input.
