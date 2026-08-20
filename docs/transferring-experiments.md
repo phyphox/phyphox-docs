@@ -30,7 +30,7 @@ Therefore, the direct transfer should only be used to transfer files for yoursel
 
 If you want to share a phyphox file or a zip containing one or more phyphox files for an audience with access to a web page, you can place the file on a webserver and link to it. If your file can be accessed as "<http://myhost.com/myfancyexperiment.phyphox>", you can create a link that is recognized by the system by replacing "<http://>" or "<https://>" by "phyphox://". If the user opens a phyphox-link and already has phyphox installed, the system should hand the URL to phyphox, which downloads the experiment (or the collection of experiments if it is a zip file) directly from the web.
 
-For this you need to be able to upload your experiment to a webserver and you need to be able to create a phyphox-link somewhere convenient for your audience. This usually means that you are placing the link on your own website as a <a href="phyphox://...">-tag, because many CMS, forums or blog systems might enforce using a <http://> or <https://> link.
+For this you need to be able to upload your experiment to a webserver and you need to be able to create a phyphox-link somewhere convenient for your audience. This usually means that you are placing the link on your own website as a `<a href="phyphox://...">`-tag, because many CMS, forums or blog systems might enforce using a <http://> or <https://> link.
 
 ### Online QR-Codes (recommended)
 
