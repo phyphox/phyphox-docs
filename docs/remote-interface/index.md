@@ -14,11 +14,10 @@ In principle, with this information, you could embed phyphox into many other pro
 
 Here is a little example of how to use this interface to control musical instruments: <https://www.youtube.com/watch?v=sFx9zZKe4E4>
 
-The [Python script](https://phyphox.org/phyphox-files/phyphox2midi.py) from this video is a quick solution specific for the MIDI interface of musical experiments, but it may be useful as a starting point for other projects.
+The [Python script](../assets/examples/phyphox2midi.py) from this video is a quick solution specific for the MIDI interface of musical experiments, but it may be useful as a starting point for other projects.
 
-As the interface is designed around a webserver running on the phone, all functions are available as documents below the device's URL. So, this documentation will list all these documents from the document root. For example "/get" can be called as <http://192.168.0.42:8080/get> (if the phone's IP is 192.168.0.42 and the server is running on port 8080. On iPhones, the server runs on port 80, so for http the port can usually be omitted.)
+As the interface is designed around a webserver running on the phone, all functions are available as documents below the device's URL. So, this documentation will list all these documents from the document root. For example "/get" can be called as `<http://192.168.0.42:8080/get>` (if the phone's IP is 192.168.0.42 and the server is running on port 8080. On iPhones, the server runs on port 80, so for http the port can usually be omitted. Ports can be changed in the settings.)
 
-Also, if you are developing a Java application, you might want to check out this [Java interface](https://github.com/tfassbender/phyphox_java_interface) created by Tobias Faßbender, FH Aachen.
 
 ## Documents
 
