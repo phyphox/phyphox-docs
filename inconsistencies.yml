@@ -294,32 +294,3 @@
     and for NaN. (This is the formula function; the round analysis module's
     own divergence is round-nonfinite.)
 
-- id: audio-direct-input-type
-  title: "audio output: type attribute on the direct input"
-  area: file-format
-  status: decided
-  canonical: >-
-    The direct input of the audio output takes no type attribute - its text
-    is always the name of the data container holding the waveform, since a
-    literal value never makes sense as a waveform (ruled 2026-08-19). The
-    type attribute exists only on the parameter inputs inside tone and
-    noise. Android stops reading type on the direct input; a file using
-    type="value" there then fails naturally because the text is not a
-    defined buffer, as it always has on iOS. No shipped or corpus experiment
-    uses the attribute on a direct input (scanned 2026-08-19).
-  decided: 2026-08-19
-  affects:
-    android: >-
-      AudioOutputPluginBlockParser parses direct and parameter inputs with
-      the same code, so type="value" on the direct input is honored and
-      builds a constant-value "waveform" (PhyphoxFile.java, level == 1
-      branch).
-    ios: >-
-      The direct input goes through a plain TextElementHandler that reads no
-      attributes; type is silently ignored and the text is treated as a
-      buffer name, so type="value" fails with an undefined-buffer error
-      (OutputElementHandler.swift, AudioElementHandler).
-  summary: >-
-    A type="value" direct source is accepted (and meaningless) on Android
-    and rejected on iOS; the attribute is removed from the format for the
-    direct input.
