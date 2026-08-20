@@ -241,32 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: reduce-edge-cases
-  title: "reduce: y shorter than x, and the x output requirement"
-  area: file-format
-  status: decided
-  canonical: >-
-    Processing truncates to the shortest present buffer; a missing y output
-    is skipped; a file without the x output is rejected at load on both
-    platforms, as the spec now models (x output min 1).
-  decided: 2026-08-19
-  affects:
-    android: >-
-      A y buffer shorter than x substitutes 0 for the missing values
-      (reduceAM); a file without an x output loads and then crashes in
-      update() (outputs.get(0) on a null-padded list).
-    ios: >-
-      A y buffer shorter than x traps with index-out-of-range in the
-      factor>1 branch (ReduceAnalysis.swift, y![index] unbounded; the
-      factor<1 branch does bounds-check); a file without an x output is
-      rejected at load with a clear error. Fully conforms to the canonical
-      behaviour on the development branch since 2026-08-19 (truncation in
-      both branches); only Android remains.
-  summary: >-
-    Short y inputs give zeros on Android and crash iOS; a missing x output
-    is a load error on iOS but a runtime crash on Android. The spec now
-    models x as required, matching what both implementations need.
-
 - id: split-negative-index
   title: "split: negative index"
   area: file-format
