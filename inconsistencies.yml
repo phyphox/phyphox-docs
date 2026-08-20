@@ -241,40 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: const-ramp-length-handling
-  title: "const/ramp: length 0 and empty parameter buffers"
-  area: file-format
-  status: decided
-  canonical: >-
-    An explicit length of 0, an empty length buffer and a non-finite length
-    value all yield an empty output; only an absent length input falls back
-    to the output buffer's size. Empty value/start/stop buffers yield empty
-    outputs as well (neither NaN- nor zero-filled), and a non-finite ramp
-    start or stop is an error yielding an empty output. A present NaN value
-    for const is allowed and fills the output with NaN, as a deliberate NaN
-    initialization (ruled 2026-08-19); an empty value buffer remains an
-    error with empty output.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Uses -1 as the "unset" sentinel: an explicit length of 0 writes
-      nothing, and an empty length buffer casts NaN to 0 - also nothing. An
-      empty value/start/stop buffer reads as NaN and fills NaN values
-      (constGeneratorAM/rampGeneratorAM).
-    ios: >-
-      Uses 0 as the "unset" sentinel: an explicit length of 0 - and an empty
-      or NaN length buffer - fills the whole output buffer. Empty
-      value/start/stop buffers fall back to the defaults of 0
-      (ConstGeneratorAnalysis.swift/RampGeneratorAnalysis.swift). Fully
-      conforms to the canonical behaviour on the development branch since
-      2026-08-19 (including a single-point ramp emitting its start value);
-      only Android remains.
-  summary: >-
-    A length of 0 writes nothing on Android and fills the entire buffer on
-    iOS, and empty parameter buffers generate NaN data on Android but zeros
-    on iOS. (Negative lengths additionally crash iOS; see
-    analysis-nonfinite-parameter-crashes.)
-
 - id: formula-parse-divergences
   title: "formula: missing attribute, positive exponents, malformed expressions"
   area: file-format
