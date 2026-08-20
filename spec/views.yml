@@ -56,8 +56,6 @@ common:
         zero, it is visible. The element observes the container, so the
         state can change while the experiment runs - analysis results or
         user inputs like a toggle can show and hide elements dynamically.
-        The view element takes the same attribute to show or hide a whole
-        page in the view selector.
       agreement: agreed
 
 elements:
@@ -86,11 +84,13 @@ elements:
         translatable: true
         summary: Name shown in the view selector.
         agreement: agreed
-      - name: visibility
-        type: string
-        since: "1.20"
-        summary: Data container whose value decides whether the view is shown.
-        agreement: agreed
+      # A visibility attribute for whole views (hiding pages from the view
+      # selector) is an idea that was never implemented: Android does not
+      # read it (PhyphoxFile.java, case "view", label only) and iOS parses
+      # it into ViewCollectionDescriptor and drops it when building the
+      # experiment (PhyphoxElementHandler.swift). Removed from the docs
+      # 2026-08-20 per maintainer ruling; the dead iOS parse is on the iOS
+      # TODO list.
 
   # ------------------------------------------------------------------- info --
   - name: info

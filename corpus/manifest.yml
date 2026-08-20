@@ -105,7 +105,6 @@
     - slider@color
     - slider@default
     - toggle@visibility
-    - view@visibility
 - file: valid/BLEdebug/output-keep-test.phyphox
   version: "1.14"
   adds: []

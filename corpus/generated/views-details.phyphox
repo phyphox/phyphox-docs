@@ -30,7 +30,7 @@
         </depth>
     </input>
     <views>
-        <view label="Details" visibility="show">
+        <view label="Details">
             <camera-gui label="Camera" visibility="show" show_controls="always"/>
             <depth-gui label="Depth" visibility="show" aspectRatio="1.5"/>
             <image src="logo.png" visibility="show"/>
