@@ -241,40 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: threshold-nan-handling
-  title: "threshold: NaN values around the crossing"
-  area: file-format
-  status: decided
-  canonical: >-
-    NaN values are skipped by the triggering logic and the trigger fires on
-    the next value on the other side - iOS's sticky-side formulation. A NaN
-    threshold value participates like any number: no comparison with it is
-    ever true, so no crossing is found and NaN is output - the NaN-to-0
-    sanitization is dropped (ruled 2026-08-19). An absent threshold input or
-    an empty threshold buffer selects the documented default of 0.
-    Additionally (general error-state rule), when no crossing is found the
-    module outputs NaN instead of the last sample's x or -1, on both
-    platforms; the shipped experiments consuming threshold output
-    (audio_scope, frequency_history, pendulum, sonar, spring) must be re-
-    checked with this change.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Requires an adjacent valid pair on opposite sides: a NaN suppresses
-      the comparison with the next value (thresholdAM, isNaN(last) ||
-      isNaN(v) guard).
-    ios: >-
-      Uses a sticky flag: any value not on the trigger side - including NaN
-      - arms the trigger, and the next value on the trigger side fires
-      (ThresholdAnalysis.swift, onOppositeSide). Fully conforms to the
-      canonical behaviour (NaN-to-0 sanitization dropped, NaN output when no
-      crossing is found) on the development branch since 2026-08-19; only
-      Android remains.
-  summary: >-
-    With NaN in the data ([2, NaN, 5], rising, threshold 3) iOS reports a
-    crossing where Android reports none. Without NaN the two formulations
-    coincide (verified, including that equality never triggers on either).
-
 - id: const-ramp-length-handling
   title: "const/ramp: length 0 and empty parameter buffers"
   area: file-format
