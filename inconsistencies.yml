@@ -294,27 +294,6 @@
     and for NaN. (This is the formula function; the round analysis module's
     own divergence is round-nonfinite.)
 
-- id: input-type-empty-case
-  title: "input type attribute: case sensitivity of \"empty\""
-  area: file-format
-  status: decided
-  canonical: >-
-    Enumerated attribute values are matched case-insensitively, as the
-    enum-case-insensitive rule (decided 2026-08-12) already settles.
-    type="Empty" must be accepted; Android's exact-match comparison for this
-    one value is the bug.
-  affects:
-    android: >-
-      Matches "value" and "buffer" case-insensitively but "empty"
-      case-sensitively - type="Empty" is "Unknown input type" and the file
-      is rejected (PhyphoxFile.java, ioBlockParser).
-    ios: >-
-      All three values fold case (DataInputTypeAttribute,
-      CaseInsensitiveAttributeDecodable).
-  summary: >-
-    type="Empty" loads on iOS and rejects the file on Android, contradicting
-    the already-decided enum-case-insensitive rule.
-
 - id: audio-direct-input-type
   title: "audio output: type attribute on the direct input"
   area: file-format

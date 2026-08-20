@@ -53,7 +53,7 @@ Example for a waveform composed from two tone generators and a noise generator, 
 
 ### The direct source
 
-{{inconsistency:audio-direct-input-type}}
+The direct input takes no *type* attribute: its text is always the name of the data container holding the waveform, since a literal value never makes sense as a waveform. (The *type* attribute exists only on the parameter inputs inside *tone* and *noise*.)
 
 {{spec:output/audio/input}}
 

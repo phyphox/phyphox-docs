@@ -21,8 +21,10 @@ The formula parser respects brackets ("(" and ")"), understands simple binary op
 
 ² *heaviside*, *min* and *max* are available since file format 1.10 (phyphox [version 1.1.6](../../reference/version-history/1.1.6.md))
 
-{{inconsistency:formula-parse-divergences}}
+Operator precedence is conventional: function calls bind tightest, then ^ (power), then unary minus, then \*, / and %, then + and -. The power operator is right-associative (2^3^2 = 2^(3^2) = 512), while all other binary operators are left-associative (1-2-3 = -4). A unary minus applies to the immediately following operand only, binding tighter than the other binary operators but looser than ^: -2+3 = 1 and -2^2 = -(2^2) = -4. Number literals may use scientific notation with or without an explicit sign in the exponent (1e5, 1e+5, 1e-5).
 
-{{inconsistency:formula-round-semantics}}
+The *round* function uses C semantics: ties round half away from zero (round(-2.5) = -3) and NaN stays NaN.
+
+A missing or empty *formula* attribute and structurally broken formulas — wrong arity such as min(5) or sin(1,2), dangling operands such as 5+ — reject the file at load.
 
 {{spec:analysis/analysis/formula}}

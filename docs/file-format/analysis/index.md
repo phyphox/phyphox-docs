@@ -43,7 +43,7 @@ You can then set the attribute *cycles* for any analysis module. If not set, the
 
 {{spec:analysis/phyphox/analysis|common}}
 
-{{inconsistency:input-type-empty-case}}
+The values of the *type* attribute of inputs and outputs ("buffer", "value", "empty") are matched case-insensitively, like every enumerated attribute value.
 
 Buffers bound to interactive view elements (edit, toggle, dropdown, slider) are not exempt from clearing: an analysis input without keep="true" clears them like any other buffer, and the element then re-initializes both the buffer and the displayed value to its default. Use keep="true" on such inputs to preserve the user's setting across analysis cycles.
 
