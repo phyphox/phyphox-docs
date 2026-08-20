@@ -241,26 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: split-negative-index
-  title: "split: negative index"
-  area: file-format
-  status: decided
-  canonical: >-
-    Negative and out-of-range positive indices are clamped into range on
-    both platforms; no exceptions. Android's negative-index crash changes.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Arrays.copyOfRange(data, 0, negative) throws - crash (splitAM).
-    ios: >-
-      Clamps gracefully: out1 empty, out2 receives everything
-      (SplitAnalysis.swift, limit > 0 and max(...,0) guards).
-  summary: >-
-    A negative split index crashes Android and degrades gracefully on iOS -
-    the reverse of the usual pattern. (NaN/infinite index values crashed iOS
-    instead - see analysis-nonfinite-parameter-crashes - fixed on the iOS
-    development branch since 2026-08-19.)
-
 - id: subrange-nonfinite-parameters
   title: "subrange: NaN or infinite from/to/length"
   area: file-format

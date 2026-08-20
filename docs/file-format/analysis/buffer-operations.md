@@ -2,9 +2,7 @@
 
 ## append
 
-This module appends all the values of the input buffers to a single output buffer. The order of the buffers will match the order in which their values appear in the output buffer. This module will return as many values as the sum of the input buffer sizes.
-
-{{inconsistency:append-nan-value-input}}
+This module appends all the values of the input buffers to a single output buffer. The order of the buffers will match the order in which their values appear in the output buffer. This module will return as many values as the sum of the input buffer sizes. A literal NaN given as a type="value" input is appended like any other value.
 
 {{spec:analysis/analysis/append}}
 
@@ -171,7 +169,7 @@ The number of values returned matches the number of values in the shortest buffe
 
 Takes *data* as input and splits it into two buffers at the given *index*. A third parameter *overlap* makes it possible to set a number of elements from before the split index that will also end up in the second buffer. *index* defaults to the length of the input data if not given, i.e. the entire input is returned as the first output without any splitting, which only makes sense in combination with an overlap, for example to take all data from a buffer associated with the input from a sensor and set "overlap" such that a certain number of values is retained as a starting point for the next iteration.
 
-{{inconsistency:split-negative-index}}
+Negative and out-of-range positive values for *index* are clamped into range, as is *overlap*.
 
 {{inconsistency:analysis-nonfinite-parameter-crashes}}
 
@@ -192,7 +190,7 @@ This module takes multiple inputs and returns all values within a given index ra
 </subrange>
 ```
 
-{{inconsistency:subrange-nonfinite-parameters}}
+A present but non-finite *from*, *to* or *length* value is an error yielding empty outputs; only an absent input or an empty parameter buffer keeps the defaults (the full range).
 
 {{spec:analysis/analysis/subrange}}
 
@@ -202,8 +200,6 @@ This module takes at least one input *y* and looks for the position at which the
 
 You can also define the attribute *falling* as true to search for a crossing from larger to smaller values.
 
-This module will return exactly one value per call.
-
-{{inconsistency:threshold-nan-handling}}
+This module will return exactly one value per call. The threshold has to be *crossed*: any value not on the trigger side arms the trigger, and the next value on the trigger side fires it — a value exactly equal to the threshold never triggers. NaN values never lie on the trigger side, so they arm the trigger but never fire it. When no crossing is found, the output is NaN. An absent threshold input or an empty threshold buffer selects the default of 0, while a present NaN threshold value participates like any number: no comparison with it is ever true, so no crossing is found.
 
 {{spec:analysis/analysis/threshold}}
