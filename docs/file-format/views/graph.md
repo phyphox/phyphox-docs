@@ -12,8 +12,6 @@ The attribute *partialUpdate* is used for performance optimization. *PartialUpda
 
 ## Data picker
 
-**Available since phyphox file format 1.20 (phyphox 1.2.1)**
-
 The graph can always be maximized by tapping it to reveal additional tools like zooming and a data picker. The data picker can be repurposed to allow users to pick and map data to measured data points. This can for example be used to pick a starting point for an automated data analysis or to match points to reference values for a calibration process. You can define how many x, y and z values (in the case of a color map plot) the user can pick, label the purpose of each pick and map it to data containers. Optionally, you can also request a value input from the user to map data points to calibration values. Finally, you can also rename the "pick data" button to reflect the use case for the data picker (see the "pickLabel" attribute of the graph above).
 
 The data picker is configured by adding outputs that are linked to the target data containers. Here is the most basic example, allowing the user to pick a single x value:
