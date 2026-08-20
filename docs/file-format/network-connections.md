@@ -23,7 +23,7 @@ When an experiment using the network interface is loaded by the user, phyphox wi
 - The submission of device information
 - The submission of technical information on the sensors, including a list of these sensors
 
-You need to provide a URL that points to a privacy policy that tells the user how their data will be handled.
+You should provide a URL that points to a privacy policy that tells the user how their data will be handled, via the *privacy* attribute of the connection. The attribute is optional, but strongly recommended whenever personal or sensor data leaves the device; the dialog offers a button to visit the policy when a URL is given.
 
 ### General syntax
 
@@ -211,14 +211,14 @@ If the broker requires authentication, set the optional `username` and `password
 Example:
 
 ```xml
-    <connection privacy="..." service="mqtt/csv" address="some.service.com/your/endpoint:1234" receiveTopic="fancySensor/value" conversion="csv" interval="1">
+    <connection privacy="..." service="mqtt/csv" address="some.service.com:1234" receiveTopic="fancySensor/value" conversion="csv" interval="1">
         <send keep="true" id="phone/pressure" type="buffer" datatype="array">p</send>
         <send keep="true" id="phone/altitude" type="buffer" datatype="number">h</send>
         <receive append="true">sensordata</receive>
     </connection>
 ```
 
-In this setup, phyphox would connect to "some.service.com/your/endpoint:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" as a comma-separated list to the topic "phone/pressure" and the last value from "h" to the topic "phone/altitude". Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
+In this setup, phyphox would connect to "some.service.com:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" as a comma-separated list to the topic "phone/pressure" and the last value from "h" to the topic "phone/altitude". Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
 
 ### MQTT/JSON
 
@@ -235,14 +235,14 @@ If a `receiveTopic` is set, it will subscribe to this topic (or set of topics if
 Example:
 
 ```xml
-    <connection privacy="..." service="mqtt/json" address="some.service.com/your/endpoint:1234" receiveTopic="fancySensor/value" sendTopic="phone/data" conversion="csv" interval="1">
+    <connection privacy="..." service="mqtt/json" address="some.service.com:1234" receiveTopic="fancySensor/value" sendTopic="phone/data" conversion="csv" interval="1">
         <send keep="true" id="pressure" type="buffer" datatype="array">p</send>
         <send keep="true" id="altitude" type="buffer" datatype="number">h</send>
         <receive append="true">sensordata</receive>
     </connection>
 ```
 
-In this setup, phyphox would connect to "some.service.com/your/endpoint:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" and the last value from "h" to the topic "phone/data". This would be done in a message with a JSON object as payload in a form like {"pressure":\[1.1,1.2,1.3\],"altitude":42.0}. Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
+In this setup, phyphox would connect to "some.service.com:1234" and subscribe to "fancySensor/value". Once every second, it would send all the values from the buffer "p" and the last value from "h" to the topic "phone/data". This would be done in a message with a JSON object as payload in a form like {"pressure":\[1.1,1.2,1.3\],"altitude":42.0}. Every time it does so, it takes the latest message it received under the topic "fancySensor/value" and lets the csv-conversion handle it (typically appending the list of values to sensordata).
 
 Note that if you want to receive JSON data via MQTT, you have to pick the conversion "json" (see "Response conversion"). If you do not want to send anything, but only receive JSON, you should use the "mqtt/csv" service without setting any "send" and trigger it periodically. If you use "mqtt/json" without setting any "send", it will still send an empty JSON object.
 

@@ -100,7 +100,15 @@
 - id: network-privacy-missing-url
   title: "network connection: missing privacy attribute and the policy dialog"
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    privacy stays optional at parse time - a connection without it loads and
+    runs. The data-policy dialog offers the "visit privacy policy" button
+    only when a URL is actually present; with the attribute absent the
+    button is simply not shown, and nothing crashes (ruled 2026-08-20).
+    Providing a policy URL remains strongly recommended whenever personal
+    or sensor data leaves the device.
+  decided: 2026-08-20
   affects:
     android: >-
       The privacy attribute is optional at parse time (PhyphoxFile.java,
@@ -114,9 +122,7 @@
       with no URL is a silent no-op (NetworkConnection.swift,
       "URL(string: self.privacyURL ?? \"\")" is nil).
   summary: >-
-    The prose says a privacy-policy URL must be provided, but neither parser
-    enforces it - a connection without privacy loads and runs on both
-    platforms. The always-present "visit privacy policy" button then crashes
-    Android and does nothing on iOS. Open questions for the maintainer:
-    should privacy become required at load, and what should the dialog do
-    when it is absent?
+    privacy is optional and neither parser enforces it - a connection
+    without it loads and runs on both platforms. The always-present "visit
+    privacy policy" button then crashes Android and does nothing on iOS;
+    both change to showing the button only when a URL is present.
