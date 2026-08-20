@@ -2,9 +2,7 @@
 
 ## average
 
-This module calculates the average of all values in the input buffer. Optionally (i.e. if the output is connected), the standard deviation is calculated as well (corrected sample standard deviation).
-
-{{inconsistency:average-single-value-stddev}}
+This module calculates the average of all values in the input buffer. Optionally (i.e. if the output is connected), the standard deviation is calculated as well (corrected sample standard deviation). Non-finite values in the input are skipped. A single valid input value yields the value itself as average and a single NaN as standard deviation (which needs at least two values); an empty input or an input without any finite value writes NaN to each connected output.
 
 {{spec:analysis/analysis/average}}
 

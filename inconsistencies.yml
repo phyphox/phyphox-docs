@@ -114,34 +114,6 @@
 # development branches). Grouped by the decision each entry needs, not one
 # entry per symptom.
 
-- id: average-single-value-stddev
-  title: "average: standard deviation for a single input value"
-  area: file-format
-  status: decided
-  canonical: >-
-    A single input value yields exactly one stddev value, NaN - iOS's
-    behavior; Android's fall-through double append is the bug. Additionally
-    (general error-state rule), an empty or all-non-finite input writes NaN
-    to each connected output instead of nothing, since average delivers
-    single values - a change to both platforms.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      With exactly one finite input value the stddev output receives two
-      values, NaN twice: the count<2 branch appends NaN but does not return,
-      and the general path then appends sqrt(0/0)=NaN again (Analysis.java,
-      averageAM.update, missing else). With append="true" the buffer grows by
-      two per run and the average/stddev outputs lose their pairing.
-    ios: >-
-      Appends exactly one NaN (AverageAnalysis.swift, count<2 branch with
-      else). Fully conforms to the canonical behaviour including the
-      empty/all-non-finite NaN rule on the development branch since
-      2026-08-19; only Android remains.
-  summary: >-
-    For a single-value input, Android writes the standard deviation twice per
-    run while iOS writes it once, so the two outputs go out of step on
-    Android.
-
 - id: binning-dx-zero
   title: "binning: dx of exactly zero"
   area: file-format
