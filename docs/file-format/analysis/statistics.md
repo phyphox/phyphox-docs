@@ -12,7 +12,7 @@ The binning module distributes the values from its input *in* into ranges (bins)
 
 The output can directly be used to display a histogram. *binStarts* will receive the starting values of each range (bin) while the count is written to *binCounts*.
 
-{{inconsistency:binning-dx-zero}}
+Bins are lower-edge inclusive: a value exactly on a bin boundary is counted in the bin that starts there. Non-finite input values are skipped. A *dx* of zero, a negative or non-finite *dx* and a non-finite *x0* are errors yielding empty outputs — there is no silent substitution; only an absent input (or an empty parameter buffer) selects the defaults of *x0* = 0 and *dx* = 1.
 
 {{inconsistency:analysis-nonfinite-parameter-crashes}}
 

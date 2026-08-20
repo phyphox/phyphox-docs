@@ -114,28 +114,6 @@
 # development branches). Grouped by the decision each entry needs, not one
 # entry per symptom.
 
-- id: binning-dx-zero
-  title: "binning: dx of exactly zero"
-  area: file-format
-  status: decided
-  canonical: >-
-    Any invalid dx - zero, negative or non-finite - and a NaN x0 yield empty
-    outputs. Neither Android's runaway loop and NaN-to-1 sanitization nor
-    iOS's silent dx=1 substitution is correct; both change.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Only NaN is sanitized (binningAM.update). With dx=0 the bin index
-      becomes (int)Infinity = Integer.MAX_VALUE and the bin-fill loop tries
-      to append ~2^31 empty bins - the app hangs or runs out of memory.
-    ios: >-
-      Substitutes dx=1 silently (BinningAnalysis.swift, "if dx == 0.0").
-      Fully conforms to the canonical behaviour on the development branch
-      since 2026-08-19; only Android remains.
-  summary: >-
-    A dx of 0 effectively kills the Android app and is silently replaced by 1
-    on iOS.
-
 - id: analysis-nonfinite-parameter-crashes
   title: Non-finite or negative single-value parameters crash iOS
   area: file-format
