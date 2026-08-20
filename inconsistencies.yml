@@ -241,34 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: map-edge-cases
-  title: "map: non-finite points, missing z, degenerate ranges"
-  area: file-format
-  status: decided
-  canonical: >-
-    Points with a non-finite x, y or z are skipped; degenerate ranges (such
-    as minX equal to maxX) are clamped instead of crashing; and a missing z
-    input with zMode sum or average rejects the file at load, since that is
-    a permanent configuration error, not an intermediate state.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Non-finite x/y round to bin 0 and a NaN z poisons that bin (mapAM, no
-      finite check); a missing z input in sum/average mode returns without
-      output; degenerate ranges (minX == maxX) yield clamped bin indices
-      rather than a crash.
-    ios: >-
-      Non-finite points are skipped (MapAnalysis.swift isFinite check); a
-      missing z in sum/average mode runs with z = 0 and produces a zero
-      grid; a degenerate range makes the bin index NaN/inf and
-      Int(round(...)) traps - crash. Fully conforms to the canonical
-      behaviour on the development branch since 2026-08-20 (load rejection
-      and clamped bin indices); only Android remains.
-  summary: >-
-    Three map edge cases diverge: NaN points (binned vs skipped), missing z
-    outside count mode (no output vs zero grid), and equal min/max ranges
-    (garbage bins vs crash).
-
 - id: reduce-edge-cases
   title: "reduce: y shorter than x, and the x output requirement"
   area: file-format
