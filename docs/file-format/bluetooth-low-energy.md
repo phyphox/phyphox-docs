@@ -92,20 +92,21 @@ Since phyphox file format 1.20 (phyphox version 1.2.1) you can also set the attr
 
 There are three different tags within a bluetooth block:
 
-config
+#### config
 :   The config tag writes a configuration value to the device after the connection has been established. This is usually used to enable a specific sensor, set a data acquisition rate or set a measurement mode. The config tag always takes a constant value.
 
-input
+{{spec:input/bluetooth/config}}
+
+#### input
 :   An input tag can only be used in an output block. The name "output" of the outer block refers to phyphox as it outputs data from phyphox, while the name "input" of the inner block refers to the BLE device, as it is the input to the device. This defines a buffer from which data is written to the device.
 
-output
+{{spec:output/bluetooth/input}}
+
+#### output
 :   Output tags can only be used in an input block. The name "input" of the outer block refers to phyphox as it represents a data input for phyphox, while the name "output" of the inner block refers to the BLE device, as it is the output of the device. This defines a buffer to which data is written from the device.
 
 {{spec:input/bluetooth/output}}
 
-{{spec:output/bluetooth/input}}
-
-{{spec:input/bluetooth/config}}
 
 All three types have to be connected to a characteristic on the BLE device through its UUID. This is defined through the "char" attribute. On top of this, a range of conversion functions are available, which need to be defined through the attribute "conversion". These are different for input, output and config tags and may imply additional attributes. They are discussed separately below.
 
