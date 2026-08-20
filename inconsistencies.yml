@@ -241,26 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: subrange-nonfinite-parameters
-  title: "subrange: NaN or infinite from/to/length"
-  area: file-format
-  status: decided
-  canonical: >-
-    Non-finite from/to/length values yield empty outputs on both platforms.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      (int) casts turn NaN into 0 - a NaN "to" yields empty outputs
-      (subrangeAM).
-    ios: >-
-      getSingleValueAsInt() returns nil for non-finite values, which falls
-      back to the default - a NaN "to" yields the full range
-      (SubrangeAnalysis.swift). Fully conforms to the canonical behaviour on
-      the development branch since 2026-08-19; only Android remains.
-  summary: >-
-    Non-finite range parameters produce empty output on Android and the
-    full input on iOS. All finite behavior was verified identical.
-
 - id: threshold-nan-handling
   title: "threshold: NaN values around the crossing"
   area: file-format
