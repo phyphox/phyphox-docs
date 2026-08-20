@@ -29,6 +29,37 @@ summary: >-
   elements, each a page the user can switch between, and each view holds the
   elements that display or collect data.
 
+common:
+  view_element_attributes:
+    - name: label
+      type: string
+      translatable: true
+      summary: >-
+        Caption of the element, shown alongside it.
+      description: >-
+        The caption of the element, shown alongside it - next to a value or
+        edit field, on a button, above a graph. It is translatable via the
+        translations block. Two exceptions: the info element has no separate
+        caption - there, label is the displayed text itself (see info) - and
+        separator and image display no label at all; both parsers accept the
+        attribute there like everywhere, but it has no effect.
+      agreement: agreed
+    - name: visibility
+      type: string
+      since: "1.20"
+      summary: >-
+        Data container whose last value decides whether the element is shown.
+      description: >-
+        Points to a data container that decides whether this element is
+        shown. If the container is empty or its last value is NaN, zero or
+        negative, the element is hidden; if the last value is greater than
+        zero, it is visible. The element observes the container, so the
+        state can change while the experiment runs - analysis results or
+        user inputs like a toggle can show and hide elements dynamically.
+        The view element takes the same attribute to show or hide a whole
+        page in the view selector.
+      agreement: agreed
+
 elements:
 
   # ------------------------------------------------------------------ views --
@@ -73,17 +104,6 @@ elements:
         type: string
         translatable: true
         summary: The text to display.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
         agreement: agreed
       - name: color
         description: >-
@@ -143,11 +163,6 @@ elements:
     since: "1.0"
     summary: Blank space, optionally colored, to group elements visually.
     attributes:
-      - name: visibility
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: height
         description: >-
           The height of the separator in text line heights
@@ -172,24 +187,6 @@ elements:
     summary: A single number from a data container, formatted for display.
     children: [input, map]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Text shown before the value.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: color
         description: >-
           The text color as six-digit RGB hex value or a named
@@ -327,24 +324,6 @@ elements:
     summary: A plot of one or more data containers.
     children: [input, output]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Title above the graph.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: labelX
         description: >-
           The label of the x axis
@@ -880,24 +859,6 @@ elements:
     summary: A field for the user to type a value into a data container.
     children: [output]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Text shown before the field.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: signed
         description: >-
           If set to *false* the user may not enter negative numbers.
@@ -974,24 +935,6 @@ elements:
     summary: A button that copies values or triggers a network connection.
     children: [input, output, map, trigger]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Text on the button.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: dynamicLabel
         description: >-
           A buffer (data-container) that controls the label of the
@@ -1063,24 +1006,6 @@ elements:
     summary: An on/off switch writing 0 or 1 to a data container.
     children: [output]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Text beside the switch.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1103,24 +1028,6 @@ elements:
     summary: A slider for choosing a value, or a range with two handles.
     children: [output]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Text beside the slider.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: minValue
         description: >-
           Value for a handle at the lower end of the slider.
@@ -1214,24 +1121,6 @@ elements:
     summary: A menu of predefined values.
     children: [output, map]
     attributes:
-      - name: label
-        description: >-
-          A label for this element
-        type: string
-        translatable: true
-        summary: Text beside the menu.
-        agreement: agreed
-      - name: visibility
-        description: >-
-          Points to a data container that determines visibility of
-          this element. If the data container has no elements or its
-          last element is invalid (NaN), zero or less than zero,
-          this view element will be hidden. If its last element is
-          larger than zero, the view element will be visible.
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1287,11 +1176,6 @@ elements:
           There is no <resource> element - both apps derive the resource list
           from the view elements naming a file.
         agreement: agreed
-      - name: visibility
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: scale
         description: >-
           Scales the size of the image. By default (scale="1.0") the
@@ -1333,16 +1217,6 @@ elements:
     since: "1.19"
     summary: Live camera preview with the selected region and exposure controls.
     attributes:
-      - name: label
-        type: string
-        translatable: true
-        summary: Title above the preview.
-        agreement: agreed
-      - name: visibility
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: exposure_adjustment_level
         description: >-
           This determines which controls are available to the user
@@ -1417,16 +1291,6 @@ elements:
     since: "1.14"
     summary: Live preview of the depth camera and the selected region.
     attributes:
-      - name: label
-        type: string
-        translatable: true
-        summary: Title above the preview.
-        agreement: agreed
-      - name: visibility
-        type: string
-        since: "1.20"
-        summary: Data container deciding whether the element is shown.
-        agreement: agreed
       - name: aspectRatio
         type: float
         default: 2.5

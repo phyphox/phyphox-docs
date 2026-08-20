@@ -178,7 +178,10 @@ def main():
                     print(f"     <{e}>")
 
             for el in sorted(set(doc_els) & set(spec)):
+                # attributes from a block-wide common: group (label/visibility
+                # on view elements) are valid on any element of the block
                 gap = sorted(doc_els[el] - spec[el]
+                             - spec.get("_common", set())
                              - OTHER_BLOCK.get((page, el), set()))
                 if gap:
                     total += len(gap)

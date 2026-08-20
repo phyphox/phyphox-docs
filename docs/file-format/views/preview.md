@@ -1,5 +1,7 @@
 # Camera and depth preview
 
+The view elements on this page additionally accept the [attributes common to all view elements](index.md#common-attributes).
+
 ## View-Element: camera-gui
 
 This is a preview and control for a camera input, showing a preview of the camera and allowing for selecting an acquisition area and several camera settings. Note that this only makes sense if you also use a camera input in the configuration.

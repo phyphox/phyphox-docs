@@ -1,5 +1,7 @@
 # User input
 
+The view elements on this page additionally accept the [attributes common to all view elements](index.md#common-attributes).
+
 ## View-Element: edit
 
 The edit element displays an edit box, which takes data from the user and writes it to a buffer. The output is defined by a simple *output* tag within the value block and needs to be a data-container (see above).

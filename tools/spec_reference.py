@@ -602,6 +602,8 @@ COMMON_LABEL = {
                           None),
     "input_attributes": ("Attributes accepted by every `<input>`", "input"),
     "output_attributes": ("Attributes accepted by every `<output>`", "output"),
+    "view_element_attributes": ("Attributes accepted by every view element",
+                                None),
 }
 
 

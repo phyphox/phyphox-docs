@@ -80,7 +80,8 @@ def load_spec():
         for group, items in (doc.get("common") or {}).items():
             key = ("input" if "input" in group else
                    "output" if "output" in group else
-                   "module" if "module" in group else None)
+                   "module" if "module" in group else
+                   "view" if "view" in group else None)
             if key:
                 common.setdefault(key, {})
                 for i in items or []:
@@ -130,6 +131,9 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
     # every analysis module accepts the shared module attributes
     if parent_name == "analysis":
         known.update(common.get("module", {}))
+    # every view element accepts the shared label/visibility attributes
+    if parent_name == "view":
+        known.update(common.get("view", {}))
     ckey = next((k for k in components if k[1] == parent_name), None)
     if node.tag == "output" and ckey:
         c = components[ckey]

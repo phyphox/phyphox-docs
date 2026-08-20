@@ -5,7 +5,7 @@ The views block may hold one or more *view* blocks (note: singular), describing 
 At least one view block is required!
 
 ```xml
-<phyphox version="1.0">
+<phyphox version="...">
     ...
     <views>
         <view label="Pendulum">
@@ -33,6 +33,14 @@ At least one view block is required!
 Each view-block groups display elements to present data to the user. The view block has a single attribute *label* displayed to the user to identify this view when the user switches views. The label should be short and concise.
 
 {{spec:views/views/view}}
+
+## Common attributes
+
+Every view element accepts two attributes beyond the ones listed in its own section:
+
+{{spec:views/phyphox/views|common}}
+
+## View elements
 
 The view elements are documented by category:
 

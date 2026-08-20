@@ -1,5 +1,7 @@
 # Graph
 
+The view elements on this page additionally accept the [attributes common to all view elements](index.md#common-attributes).
+
 The graph element will show a plot of the YBUFFER data against the XBUFFER data. The input buffers are defined by *input* tags within the value block and need to be data-containers (see above). The input tags are linked to the axes with an additional *axis* attribute to the input tag, which may be *x* or *y*. See below for additional options for other graph types.
 
 The resulting graph can be made up of lines (default) or dots (set the attribute *style* to *dots*). (see attribute descriptions below)

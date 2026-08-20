@@ -128,7 +128,9 @@ def spec_attributes():
         doc = yaml.safe_load(open(os.path.join(SPEC, fn), encoding="utf-8")) or {}
         common = {}
         for group, items in (doc.get("common") or {}).items():
-            key = "input" if "input" in group else ("output" if "output" in group else None)
+            key = ("input" if "input" in group else
+                   "output" if "output" in group else
+                   "view" if "view" in group else None)
             if key:
                 common[key] = {i["name"] for i in items or []}
         for el in doc.get("elements") or []:
@@ -143,6 +145,11 @@ def spec_attributes():
                 if child in common:
                     k2 = (el["name"], child)
                     out[k2] = out.get(k2, set()) | common[child]
+            # a "view" common group applies to every child of the view element
+            if el["name"] == "view" and "view" in common:
+                for child in el.get("children") or []:
+                    k2 = ("view", child)
+                    out[k2] = out.get(k2, set()) | common["view"]
     return out
 
 

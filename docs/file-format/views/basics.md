@@ -1,5 +1,7 @@
 # Basic elements
 
+The view elements on this page additionally accept the [attributes common to all view elements](index.md#common-attributes).
+
 ## View-Element: info
 
 The info element does not take any inputs or write to any outputs. It just displays a string defined as the *label* attribute.
