@@ -225,8 +225,13 @@ def _code_list(values):
     return ", ".join(f"`{v}`" for v in values)
 
 
-def _since_badge(version, spec, prefix=""):
+def _since_badge(version, spec, prefix="", element_level=False):
     """Compact right-aligned "added in X.Y" badge linking to the release.
+
+    An element-level badge additionally carries the phyphox-since-element
+    class: hooks.py's on_page_content relocates it into the section heading
+    above, so "added in" for a whole module sits beside the module's name
+    rather than beside its attribute list.
 
     The full information - file format version plus the phyphox release that
     introduced it - lives in the tooltip; the badge itself stays out of the
@@ -241,9 +246,11 @@ def _since_badge(version, spec, prefix=""):
         release, page = rel
         tooltip = (f"Added in file format {version}, introduced with "
                    f"phyphox {release}")
+        marker = " .phyphox-since-element" if element_level else ""
         return (f"[added in {version}]({prefix}reference/version-history/"
-                f'{page}){{: .phyphox-since title="{tooltip}" }}')
-    return (f'<span class="phyphox-since" title="Added in file format '
+                f'{page}){{: .phyphox-since{marker} title="{tooltip}" }}')
+    marker = " phyphox-since-element" if element_level else ""
+    return (f'<span class="phyphox-since{marker}" title="Added in file format '
             f'{version}">added in {version}</span>')
 
 
@@ -628,7 +635,8 @@ def render_element(block, parent, name, spec, state, mode=None):
         return "\n\n".join(parts)
 
     if mode is None:
-        badge = _since_badge(element.get("since"), spec, state.link_prefix)
+        badge = _since_badge(element.get("since"), spec, state.link_prefix,
+                             element_level=True)
         if badge:
             parts.append(badge)
         if element.get("text"):

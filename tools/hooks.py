@@ -534,6 +534,42 @@ def on_page_markdown(markdown, page, config, files, **kwargs):
     return MARKER.sub(expand, markdown)
 
 
+# --------------------------------------------------- since-badge relocation --
+
+# An element-level "added in x.y" badge (class phyphox-since-element, emitted
+# by spec_reference._since_badge) belongs beside the section heading, not down
+# in the generated block - beside the attribute list it wrongly suggests the
+# attributes were added later. The headings are hand-written markdown and the
+# badges are generated, so the two only meet here, after both have been
+# rendered to HTML. Relocating at this stage cannot change heading ids, page
+# anchors or the nav: those are all derived from the markdown before
+# on_page_content runs.
+
+_BADGE_P = re.compile(
+    r'<p>((?:<a|<span)[^>]*class="[^"]*phyphox-since-element[^"]*"[^>]*>'
+    r'.*?(?:</a>|</span>))</p>')
+_HEADING_CLOSE = re.compile(r"</h[1-6]>")
+
+
+def on_page_content(html, page, config, files, **kwargs):
+    while True:
+        m = _BADGE_P.search(html)
+        if m is None:
+            return html
+        badge = m.group(1).replace(" phyphox-since-element", "")
+        closes = [c for c in _HEADING_CLOSE.finditer(html, 0, m.start())]
+        target = closes[-1] if closes else None
+        # Only the first badge after a heading moves into it: a second one in
+        # the same section documents a child element, and hoisting it would
+        # pin the wrong version to the heading. It stays where it is (still
+        # floated right), just without the relocation marker.
+        if target is None or "phyphox-since" in html[html.rfind("<h", 0, target.start()):target.start()]:
+            html = html[:m.start()] + "<p>" + badge + "</p>" + html[m.end():]
+            continue
+        html = (html[:target.start()] + badge + html[target.start():m.start()]
+                + html[m.end():])
+
+
 def _render_list():
     entries = _load()
     if not entries:

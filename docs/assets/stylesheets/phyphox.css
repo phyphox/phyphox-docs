@@ -145,3 +145,12 @@ iframe[src*="swagger"] {
 .md-typeset a.phyphox-since:hover {
   color: var(--md-typeset-a-color);
 }
+/* Inside a section heading (relocated there by hooks.on_page_content) the
+ * badge keeps its own small size and gets nudged down to sit on the
+ * heading's text line. */
+.md-typeset h2 .phyphox-since,
+.md-typeset h3 .phyphox-since,
+.md-typeset h4 .phyphox-since {
+  font-weight: 400;
+  margin-top: 0.55em;
+}
