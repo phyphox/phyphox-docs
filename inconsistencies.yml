@@ -114,29 +114,6 @@
 # development branches). Grouped by the decision each entry needs, not one
 # entry per symptom.
 
-- id: power-native-empty-input
-  title: "power: empty input buffer on Android's native path"
-  area: file-format
-  status: decided
-  canonical: >-
-    Any empty input yields an empty output, as documented. Android's native
-    path must stop substituting default operands.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      The shipping native path (analysis.cpp, nativePower) initializes
-      base=0, exponent=1 and loops to max(n,m): an empty base yields
-      pow(0, e_i) per exponent value, an empty exponent copies the base
-      through. Android's own Java fallback (used only if the .so fails to
-      load) outputs nothing, like iOS.
-    ios: >-
-      Any empty input produces an empty output
-      (ExperimentComplexUpdateValueAnalysis, emptyVector).
-  summary: >-
-    The documented rule that any empty input yields an empty output is
-    violated by the Android build everyone actually runs - power emits
-    values computed with a default operand instead.
-
 - id: crosscorrelation-normalization
   title: "crosscorrelation: normalization and empty inputs"
   area: file-format

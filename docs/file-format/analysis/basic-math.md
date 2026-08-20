@@ -52,8 +52,6 @@ Calculates the product of all inputs element-wise and writes it to a single outp
 
 Calculates the power of a base and an exponent element-wise and writes it to a single output buffer. This module will write as many values as there are values in the biggest input buffer. If a buffer is shorter than the others (especially if one input is a single value), its last value will be repeated. (Exception: If any buffer is empty, the result will be an empty buffer, too.)
 
-{{inconsistency:power-native-empty-input}}
-
 {{spec:analysis/analysis/power}}
 
 ## round
