@@ -30,7 +30,7 @@ Performs a simple differentiation of a single input by calculating the differenc
 
 ## fft
 
-This module will perform a fast Fourier transform of a complex input and will write the complex result to the output buffers. For input and output the complex data is defined by two buffers *re* and *im* corresponding to the real and imaginary part. The *imaginary* buffer is optional and will be filled with zeros if omitted (the full complex spectrum is returned either way, not a shortened real-input half). A *provided* im input, in contrast, truncates the transform to the shorter of *re* and *im*, like the other element-wise modules limit themselves to the data both inputs provide.
+This module will perform a fast Fourier transform of a complex input and will write the complex result to the output buffers. For input and output the complex data is defined by two buffers *re* and *im* corresponding to the real and imaginary part. The *imaginary* buffer is optional and will be filled with zeros if omitted (the full complex spectrum is returned either way, not a shortened real-input half). A *provided* im input, in contrast, truncates the transform to the shorter of *re* and *im*.
 
 Provide a **power-of-two** number of input samples: only then is the output guaranteed to be identical on both platforms. This lets the module use the fastest transform each platform offers. For other input lengths the result is implementation-defined and differs between platforms; a separate general-purpose `dft` module (slower, exact input length) is planned for those cases.
 
