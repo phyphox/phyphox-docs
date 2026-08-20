@@ -1,0 +1,95 @@
+<phyphox version="1.11" locale="en">
+  <title>Octoprint</title>
+  <category>Net examples</category>
+  <icon>2D</icon>
+  <description>MQTT from OctoPrint with two topics</description>
+  <data-containers>
+    <container size="0">tool_actual</container>
+    <container size="0">tool_target</container>
+    <container size="0">tool_t</container>
+    <container size="0">bed_actual</container>
+    <container size="0">bed_target</container>
+    <container size="0">bed_t</container>
+    <container size="1">time</container>
+    <container size="0">times</container>
+    <container size="0">count1</container>
+    <container size="0">count2</container>
+    <container size="0">countdiff</container>
+  </data-containers>
+  <network>
+    <connection address="192.168.2.5" autoConnect="true" service="mqtt/csv" receiveTopic="octoPrint/temperature/tool0" interval="1" id="tool" privacy="https://phyphox.org/disclaimer/" conversion="json">
+        <receive id="actual" clear="false">tool_actual</receive>
+        <receive id="target" clear="false">tool_target</receive>
+    </connection>
+    <connection address="192.168.2.5" autoConnect="true" service="mqtt/csv" receiveTopic="octoPrint/temperature/bed" interval="1" id="bed" privacy="https://phyphox.org/disclaimer/" conversion="json">
+        <receive id="actual" clear="false">bed_actual</receive>
+        <receive id="target" clear="false">bed_target</receive>
+    </connection>
+  </network>
+  <analysis>
+    <timer>
+        <output>time</output>
+    </timer>
+    <count>
+        <input clear="false">tool_actual</input>
+        <output>count1</output>
+    </count>
+    <count>
+        <input clear="false">tool_t</input>
+        <output>count2</output>
+    </count>
+    <subtract>
+        <input>count1</input>
+        <input>count2</input>
+        <output>countdiff</output>
+    </subtract>
+    <const>
+        <input as="length">countdiff</input>
+        <input as="value" clear="false">time</input>
+        <output>times</output>
+    </const>
+    <append>
+        <input>times</input>
+        <output clear="false">tool_t</output>
+    </append>
+
+    <count>
+        <input clear="false">bed_actual</input>
+        <output>count1</output>
+    </count>
+    <count>
+        <input clear="false">bed_t</input>
+        <output>count2</output>
+    </count>
+    <subtract>
+        <input>count1</input>
+        <input>count2</input>
+        <output>countdiff</output>
+    </subtract>
+    <const>
+        <input as="length">countdiff</input>
+        <input as="value">time</input>
+        <output>times</output>
+    </const>
+    <append>
+        <input>times</input>
+        <output clear="false">bed_t</output>
+    </append>
+  </analysis>
+  <views>
+    <view label="3D Printer">
+      <graph label="Tool" labelX="time" labelY="temperature" unitY="°C" unitX="s">
+        <input axis="x">tool_t</input>
+        <input axis="y" color="blue">tool_actual</input>
+        <input axis="x">tool_t</input>
+        <input axis="y" color="red">tool_target</input>
+      </graph>
+      <graph label="Bed" labelX="time" labelY="temperature" unitY="°C" unitX="s">
+        <input axis="x">bed_t</input>
+        <input axis="y" color="blue">bed_actual</input>
+        <input axis="x">bed_t</input>
+        <input axis="y" color="red">bed_target</input>
+      </graph>
+    </view>
+  </views>
+</phyphox>

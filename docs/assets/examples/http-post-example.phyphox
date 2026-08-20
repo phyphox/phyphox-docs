@@ -1,0 +1,33 @@
+<phyphox version="1.9" locale="en">
+  <title>http-post</title>
+  <category>Net examples</category>
+  <icon>://</icon>
+  <description>Test for http/post.</description>
+  <data-containers>
+    <container size="20">accX</container>
+    <container size="20">t</container>
+  </data-containers>
+  <network>
+    <connection address="https://phyphox.org/post-example.php" autoConnect="true" service="http/post" interval="5" privacy="https://phyphox.org/disclaimer/" conversion="none">
+        <send id="x" type="buffer">accX</send>
+        <send id="t" type="buffer">t</send>
+    </connection>
+  </network>
+  <input>
+    <sensor type="accelerometer" rate="4">
+      <output component="x">accX</output>
+      <output component="t">t</output>
+    </sensor>
+  </input>
+  <views>
+    <view label="Test">
+      <value label="Accelerometer x" size="2" precision="2" unit="m/s²">
+        <input>accX</input>
+      </value>
+      <graph label="Test Data" labelX="t (s)" labelY="x (m/s²)">
+        <input axis="x">t</input>
+        <input axis="y">accX</input>
+      </graph>
+    </view>
+  </views>
+</phyphox>

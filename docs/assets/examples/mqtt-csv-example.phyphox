@@ -1,0 +1,30 @@
+<phyphox version="1.11" locale="en">
+  <title>MQTT/CSV</title>
+  <category>Net tests</category>
+  <icon>://</icon>
+  <description>Test for mqtt/csv.</description>
+  <data-containers>
+    <container size="10">accT</container>
+    <container size="10">accX</container>
+  </data-containers>
+  <network>
+    <connection address="192.168.2.5" autoConnect="true" service="mqtt/csv" privacy="https://phyphox.org/disclaimer/" conversion="none" interval="10">
+        <send id="phyphox/accx" type="buffer">accX</send>
+        <send id="phyphox/acct" type="buffer">accT</send>
+    </connection>
+  </network>
+  <input>
+    <sensor rate="1" type="accelerometer">
+      <output component="t">accT</output>
+      <output component="x">accX</output>
+    </sensor>
+  </input>
+  <views>
+    <view label="Test">
+      <graph label="Accelerometer x">
+        <input axis="x">accT</input>
+        <input axis="y">accX</input>
+      </graph>
+    </view>
+  </views>
+</phyphox>

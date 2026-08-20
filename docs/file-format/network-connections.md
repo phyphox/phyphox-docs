@@ -340,11 +340,9 @@ The only accepted *discovery* value, "http", is a simple availability probe rath
 
 Here are some example XML files for different scenarios, which might help you get started. Note that most of them will not work out of the box as they require a server to provide or receive data, so you will need to adapt them to your needs.
 
-**The network connections are not supported by our web editor. If you want to use this function, you need to download the configuration files and edit them with a text editor.**
-
 ### HTTP
 
-#### [Send data via HTTP/POST in JSON format](https://phyphox.org/wiki/images/8/82/Http-post-example.phyphox)
+#### [Send data via HTTP/POST in JSON format](../assets/examples/http-post-example.phyphox)
 
 This minimalistic example collects data from the accelerometer at a rate of 4Hz and sends the last 20 collected values every 5 seconds to a php script via HTTP POST. Any reply from the server is ignored (you might want to consider using the response as a confirmation to the user by mapping response values to texts via the mapping function of the [value element](views/basics.md#view-element-value)).
 
@@ -363,7 +361,7 @@ The following is a minimalistic example for a PHP script receiving the data and 
 
 **Warning: Do not use this minimalistic example on a public server! A real-world PHP example should have some sanity checks, flood protection and similar security measures to avoid misuse or sabotage of your webserver. Of course a local server for select users does not necessarily require such measures. You need to consider this when running any web service.**
 
-#### [Send a value via HTTP/GET and receive a plot in JSON format](https://phyphox.org/wiki/images/6/69/Http-get-example.phyphox)
+#### [Send a value via HTTP/GET and receive a plot in JSON format](../assets/examples/http-get-example.phyphox)
 
 This example demonstrates sending a value as a URL parameter via HTTP (GET method), which in this case is a frequency that the user may enter. Moreover, the value is sent when the user pushes a button and a PHP script will respond with a JSON package that contains 100 value pairs that form a sine function with the given frequency. The received sine function is then plotted in phyphox.
 
@@ -392,18 +390,18 @@ The following is the PHP script that takes the frequency and generates a JSON ob
 
 ### MQTT
 
-#### [Send CSV via MQTT](https://phyphox.org/wiki/images/2/23/Mqtt-csv-example.phyphox)
+#### [Send CSV via MQTT](../assets/examples/mqtt-csv-example.phyphox)
 
 In this example, time and x acceleration are acquired from the accelerometer (averaging to a rate of 1 Hz) and the last ten readings are sent every 10 seconds as a comma-separated list (CSV) to an MQTT broker at 192.168.2.5. As this example uses comma-separated lists, time and acceleration are sent to separate topics.
 
-#### [Send JSON via MQTT](https://phyphox.org/wiki/images/8/86/Mqtt-json-example.phyphox)
+#### [Send JSON via MQTT](../assets/examples/mqtt-json-example.phyphox)
 
 This example only sends data when a button is pressed. It then takes the latest readings from the accelerometer and sends the x, y and z components as a JSON object to the topic "phyphox/acc" on an MQTT broker at 192.168.2.5.
 
-#### [Octoprint tool temperature](https://phyphox.org/wiki/images/1/1d/Octoprint.phyphox)
+#### [Octoprint tool temperature](../assets/examples/octoprint.phyphox)
 
 This example connects to an MQTT broker at 192.168.2.5 and subscribes to the topic octoPrint/temperature/tool0 which is used by the 3d printing software "octoprint" to report the current tool temperature. The phyphox experiment adds a timestamp and plots the current temperature and the target temperature over time. Note that Octoprint sends JSON messages, but as this example should not write anything to the topic, it uses "mqtt/csv" as a service and "json" as a conversion function to decode the json data.
 
-#### [Octoprint tool and bed temperature](https://phyphox.org/wiki/images/0/0f/Octoprint2.phyphox)
+#### [Octoprint tool and bed temperature](../assets/examples/octoprint2.phyphox)
 
 Like the simpler Octoprint example above, but this example subscribes to two topics to print the bed temperature as well. Note that adding a timestamp to both temperatures is what makes this example rather large.
