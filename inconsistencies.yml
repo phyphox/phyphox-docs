@@ -35,6 +35,7 @@
   title: Sensor metadata in /meta
   area: remote-interface
   status: decided
+  permanent: true
   canonical: >-
     Android-only, by platform limitation rather than by choice. iOS offers no API
     for per-sensor information such as model or manufacturer, so the values cannot be
@@ -64,49 +65,30 @@
   title: FFT output for input lengths that are not a power of two
   area: file-format
   status: decided
+  permanent: true
   canonical: >-
-    The fft module guarantees consistent output across platforms only for a
-    power-of-two number of input samples, and this is by design and permanent: fft
-    is meant to use the fastest available transform on each platform, which
-    constrains the supported lengths. For a power-of-two length both platforms
-    compute the same unpadded transform and the results are identical (together with
-    the unified real-input handling, which returns the full spectrum on both
-    platforms). For any other length the output is
-    implementation-defined - the platforms diverge in both length and values - and
-    an experiment that needs a portable FFT must feed fft a power-of-two number of
-    samples. General-purpose, arbitrary-length transforms are not going to be added
-    to fft; instead a separate dft analysis module is planned that computes an exact
-    input-length DFT consistently on both platforms at the cost of speed. Until dft
-    exists, non-power-of-two input to fft is simply outside the guaranteed contract.
+    fft uses the fastest transform each platform offers, so only a
+    power-of-two number of input samples is guaranteed to give identical
+    results on both platforms - an experiment that needs a portable FFT must
+    provide that. Any other length is
+    implementation-defined. For exact transforms of arbitrary length a
+    separate, slower dft module is planned; until it exists, non-power-of-two
+    input is simply outside the guaranteed contract.
   affects:
     android: >-
-      Uses FFTW, which transforms an arbitrary length directly (mixed-radix, and
-      Bluestein for primes), so the native path computes a true input-length DFT
-      with no padding and outputs that many points (analysis.cpp, fftw3complex ->
-      fftwf_plan_dft_1d(n, ...)). The pure-Java fallback instead zero-pads to the
-      next power of two for the calculation but then truncates the output back to
-      the input length (Analysis.java, fftAM). Either way the output length equals
-      the input length.
+      FFTW transforms the input length directly, and the Java fallback
+      zero-pads internally but truncates back, so the output length always
+      equals the input length (analysis.cpp fftw3complex, Analysis.java
+      fftAM).
     ios: >-
-      Uses Apple's vDSP_DFT, whose setup only accepts lengths of the form f*2^n with
-      f in {1, 3, 5, 15}. A non-power-of-two input is therefore zero-padded up to the
-      nearest such length (nextFFTSize) and the transform is computed and returned at
-      that padded length, so the output is longer than the input and is a
-      zero-padded, interpolated spectrum rather than a true input-length DFT
-      (FFTAnalysis.swift). For a power-of-two input no padding happens and the result
-      matches Android.
+      vDSP_DFT only accepts lengths of the form f*2^n with f in {1, 3, 5,
+      15}, so other inputs are zero-padded to the next supported length and
+      the padded, longer spectrum is returned (FFTAnalysis.swift,
+      nextFFTSize).
   summary: >-
-    The two platforms use different FFT libraries with different length constraints:
-    FFTW on Android transforms any length directly, while iOS's vDSP_DFT only
-    supports lengths of the form f*2^n and so zero-pads other lengths up to the
-    nearest supported size. As a result a non-power-of-two number of input samples
-    yields a different output length and different values on the two platforms,
-    while a power-of-two number of samples is identical on both. This is the intended
-    contract for fft: power-of-two input is portable, the module stays as fast as the
-    platform allows, and other lengths are left undefined. A separate general-purpose
-    dft module (slower, exact input length, consistent across platforms) is planned
-    for callers that need non-power-of-two transforms.
-
+    A non-power-of-two number of input samples yields a different output
+    length and different values on the two platforms; a power-of-two input
+    gives identical results on both.
 
 # ---------------------------------------------------------------------------
 # Entries below stem from the 2026-08-19 audit of all 54 analysis modules

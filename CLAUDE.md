@@ -177,6 +177,12 @@ Entry `status` drives the wording:
 - `decided` — `canonical:` records the correct behaviour; the reader is told the others are bugs
   that will be fixed.
 
+A decided entry that will *never* be reconciled - a platform limitation or a
+deliberate design choice - additionally carries `permanent: true`: the pages
+then present it as the intended contract ("the platforms differ here by
+design") instead of as a bug awaiting a fix, and the known-inconsistencies
+page lists it under "Permanent platform differences".
+
 There is deliberately no `fixed` status, and the build rejects one. Once every implementation
 agrees, **delete the entry** — together with its `{{inconsistency:…}}` markers,
 `x-phyphox-inconsistency` references and `inconsistency:` fields in `spec/`, in the same change as

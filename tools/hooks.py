@@ -89,11 +89,20 @@ def _indent(text, prefix="    "):
 def _admonition(entry, link_prefix=""):
     kind, heading = STATUS_LABEL.get(entry.get("status", "open"),
                                     STATUS_LABEL["open"])
+    if entry.get("permanent"):
+        # A decided entry can be marked permanent: the difference is the
+        # intended contract (platform limitation or deliberate design), so the
+        # bug wording would be wrong - it will never be "fixed".
+        kind, heading = "info", "The platforms differ here by design"
     body = [entry["summary"].strip()]
 
     if entry.get("status") == "open":
         body.append("**This is a bug.** Which behaviour is correct has not been "
                     "decided yet, so do not rely on either until it is resolved.")
+    elif entry.get("permanent"):
+        body.append(f"**The contract:** {entry['canonical'].strip()}\n\n"
+                    "This difference is permanent and documented - account for "
+                    "it when writing portable experiments.")
     elif entry.get("canonical"):
         body.append(f"**Correct behaviour:** {entry['canonical'].strip()}\n\n"
                     "The implementations that disagree will be corrected; treat "
@@ -531,9 +540,12 @@ def _render_list():
         return ("Nothing is currently recorded. That is unlikely to mean the "
                 "implementations agree - see the note above.\n")
 
-    by_status = {"open": [], "decided": []}
+    by_status = {"open": [], "decided": [], "permanent": []}
     for e in entries.values():
-        by_status.setdefault(e.get("status", "open"), []).append(e)
+        key = e.get("status", "open")
+        if key == "decided" and e.get("permanent"):
+            key = "permanent"
+        by_status.setdefault(key, []).append(e)
 
     out = []
     headings = [
@@ -543,6 +555,10 @@ def _render_list():
         ("decided", "Decided, not yet fixed",
          "The correct behaviour is settled. The implementations that disagree "
          "are buggy and will be corrected."),
+        ("permanent", "Permanent platform differences",
+         "These differences are the intended contract - a platform limitation "
+         "or a deliberate design choice. They will not be reconciled; account "
+         "for them when writing portable experiments."),
     ]
     for status, heading, blurb in headings:
         items = by_status.get(status) or []
