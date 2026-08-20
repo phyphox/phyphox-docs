@@ -330,9 +330,9 @@ A receive tag with id="other" will receive a single value, 42. id="yetanother" w
 
 ## Discovery methods for network services
 
-A discovery service is a protocol or method to get a list of possible network services. These can either be picked by the user (if "autoConnect" is set to false, see general syntax above) or phyphox will connect to the first one available (autoConnect set to true). The discovery method is set by the attribute "discovery" of the connection-block (see above). If left out, you need to set a fixed connection target depending on the network service you want to use (typically, you will have to set a fixed address like for HTTP requests).
+A discovery service was meant to be a protocol or method to get a list of possible network services, from which the user picks one (or phyphox connects to the first one when "autoConnect" is set). This feature was never completed, and there is little point in using *discovery* or *discoveryAddress* at the moment: real discovery methods like mDNS do not exist, the selection dialog does not exist either, and *autoConnect* currently has no effect - both apps always connect to the first result.
 
-Discovery methods like mDNS are not yet implemented, but will follow soon. For now, you can only work with fixed targets.
+The only accepted *discovery* value, "http", is a simple availability probe rather than a discovery: phyphox sends an HTTP GET request to *discoveryAddress* and, if the response status is in the 200 range, connects to that same address. In practice you simply set a fixed *address* for the service you use.
 
 ## Examples
 

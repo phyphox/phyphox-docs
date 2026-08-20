@@ -85,34 +85,65 @@ elements:
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: discovery
         description: >-
-          A method to discover possible network services, so they
-          can be checked before connection or picked by the user.
+          A stub of a planned service-discovery feature that was
+          never completed - there is little point in using it at the
+          moment. Real discovery methods (such as mDNS) and letting
+          the user pick from the discovered services do not exist;
+          the only accepted value, http, is merely a simple
+          availability probe.
+        value_notes:
+          http: >-
+            A simple availability probe: phyphox sends an HTTP GET
+            request to discoveryAddress and, if the response status
+            is in the 200 range, connects to that same address.
+            Nothing is discovered beyond the reachability of the one
+            address given.
         type: enum
         values: [http]
-        summary: How to find the service on the local network, if it is not at a fixed address.
+        summary: >-
+          Stub of a never-completed discovery feature; http merely probes
+          discoveryAddress for availability.
         agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
+        note: >-
+          Verified 2026-08-20: both parsers accept exactly "http"
+          (PhyphoxFile.java networkBlockParser; NetworkElementHandler.swift,
+          which additionally requires a non-empty discoveryAddress). Both
+          runtimes probe discoveryAddress with a GET and connect to it on a
+          2xx (NetworkDiscovery.java Http, NetworkConnection.java connect();
+          NetworkDiscovery.swift HttpNetworkDiscovery,
+          NetworkConnection.swift). The discovered item's display name is
+          computed and never shown anywhere - Android even has a
+          Math.max-for-Math.min typo in the truncation, harmless because the
+          name is dead. Maintainer ruling 2026-08-20: document reality
+          rather than retire the attribute.
       - name: discoveryAddress
         description: >-
-          The meaning of this address depends on the discovery
-          method. For example it could be a URL with wildcards, an
-          address from which to request a list of servers, or a
-          filter for mDNS entries.
+          The address probed by the http discovery method. With no
+          real discovery methods implemented, there is little point
+          in using this at the moment.
         type: string
-        summary: Address queried by the discovery method.
+        summary: Address probed by the http discovery method.
         agreement: agreed
       - name: autoConnect
         description: >-
-          If set to true, phyphox will connect to the first viable
-          service, at the given address or from the discovery
-          method. If set to false, options from the discovery method
-          will be presented to the user for selection.
+          Meant to control whether phyphox connects to the first
+          viable service on its own (true) or presents the
+          discovered options to the user (false). Currently without
+          effect: the selection dialog of the never-completed
+          discovery feature does not exist, and both apps behave as
+          if autoConnect were true, connecting to the first result.
         type: boolean
         default: false
         summary: >-
-          Connect without asking the user. Only for a service the experiment
-          author controls, since it sends data without confirmation.
+          Currently without effect - both apps always behave as if it were
+          true, connecting to the first result.
         agreement: agreed
+        note: >-
+          Verified 2026-08-20: parsed and stored but never read on either
+          platform (NetworkConnection.java, NetworkConnection.swift - whose
+          own TODO comments name the missing scan dialog). Not a divergence:
+          both platforms ignore it identically.
       - name: interval
         description: >-
           If set to a value larger than 0, this defines an interval
