@@ -184,32 +184,6 @@
     violated by the Android build everyone actually runs - power emits
     values computed with a default operand instead.
 
-- id: round-nonfinite
-  title: "round: non-finite input in default mode"
-  area: file-format
-  status: decided
-  canonical: >-
-    Non-finite values pass through unchanged (NaN stays NaN, infinities stay
-    infinite) and ties round half away from zero (C rounding), like the
-    formula language's round. Android's long-conversion semantics and half-
-    up ties both change.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Math.round returns a long: NaN -> 0, +-infinity and |x| > 2^63 ->
-      +-Long.MAX_VALUE = +-9.223e18 (Analysis.java, roundAM default path;
-      the floor/ceil paths keep NaN/inf).
-    ios: >-
-      vvnint keeps NaN as NaN and infinities as infinities
-      (RoundAnalysis.swift). Fully conforms to the canonical behaviour on
-      the development branch since 2026-08-19 (vvnint, which rounds ties to
-      even, was replaced); only Android remains.
-  summary: >-
-    Rounding a NaN yields 0 on Android and NaN on iOS; infinities become
-    +-9.2e18 on Android and stay infinite on iOS. The tie-breaking rule at
-    .5 also differed - Java rounds half up, and vvnint was measured
-    (2026-08-19, iOS runtime) to round ties to even.
-
 - id: crosscorrelation-normalization
   title: "crosscorrelation: normalization and empty inputs"
   area: file-format
