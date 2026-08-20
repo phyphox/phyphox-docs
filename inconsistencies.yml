@@ -158,7 +158,14 @@
       (Analysis.java crosscorrelationAM native branch, analysis.cpp
       fftw3crosscorrelation). The Java fallback divides each sum by
       abs(m-n) in double precision, like iOS. Empty inputs output nothing
-      on either Android path.
+      on either Android path. Code conforms since 2026-08-20 (both
+      normalizations removed); pending the on-device verification this
+      entry requires. The audit of the native path also found the
+      halfcomplex product loop reading a[n]/b[n] out of bounds at i=0 and
+      corrupting spectral bin 0, which offset every output value by a
+      heap-dependent constant - fixed (loop starts at 1) and verified on
+      the host against the plain double-precision sums within float
+      precision (max rel. error 5e-4 at a near-zero lag, 100x10 samples).
     ios: >-
       Divides by abs(m-n) in double precision
       (CrosscorrelationAnalysis.swift, vDSP_vsdivD by compRange). With one
