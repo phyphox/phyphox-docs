@@ -184,37 +184,6 @@
     violated by the Android build everyone actually runs - power emits
     values computed with a default operand instead.
 
-- id: gcd-lcm-domain
-  title: "gcd/lcm: inputs outside the positive-integer domain"
-  area: file-format
-  status: decided
-  canonical: >-
-    The domain is non-negative integers: fractional values are rounded (C
-    rounding, half away from zero, matching the formula-round ruling),
-    negative and non-finite inputs yield NaN, overflow yields NaN, and
-    lcm(0,x) is 0 by the usual convention, including lcm(0,0) - no crash on
-    either platform.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Rounds each value to a signed long (Math.round: 2.7 -> 3, NaN -> 0,
-      +-inf -> +-Long.MAX_VALUE) and runs Euclid with a "while (b > 0)"
-      loop that mishandles negatives - gcd(-4, 6) returns 6 (Analysis.java,
-      gcdAM/lcmAM). lcm(0,0) throws an ArithmeticException (division by
-      zero); large products overflow silently.
-    ios: >-
-      Converts via UInt(Double), which truncates (2.7 -> 2) and crashes the
-      app for any negative value; non-finite values are caught and yield NaN
-      (GCDAnalysis.swift, LCMAnalysis.swift). lcm(0,0) traps (0/0 in UInt);
-      large products trap on overflow. Fully conforms to the canonical
-      behaviour on the development branch since 2026-08-19; only Android
-      remains.
-  summary: >-
-    Outside non-negative integers the two implementations disagree on
-    everything: rounding vs truncation, wrong values vs crash for negatives,
-    garbage vs NaN for non-finite input - and lcm(0,0) crashes both, each in
-    its own way.
-
 - id: round-nonfinite
   title: "round: non-finite input in default mode"
   area: file-format
