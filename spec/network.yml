@@ -184,7 +184,7 @@ elements:
         default: false
         summary: >-
           For mqtt/json and mqtts/json: publish with MQTT QoS 1 (at-least-once)
-          instead of QoS 0. (Formerly selected QoS 2, which has been dropped.)
+          instead of QoS 0.
         agreement: agreed
       - name: certificate
         type: string
