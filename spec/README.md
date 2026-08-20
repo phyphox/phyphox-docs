@@ -38,7 +38,7 @@ elements:
 An attribute whose *name* is numbered without bound - the map graph's
 mapColor1, mapColor2, ... - is modelled once, with `name_pattern:` holding a
 regular expression; the validators accept every attribute matching it and the
-`name:` (e.g. `mapColorN`) is only what the rendered documentation displays.
+`name:` (e.g. `mapColor[N]`) is only what the rendered documentation displays.
 
 Defaults that depend on the format version are a list, most recent first; the first entry
 whose `since` the document satisfies wins:

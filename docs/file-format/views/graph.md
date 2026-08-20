@@ -86,7 +86,7 @@ The color map creates a lattice from the provided points, which is then colored.
 
 Also note that, due to the typical use of such color maps, the attribute "partialUpdate" (see above) now applies to the y axis, which needs to be monotonic, instead of the x axis.
 
-The colors of the map are set with the *mapColorN* attributes (mapColor1, mapColor2, ..., see the attribute list above). A stop that is present but does not name a valid color (a named phyphox color or a six-digit hex RGB value, optionally prefixed with `#`) is an error and the experiment will not load — the same strictness that applies to every color attribute in the format.
+The colors of the map are set with the *mapColor[N]* attributes (mapColor1, mapColor2, ..., see the attribute list above). A stop that is present but does not name a valid color (a named phyphox color or a six-digit hex RGB value, optionally prefixed with `#`) is an error and the experiment will not load — the same strictness that applies to every color attribute in the format.
 
 You can also define your own color palette. Phyphox uses a black-orange-white gradient by default, but introducing more colors can be very helpful to improve contrast. Colors are simply defined as a series of colors that are spread across the z range:
 

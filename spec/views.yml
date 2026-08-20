@@ -718,7 +718,7 @@ elements:
         default: true
         summary: Show the color scale beside a map.
         agreement: agreed
-      - name: mapColorN
+      - name: "mapColor[N]"
         name_pattern: "mapColor[1-9][0-9]*"
         type: color
         rules: [color-invalid-value]
