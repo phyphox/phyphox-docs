@@ -14,8 +14,6 @@ The output can directly be used to display a histogram. *binStarts* will receive
 
 Bins are lower-edge inclusive: a value exactly on a bin boundary is counted in the bin that starts there. Non-finite input values are skipped. A *dx* of zero, a negative or non-finite *dx* and a non-finite *x0* are errors yielding empty outputs — there is no silent substitution; only an absent input (or an empty parameter buffer) selects the defaults of *x0* = 0 and *dx* = 1.
 
-{{inconsistency:analysis-nonfinite-parameter-crashes}}
-
 {{spec:analysis/analysis/binning}}
 
 ## movingaverage
@@ -24,6 +22,6 @@ Takes *data* as input and calculates the moving average of its items. This means
 
 The optional parameter *dropIncomplete* determines whether values are emitted for which fewer than *width* previous elements are available. This means that with *dropIncomplete* set to *true*, it will output n-*width* values for an input of n data values. With *dropIncomplete* set to *false*, it will output exactly n values.
 
-{{inconsistency:analysis-nonfinite-parameter-crashes}}
+Non-finite values inside the averaging window are skipped: the average is taken over the finite values only, and a window without any finite value yields NaN. An absent *width* input or an empty width buffer selects the default of 10, while a present but non-finite or negative width is an error yielding an empty output.
 
 {{spec:analysis/analysis/movingaverage}}

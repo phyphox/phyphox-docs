@@ -6,8 +6,6 @@ This module will initialize a buffer to a constant value. Both inputs are option
 
 An explicit *length* of 0, an empty length buffer and a non-finite or negative length value all yield an empty output; only an absent length input falls back to the size of the output buffer. An empty value buffer is an error yielding an empty output, while a present NaN value is allowed and fills the output with NaN as a deliberate initialization.
 
-{{inconsistency:analysis-nonfinite-parameter-crashes}}
-
 {{spec:analysis/analysis/const}}
 
 ## ramp
@@ -15,8 +13,6 @@ An explicit *length* of 0, an empty length buffer and a non-finite or negative l
 This module will create a ramp of values, i.e. a linear range of values. This is very useful to create time bases, for example for audio recordings. The module takes as inputs *start*, *stop* and the optional *length*. It will make sure that the first value is exactly *start* and the last value is *stop*. It will return *length* values or, if *length* is not provided, as many values as the size of the output buffer. A *length* of 1 outputs exactly the start value.
 
 An empty start/stop buffer and a non-finite start or stop value are errors yielding an empty output. The *length* input behaves like const's: an explicit 0, an empty buffer and a non-finite or negative value yield an empty output; only an absent length input falls back to the size of the output buffer.
-
-{{inconsistency:analysis-nonfinite-parameter-crashes}}
 
 {{spec:analysis/analysis/ramp}}
 

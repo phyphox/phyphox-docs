@@ -22,9 +22,9 @@ Furthermore, it takes *index*, *skip* and *last* as inputs. These represent the 
 
 The output is mainly *events*, which will hold the indices of detected events. Additionally, there are also index, skip and last as outputs, corresponding to the inputs.
 
-The criterion is set by the attribute "mode" determining whether raw values, derivatives or absolutes are used for triggering:
+A NaN threshold value participates in the comparisons like any number (no trigger ever fires); only an absent input or an empty buffer selects the default of 0. Absent *index*, *skip* and *last* inputs or empty buffers keep the documented start defaults (0, 0 and NaN); a present but non-finite *distance*, *index* or *skip* value is an error yielding empty outputs, which restarts the state loop from its defaults on the next run.
 
-{{inconsistency:analysis-nonfinite-parameter-crashes}}
+The criterion is set by the attribute "mode" determining whether raw values, derivatives or absolutes are used for triggering:
 
 {{spec:analysis/analysis/eventstream}}
 
@@ -169,9 +169,7 @@ The number of values returned matches the number of values in the shortest buffe
 
 Takes *data* as input and splits it into two buffers at the given *index*. A third parameter *overlap* makes it possible to set a number of elements from before the split index that will also end up in the second buffer. *index* defaults to the length of the input data if not given, i.e. the entire input is returned as the first output without any splitting, which only makes sense in combination with an overlap, for example to take all data from a buffer associated with the input from a sensor and set "overlap" such that a certain number of values is retained as a starting point for the next iteration.
 
-Negative and out-of-range positive values for *index* are clamped into range, as is *overlap*.
-
-{{inconsistency:analysis-nonfinite-parameter-crashes}}
+Negative and out-of-range positive values for *index* are clamped into range, as is *overlap*. A present but non-finite *index* or *overlap* value is an error yielding empty outputs; absent inputs or empty buffers keep the defaults (*index* = input length, *overlap* = 0).
 
 {{spec:analysis/analysis/split}}
 

@@ -45,6 +45,8 @@ You can then set the attribute *cycles* for any analysis module. If not set, the
 
 The values of the *type* attribute of inputs and outputs ("buffer", "value", "empty") are matched case-insensitively, like every enumerated attribute value.
 
+Analysis modules never abort the experiment on bad parameters. A present but invalid parameter value — such as NaN or an infinity where a count or width is expected — puts the module into an intermediate error state: it outputs NaN where a single value is expected and nothing where a list is expected, and recovers as soon as valid data arrives. An absent optional input keeps its documented default. Non-finite values that are mathematically meaningful, such as an infinite threshold or bound, participate in comparisons normally and are not errors. Configuration that can never work, on the other hand, is a load error rather than a runtime state and rejects the file.
+
 Buffers bound to interactive view elements (edit, toggle, dropdown, slider) are not exempt from clearing: an analysis input without keep="true" clears them like any other buffer, and the element then re-initializes both the buffer and the displayed value to its default. Use keep="true" on such inputs to preserve the user's setting across analysis cycles.
 
 ## List of analysis modules

@@ -114,53 +114,6 @@
 # development branches). Grouped by the decision each entry needs, not one
 # entry per symptom.
 
-- id: analysis-nonfinite-parameter-crashes
-  title: Non-finite or negative single-value parameters crash iOS
-  area: file-format
-  status: decided
-  canonical: >-
-    Analysis modules never crash. The scheme: an absent optional input falls
-    back to its documented default; a present but invalid parameter value
-    produces the module's error state - NaN when a single value is expected,
-    an empty output when a list is expected. Non-finite values that are
-    mathematically meaningful, such as an infinite threshold or bound,
-    participate in comparisons normally and are not errors. iOS replaces its
-    unguarded Int()/UInt() conversions; Android's blanket NaN-to-0 casts
-    change where they fabricate plausible parameters (a NaN movingaverage
-    width no longer acts as width 0). Settled residual cases (2026-08-19):
-    eventstream's index/skip/last inputs are the module's own state loop, not
-    user parameters - they keep their documented start defaults (0/0/NaN)
-    when empty, and only the iOS conversion traps are fixed; NaN threshold
-    values participate in comparisons (see threshold-nan-handling and
-    max-min-degenerate-inputs); a NaN const value is a permitted deliberate
-    NaN-fill (see const-ramp-length-handling).
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Sanitizes throughout: Double.intValue() turns NaN into 0 and clamps
-      infinities (movingaverage width, eventstream distance/index/skip,
-      split index/overlap), explicit NaN guards default binning's x0/dx,
-      and a negative const/ramp length falls back to the output buffer size
-      (Analysis.java, the respective modules).
-    ios: >-
-      Uses unguarded Int(Double) conversions, which trap: a NaN or infinite
-      value reaching Int() crashes the app in BinningAnalysis.swift (bin
-      index from NaN x0/dx in the buffer), MovingAverageAnalysis.swift
-      (width; a negative width also traps in the reversed range),
-      SplitAnalysis.swift (index/overlap), EventStreamAnalysis.swift
-      (distance/index/skip) and ConstGeneratorAnalysis.swift (length; a
-      negative length traps in Array(repeating:count:), also in
-      RampGeneratorAnalysis.swift). The guarded getSingleValueAsInt() exists
-      in ExperimentAnalysisDataIO.swift but is not used in these places.
-      Fully conforms to the canonical behaviour on the development branch
-      since 2026-08-19 (binning, movingaverage, split, eventstream and
-      const/ramp all guarded); only Android remains.
-  summary: >-
-    Where a single-value parameter (width, length, index, distance, ...)
-    carries NaN, an infinity or - for lengths - a negative value, Android
-    degrades gracefully while iOS crashes with an unguarded integer
-    conversion or array construction.
-
 - id: power-native-empty-input
   title: "power: empty input buffer on Android's native path"
   area: file-format
@@ -240,4 +193,3 @@
     With im shorter than re, Android pads and iOS truncates. Not covered by
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
-
