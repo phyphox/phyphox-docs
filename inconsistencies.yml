@@ -241,40 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: max-min-degenerate-inputs
-  title: "max/min: empty y input and x shorter than y"
-  area: file-format
-  status: decided
-  canonical: >-
-    An empty or all-invalid y input yields NaN on each connected output with
-    multiple=false and empty outputs with multiple=true. An x buffer shorter
-    than y truncates processing to the common length; only an omitted x
-    input keeps auto-generating indices. In multiple mode a NaN threshold
-    value participates like any number - no comparison is ever true, so the
-    whole input forms one set - while an absent threshold input or an empty
-    threshold buffer selects the documented default of 0 (ruled 2026-08-19;
-    Android currently lets an empty buffer's NaN participate instead).
-  decided: 2026-08-19
-  affects:
-    android: >-
-      Empty (or all-NaN) y emits nothing (the -infinity position guard);
-      an x buffer shorter than y keeps counting x up from the last x value
-      (maxAM/minAM).
-    ios: >-
-      Empty y appends a value anyway (vDSP_maxvD/minvD on zero elements:
-      -inf for max, the 0.0/-inf initializers for min, and with a position
-      output x = xIn.data[0] traps on an empty x buffer). An x buffer
-      shorter than y traps with index-out-of-range in both the single and
-      multiple branches (MaxAnalysis.swift:99/126 pattern, the ?? only
-      covers a missing x input). The single-value branches followed vDSP,
-      which was measured (2026-08-19, iOS runtime) to propagate NaN. Fully
-      conforms to the canonical behaviour on the development branch since
-      2026-08-19 (comparison loops like Android, truncation, NaN/empty error
-      states); only Android remains.
-  summary: >-
-    Degenerate max/min inputs emit nothing on Android but bogus values or a
-    crash on iOS.
-
 - id: map-edge-cases
   title: "map: non-finite points, missing z, degenerate ranges"
   area: file-format
