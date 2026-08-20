@@ -126,9 +126,19 @@ elements:
         description: >-
           The minimum time in seconds before the whole analysis block is
           executed again after the last execution has finished. Decimal
-          values are allowed; the default of 0 re-runs the block
-          immediately.
+          values are allowed. Independently of this attribute (and of
+          dynamicSleep), both apps pause at least about 10 ms between
+          runs, so the analysis never runs faster than roughly 100 Hz -
+          the default of 0 simply means as fast as that limit allows.
         agreement: agreed
+        note: >-
+          The 10 ms floor was verified 2026-08-20: Android's analysis
+          thread sleeps a fixed 10 ms between loop iterations
+          (Experiment.java, updateData runnable, Thread.sleep(10));
+          iOS clamps the inter-cycle delay with max(1/100.0, sleep)
+          (ExperimentAnalysis.swift). The docs used to claim sleep=0
+          re-runs immediately. iOS skips the delay entirely for the
+          first cycle after start; the floor applies from then on.
       - name: dynamicSleep
         type: string
         since: "1.5"

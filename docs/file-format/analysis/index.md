@@ -2,7 +2,7 @@
 
 The analysis block describes all the math required for the experiment. Each element within this block is executed consecutively and usually reads from a data-container, performs a mathematical operation on the data and writes the results to another data-container.
 
-In most experiments the analysis block is executed in a loop, so the experiment data is analyzed as fast as possible. However, if you need to acquire a certain amount of data first (mostly when recording from the microphone) or if the results only change if the user changes a parameter, you can define the attributes *sleep*, *dynamicSleep* and/or *onUserInput* to pause the analysis loop.
+In most experiments the analysis block is executed in a loop, so the experiment data is analyzed as fast as possible (capped at roughly 100 executions per second). However, if you need to acquire a certain amount of data first (mostly when recording from the microphone) or if the results only change if the user changes a parameter, you can define the attributes *sleep*, *dynamicSleep* and/or *onUserInput* to pause the analysis loop.
 
 {{spec:analysis/phyphox/analysis|attributes}}
 
