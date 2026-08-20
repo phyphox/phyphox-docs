@@ -16,7 +16,7 @@ This module represents the transfer function of a Butterworth filter. It takes t
 
 This module will calculate a crosscorrelation of two inputs. It will only calculate offsets at which the smaller buffer is entirely covered by the larger one, leaving out the last such offset. So with one input buffer of size n and one input of size m it will return exactly abs(m-n) values. If you need the crosscorrelation of two buffers of similar size, you will need to pad one of them with zeros first.
 
-{{inconsistency:crosscorrelation-normalization}}
+The output values are the raw correlation sums without any normalization, matching the default of numpy.correlate, scipy.signal.correlate and MATLAB xcorr. Any empty input yields an empty output.
 
 {{spec:analysis/analysis/crosscorrelation}}
 
