@@ -223,7 +223,7 @@ elements:
           time: >-
             Sends the current system time in seconds since 1970.
             The tag needs no content, so <send id="x" type="time"
-            /> is sufficient. Compact data formats such as HTTP
+            /\> is sufficient. Compact data formats such as HTTP
             GET parameters send only the current timestamp, while
             richer ones such as JSON can also include the list of
             start and pause events with matching experiment time
