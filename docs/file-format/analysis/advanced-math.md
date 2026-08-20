@@ -1,5 +1,7 @@
 # Advanced math
 
+The `<input>` and `<output>` tags of every module on this page additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
 ## autocorrelation
 
 This module will calculate the autocorrelation. It takes at least one input buffer *y*, but can take a second input *x* as well. If *x* is omitted, it will be filled with indices. Additionally, single value inputs *minX* and *maxX* can be set as well. These restrict the output to the given x range. Without them the module returns as many values as provided by the input buffer; with them only the lags within the range are returned. The output buffer *y* is filled with the autocorrelation of the *y* input buffer, each lag divided by the number of samples that overlap at that lag - so the value at lag zero is the mean square of the input, not 1. The *x* output buffer is optional; if connected, it will be filled with the relative *x* of the autocorrelation based on the *x* input buffer.

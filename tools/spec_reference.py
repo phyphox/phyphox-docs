@@ -440,18 +440,11 @@ def render_slots(element, spec, state, block):
                        "group: a further set of tags in the same order adds "
                        "another one.")
 
-    if out and element.get("parent") == "analysis":
-        shared_in = spec.shared_for(block, element, "input")
-        shared_out = spec.shared_for(block, element, "output")
-        # True for every analysis module without exception (both parsers use a
-        # single shared i/o parsing path), so the reminder is emitted once per
-        # page rather than under each of its modules.
-        if (shared_in or shared_out) and "common-io-note" not in state.seen:
-            state.seen.add("common-io-note")
-            out.append("The `<input>` and `<output>` tags of every analysis "
-                       "module on this page additionally accept the "
-                       "[attributes common to all analysis modules]"
-                       "(index.md#analysis-modules-in-general).")
+    # Every analysis module's inputs and outputs also accept the attributes
+    # from the block's common: groups (both parsers use a single shared i/o
+    # parsing path, so there are no exceptions). The reminder for that is
+    # hand-written prose above the first module of each category page rather
+    # than generated here, so readers see it before any module.
     return "\n\n".join(out)
 
 

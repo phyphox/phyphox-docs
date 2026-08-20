@@ -1,5 +1,7 @@
 # Buffer operations
 
+The `<input>` and `<output>` tags of every module on this page additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
 ## append
 
 This module appends all the values of the input buffers to a single output buffer. The order of the buffers will match the order in which their values appear in the output buffer. This module will return as many values as the sum of the input buffer sizes. A literal NaN given as a type="value" input is appended like any other value.

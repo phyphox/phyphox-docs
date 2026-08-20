@@ -2,7 +2,9 @@
 
 **Available since phyphox file format 1.7 (phyphox 1.1.0)**
 
-For simple calculations, you can either use the math nodes listed below or write it all in a single formula node. In most cases, when you would need multiple math nodes otherwise, the formula node is faster as it does not need to read and write large buffers multiple times but can do the whole calculation in a single step. However, in some cases, not all options are available in the formula node and the implementations of both versions are not necessarily identical.
+The `<input>` and `<output>` tags of the formula module additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
+For simple calculations, you can either use the math nodes listed on the next pages or write it all in a single formula node. In most cases, when you would need multiple math nodes otherwise, the formula node is faster as it does not need to read and write large buffers multiple times but can do the whole calculation in a single step. However, in some cases, not all options are available in the formula node and the implementations of both versions are not necessarily identical.
 
 ```xml
 <formula formula="[1]+sqrt((7+[2_])^[3_])">

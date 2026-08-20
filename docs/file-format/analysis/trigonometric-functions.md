@@ -1,5 +1,7 @@
 # Trigonometric functions
 
+The `<input>` and `<output>` tags of every module on this page additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
 ## acos
 
 Calculates the inverse cosine of a single input element-wise and writes the resulting angle to a single output buffer. This module will write as many values as there are values in the input buffer. The angle is returned in radians unless degrees are requested using the *deg* attribute.

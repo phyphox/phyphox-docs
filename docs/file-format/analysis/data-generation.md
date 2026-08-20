@@ -1,5 +1,7 @@
 # Data generation
 
+The `<input>` and `<output>` tags of every module on this page additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
 ## const
 
 This module will initialize a buffer to a constant value. Both inputs are optional, and without any inputs it will fill the entire buffer with zero. If *value* is set, the buffer gets filled with this value, and if *length* is set, only *length* values will be initialized. (This is useful in combination with the *append* module to zero-pad a buffer.)

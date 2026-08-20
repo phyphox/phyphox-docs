@@ -1,5 +1,7 @@
 # Basic math
 
+The `<input>` and `<output>` tags of every module on this page additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
 ## abs (absolute)
 
 Calculates the absolute value of a single input element-wise and writes it to a single output buffer. This module will write as many values as there are values in the input buffer.

@@ -1,5 +1,7 @@
 # Logic
 
+The `<input>` and `<output>` tags of every module on this page additionally accept the [attributes common to all analysis modules](index.md#analysis-modules-in-general).
+
 ## if
 
 The if module is the phyphox equivalent to the if-statement of a programming language. It takes two inputs a and b and will behave differently depending on the relation of the last values found there. By changing the attributes *less*, *equal* or *greater*, you can decide whether you are looking for a \< b, a = b or a \> b, respectively. If the relation is true, the if-module will write the data from the input *true* to the output, otherwise it will write the data from the input *false*. If you enable multiple attributes, the input *true* is used if any of them is fulfilled, so if you enable *less* and *equal*, a \<= b will write the *true* input to the output, while a \> b writes the *false* input.
