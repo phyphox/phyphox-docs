@@ -23,4 +23,4 @@ Alternatively, you can use the names of defined colors. Phyphox often uses orang
 | `weakyellow` | `e7e09b` | <span style="display:inline-block;width:3em;height:1em;vertical-align:middle;background:#e7e09b;border:1px solid rgba(128,128,128,.4)"></span> |
 | `weakwhite` | `c4c4c4` | <span style="display:inline-block;width:3em;height:1em;vertical-align:middle;background:#c4c4c4;border:1px solid rgba(128,128,128,.4)"></span> |
 
-The advantage of using these colors (besides using intuitive names) is that phyphox can adapt them even for future functions. For example, if a bright mode or an export function for printing is introduced, which requires colors to work on a bright (or even white) background, yellow from the list above could automatically be replaced by a darker variation that works well on the bright background.
+Note that phyphox will adjust the colors in light mode in some cases. This is true for named colors as well as colors given in hex form. For example, the color "weakyellow" is well visible on the default phyphox dark background, but would be nearly invisible in light mode, so phyphox will adjust its brightness.
