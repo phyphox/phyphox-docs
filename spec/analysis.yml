@@ -1063,6 +1063,8 @@ elements:
         as_required: true
         min: 0
         max: 1
+        remark: >-
+          Current battery level of the device that runs phyphox.
         agreement: agreed
         note: >-
           Android's table had asRequired = false for this slot alone; fixed on
@@ -1074,7 +1076,8 @@ elements:
         agreement: platform
         platforms: [android]
         remark: >-
-          Android only. iOS cannot obtain this metric and leaves the data
+          Signal strength of the current wifi connection. Only available on
+          Android - iOS cannot obtain this metric and leaves the data
           container empty rather than refusing the file, so the module's other
           outputs stay usable.
         note: >-
@@ -1086,10 +1089,15 @@ elements:
         as_required: true
         min: 0
         max: 1
+        remark: >-
+          Volume of the audio output (playback audio stream).
       - name: batteryVoltage
         as_required: true
         min: 0
         max: 1
+        remark: >-
+          Current battery voltage of the device that runs phyphox. Only
+          available on Android.
         agreement: platform
         platforms: [android]
         since: "1.20"
@@ -1097,6 +1105,11 @@ elements:
         as_required: true
         min: 0
         max: 1
+        remark: >-
+          Current battery current of the device that runs phyphox. Android's
+          convention is that positive values are charging the battery, but
+          there have been reports of devices not following that convention
+          correctly. Only available on Android.
         agreement: platform
         platforms: [android]
         since: "1.20"
@@ -1104,6 +1117,9 @@ elements:
         as_required: true
         min: 0
         max: 1
+        remark: >-
+          Current battery temperature of the device that runs phyphox. Only
+          available on Android.
         agreement: platform
         platforms: [android]
         since: "1.20"

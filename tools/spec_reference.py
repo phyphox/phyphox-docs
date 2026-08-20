@@ -427,9 +427,11 @@ def render_slots(element, spec, state, block):
                     "|---|---|---|"]
         repeats, footnotes = [], []
         for slot in slots:
-            if slot.get("remark"):
+            badge = _since_badge(slot.get("since"), spec, state.link_prefix)
+            if slot.get("remark") or badge:
                 footnotes.append(f"`{slot['name']}`\n:   "
-                                 + _sentence(slot["remark"]))
+                                 + (badge + " " if badge else "")
+                                 + _sentence(slot.get("remark") or ""))
             if slot.get("inconsistency"):
                 footnotes.append(f"`{slot['name']}`\n:   " + _divergence_pointer(
                     slot["inconsistency"], spec, state))

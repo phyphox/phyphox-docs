@@ -33,15 +33,3 @@ The info module is used as a generic way to access system information like the d
 The module has no attributes, but several outputs, which are all optional and determine the system information to be retrieved:
 
 {{spec:analysis/analysis/info}}
-
-Current battery level of the device that runs phyphox.
-
-Signal strength of the current wifi connection. (Only available on Android.)
-
-Volume of the audio output (playback audio stream).
-
-Current battery voltage of the device that runs phyphox. (Only available on Android.) **Available since phyphox file format 1.20 (phyphox 1.2.1)**
-
-Current battery current of the device that runs phyphox. Android's convention is that positive values are charging the battery, but there have been reports of devices not following that convention correctly. (Only available on Android.) **Available since phyphox file format 1.20 (phyphox 1.2.1)**
-
-Current battery temperature of the device that runs phyphox. (Only available on Android.) **Available since phyphox file format 1.20 (phyphox 1.2.1)**
