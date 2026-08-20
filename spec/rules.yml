@@ -181,6 +181,43 @@ rules:
       buffer. Worth a pass over the bundled experiment collection with the
       stricter parser before the release that carries it.
 
+  - id: tag-case-insensitive
+    decided: 2026-08-20
+    summary: Element (tag) names are matched without regard to case.
+    rule: >-
+      A parser folds case before dispatching on an element name, so <Graph>
+      and <graph> are the same element. This holds as long as no two element
+      names differ only in case; none do today - every name is lowercase or
+      lowercase-with-hyphens - and none may be introduced. This rule covers
+      element names only: attribute NAMES are matched exactly everywhere
+      (decided 2026-08-20 while settling the graph input tags, whose
+      lowercased attribute matching on Android was the single exception and
+      was removed).
+    rationale: >-
+      Android's main parser has dispatched on lowercased tag names since the
+      beginning, so configurations with off-case tags load there and always
+      have. Matching case-sensitively would break those files; folding on
+      iOS as well unifies the platforms in the direction that keeps
+      existing files working, consistent with enum-case-insensitive.
+    applies_to: every element name in the format
+    state:
+      android: >-
+        The main parser has always folded (PhyphoxFile.java, the
+        "switch (tag.toLowerCase())" dispatch in every block parser); the
+        experiment-list scanner's tag switches were brought in line during
+        the 2026-08 parsing unification. Shipped in 1.2.1-beta4.
+      ios: >-
+        Conforms as of the development branch: child handlers are looked up
+        with a lowercased element name
+        (DocumentParser+Extensions.swift, "childHandlers[
+        elementName.lowercased()]"). The released app before 1.2.1 matched
+        exactly. Shipped in the 1.2.1 beta of 2026-08-20.
+    check: >-
+      Before adding an element to the spec, verify its name does not collide
+      with an existing one once case-folded, and prefer all-lowercase names
+      (hyphenated where needed, like camera-gui).
+
+
 # The "one-sided attributes" question, which the input probe expected to be a
 # growing case-by-case list, did not survive scrutiny. Of the six attributes it
 # started with, one was never one-sided at all (bluetooth/id, read by both), two
