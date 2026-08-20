@@ -160,6 +160,34 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
             rep.add("bad enum value", fname,
                     f"{path}<{node.tag}> {attr}=\"{value}\" not in {allowed}")
 
+    # The graph element's dataset pairing (decided 2026-08-20, amended the
+    # same day; graph-multiset-input-order in inconsistencies.yml): with
+    # exactly as many x as y inputs they pair 1-on-1 in order; with fewer x
+    # than y, each y uses the most recent preceding x (or an index axis) and
+    # any x no y uses - trailing or shadowed - is an error. Several shipped
+    # Bluetooth experiments rely on the equal-count y-then-x form, which is
+    # why this is validated here rather than assumed.
+    if node.tag == "graph":
+        seq = [(c.get("axis") or "").lower() for c in node
+               if c.tag.split("}")[-1] == "input"]
+        seq = [a for a in seq if a in ("x", "y")]
+        nx, ny = seq.count("x"), seq.count("y")
+        if nx != ny:
+            used, last = set(), None
+            for k, a in enumerate(seq):
+                if a == "x":
+                    last = k
+                elif last is not None:
+                    used.add(last)
+            xpos = 0
+            for k, a in enumerate(seq):
+                if a == "x":
+                    xpos += 1
+                    if k not in used:
+                        rep.add("unused graph x input", fname,
+                                f"{path}<graph>: x input {xpos} of {nx} is "
+                                f"used by no y input ({ny} y inputs)")
+
     for child in node:
         check_element(child, node.tag, spec, common, slots, components, rep,
                       f"{path}<{node.tag}>/", fname)

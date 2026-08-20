@@ -1,0 +1,26 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Invalid per graph-multiset-input-order (ruled 2026-08-20): with
+         unequal x and y counts, an x input that no y input uses - trailing
+         or shadowed - is an error. -->
+    <title>Corpus: unused graph x inputs</title>
+    <category>Corpus</category>
+    <description>Trailing and shadowed x inputs.</description>
+    <data-containers>
+        <container size="100">t</container>
+        <container size="100">a</container>
+    </data-containers>
+    <views>
+        <view label="Bad">
+            <graph label="trailing x">
+                <input axis="x">t</input>
+                <input axis="y">a</input>
+                <input axis="x">t</input>
+            </graph>
+            <graph label="shadowed x">
+                <input axis="x">t</input>
+                <input axis="x">t</input>
+                <input axis="y">a</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

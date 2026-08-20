@@ -452,6 +452,9 @@
 - file: valid/view-tests/ascii.phyphox
   version: "1.19"
   adds: []
+- file: valid/view-tests/graph-input-orders.phyphox
+  version: "1.20"
+  adds: []
 - file: valid/view-tests/info.phyphox
   version: "1.12"
   adds:

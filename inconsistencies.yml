@@ -184,14 +184,20 @@
   area: file-format
   status: decided
   canonical: >-
-    With inheritance decided, ordering needs no pairing rules: every y input
-    is one dataset, plotted against the most recent preceding x input, or
-    against the element index if none preceded it. Any x input that no y
-    input uses - trailing, or shadowed by a later x before any y consumed it
-    - is an error (ruled 2026-08-20). Android replaces
-    its slot-group machinery accordingly; iOS drops the more-than-two-inputs
-    special case and the backward attachment of an x to an earlier y, and
-    both add the unused-trailing-x error.
+    Every y input is one dataset. If the number of x inputs equals the
+    number of y inputs (z inputs do not count), the x and y inputs are
+    matched 1-on-1 in order of appearance, regardless of interleaving -
+    this covers the y-then-x pattern used by several shipped Bluetooth
+    experiments. Otherwise each y is plotted against the most recent
+    preceding x input, or against its element index if none preceded it,
+    and any x input that no y input uses - trailing, or shadowed by a later
+    x before any y consumed it - is an error (ruled 2026-08-20, amended
+    2026-08-20 with the equal-count case). The two branches never conflict:
+    an equal-count file is either the strict x-then-y interleave, where the
+    sequential rule pairs identically, or a file the sequential rule would
+    reject - so the special case only turns errors into defined pairings.
+    Both platforms implement this model; the shipped-experiment validation
+    checks it.
   decided: 2026-08-20
   affects:
     android: >-
