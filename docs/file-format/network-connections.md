@@ -1,6 +1,6 @@
 # Network Connections
 
-Since version 1.1.3 (December 2019) (file format 1.8), phyphox features a versatile interface for network connections. This is done on an experiment configuration level, so to use the network communication for your own project, you need to create your own [experiment configuration](index.md). In it, you can then define how network services should be discovered, when and which data should be sent, where to put received data and which protocols to use for the communication.
+Since version 1.1.3 (file format 1.8), phyphox features a versatile interface for network connections. This is done on an experiment configuration level, so to use the network communication for your own project, you need to create your own [experiment configuration](index.md). In it, you can then define how network services should be discovered, when and which data should be sent, where to put received data and which protocols to use for the communication.
 
 This network interface is designed to be easily extended, so while at the time of this writing not many services (protocols) are supported, you can expect more to come in the future, and if you think something relevant is missing, let us know so we can implement it.
 
@@ -346,7 +346,7 @@ Here are some example XML files for different scenarios, which might help you ge
 
 #### [Send data via HTTP/POST in JSON format](https://phyphox.org/wiki/images/8/82/Http-post-example.phyphox)
 
-This minimalistic example collects data from the accelerometer at a rate of 4Hz and sends the last 20 collected values every 5 seconds to a php script via HTTP POST. Any reply from the server is ignored (you might want to consider using the response as a confirmation to the user by mapping response values to texts via the mapping function of the [value element](views.md#view-element-value)).
+This minimalistic example collects data from the accelerometer at a rate of 4Hz and sends the last 20 collected values every 5 seconds to a php script via HTTP POST. Any reply from the server is ignored (you might want to consider using the response as a confirmation to the user by mapping response values to texts via the mapping function of the [value element](views/index.md#view-element-value)).
 
 The following is a minimalistic example for a PHP script receiving the data and writing it to a simple text file. Note that you need to explicitly parse the JSON data from `php://input` instead of directly accessing POST as you might be used to when receiving data from web forms.
 

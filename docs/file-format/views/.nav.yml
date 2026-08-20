@@ -1,0 +1,7 @@
+# The basics stay on the index; the larger element groups get their own page,
+# ordered roughly as elements appear in typical experiments.
+nav:
+  - index.md
+  - graph.md
+  - user-input.md
+  - preview.md

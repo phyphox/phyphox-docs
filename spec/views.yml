@@ -4,7 +4,7 @@
 #   Android  PhyphoxFile.java, viewsBlockParser / viewBlockParser (b4564695)
 #   iOS      Serialization/Handlers/ViewsElementHandler.swift and
 #            Serialization/Handlers/ViewHandlers/*.swift            (a0643729)
-#   docs     docs/file-format/views.md
+#   docs     docs/file-format/views/ (index, graph, user-input, preview)
 #
 # `agreement:` records what that comparison found. See README.md. Where an entry
 # has since been decided, `rules:` names the rule in rules.yml that settles it.
@@ -88,7 +88,7 @@ elements:
       - name: color
         description: >-
           The text color as six-digit RGB hex value or a named
-          choice from the phyphox [Colors](colors.md)
+          choice from the phyphox [Colors](../colors.md)
         since: "1.7"
         type: color
         rules: [color-invalid-value]
@@ -159,7 +159,7 @@ elements:
         description: >-
           The color of the whole (rectangular) element as six-digit
           RGB hex value or a named choice from the phyphox
-          [Colors](colors.md)
+          [Colors](../colors.md)
         type: color
         rules: [color-invalid-value]
         summary: Fill color. Defaults to the background, making it invisible.
@@ -193,7 +193,7 @@ elements:
       - name: color
         description: >-
           The text color as six-digit RGB hex value or a named
-          choice from the phyphox [Colors](colors.md)
+          choice from the phyphox [Colors](../colors.md)
         since: "1.7"
         type: color
         rules: [color-invalid-value]
@@ -528,7 +528,7 @@ elements:
       - name: color
         description: >-
           Color of the graph line as six-digit RGB hex value or a
-          named choice from the phyphox [Colors](colors.md)
+          named choice from the phyphox [Colors](../colors.md)
         type: color
         rules: [color-invalid-value]
         summary: Color of the first dataset.

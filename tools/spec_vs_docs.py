@@ -38,7 +38,8 @@ if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
 # spec file -> documentation pages describing the same block
 PAIRS = {
     "input.yml": ["input.md", "bluetooth-low-energy.md"],
-    "views.yml": ["views.md"],
+    "views.yml": ["views/index.md", "views/graph.md", "views/user-input.md",
+                  "views/preview.md"],
     "network.yml": ["network-connections.md"],
     "root.yml": ["index.md"],
     "output.yml": ["output.md", "bluetooth-low-energy.md"],

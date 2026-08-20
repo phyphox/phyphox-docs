@@ -5,7 +5,7 @@ nav:
   - input.md
   - output.md
   - analysis
-  - views.md
+  - views
   - network-connections.md
   - bluetooth-low-energy.md
   - colors.md

@@ -213,22 +213,22 @@ The analysis block describes all the math required for the experiment. Its attri
 
 ## Block: views
 
-The views block describes the different layout groups (views) from which the user may choose to view the experiment data. It is documented on a [separate page](views.md).
+The views block describes the different layout groups (views) from which the user may choose to view the experiment data. It is documented on a [separate page](views/index.md).
 
 Each view can be built from individual view elements:
 
-- [info](views.md#view-element-info)
-- [separator](views.md#view-element-separator)
-- [value](views.md#view-element-value)
-- [graph](views.md#view-element-graph)
-- [edit](views.md#view-element-edit)
-- [button](views.md#view-element-button)
-- [toggle](views.md#view-element-toggle)
-- [slider](views.md#view-element-slider)
-- [dropdown](views.md#view-element-dropdown)
-- [camera-gui](views.md#view-element-camera-gui)
-- [depth-gui](views.md#view-element-depth-gui)
-- [image](views.md#view-element-image)
+- [info](views/index.md#view-element-info)
+- [separator](views/index.md#view-element-separator)
+- [value](views/index.md#view-element-value)
+- [graph](views/graph.md)
+- [edit](views/user-input.md#view-element-edit)
+- [button](views/user-input.md#view-element-button)
+- [toggle](views/user-input.md#view-element-toggle)
+- [slider](views/user-input.md#view-element-slider)
+- [dropdown](views/user-input.md#view-element-dropdown)
+- [camera-gui](views/preview.md#view-element-camera-gui)
+- [depth-gui](views/preview.md#view-element-depth-gui)
+- [image](views/index.md#view-element-image)
 
 ## Block: export
 
