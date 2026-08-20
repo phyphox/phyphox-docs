@@ -400,8 +400,15 @@ def render_slots(element, spec, state, block):
         if not isinstance(slots, list) or not slots:
             continue
         label = "input" if kind == "inputs" else "output"
-        rows = ["| `as` | Count | `as` required | Literal value |",
-                "|---|---|---|---|"]
+        # Outputs are always data containers - no slot in the spec allows a
+        # value or empty type there - so only the input table carries the
+        # "Allowed types" column listing the permitted type attribute values.
+        if kind == "inputs":
+            rows = ["| `as` | Count | `as` required | Allowed types |",
+                    "|---|---|---|---|"]
+        else:
+            rows = ["| `as` | Count | `as` required |",
+                    "|---|---|---|"]
         repeats, footnotes = [], []
         for slot in slots:
             if slot.get("remark"):
@@ -410,16 +417,19 @@ def render_slots(element, spec, state, block):
             if slot.get("inconsistency"):
                 footnotes.append(f"`{slot['name']}`\n:   " + _divergence_pointer(
                     slot["inconsistency"], spec, state))
-            value = ("n/a" if kind == "outputs"
-                     else ("allowed" if slot.get("allows_value") else "no"))
-            if slot.get("allows_empty"):
-                value += ", `type=\"empty\"` allowed"
             count = _count(slot)
             if slot.get("default") is not None:
                 count += f", defaults to {_render_value(slot['default'])}"
-            rows.append(f"| `{slot['name']}` | {count} | "
-                        f"{'yes' if slot.get('as_required', True) else 'no'} | "
-                        f"{value} |")
+            row = (f"| `{slot['name']}` | {count} | "
+                   f"{'yes' if slot.get('as_required', True) else 'no'} |")
+            if kind == "inputs":
+                types = ["`buffer`"]
+                if slot.get("allows_value"):
+                    types.append("`value`")
+                if slot.get("allows_empty"):
+                    types.append("`empty`")
+                row += f" {', '.join(types)} |"
+            rows.append(row)
             if slot.get("repeat_offset"):
                 repeats.append(slot["name"])
         out.append(f"**{label.capitalize()}s**\n\n" + "\n".join(rows))
