@@ -767,16 +767,28 @@ elements:
   - name: input
     parent: graph
     since: "1.0"
-    summary: One dataset of a graph, naming the data container to plot.
+    summary: One dataset axis of a graph, naming the data container to plot.
     text: Name of the data container to plot on this axis.
+    remark: >-
+      Several datasets are defined by several input pairs. Write each
+      dataset as its x input directly followed by its y input (or a y input
+      alone for an index axis) - this interleaved order is the only one the
+      platforms pair identically. The per-dataset attributes color,
+      lineWidth and style may sit on either input of the pair; the last one
+      wins, and the graph-level attributes are the defaults for every
+      dataset.
     attributes:
       - name: axis
         type: enum
         required: true
         values: [x, y, z]
         summary: Which axis this container supplies.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: graph-input-axis-required
         rules: [enum-invalid-value, enum-case-insensitive]
+        note: >-
+          required reflects iOS, which rejects an input without axis;
+          Android treats an unnamed input as y. Verified 2026-08-20.
       - name: color
         type: color
         rules: [color-invalid-value]
@@ -785,12 +797,24 @@ elements:
       - name: lineWidth
         type: float
         summary: Line width of this dataset, overriding the graph's.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: graph-input-attribute-case
+        note: >-
+          The attribute itself is agreed; the divergence is the name
+          matching - Android accepts any case (linewidth works), iOS only
+          the exact lineWidth. Verified 2026-08-20.
       - name: style
         type: enum
         values: [lines, dots, hbars, vbars, map]
         summary: Style of this dataset, overriding the graph's.
         agreement: agreed
+      - name: mapWidth
+        type: integer
+        summary: >-
+          Row length of this dataset for the map style, overriding the
+          graph's.
+        agreement: divergent
+        inconsistency: graph-input-mapwidth
 
   - name: output
     parent: graph

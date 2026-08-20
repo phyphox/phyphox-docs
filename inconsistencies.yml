@@ -126,3 +126,100 @@
     without it loads and runs on both platforms. The always-present "visit
     privacy policy" button then crashes Android and does nothing on iOS;
     both change to showing the button only when a URL is present.
+
+# Entries below stem from the 2026-08-20 deep-dive into multi-dataset graphs
+# (several inputs with the same axis in one graph element), maintainer-
+# requested: the pairing logic had never been audited.
+
+- id: graph-input-axis-required
+  title: "graph: input without an axis attribute"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      The axis attribute is optional and an unnamed input becomes a y
+      dataset (PhyphoxFile.java, graph inputMapping: slot y has asRequired =
+      false).
+    ios: >-
+      The axis attribute is required; an input without it rejects the file
+      (GraphViewElementHandler.swift, "try attributes.value(for: .axis)").
+  summary: >-
+    A graph input without axis loads as a y dataset on Android and rejects
+    the file on iOS. The spec used to state required: true, which was only
+    iOS's view.
+
+- id: graph-multiset-omitted-x
+  title: "graph: a later dataset without its own x input"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      A dataset group without an x input plots its y values against the
+      element index - no inheritance from other datasets (ExpView.java
+      graphElement, null dataX; the parser leaves the group's x slot empty).
+    ios: >-
+      A new dataset starts by inheriting the previous dataset's x buffer
+      (GraphViewElementHandler.swift,
+      "xInputBufferNames.append(xInputBufferNames[inputCount-1])"), so one
+      x input followed by several y inputs plots every y against that x.
+  summary: >-
+    The natural way to plot several curves over one shared axis - a single
+    x input followed by several y inputs - yields different graphs: y
+    against the shared x on iOS, y against the sample index on Android.
+
+- id: graph-multiset-input-order
+  title: "graph: dataset pairing for input orders other than x,y per set"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Slot-group machinery: each y opens a group and an x attaches to the
+      LAST group with a free x slot (ioBlockParser repeatable groups). The
+      y,x per-set order works; several y inputs followed by several x
+      inputs mispairs - the first x lands in the last y group and the
+      remaining x inputs form y-less groups.
+    ios: >-
+      Sequential state machine: with more than two inputs, every x input
+      starts a new dataset, and a dataset left without a y rejects the file
+      (GraphViewElementHandler.swift, "missingChildElement(input[axis=y])").
+      The y,x per-set order therefore rejects the file once there is more
+      than one dataset, as does y inputs followed by x inputs.
+  summary: >-
+    Only the interleaved order - x input directly before its y input, per
+    dataset - is paired identically on both platforms. Other orders load
+    with different pairings on Android and often reject the file on iOS.
+
+- id: graph-input-mapwidth
+  title: "graph: per-dataset mapWidth on input tags"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Reads mapWidth from individual input tags, overriding the graph-level
+      attribute per dataset (PhyphoxFile.java, the AdditionalTag loop,
+      "mapwidth").
+    ios: >-
+      Only the graph-level mapWidth attribute exists; on an input tag the
+      attribute is silently ignored like any unknown attribute
+      (GraphViewElementHandler.swift, input Attribute enum: axis, color,
+      lineWidth, style).
+  summary: >-
+    A per-dataset mapWidth is honored on Android and silently ignored on
+    iOS.
+
+- id: graph-input-attribute-case
+  title: "graph: attribute-name case on input tags"
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      The per-input attributes are collected with lowercased names
+      (ioBlockParser, AdditionalTag), so lineWidth, linewidth or LINEWIDTH
+      all work on an input tag.
+    ios: >-
+      Attribute names are matched exactly; only lineWidth works, and
+      linewidth is silently ignored (GraphViewElementHandler.swift).
+  summary: >-
+    Attribute names on graph input tags are matched case-insensitively on
+    Android and case-sensitively on iOS. Only lineWidth is affected in
+    practice - the other per-input attributes are single lowercase words.
