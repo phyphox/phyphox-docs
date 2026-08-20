@@ -718,57 +718,23 @@ elements:
         default: true
         summary: Show the color scale beside a map.
         agreement: agreed
-      - name: mapColor1
+      - name: mapColorN
+        name_pattern: "mapColor[1-9][0-9]*"
         type: color
         rules: [color-invalid-value]
         summary: >-
-          First stop of the color scale for a map style. The stops are read in
-          order and the scale ends at the first one that is absent, so they must
-          be numbered without gaps.
+          The n-th stop of the color scale for a map style, for any n from 1
+          upward (mapColor1, mapColor2, ...). The stops are read in order and
+          the scale ends at the first number that is absent, so they must be
+          numbered without gaps.
         agreement: agreed
-      - name: mapColor2
-        type: color
-        rules: [color-invalid-value]
-        summary: Second stop of the map color scale.
-        agreement: agreed
-      - name: mapColor3
-        type: color
-        rules: [color-invalid-value]
-        summary: Third stop of the map color scale.
-        agreement: agreed
-      - name: mapColor4
-        type: color
-        rules: [color-invalid-value]
-        summary: Fourth stop of the map color scale.
-        agreement: agreed
-      - name: mapColor5
-        type: color
-        rules: [color-invalid-value]
-        summary: Fifth stop of the map color scale.
-        agreement: agreed
-      - name: mapColor6
-        type: color
-        rules: [color-invalid-value]
-        summary: Sixth stop of the map color scale.
-        agreement: agreed
-      - name: mapColor7
-        type: color
-        rules: [color-invalid-value]
-        summary: Seventh stop of the map color scale.
-        agreement: agreed
-      - name: mapColor8
-        type: color
-        rules: [color-invalid-value]
-        summary: Eighth stop of the map color scale.
-        agreement: agreed
-      - name: mapColor9
-        type: color
-        rules: [color-invalid-value]
-        summary: >-
-          Ninth stop of the map color scale. There is no upper limit - the scale
-          ends at the first gap in the numbering - so mapColor10 and beyond are
-          valid on both platforms.
-        agreement: agreed
+        note: >-
+          Both parsers construct the name dynamically - Android as
+          "mapColor" + index in a loop (GraphView setup via PhyphoxFile),
+          iOS via dynamic attribute keys in a while loop
+          (GraphViewElementHandler.swift, whose enum cases mapColor1-9 are
+          vestigial). The count is unbounded on both. name_pattern makes the
+          validators accept every matching name.
       - name: interpolateMapColors
         description: >-
           Interpolate area between data points. If disabled, phyphox

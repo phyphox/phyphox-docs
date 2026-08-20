@@ -124,6 +124,17 @@ def from_docs(page):
     return elements, terms | mentioned
 
 
+def patterns_from_spec(fn):
+    """element -> [compiled name_pattern] for dynamically numbered attributes."""
+    doc = yaml.safe_load(open(os.path.join(SPEC, fn), encoding="utf-8"))
+    out = {}
+    for el in doc.get("elements") or []:
+        for a in el.get("attributes") or []:
+            if a.get("name_pattern"):
+                out.setdefault(el["name"], []).append(re.compile(a["name_pattern"]))
+    return out
+
+
 def from_spec(fn):
     doc = yaml.safe_load(open(os.path.join(SPEC, fn), encoding="utf-8"))
     elements = {}
@@ -161,9 +172,12 @@ def main():
 
     for page, fns in sorted(pages_to_specs.items()):
         spec = {}
+        patterns = {}
         for fn in fns:
             for el, attrs in from_spec(fn).items():
                 spec.setdefault(el, set()).update(attrs)
+            for el, rxs in patterns_from_spec(fn).items():
+                patterns.setdefault(el, []).extend(rxs)
         documented = set()
         for _ in (page,):
             doc_els, doc_terms = from_docs(page)
@@ -180,9 +194,11 @@ def main():
             for el in sorted(set(doc_els) & set(spec)):
                 # attributes from a block-wide common: group (label/visibility
                 # on view elements) are valid on any element of the block
-                gap = sorted(doc_els[el] - spec[el]
-                             - spec.get("_common", set())
-                             - OTHER_BLOCK.get((page, el), set()))
+                gap = sorted(a for a in (doc_els[el] - spec[el]
+                                         - spec.get("_common", set())
+                                         - OTHER_BLOCK.get((page, el), set()))
+                             if not any(rx.fullmatch(a)
+                                        for rx in patterns.get(el, [])))
                 if gap:
                     total += len(gap)
                     print(f"  ATTRIBUTES on <{el}> in the docs but not the spec:")

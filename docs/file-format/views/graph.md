@@ -4,8 +4,6 @@ The view elements on this page additionally accept the [attributes common to all
 
 The graph element will show a plot of the YBUFFER data against the XBUFFER data. The input buffers are defined by *input* tags within the value block and need to be data-containers (see above). The input tags are linked to the axes with an additional *axis* attribute to the input tag, which may be *x* or *y*. See below for additional options for other graph types.
 
-The resulting graph can be made up of lines (default) or dots (set the attribute *style* to *dots*). (see attribute descriptions below)
-
 The attribute *partialUpdate* is used for performance optimization. *PartialUpdate* should be set to true when the buffer is never changed entirely, but new data is just appended with increasing x values. *PartialUpdate* then allows only this new data to be transferred to the web interface to save bandwidth.
 
 {{spec:views/view/graph}}
@@ -88,13 +86,7 @@ The color map creates a lattice from the provided points, which is then colored.
 
 Also note that, due to the typical use of such color maps, the attribute "partialUpdate" (see above) now applies to the y axis, which needs to be monotonic, instead of the x axis.
 
-The color map plot introduces the following additional attributes:
-
-mapColor\[n\]
-:   n-th color in the color map
-:   *optional*, if none are defined, phyphox uses a black-orange-white color gradient
-
-The scale is read from `mapColor1` upward and ends at the first stop that is missing, so the number of stops is unlimited but the numbering must not have gaps. A stop that is present but does not name a valid color (a named phyphox color or a six-digit hex RGB value, optionally prefixed with `#`) is an error and the experiment will not load — the same strictness that applies to every color attribute in the format.
+The colors of the map are set with the *mapColorN* attributes (mapColor1, mapColor2, ..., see the attribute list above). A stop that is present but does not name a valid color (a named phyphox color or a six-digit hex RGB value, optionally prefixed with `#`) is an error and the experiment will not load — the same strictness that applies to every color attribute in the format.
 
 You can also define your own color palette. Phyphox uses a black-orange-white gradient by default, but introducing more colors can be very helpful to improve contrast. Colors are simply defined as a series of colors that are spread across the z range:
 

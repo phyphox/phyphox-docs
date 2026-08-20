@@ -32,6 +32,7 @@ What is checked, in order of how much it can be trusted:
 import argparse
 import collections
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 
@@ -88,9 +89,15 @@ def load_spec():
                     common[key][i["name"]] = i
         for el in doc.get("elements") or []:
             key = (el.get("parent"), el["name"])
-            entry = elements.setdefault(key, {"attrs": {}, "children": set()})
+            entry = elements.setdefault(key, {"attrs": {}, "children": set(),
+                                              "patterns": []})
             for a in el.get("attributes") or []:
-                entry["attrs"][a["name"]] = a
+                if a.get("name_pattern"):
+                    # dynamically numbered names like mapColorN: any attribute
+                    # matching the pattern is this one
+                    entry["patterns"].append((re.compile(a["name_pattern"]), a))
+                else:
+                    entry["attrs"][a["name"]] = a
             entry["children"] |= set(el.get("children") or [])
             o = el.get("outputs")
             if isinstance(o, dict):
@@ -119,7 +126,7 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
     if entry is None:
         if node.tag in ("input", "output") and any(
                 k[1] == parent_name for k in list(slots) + list(components)):
-            entry = {"attrs": {}, "children": set()}   # described by common: + slots
+            entry = {"attrs": {}, "children": set(), "patterns": []}   # described by common: + slots
         else:
             rep.add("unknown element", fname,
                     f"{path}: <{node.tag}> not modelled under <{parent_name}>")
@@ -142,6 +149,9 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
 
     for attr, value in node.attrib.items():
         spec_a = known.get(attr)
+        if spec_a is None:
+            spec_a = next((a for rx, a in entry.get("patterns") or []
+                           if rx.fullmatch(attr)), None)
         if spec_a is None:
             rep.add("unknown attribute", fname, f"{path}<{node.tag}>: {attr}=\"{value}\"")
             continue

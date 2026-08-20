@@ -122,6 +122,7 @@ def walk(handlers):
 
 def spec_attributes():
     out = {}
+    patterns = {}
     for fn in sorted(os.listdir(SPEC)):
         if not fn.endswith(".yml") or fn == "rules.yml":
             continue
@@ -136,6 +137,9 @@ def spec_attributes():
         for el in doc.get("elements") or []:
             key = (el.get("parent"), el["name"])
             out[key] = out.get(key, set()) | {a["name"] for a in (el.get("attributes") or [])}
+            for a in el.get("attributes") or []:
+                if a.get("name_pattern"):
+                    patterns.setdefault(key, []).append(re.compile(a["name_pattern"]))
             outputs = el.get("outputs")
             if isinstance(outputs, dict) and outputs.get("attribute"):
                 k2 = (el["name"], "output")
@@ -150,7 +154,7 @@ def spec_attributes():
                 for child in el.get("children") or []:
                     k2 = ("view", child)
                     out[k2] = out.get(k2, set()) | common["view"]
-    return out
+    return out, patterns
 
 
 def main():
@@ -161,7 +165,7 @@ def main():
 
     handlers = scan(ios_root)
     pairs = walk(handlers)
-    spec = spec_attributes()
+    spec, spec_patterns = spec_attributes()
 
     problems = []
     for (pname, cname), key in sorted(pairs.items()):
@@ -173,7 +177,9 @@ def main():
                 problems.append(f"{pname}/{cname}: not modelled at all "
                                 f"(iOS declares {sorted(declared)})")
         else:
-            gap = sorted(declared - modelled)
+            gap = sorted(a for a in declared - modelled
+                         if not any(rx.fullmatch(a)
+                                    for rx in spec_patterns.get((pname, cname), [])))
             if gap:
                 problems.append(f"{pname}/{cname}: iOS declares {gap}, spec does not")
 
