@@ -31,6 +31,8 @@ The network connections are defined in a network block in the document root:
 
 {{spec:network/network/connection|wrapped}}
 
+{{inconsistency:network-privacy-missing-url}}
+
 The send and receive tags within the connection tag define which data should be sent and received. Each entry has an id with varying meanings.
 
 {{spec:network/connection/send}}
@@ -142,7 +144,7 @@ The HTTP/GET service makes an http request to a webserver. The GET version will 
 
 #### Meaning of id
 
-The id attribute of the send tags is used as an identifier when encoding the buffer. For example, <send id="abc">buffer</send> will contribute "abc=42" to the URL if the last value in the buffer is 42. If you try to receive this data on a web server using PHP, you should be able to access this value via \$\_GET\["abc"\].
+The id attribute of the send tags is used as an identifier when encoding the buffer. For example, <send id="abc"\>buffer</send\> will contribute "abc=42" to the URL if the last value in the buffer is 42. If you try to receive this data on a web server using PHP, you should be able to access this value via $\_GET\["abc"\].
 
 ### HTTP/POST
 
@@ -150,20 +152,20 @@ Attribute service="http/post"
 
 Supports array data
 
-The HTTP/POST service makes an http request to a webserver. The POST version will do a POST request and encode the submitted data as JSON. It will always encode the buffers as JSON arrays, even if they only contain a single value. Metadata is encoded as strings. The response may be delayed, and this service will give up on a request after the default timeout time of the device.
+The HTTP/POST service makes an http request to a webserver. The POST version will do a POST request and encode the submitted data as JSON. By default it will encode the buffers as JSON arrays, even if they only contain a single value. You can set dataype to send single values as numbers. Metadata is encoded as strings. The response may be delayed, and this service will give up on a request after the default timeout time of the device.
 
-Note for PHP users: Encoding POST data as JSON will not fill \$\_POST by default. Instead, you will need to do the following first:
+Note for PHP users: Encoding POST data as JSON will not fill $\_POST by default. Instead, you will need to do the following first:
 
 ```
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
 ```
 
-Then, if you submitted <send id="abc">buffer</send> you can access an array with the entire content of the buffer at \$data\["abc"\] or its first value at \$data\["abc"\]\[0\].
+Then, if you submitted <send id="abc"\>buffer</send\> you can access an array with the entire content of the buffer at $data\["abc"\] or its first value at $data\["abc"\]\[0\].
 
 #### Meaning of id
 
-The ids of the send tags are used to label the JSON arrays and strings within the JSON object. A buffer with id "abc" (<send id="abc">buffer</send>) and metadata with id "def" (<send id="def" type="meta">deviceBrand</send>) would be encoded as
+The ids of the send tags are used to label the JSON arrays and strings within the JSON object. A buffer with id "abc" (<send id="abc"\>buffer</send\>) and metadata with id "def" (<send id="def" type="meta"\>deviceBrand</send\>) would be encoded as
 
 ```json
 {
