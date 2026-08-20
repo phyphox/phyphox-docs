@@ -241,30 +241,6 @@
     the fft-non-power-of-two-input entry, which is about the length of a
     single input.
 
-- id: loess-parameter-edges
-  title: "loess: non-positive d and multi-value d buffers"
-  area: file-format
-  status: decided
-  canonical: >-
-    A non-positive or non-finite d yields empty outputs on both platforms,
-    and a multi-value d buffer is read at its last element - the convention
-    for single-value inputs everywhere else.
-  decided: 2026-08-19
-  affects:
-    android: >-
-      d <= 0 or NaN returns without output (loessAM guard); d is read from
-      the first element of its buffer.
-    ios: >-
-      No guard: d <= 0 makes every window empty and the module appends NaN
-      for every xi (det = 0); d is read from the last element
-      (LoessAnalysis.swift, getSingleValue). Fully conforms to the canonical
-      behaviour on the development branch since 2026-08-19; only Android's
-      first-element read remains.
-  summary: >-
-    A degenerate window width yields empty outputs on Android and NaN-filled
-    outputs on iOS, and the two read opposite ends of a multi-value d
-    buffer.
-
 - id: max-min-degenerate-inputs
   title: "max/min: empty y input and x shorter than y"
   area: file-format

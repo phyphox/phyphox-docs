@@ -93,7 +93,7 @@ This module takes three buffers representing x, y and z data. The data may be sc
 
 The example above takes xData, yData and zData and creates a grid of 100 by 100 data points covering x values from 0 to 10 and y values from 1 to 2.
 
-{{inconsistency:map-edge-cases}}
+Points with a non-finite x, y or z value are skipped. Degenerate ranges (such as minX equal to maxX) yield clamped bin indices instead of failing. A missing *z* input with *zMode* "sum" or "average" rejects the file at load, since that is a permanent configuration error rather than an intermediate state.
 
 {{spec:analysis/analysis/map}}
 
@@ -103,9 +103,7 @@ Returns the maximum and its position. This module takes at least one input *y* a
 
 If you want to find multiple local maxima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets of consecutive values at or above the threshold and return a maximum and position for each set. The final set is emitted even when the data ends inside it.
 
-This module will return exactly one value per call if multiple is deactivated (default).
-
-{{inconsistency:max-min-degenerate-inputs}}
+This module will return exactly one value per call if multiple is deactivated (default): an empty input or an input without any valid value then yields NaN on each connected output (in multiple mode it yields empty outputs). An *x* buffer shorter than *y* truncates processing to the common length; only an omitted *x* input generates indices automatically. In multiple mode, an absent threshold input or an empty threshold buffer selects the default of 0, while a NaN threshold value participates like any number — no comparison with it is ever true, so the whole input forms one set.
 
 {{spec:analysis/analysis/max}}
 
@@ -115,9 +113,7 @@ Returns the minimum and its position. This module takes at least one input *y* a
 
 If you want to find multiple local minima, you can set the attribute "multiple" to true. In this case a third input may be used, which provides a threshold. The algorithm will split the data into sets of consecutive values at or below the threshold and return a minimum and position for each set. The final set is emitted even when the data ends inside it.
 
-This module will return exactly one value per call if multiple is deactivated (default).
-
-{{inconsistency:max-min-degenerate-inputs}}
+This module will return exactly one value per call if multiple is deactivated (default): an empty input or an input without any valid value then yields NaN on each connected output (in multiple mode it yields empty outputs). An *x* buffer shorter than *y* truncates processing to the common length; only an omitted *x* input generates indices automatically. In multiple mode, an absent threshold input or an empty threshold buffer selects the default of 0, while a NaN threshold value participates like any number — no comparison with it is ever true, so the whole input forms one set.
 
 {{spec:analysis/analysis/min}}
 
@@ -159,7 +155,7 @@ This module takes a buffer with multiple values and reduces the number of items 
 </reduce>
 ```
 
-{{inconsistency:reduce-edge-cases}}
+Processing truncates to the shortest present buffer; only an absent *y* input keeps processing all of *x* (with 0 as the y contribution). With averaging enabled, an incomplete final chunk is averaged over the number of values it actually contains, not the nominal factor. A non-finite factor is an error yielding empty outputs. The *x* output is required — a file without it is rejected at load.
 
 {{spec:analysis/analysis/reduce}}
 

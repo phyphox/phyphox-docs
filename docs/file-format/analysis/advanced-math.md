@@ -64,7 +64,7 @@ Smooths data using locally estimated scatterplot smoothing (LOESS) aka local reg
 
 Optionally, you can use three outputs to directly get the local fit parameters yi0, yi1 and yi2 to the function y(x) = yi0 + yi1 \* x + yi2 \* x². In this formula, the axis for x is shifted such that x=0 is in place of the evaluated position xi. If the input is position data versus time, these parameters are great estimates for a (smoothed) position, the momentary velocity and the momentary acceleration. Note that if you describe the location as a function of time from an initial location, velocity and acceleration, you would have the formula y(t) = y0 + v\*t + 1/2 a\*t², so if you want to extract location y0, velocity v and acceleration a from the fit parameters, you need to multiply yi2 by two as yi2 = a/2.
 
-{{inconsistency:loess-parameter-edges}}
+The window width *d* is read as a single value (last added element of its buffer); a non-positive or non-finite *d* is an error yielding empty outputs.
 
 {{spec:analysis/analysis/loess}}
 
