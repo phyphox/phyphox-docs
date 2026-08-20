@@ -1,5 +1,5 @@
 <phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
-    <!-- Invalid per graph-multiset-input-order (ruled 2026-08-20): with
+    <!-- Invalid per the graph dataset pairing rules (ruled 2026-08-20): with
          unequal x and y counts, an x input that no y input uses - trailing
          or shadowed - is an error. -->
     <title>Corpus: unused graph x inputs</title>

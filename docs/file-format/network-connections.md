@@ -31,8 +31,6 @@ The network connections are defined in a network block in the document root:
 
 {{spec:network/network/connection|wrapped}}
 
-{{inconsistency:network-privacy-missing-url}}
-
 The send and receive tags within the connection tag define which data should be sent and received. Each entry has an id with varying meanings.
 
 {{spec:network/connection/send}}

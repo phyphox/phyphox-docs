@@ -161,7 +161,7 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
                     f"{path}<{node.tag}> {attr}=\"{value}\" not in {allowed}")
 
     # The graph element's dataset pairing (decided 2026-08-20, amended the
-    # same day; graph-multiset-input-order in inconsistencies.yml): with
+    # same day; see docs/file-format/views/graph.md and spec/views.yml): with
     # exactly as many x as y inputs they pair 1-on-1 in order; with fewer x
     # than y, each y uses the most recent preceding x (or an index axis) and
     # any x no y uses - trailing or shadowed - is an error. Several shipped

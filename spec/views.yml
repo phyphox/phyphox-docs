@@ -781,8 +781,9 @@ elements:
       several datasets share one x by naming it once - or against its
       element index if no x input preceded it; any x input that no y input
       uses - trailing or shadowed - is an error. The per-dataset attributes
-      color, lineWidth and style may sit on either input of a dataset; the
-      last one wins, and the graph-level attributes are the defaults for
+      color, lineWidth and style may sit on either input of a dataset; an
+      attribute on the y input wins over one on its x input, a z input
+      overrides both, and the graph-level attributes are the defaults for
       every dataset.
     attributes:
       - name: axis
@@ -790,12 +791,8 @@ elements:
         required: true
         values: [x, y, z]
         summary: Which axis this container supplies.
-        agreement: divergent
-        inconsistency: graph-input-axis-required
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
-        note: >-
-          required reflects iOS, which rejects an input without axis;
-          Android treats an unnamed input as y. Verified 2026-08-20.
       - name: color
         type: color
         rules: [color-invalid-value]
@@ -804,21 +801,15 @@ elements:
       - name: lineWidth
         type: float
         summary: Line width of this dataset, overriding the graph's.
-        agreement: divergent
-        inconsistency: graph-input-attribute-case
-        note: >-
-          The attribute itself is agreed; the divergence is the name
-          matching - Android accepts any case (linewidth works), iOS only
-          the exact lineWidth. Verified 2026-08-20.
+        agreement: agreed
       - name: style
         type: enum
         values: [lines, dots, hbars, vbars, map]
         summary: Style of this dataset, overriding the graph's.
         agreement: agreed
-      # mapWidth is a graph-level attribute only (ruled 2026-08-20,
-      # graph-input-mapwidth): map plots cannot be combined with other graph
-      # types and multiple map plots make no sense. Android still reads a
-      # per-input mapWidth until it conforms.
+      # mapWidth is a graph-level attribute only (ruled 2026-08-20):
+      # map plots cannot be combined with other graph types and multiple
+      # map plots make no sense.
 
   - name: output
     parent: graph
