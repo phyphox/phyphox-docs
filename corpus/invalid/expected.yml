@@ -45,11 +45,12 @@ bluetooth-dev-conversion.phyphox:    # 2018 device-specific conversion draft
 camera-threshold.phyphox:            # two dev-era defects: the threshold=
   parser: rejects                      # attribute is tolerated per
   findings:                            # unknown-attribute-ignored, but the
-    - '<camera>: threshold='           # component="threshold" output (removed
-    - 'component="threshold"'          # Android-only experiment) rejects per
-                                       # output-component-validation - see the
-                                       # camera-threshold-component entry while
-                                       # iOS still accepts it. Its stray
+    - '<camera>: threshold='           # component="threshold" output rejects
+    - 'component="threshold"'          # per output-component-validation (it
+                                       # belonged to a removed, never-
+                                       # functional Android-only analyzer;
+                                       # iOS dropped its stale entry
+                                       # 2026-08-24). Its stray
                                        # version="1.18" XML declaration was
                                        # fixed 2026-08-24.
 camera-input-controls.phyphox:       # unknown output components (rejected per

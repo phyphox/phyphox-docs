@@ -1,0 +1,24 @@
+# Platform expectations for generated corpus files - checked by
+# tools/hooks.py and consumed by the app test suites (test-matrix row
+# corpus-valid-load).
+#
+# Files in valid/ and generated/ load on every platform by default and need
+# no entry here. An entry exists only for a file exercising a construct with
+# a recorded platform difference (spec `agreement: platform`), and maps each
+# platform to what its real loading path does with the file:
+#
+#   accepts - the file must load
+#   rejects - the file must be refused (any error; message texts are
+#             platform wording and never asserted)
+#
+# A platform mapped to rejects is not excused from the file - the runner
+# asserts the refusal, pinning the deliberate platform difference.
+
+bluetooth-address.phyphox:
+  parser:
+    android: accepts
+    ios: rejects     # address= is Android-only by design: iOS exposes no
+                     # BLE hardware addresses and refuses the criterion
+                     # rather than silently matching by other means
+                     # (spec/input.yml bluetooth@address,
+                     # agreement: platform).

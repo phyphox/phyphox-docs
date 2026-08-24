@@ -62,6 +62,15 @@ Both apps run this corpus in their own test suites (test-matrix rows
   skip keeps older app branches working against a newer corpus. (A file the
   app must refuse *because* of its version is the separate version-gate
   test, built from a supported file at test time, not a corpus fixture.)
+- **Platform differences.** A file in valid/ or generated/ that exercises
+  a construct the spec records as platform-limited (`agreement: platform`)
+  carries an entry in an `expected.yml` next to it, mapping each platform
+  to `accepts` or `rejects`. A platform mapped `rejects` asserts the
+  *refusal* instead of the load — the deliberate difference is itself
+  contract. Files without an entry load everywhere. Currently one entry:
+  `generated/expected.yml` records that `bluetooth-address.phyphox` must
+  load on Android and be refused on iOS (`bluetooth` `address=` is
+  Android-only by design; iOS exposes no BLE hardware addresses).
 - **invalid/** is *validator*-invalid — every file is flagged by
   tools/validate_experiments.py and the published validators. What the APPS
   do splits per the unknown-attribute-ignored rule, recorded as `parser:`

@@ -32,19 +32,22 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Every file in corpus/valid and corpus/generated whose declared format
       version is at most the platform's supported version loads without
       error. Files declaring a newer version are skipped, not failed - they
-      exist for future format versions. See corpus/README.md, "The app test
-      suites".
+      exist for future format versions. A file with an entry in the
+      directory's expected.yml deviates per platform: the platform mapped
+      to rejects asserts the refusal instead (deliberate platform
+      differences, e.g. bluetooth address= on iOS). See corpus/README.md,
+      "The app test suites".
 
   - id: corpus-invalid-reject
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Every corpus/invalid file whose expected.yml entry says
       `parser: rejects` fails to load. Any error is acceptable; error
@@ -54,7 +57,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Every corpus/invalid file whose expected.yml entry says
       `parser: accepts` LOADS successfully: its only defects are unknown or
@@ -67,7 +70,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       A file declaring a format version newer than the app supports (the
       supported version + 0.1) is refused with the app's file-too-new

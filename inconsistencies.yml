@@ -90,30 +90,36 @@
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
 
-- id: camera-threshold-component
-  title: Stale threshold camera component on iOS
+- id: duplicate-root-elements
+  title: Duplicated metadata elements in a saved state
   area: file-format
-  status: decided
-  canonical: >-
-    threshold is not a camera output component. It belonged to an
-    experimental analyzer that existed only on Android, was never tested,
-    and was removed; rejecting component="threshold" as unknown (per the
-    output-component-validation rule) is correct. Decided 2026-08-24.
+  status: open
   affects:
     android: >-
-      Conforms: the camera output mapping never lists threshold on the
-      current development branch, so component="threshold" rejects the file
-      ("Could not find mapping for output ...", PhyphoxFile.java camera
-      ioMappings).
+      Last occurrence wins: the parser overwrites the previously read value
+      for each repeated metadata child (PhyphoxFile.java,
+      phyphoxBlockParser, e.g. case "state-title" assigns
+      experiment.stateTitle unconditionally), so a file with two
+      state-title elements loads and shows the second.
     ios: >-
-      Still lists "threshold" in cameraComponents
-      (InputElementHandler.swift), a leftover from the removed Android-only
-      experiment - the file loads and the buffer simply never receives
-      data, exactly the silent failure output-component-validation exists
-      to prevent.
+      Rejects the file: every single-slot child handler throws
+      ElementHandlerError.duplicateElement on a second occurrence
+      (Serialization/ElementHandler.swift infrastructure, reached via
+      PhyphoxElementHandler's stateTitleHandler and the other metadata
+      handlers).
+  verified: >-
+    iOS behavior observed 2026-08-24 by the corpus runner
+    (CorpusConformanceTests, commit f393ae8c) on the original
+    taipei101_down fixture; Android's runner loaded the same file the same
+    day.
   summary: >-
-    An experiment mapping the camera output component "threshold" loads on
-    iOS and rejects on Android. The component belonged to a removed,
-    never-functional experimental analyzer; no app ever delivered data for
-    it. Found 2026-08-24 when the corpus fixture carrying it rejected on
-    Android after its other defects were fixed.
+    The format allows each metadata child of the root element - state-title,
+    title, category and the like - at most once (ruled 2026-08-24), but
+    files with a duplicated state-title exist in the wild: old Android
+    versions appended a new state-title on re-saving a state without
+    removing the previous one, and the current Android save path can still
+    leave a stale element behind (live-NodeList removal skip in
+    PhyphoxExperiment.java). Android loads such files, last occurrence
+    winning; iOS refuses them, so a legacy recording can be unreadable on
+    iOS only. Open: whether parsers must reject duplicates or tolerate them
+    for compatibility with existing saved states.

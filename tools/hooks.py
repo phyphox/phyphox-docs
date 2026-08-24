@@ -311,7 +311,7 @@ def _check_colors():
 def _check_corpus():
     """Fail the build if the corpus and the spec drift apart.
 
-    Three checks, so the corpus keeps holding the parser surface still:
+    Four checks, so the corpus keeps holding the parser surface still:
 
     * corpus/valid and corpus/generated must validate cleanly, and so must
       the example experiment files shipped with the documentation itself
@@ -323,7 +323,10 @@ def _check_corpus():
       submodule is on an old commit, not that the spec is wrong;
     * every file in corpus/invalid must still produce the findings recorded
       in corpus/invalid/expected.yml. An invalid file going clean means the
-      spec silently started accepting its defect.
+      spec silently started accepting its defect;
+    * an expected.yml in corpus/valid or corpus/generated (platform
+      expectations for files exercising a deliberate platform difference)
+      must name existing files and map platforms to accepts|rejects.
     """
     corpus = os.path.join(ROOT, "corpus")
     if not os.path.isdir(corpus):
@@ -357,6 +360,35 @@ def _check_corpus():
         raise ValueError(
             "corpus, docs examples or the shipped experiment collection no "
             "longer match spec/:\n" + buf.getvalue())
+
+    # valid/ and generated/ may carry an expected.yml naming files that
+    # deliberately differ per platform (a construct the spec records with
+    # agreement: platform). Only the shape is checked here - the assertion
+    # itself runs in the app test suites (corpus/README.md, "The app test
+    # suites").
+    problems = []
+    for d in ("valid", "generated"):
+        pexp = os.path.join(corpus, d, "expected.yml")
+        if not os.path.isfile(pexp):
+            continue
+        with open(pexp) as f:
+            pentries = yaml.safe_load(f) or {}
+        for name, entry in pentries.items():
+            if not os.path.isfile(os.path.join(corpus, d, name)):
+                problems.append(
+                    f"{d}/expected.yml lists {name}, which does not exist")
+                continue
+            parser = (entry or {}).get("parser")
+            if (not isinstance(parser, dict) or not parser
+                    or set(parser) - {"android", "ios"}
+                    or any(v not in ("accepts", "rejects")
+                           for v in parser.values())):
+                problems.append(
+                    f"{d}/expected.yml {name}: parser must map platforms "
+                    f"(android, ios) to accepts|rejects")
+    if problems:
+        raise ValueError("corpus platform expectations are out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
     invalid = os.path.join(corpus, "invalid")
     if not os.path.isdir(invalid):
