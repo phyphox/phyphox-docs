@@ -93,7 +93,13 @@
 - id: atan2-scalar-input
   title: atan2 with one fixed-value operand
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Element-wise, like every other multi-input module (decided
+    2026-08-24): a fixed value behaves exactly as a buffer holding a
+    single element would - its value repeats for every element of the
+    longer input, and the output has the length of the longest input.
+    Android conforms; iOS's scalar shortcut is the bug.
   affects:
     android: >-
       Element-wise like every other multi-input module: the output has the
@@ -118,7 +124,12 @@
 - id: timer-offset1970-prestart
   title: timer offset1970 before the first start
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The current Unix timestamp (decided 2026-08-24): the experiment time
+    is zero before the first start, so only the current timestamp keeps
+    experiment time plus offset meaningful. iOS conforms; Android's 0.0
+    fallback is the bug.
   affects:
     android: >-
       With no start event recorded (the cycle-0 pre-run before the user
@@ -141,7 +152,18 @@
 - id: static-buffer-lifecycle
   title: Static buffers and the modules that write them
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Decided 2026-08-24: a module whose outputs are all static executes a
+    single time and is skipped afterwards - that saving is the point of
+    the attribute - and the user's clear-data action resets static
+    buffers to their init values and re-arms the module; static data
+    does not survive a user clear. Consequence of the skip, accepted and
+    documented at the static attribute: from the second cycle on the
+    skipped module no longer clears its keep=false input buffers; both
+    platforms must behave identically here. Android conforms on both
+    points; iOS changes (run-every-cycle, and written static buffers
+    surviving user clear).
   affects:
     android: >-
       A module whose outputs are all static is SKIPPED entirely from its
@@ -171,7 +193,13 @@
 - id: requirefill-first-run
   title: requireFill on the first analysis run
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The first run after opening or starting is exempt from the
+    requireFill gate (decided 2026-08-24): the initialization pass must
+    run while the required container is still empty, or most setups
+    using requireFill would never initialize. Android conforms; iOS
+    changes.
   affects:
     android: >-
       The requireFill gate is only applied when a previous run has

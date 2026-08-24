@@ -171,8 +171,14 @@ elements:
           Name of a data container that needs to be filled before the
           block runs. requireFillThreshold or requireFillDynamic defines
           the required number of elements (default 1); if the container
-          holds fewer, the analysis block is skipped.
-        agreement: agreed
+          holds fewer, the analysis block is skipped. The first run
+          after opening or starting the experiment is exempt from this
+          gate, so the initialization pass (cycle 0) runs even while the
+          required container is still empty - without the exemption most
+          experiments using requireFill would never initialize. (Decided
+          2026-08-24.)
+        agreement: divergent
+        inconsistency: requirefill-first-run
       - name: requireFillThreshold
         type: integer
         default: 1
@@ -2074,4 +2080,10 @@ elements:
         as_required: true
         min: 0
         max: 1
+        remark: >-
+          Offset between the reported time axis and the Unix epoch, in
+          seconds. Before the experiment has ever been started the
+          experiment time is zero, so this is the current Unix timestamp
+          (decided 2026-08-24); after the first start it is the start
+          event's system time.
 

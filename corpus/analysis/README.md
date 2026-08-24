@@ -54,14 +54,20 @@ Both app test suites run every pair under `vectors/`. The contract:
 ## What the vectors deliberately avoid
 
 Constructs whose behavior currently differs between the platforms or is
-inherently non-deterministic are left out until ruled or by nature:
+inherently non-deterministic are left out:
 
 - `atan2` mixing a fixed value with a longer buffer
-  (`atan2-scalar-input`, open) — buffer-with-buffer cases only.
-- `timer`'s `offset1970` output (`timer-offset1970-prestart`, open) —
-  only the experiment-time output is pinned, in the never-started state.
-- `static="true"` buffers (`static-buffer-lifecycle`, open).
-- The block-level `requireFill` gate (`requirefill-first-run`, open).
+  (`atan2-scalar-input`, decided: element-wise) — buffer-with-buffer
+  cases only until iOS conforms; then a mixed case is added.
+- `timer`'s `offset1970` output (`timer-offset1970-prestart`, decided:
+  the current timestamp) — inherently unpinnable as a golden value even
+  after conformance; only the experiment-time output is pinned, in the
+  never-started state.
+- `static="true"` buffers (`static-buffer-lifecycle`, decided: written
+  once, module skipped, reset by user clear) — a skip-pinning
+  multi-cycle case is added once iOS conforms.
+- The block-level `requireFill` gate (`requirefill-first-run`, decided:
+  the first run is exempt) — a case is added once iOS conforms.
 - `fft` with non-power-of-two input (`fft-non-power-of-two-input`,
   permanent) — power-of-two lengths only. The fft and crosscorrelation
   tolerances are widened to cover Android's float32 native path, and

@@ -343,15 +343,24 @@ elements:
           entry is the documented way to put a gap marker into a buffer.
       - name: static
         description: >-
-          If set to true, the content of this buffer should only be
-          written once. Analysis modules writing to this buffer will
-          not execute if all their output buffers are static, which
-          improves performance. Set it when the content does not
-          depend on measured data.
+          If set to true, the content of this buffer is only written
+          once: an analysis module whose output buffers are all static
+          executes a single time and is skipped from then on, which is
+          the point of the attribute - saving the recomputation of
+          values that do not depend on measured data. Because a skipped
+          module no longer runs, it also stops consuming (clearing) its
+          keep=false input buffers after that first execution. The
+          user's clear-data action resets a static buffer to its init
+          values and re-arms the writing module for one new execution -
+          static data does not survive a user clear. (Lifecycle decided
+          2026-08-24.)
         type: boolean
         default: false
-        summary: Keeps the buffer's contents when the user clears data.
-        agreement: agreed
+        summary: >-
+          Written once: the writing module runs a single time, until the
+          user clears data.
+        agreement: divergent
+        inconsistency: static-buffer-lifecycle
       - name: type
         description: >-
           The only type supported right now is buffer. This
