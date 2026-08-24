@@ -172,9 +172,14 @@ rules:
       every attribute name a parser does not model, on any element
     state:
       android: >-
-        Conforms by long-standing behavior everywhere except possibly the
-        camera element, which rejects the two dev-era camera fixtures
-        (corpus run 2026-08-24) - see the open question below.
+        Conforms by long-standing behavior everywhere, the camera element
+        included. The two camera fixtures that seemed to contradict this in
+        the first corpus run (2026-08-24) turned out to reject for other,
+        correct reasons: unknown output COMPONENTS (the settled
+        output-component-validation rule; camera-input-controls) and a
+        stray XML declaration version="1.18" that strict XML parsers refuse
+        as not well-formed (camera-threshold; the corpus fixture is fixed).
+        No parser has attribute-name strictness anywhere.
       ios: >-
         Expected to conform (the typed attribute readers do not reject
         unknown keys); confirmed when the iOS corpus runner lands.
@@ -325,14 +330,4 @@ rules:
 # The lesson for the remaining blocks: an attribute that appears one-sided is
 # more often a misreading, a documented platform limit, or ordinary parity work
 # than a question anyone needs to decide. Check those three before recording it.
-open_questions:
-  - question: >-
-      Why does the camera element reject the dev-era camera fixtures
-      (camera-threshold.phyphox, camera-input-controls.phyphox) when every
-      other element ignores unknown attributes? If the newer camera parser
-      checks attribute names strictly, that is an intra-platform exception
-      to unknown-attribute-ignored that the rule must either name or the
-      parser must drop; if the rejection has another cause, the fixtures'
-      parser: rejects classification stands as is. The Android session
-      should pin the cause.
-    raised: 2026-08-24
+open_questions: []

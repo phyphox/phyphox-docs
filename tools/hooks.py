@@ -388,6 +388,11 @@ def _check_corpus():
         for child in root:
             ve.check_element(child, "phyphox", spec, common, slots, components,
                              rep, "phyphox", n)
+        # the slot/component pass is separate from the element walk in
+        # validate_experiments.main - without it, an expected finding like an
+        # unknown camera component can never be matched here (gap found
+        # 2026-08-24 when exactly that expectation failed)
+        ve.check_slots(root, slots, components, rep, n)
         details = [f"{kind}: {d}" for kind, lst in rep.items.items()
                    for _, d in lst]
         if not details:
