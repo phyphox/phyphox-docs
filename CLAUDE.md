@@ -43,7 +43,13 @@ rather than copy it. `tools/migrate_wiki.py` encodes the split: `SECTIONS` lists
 migrate, `COMMUNITY_PAGES` and the `Experiment: `/`Sensor: ` title prefixes mark what stays behind,
 and links pointing at anything in the second group are rewritten to absolute wiki URLs.
 
-Branch: `main`.
+Branch: `main`. **The repository is public on GitHub** (since 2026-08-24, so the app repos'
+CI can check it out as a sibling). Everything committed here is world-readable: corpus files
+must stay sanitized (credentials as placeholders, non-routable example addresses — see
+corpus/README.md), and committed files must not reference the local working files in the
+parent folder (CLAUDE.md aside, which is deliberately committed here). Being public does not
+change the push rule below — the published state lags local `main` until the maintainer
+pushes, and app CI sees only the published state.
 
 ## Commits
 

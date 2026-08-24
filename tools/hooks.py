@@ -241,9 +241,8 @@ def _check_conversion_values():
 def _check_test_matrix():
     """Keep test-matrix.yml and the app test suites in step.
 
-    The matrix is the parity mechanism for cross-platform testing (see
-    TESTING-PLAN in the working root, and tools/check_test_matrix.py for the
-    rules). Like the shipped-collection check, the app-repo comparisons run
+    The matrix is the parity mechanism for cross-platform testing; see
+    tools/check_test_matrix.py for the rules. Like the shipped-collection check, the app-repo comparisons run
     only when the checkouts sit next to this repository.
     """
     if not os.path.exists(os.path.join(ROOT, "test-matrix.yml")):

@@ -22,7 +22,7 @@
 #              is a regression, not a cleanup. Rows are flipped to active by
 #              the docs session once both platforms carry the tag.
 #
-# Fields: id (kebab-case, the tag), area (see TESTING-PLAN), tier (T0-T3),
+# Fields: id (kebab-case, the tag), area (a short topic label), tier (T0-T3),
 # platforms (subset of [android, ios]; name only one for recorded platform
 # differences and say why in the description), status, description.
 
