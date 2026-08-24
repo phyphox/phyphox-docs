@@ -89,3 +89,31 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: camera-threshold-component
+  title: Stale threshold camera component on iOS
+  area: file-format
+  status: decided
+  canonical: >-
+    threshold is not a camera output component. It belonged to an
+    experimental analyzer that existed only on Android, was never tested,
+    and was removed; rejecting component="threshold" as unknown (per the
+    output-component-validation rule) is correct. Decided 2026-08-24.
+  affects:
+    android: >-
+      Conforms: the camera output mapping never lists threshold on the
+      current development branch, so component="threshold" rejects the file
+      ("Could not find mapping for output ...", PhyphoxFile.java camera
+      ioMappings).
+    ios: >-
+      Still lists "threshold" in cameraComponents
+      (InputElementHandler.swift), a leftover from the removed Android-only
+      experiment - the file loads and the buffer simply never receives
+      data, exactly the silent failure output-component-validation exists
+      to prevent.
+  summary: >-
+    An experiment mapping the camera output component "threshold" loads on
+    iOS and rejects on Android. The component belonged to a removed,
+    never-functional experimental analyzer; no app ever delivered data for
+    it. Found 2026-08-24 when the corpus fixture carrying it rejected on
+    Android after its other defects were fixed.

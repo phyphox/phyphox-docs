@@ -904,11 +904,6 @@ elements:
             Value, in the HSV sense.
           description: >-
             Value according to the HSV color model, ranging from 0 to 1.
-        - name: threshold
-          summary: >-
-            Fraction of pixels above the threshold.
-          description: >-
-            Fraction of the pixels in the selected area above the threshold.
         - name: shutterSpeed
           summary: >-
             Shutter speed in use.

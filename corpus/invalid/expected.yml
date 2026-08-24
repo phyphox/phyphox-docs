@@ -42,13 +42,16 @@ bluetooth-dev-conversion.phyphox:    # 2018 device-specific conversion draft
   parser: rejects                      # (ti_acc_*, removed pre-release in
   findings:                            # phyphox-android 37b3fb69)
     - 'conversion="ti_acc_x"'
-camera-threshold.phyphox:            # dev-era camera attribute, removed -
-  parser: accepts                      # tolerated per unknown-attribute-ignored.
-  findings:                            # (Rejected in the first Android run only
-    - '<camera>: threshold='           # because of a stray XML declaration
-                                       # version="1.18", fixed 2026-08-24 -
-                                       # strict XML parsers refused the document
-                                       # before phyphox parsing began.)
+camera-threshold.phyphox:            # two dev-era defects: the threshold=
+  parser: rejects                      # attribute is tolerated per
+  findings:                            # unknown-attribute-ignored, but the
+    - '<camera>: threshold='           # component="threshold" output (removed
+    - 'component="threshold"'          # Android-only experiment) rejects per
+                                       # output-component-validation - see the
+                                       # camera-threshold-component entry while
+                                       # iOS still accepts it. Its stray
+                                       # version="1.18" XML declaration was
+                                       # fixed 2026-08-24.
 camera-input-controls.phyphox:       # unknown output components (rejected per
   parser: rejects                      # output-component-validation); ALSO
   findings:                            # carries misapplied camera-gui
