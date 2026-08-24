@@ -24,8 +24,6 @@ Simple module which outputs the (fractional) seconds that have passed since the 
 
 The timer module has a second output that gives the offset between the given time (experiment or linear time) and the widely used Unix timestamp, which is the number of seconds since 01.01.1970.
 
-{{inconsistency:timer-offset1970-prestart}}
-
 {{spec:analysis/analysis/timer}}
 
 ## info

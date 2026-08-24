@@ -121,34 +121,6 @@
     for the analysis golden vectors; the vectors pin only the agreeing
     input shapes until this is ruled.
 
-- id: timer-offset1970-prestart
-  title: timer offset1970 before the first start
-  area: file-format
-  status: decided
-  canonical: >-
-    The current Unix timestamp (decided 2026-08-24): the experiment time
-    is zero before the first start, so only the current timestamp keeps
-    experiment time plus offset meaningful. iOS conforms; Android's 0.0
-    fallback is the bug.
-  affects:
-    android: >-
-      With no start event recorded (the cycle-0 pre-run before the user
-      ever presses play), the offset1970 output appends 0.0:
-      getSystemTimeReferenceByIndex returns 0 for an empty mapping list
-      (ExperimentTimeReference.java).
-    ios: >-
-      The same lookup falls back to the CURRENT wall-clock time
-      (ExperimentTimeReference.swift, getSystemTimeReferenceByIndex
-      returning Date()), so the pre-start value is the moment of the
-      analysis run instead of 0.
-  summary: >-
-    The timer module's offset1970 output differs before the experiment
-    has ever been started: 0.0 on Android, the current Unix time on iOS.
-    After the first start both platforms report the start event's system
-    time and agree. Found 2026-08-24 while pinning module semantics for
-    the analysis golden vectors, which therefore pin only the experiment-
-    time output.
-
 - id: static-buffer-lifecycle
   title: Static buffers and the modules that write them
   area: file-format

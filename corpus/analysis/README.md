@@ -59,9 +59,9 @@ inherently non-deterministic are left out:
 - `atan2` mixing a fixed value with a longer buffer
   (`atan2-scalar-input`, decided: element-wise) — buffer-with-buffer
   cases only until iOS conforms; then a mixed case is added.
-- `timer`'s `offset1970` output (`timer-offset1970-prestart`, decided:
-  the current timestamp) — inherently unpinnable as a golden value even
-  after conformance; only the experiment-time output is pinned, in the
+- `timer`'s `offset1970` output — the current timestamp before the first
+  start (both platforms conform since 2026-08-24), inherently unpinnable
+  as a golden value; only the experiment-time output is pinned, in the
   never-started state.
 - `static="true"` buffers (`static-buffer-lifecycle`, decided: written
   once, module skipped, reset by user clear) — a skip-pinning
