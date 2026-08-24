@@ -19,4 +19,9 @@
             <output as="period">op</output>
         </periodicity>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

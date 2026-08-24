@@ -9,11 +9,16 @@
         <container size="4">out</container>
     </data-containers>
     <analysis>
-        <if>
+        <if less="true">
             <input as="a">a</input>
             <input as="b">b</input>
             <input as="true">t</input>
             <output as="result">out</output>
         </if>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

@@ -16,4 +16,9 @@
             <output as="im">outim</output>
         </fft>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

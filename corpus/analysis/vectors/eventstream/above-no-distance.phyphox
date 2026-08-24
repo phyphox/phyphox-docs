@@ -19,4 +19,9 @@
             <output as="last">ol</output>
         </eventstream>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

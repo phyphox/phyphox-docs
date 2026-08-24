@@ -26,4 +26,9 @@
             <output as="luminance">ln</output>
         </imagedecode>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

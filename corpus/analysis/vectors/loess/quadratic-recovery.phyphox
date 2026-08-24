@@ -21,4 +21,9 @@
             <output as="yi2">y2</output>
         </loess>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

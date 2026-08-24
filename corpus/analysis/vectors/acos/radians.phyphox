@@ -12,4 +12,9 @@
             <output>out</output>
         </acos>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

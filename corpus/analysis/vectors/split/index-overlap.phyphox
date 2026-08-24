@@ -16,4 +16,9 @@
             <output as="out2">o2</output>
         </split>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

@@ -24,4 +24,9 @@
             <output as="z">oz</output>
         </map>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

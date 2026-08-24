@@ -15,4 +15,9 @@
             <output>oa</output>
         </subrange>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

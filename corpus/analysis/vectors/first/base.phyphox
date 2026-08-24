@@ -16,4 +16,9 @@
             <output>ob</output>
         </first>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

@@ -14,4 +14,9 @@
             <output>out</output>
         </divide>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

@@ -14,4 +14,9 @@
             <output as="binCounts">counts</output>
         </binning>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

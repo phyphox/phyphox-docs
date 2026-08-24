@@ -14,4 +14,9 @@
             <output as="stddev">dev</output>
         </average>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

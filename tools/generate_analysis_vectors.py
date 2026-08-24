@@ -185,6 +185,15 @@ def emit_phyphox(module, case, modules):
         a(f'            <output{attrs}>{xml_escape(tag["buffer"])}</output>')
     a(f"        </{module}>")
     a("    </analysis>")
+    # The real loading path requires at least one view with a label and at
+    # least one element on both platforms (found by the Android runner,
+    # 2026-08-24); a separator (since 1.0) is the cheapest element that
+    # reads no buffer.
+    a("    <views>")
+    a('        <view label="golden vector">')
+    a("            <separator />")
+    a("        </view>")
+    a("    </views>")
     a("</phyphox>")
     return "\n".join(lines) + "\n"
 

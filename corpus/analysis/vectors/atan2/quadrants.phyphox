@@ -14,4 +14,9 @@
             <output>out</output>
         </atan2>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

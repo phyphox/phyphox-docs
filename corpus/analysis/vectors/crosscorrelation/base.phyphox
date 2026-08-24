@@ -14,4 +14,9 @@
             <output>out</output>
         </crosscorrelation>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

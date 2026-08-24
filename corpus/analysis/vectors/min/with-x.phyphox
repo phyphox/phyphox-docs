@@ -16,4 +16,9 @@
             <output as="position">p</output>
         </min>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

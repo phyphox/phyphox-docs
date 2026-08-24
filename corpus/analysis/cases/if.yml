@@ -9,6 +9,7 @@ cases:
     description: >-
       less=true with a<b: the whole true input passes through.
     expected_source: reference
+    attributes: {less: true}
     buffers:
       a: {size: 4, init: [1.0]}
       b: {size: 4, init: [2.0]}

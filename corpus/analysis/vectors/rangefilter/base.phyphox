@@ -18,4 +18,9 @@
             <output>ob</output>
         </rangefilter>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>

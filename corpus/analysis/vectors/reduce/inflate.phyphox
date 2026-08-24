@@ -17,4 +17,9 @@
             <output as="y">oy</output>
         </reduce>
     </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
 </phyphox>
