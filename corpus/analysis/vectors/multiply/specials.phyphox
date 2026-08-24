@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: multiply/specials</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/multiply.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="0,NaN,2">a</container>
+        <container size="4" init="Infinity,3,-Infinity">b</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <multiply>
+            <input>a</input>
+            <input>b</input>
+            <output>out</output>
+        </multiply>
+    </analysis>
+</phyphox>

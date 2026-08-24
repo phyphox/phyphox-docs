@@ -1,0 +1,17 @@
+# Golden vectors: integrate. Cumulative sum - no time
+# axis, no trapezoid.
+module: integrate
+cases:
+  - name: base
+    description: >-
+      out[i] is the running sum of the input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 2.0, 3.0, -4.0, 0.5]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 3.0, 6.0, 2.0, 2.5]

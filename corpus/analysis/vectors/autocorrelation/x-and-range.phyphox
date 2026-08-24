@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: autocorrelation/x-and-range</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/autocorrelation.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0,1.0,0.0,-1.0,-2.0,-1.0,0.0">y</container>
+        <container size="8" init="0.0,0.25,0.5,0.75,1.0,1.25,1.5,1.75">x</container>
+        <container size="8">outx</container>
+        <container size="8">outy</container>
+    </data-containers>
+    <analysis>
+        <autocorrelation>
+            <input as="y">y</input>
+            <input as="x">x</input>
+            <input as="minX" type="value">0.25</input>
+            <input as="maxX" type="value">1.0</input>
+            <output as="y">outy</output>
+            <output as="x">outx</output>
+        </autocorrelation>
+    </analysis>
+</phyphox>

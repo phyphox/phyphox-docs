@@ -1,0 +1,42 @@
+# Golden vectors: butterworth. A frequency-domain gain
+# curve applied to spectrum data, not a time-domain filter: gain
+# 1/sqrt(1 + (f/cutoff)^(2n)) (lowpass) or the standard LP-to-BP
+# transform when cutoffLow > 0.
+module: butterworth
+cases:
+  - name: lowpass
+    description: >-
+      Unit spectrum, order 2, cutoff 4: gain is 1/sqrt(2) at f = 4.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}
+      x: {size: 8, init: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0]}
+      out: {size: 8}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, buffer: x}
+      - {as: n, value: 2}
+      - {as: cutoff, value: 4}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 0.9980525784828885, 0.9701425001453319, 0.8715755371245493, 0.7071067811865475, 0.5390536964233673, 0.40613846605344767, 0.24253562503633297]
+  - name: bandpass
+    description: >-
+      cutoffLow 2, cutoff 8: unity at f = 4 (the geometric center),
+      1/sqrt(2) at both edges, zero at f = 0.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}
+      x: {size: 8, init: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0]}
+      out: {size: 8}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, buffer: x}
+      - {as: n, value: 2}
+      - {as: cutoff, value: 8}
+      - {as: cutoffLow, value: 2}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.15799050110667284, 0.7071067811865475, 0.9887565583819392, 1.0, 0.9959744388432287, 0.9555235878955425, 0.7071067811865475]

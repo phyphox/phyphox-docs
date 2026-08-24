@@ -1,0 +1,25 @@
+{
+ "case": "radians",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      0.0,
+      0.7853981633974483,
+      -0.7853981633974483,
+      1.5607966601082315
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "atan"
+}

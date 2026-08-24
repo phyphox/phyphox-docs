@@ -1,0 +1,29 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <title>golden vector: imagedecode/opaque-png</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/imagedecode.yml - do not edit.</description>
+    <data-containers>
+        <container size="75" init="137.0,80.0,78.0,71.0,13.0,10.0,26.0,10.0,0.0,0.0,0.0,13.0,73.0,72.0,68.0,82.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,2.0,8.0,2.0,0.0,0.0,0.0,253.0,212.0,154.0,115.0,0.0,0.0,0.0,18.0,73.0,68.0,65.0,84.0,120.0,156.0,99.0,248.0,207.0,192.0,192.0,0.0,194.0,12.0,255.0,129.0,0.0,0.0,31.0,238.0,5.0,251.0,11.0,217.0,104.0,139.0,0.0,0.0,0.0,0.0,73.0,69.0,78.0,68.0,174.0,66.0,96.0,130.0">img</container>
+        <container size="1">w</container>
+        <container size="1">h</container>
+        <container size="4">r</container>
+        <container size="4">g</container>
+        <container size="4">b</container>
+        <container size="4">a</container>
+        <container size="4">lu</container>
+        <container size="4">ln</container>
+    </data-containers>
+    <analysis>
+        <imagedecode>
+            <input as="in">img</input>
+            <output as="width">w</output>
+            <output as="height">h</output>
+            <output as="r">r</output>
+            <output as="g">g</output>
+            <output as="b">b</output>
+            <output as="a">a</output>
+            <output as="luma">lu</output>
+            <output as="luminance">ln</output>
+        </imagedecode>
+    </analysis>
+</phyphox>

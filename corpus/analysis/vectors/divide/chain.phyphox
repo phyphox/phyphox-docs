@@ -1,0 +1,18 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: divide/chain</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/divide.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="100,200,300">d</container>
+        <container size="8" init="2,4">s</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <divide>
+            <input>d</input>
+            <input>s</input>
+            <input type="value">5</input>
+            <output>out</output>
+        </divide>
+    </analysis>
+</phyphox>

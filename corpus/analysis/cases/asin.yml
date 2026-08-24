@@ -1,0 +1,44 @@
+# Golden vectors: asin. deg=true converts the OUTPUT angle
+# to degrees.
+module: asin
+cases:
+  - name: radians
+    description: >-
+      Result in radians.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, -0.5, 1.0, -1.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.5235987755982989, -0.5235987755982989, 1.5707963267948966, -1.5707963267948966]
+  - name: degrees
+    description: >-
+      deg=true: result in degrees.
+    expected_source: reference
+    attributes: {deg: true}
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, -0.5, 1.0, -1.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 30.000000000000004, -30.000000000000004, 90.0, -90.0]
+  - name: domain
+    description: >-
+      Inputs outside [-1, 1] give NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [1.5, -1.5, "nan"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "nan", "nan"]

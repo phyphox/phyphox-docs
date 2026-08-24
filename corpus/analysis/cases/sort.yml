@@ -1,0 +1,42 @@
+# Golden vectors: sort. The first input is the sort key; all
+# other inputs are co-sorted by the same permutation; NaN sorts as
+# the largest value; the sort is stable.
+module: sort
+cases:
+  - name: co-sort
+    description: >-
+      Ascending by the first input; NaN goes last.
+    expected_source: reference
+    buffers:
+      k: {size: 8, init: [3.0, 1.0, "nan", 2.0]}
+      v: {size: 8, init: [30.0, 10.0, 99.0, 20.0]}
+      ok: {size: 8}
+      ov: {size: 8}
+    inputs:
+      - {buffer: k}
+      - {buffer: v}
+    outputs:
+      - {buffer: ok}
+      - {buffer: ov}
+    expect:
+      ok: [1.0, 2.0, 3.0, "nan"]
+      ov: [10.0, 20.0, 30.0, 99.0]
+  - name: descending
+    description: >-
+      descending=true reverses the comparisons; NaN goes first.
+    expected_source: reference
+    attributes: {descending: true}
+    buffers:
+      k: {size: 8, init: [3.0, 1.0, "nan", 2.0]}
+      v: {size: 8, init: [30.0, 10.0, 99.0, 20.0]}
+      ok: {size: 8}
+      ov: {size: 8}
+    inputs:
+      - {buffer: k}
+      - {buffer: v}
+    outputs:
+      - {buffer: ok}
+      - {buffer: ov}
+    expect:
+      ok: ["nan", 3.0, 2.0, 1.0]
+      ov: [99.0, 30.0, 20.0, 10.0]

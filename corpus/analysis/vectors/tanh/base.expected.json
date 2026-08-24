@@ -1,0 +1,26 @@
+{
+ "case": "base",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      0.0,
+      0.46211715726000974,
+      0.7615941559557649,
+      -0.9640275800758169,
+      0.9950547536867305
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "tanh"
+}

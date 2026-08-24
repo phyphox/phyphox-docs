@@ -1,0 +1,22 @@
+# Golden vectors: subtract. minuend minus every subtrahend,
+# with the shared multi-input length rule.
+module: subtract
+cases:
+  - name: chain
+    description: >-
+      minuend - subtrahend - subtrahend, element-wise with last-value
+      repeat.
+    expected_source: reference
+    buffers:
+      m: {size: 8, init: [100, 200, 300]}
+      s1: {size: 8, init: [1, 2, 3]}
+      s2: {size: 8, init: [10]}
+      out: {size: 8}
+    inputs:
+      - {buffer: m}
+      - {buffer: s1}
+      - {buffer: s2}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [89.0, 188.0, 287.0]

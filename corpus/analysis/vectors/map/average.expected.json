@@ -1,0 +1,56 @@
+{
+ "case": "average",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "ox": {
+     "values": [
+      0.0,
+      1.0,
+      2.0,
+      0.0,
+      1.0,
+      2.0,
+      0.0,
+      1.0,
+      2.0
+     ]
+    },
+    "oy": {
+     "values": [
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      1.0,
+      1.0,
+      2.0,
+      2.0,
+      2.0
+     ]
+    },
+    "oz": {
+     "values": [
+      1.0,
+      2.0,
+      3.0,
+      6.0,
+      "nan",
+      "nan",
+      4.0,
+      "nan",
+      5.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "map"
+}

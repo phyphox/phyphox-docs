@@ -1,0 +1,33 @@
+{
+ "case": "complex-input",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "outim": {
+     "values": [
+      0.0,
+      1.9999999999999996,
+      1.9999999999999991,
+      -2.000000000000001
+     ]
+    },
+    "outre": {
+     "values": [
+      10.0,
+      -2.000000000000001,
+      -2.0,
+      -1.9999999999999982
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "fft"
+}

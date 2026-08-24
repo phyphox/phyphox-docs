@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: subrange/from-to</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/subrange.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="10.0,11.0,12.0,13.0,14.0,15.0">a</container>
+        <container size="8" init="1.0,2.0">b</container>
+        <container size="8">oa</container>
+        <container size="8">ob</container>
+    </data-containers>
+    <analysis>
+        <subrange>
+            <input as="from" type="value">1</input>
+            <input as="to" type="value">4</input>
+            <input>a</input>
+            <input>b</input>
+            <output>oa</output>
+            <output>ob</output>
+        </subrange>
+    </analysis>
+</phyphox>

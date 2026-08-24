@@ -1,0 +1,25 @@
+{
+ "case": "base",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      2.0,
+      3.5,
+      5.0,
+      6.5
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "crosscorrelation"
+}

@@ -1,0 +1,27 @@
+{
+ "case": "skips-non-finite",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "avg": {
+     "values": [
+      2.5
+     ]
+    },
+    "dev": {
+     "values": [
+      1.2909944487358056
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "average"
+}

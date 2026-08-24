@@ -1,0 +1,41 @@
+# Golden vectors: subrange. 0-based, from inclusive, to
+# exclusive; length overrides to; out-of-range indices clamp per
+# buffer instead of failing.
+module: subrange
+cases:
+  - name: from-to
+    description: >-
+      Elements 1, 2 and 3 of each input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [10.0, 11.0, 12.0, 13.0, 14.0, 15.0]}
+      b: {size: 8, init: [1.0, 2.0]}
+      oa: {size: 8}
+      ob: {size: 8}
+    inputs:
+      - {as: from, value: 1}
+      - {as: to, value: 4}
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: oa}
+      - {buffer: ob}
+    expect:
+      oa: [11.0, 12.0, 13.0]
+      ob: [2.0]
+  - name: length-overrides-to
+    description: >-
+      length 2 beats the to input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [10.0, 11.0, 12.0, 13.0, 14.0, 15.0]}
+      oa: {size: 8}
+    inputs:
+      - {as: from, value: 2}
+      - {as: to, value: 6}
+      - {as: length, value: 2}
+      - {buffer: a}
+    outputs:
+      - {buffer: oa}
+    expect:
+      oa: [12.0, 13.0]

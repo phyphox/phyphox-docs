@@ -1,0 +1,27 @@
+{
+ "case": "degrees",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      0.0,
+      0.49999999999999994,
+      0.7071067811865475,
+      1.0,
+      1.2246467991473532e-16,
+      -0.8660254037844386
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "sin"
+}

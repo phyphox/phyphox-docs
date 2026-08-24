@@ -1,0 +1,75 @@
+{
+ "case": "opaque-png",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "a": {
+     "values": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+     ]
+    },
+    "b": {
+     "values": [
+      0.0,
+      0.0,
+      1.0,
+      1.0
+     ]
+    },
+    "g": {
+     "values": [
+      0.0,
+      1.0,
+      0.0,
+      1.0
+     ]
+    },
+    "h": {
+     "values": [
+      2.0
+     ]
+    },
+    "ln": {
+     "values": [
+      0.2126,
+      0.7152,
+      0.0722,
+      1.0
+     ]
+    },
+    "lu": {
+     "values": [
+      0.2126,
+      0.7152,
+      0.0722,
+      1.0
+     ]
+    },
+    "r": {
+     "values": [
+      1.0,
+      0.0,
+      0.0,
+      1.0
+     ]
+    },
+    "w": {
+     "values": [
+      2.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "imagedecode"
+}

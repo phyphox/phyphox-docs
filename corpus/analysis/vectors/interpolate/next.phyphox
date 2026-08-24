@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: interpolate/next</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/interpolate.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,1.0,2.0,4.0">x</container>
+        <container size="8" init="0.0,10.0,20.0,40.0">y</container>
+        <container size="8" init="-1.0,0.5,1.0,3.0,5.0">xi</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <interpolate method="next">
+            <input as="x">x</input>
+            <input as="y">y</input>
+            <input as="xi">xi</input>
+            <output>out</output>
+        </interpolate>
+    </analysis>
+</phyphox>

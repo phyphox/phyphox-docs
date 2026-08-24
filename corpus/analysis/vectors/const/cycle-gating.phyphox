@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.10" locale="en">
+    <title>golden vector: const/cycle-gating</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/const.yml - do not edit.</description>
+    <data-containers>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <const cycles="0">
+            <input as="value" type="value">1</input>
+            <input as="length" type="value">3</input>
+            <output>out</output>
+        </const>
+    </analysis>
+</phyphox>

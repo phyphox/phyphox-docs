@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: lcm/base</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/lcm.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="4,6,0,3.5">a</container>
+        <container size="8" init="6,8,5,2">b</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <lcm>
+            <input>a</input>
+            <input>b</input>
+            <output>out</output>
+        </lcm>
+    </analysis>
+</phyphox>

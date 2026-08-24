@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: subtract/chain</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/subtract.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="100,200,300">m</container>
+        <container size="8" init="1,2,3">s1</container>
+        <container size="8" init="10">s2</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <subtract>
+            <input>m</input>
+            <input>s1</input>
+            <input>s2</input>
+            <output>out</output>
+        </subtract>
+    </analysis>
+</phyphox>

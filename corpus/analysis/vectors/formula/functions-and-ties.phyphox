@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>golden vector: formula/functions-and-ties</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/formula.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="-2.5,0.5">a</container>
+        <container size="4" init="-7.0,0.0">b</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <formula formula="round([1_])+sign([2_])">
+            <input>a</input>
+            <input>b</input>
+            <output>out</output>
+        </formula>
+    </analysis>
+</phyphox>

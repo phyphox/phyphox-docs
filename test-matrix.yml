@@ -66,6 +66,20 @@ tests:
       compatibility guarantee - a parser that starts rejecting unknown
       attributes or legacy duplicates breaks files in the wild.
 
+  - id: analysis-golden-vectors
+    area: analysis
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Every case under corpus/analysis/vectors/ (a mini-experiment plus an
+      .expected.json) loads through the real parser, its analysis block is
+      executed the stated number of cycles, and the listed output buffers
+      match the expected values - NaN-aware, within the stated tolerances.
+      Cases whose file declares a newer format version than the platform
+      supports are skipped, like corpus-valid-load. See
+      corpus/analysis/README.md for the runner contract.
+
   - id: corpus-version-gate
     area: file-format
     tier: T0

@@ -1,0 +1,53 @@
+# Golden vectors: average. Non-finite values are skipped;
+# no finite values gives NaN; stddev is the sample deviation
+# (divide by n-1) and needs at least two finite values.
+module: average
+cases:
+  - name: skips-non-finite
+    description: >-
+      NaN and Inf are excluded from both average and stddev.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 2.0, 3.0, 4.0, "nan", "inf"]}
+      avg: {size: 1}
+      dev: {size: 1}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: avg}
+      - {as: stddev, buffer: dev}
+    expect:
+      avg: [2.5]
+      dev: [1.2909944487358056]
+  - name: single-value
+    description: >-
+      One finite value: average is that value, stddev is NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [5.0]}
+      avg: {size: 1}
+      dev: {size: 1}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: avg}
+      - {as: stddev, buffer: dev}
+    expect:
+      avg: [5.0]
+      dev: ["nan"]
+  - name: all-non-finite
+    description: >-
+      No finite values at all: both outputs get NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf"]}
+      avg: {size: 1}
+      dev: {size: 1}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: avg}
+      - {as: stddev, buffer: dev}
+    expect:
+      avg: ["nan"]
+      dev: ["nan"]

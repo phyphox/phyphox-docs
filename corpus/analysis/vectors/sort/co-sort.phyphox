@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: sort/co-sort</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/sort.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="3.0,1.0,NaN,2.0">k</container>
+        <container size="8" init="30.0,10.0,99.0,20.0">v</container>
+        <container size="8">ok</container>
+        <container size="8">ov</container>
+    </data-containers>
+    <analysis>
+        <sort>
+            <input>k</input>
+            <input>v</input>
+            <output>ok</output>
+            <output>ov</output>
+        </sort>
+    </analysis>
+</phyphox>

@@ -1,0 +1,36 @@
+# Golden vectors: movingaverage. Window is the value
+# itself plus width predecessors; non-finite values are skipped
+# inside the window; width comes from an input slot and defaults to
+# 10; dropIncomplete removes the shrinking start windows.
+module: movingaverage
+cases:
+  - name: width-2
+    description: >-
+      Growing windows at the start; the NaN is skipped, not
+      propagated.
+    expected_source: reference
+    buffers:
+      d: {size: 8, init: [1.0, 2.0, "nan", 4.0, 5.0]}
+      out: {size: 8}
+    inputs:
+      - {as: data, buffer: d}
+      - {as: width, value: 2}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 1.5, 1.5, 3.0, 4.5]
+  - name: drop-incomplete
+    description: >-
+      dropIncomplete=true starts with the first full window.
+    expected_source: reference
+    attributes: {dropIncomplete: true}
+    buffers:
+      d: {size: 8, init: [1.0, 2.0, "nan", 4.0, 5.0]}
+      out: {size: 8}
+    inputs:
+      - {as: data, buffer: d}
+      - {as: width, value: 2}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.5, 3.0, 4.5]

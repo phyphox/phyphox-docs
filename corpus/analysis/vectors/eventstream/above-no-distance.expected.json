@@ -1,0 +1,38 @@
+{
+ "case": "above-no-distance",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "ev": {
+     "values": [
+      1.0,
+      3.0
+     ]
+    },
+    "oi": {
+     "values": [
+      4.0
+     ]
+    },
+    "ol": {
+     "values": [
+      3.0
+     ]
+    },
+    "os": {
+     "values": [
+      0.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "eventstream"
+}

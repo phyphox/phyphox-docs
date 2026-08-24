@@ -1,0 +1,30 @@
+# Golden vectors: sinh. No deg attribute exists for the
+# hyperbolic functions.
+module: sinh
+cases:
+  - name: base
+    description: >-
+      Plain input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, 1.0, -2.0, 3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.5210953054937474, 1.1752011936438014, -3.626860407847019, 10.017874927409903]
+  - name: specials
+    description: >-
+      Non-finite propagation per IEEE.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf", "-inf"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "inf", "-inf"]

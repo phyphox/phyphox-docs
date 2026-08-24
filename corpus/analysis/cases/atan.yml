@@ -1,0 +1,31 @@
+# Golden vectors: atan. deg=true converts the OUTPUT angle
+# to degrees.
+module: atan
+cases:
+  - name: radians
+    description: >-
+      Result in radians.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 1.0, -1.0, 100.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.7853981633974483, -0.7853981633974483, 1.5607966601082315]
+  - name: degrees
+    description: >-
+      deg=true: result in degrees.
+    expected_source: reference
+    attributes: {deg: true}
+    buffers:
+      a: {size: 8, init: [0.0, 1.0, -1.0, 100.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 45.0, -45.0, 89.42706130231652]

@@ -1,0 +1,46 @@
+# Golden vectors: cos. deg=true interprets the INPUT as
+# degrees; non-finite inputs give NaN.
+module: cos
+cases:
+  - name: radians
+    description: >-
+      Plain radians input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, 1.0, -1.5, 3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 0.8775825618903728, 0.5403023058681398, 0.0707372016677029, -0.9899924966004454]
+  - name: degrees
+    description: >-
+      deg=true: input interpreted as degrees. Note
+      cos(90 deg) is computed from the double closest to pi/2,
+      never the exact value.
+    expected_source: reference
+    attributes: {deg: true}
+    buffers:
+      a: {size: 8, init: [0.0, 30.0, 45.0, 90.0, 180.0, -60.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 0.8660254037844387, 0.7071067811865476, 6.123233995736766e-17, -1.0, 0.5000000000000001]
+  - name: specials
+    description: >-
+      NaN and infinities give NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf", "-inf"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "nan", "nan"]

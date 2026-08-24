@@ -1,0 +1,16 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: threshold/falling-index</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/threshold.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0,0.5,3.0">y</container>
+        <container size="1">out</container>
+    </data-containers>
+    <analysis>
+        <threshold falling="true">
+            <input as="y">y</input>
+            <input as="threshold" type="value">1.0</input>
+            <output>out</output>
+        </threshold>
+    </analysis>
+</phyphox>

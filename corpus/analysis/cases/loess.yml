@@ -1,0 +1,31 @@
+# Golden vectors: loess. Tricube-weighted quadratic fit; on
+# exactly quadratic data the fit reproduces value, slope and quadratic
+# coefficient at every evaluation point.
+module: loess
+cases:
+  - name: quadratic-recovery
+    description: >-
+      y = x^2 - x sampled on a uniform grid: yi0 = xi^2 - xi,
+      yi1 = 2 xi - 1, yi2 = 1 up to rounding.
+    expected_source: reference
+    buffers:
+      x: {size: 16, init: [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]}
+      y: {size: 16, init: [0.0, -0.25, 0.0, 0.75, 2.0, 3.75, 6.0, 8.75, 12.0]}
+      xi: {size: 4, init: [1.0, 2.0, 3.0]}
+      y0: {size: 4}
+      y1: {size: 4}
+      y2: {size: 4}
+    inputs:
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+      - {as: d, value: 1.25}
+      - {as: xi, buffer: xi}
+    outputs:
+      - {as: yi0, buffer: y0}
+      - {as: yi1, buffer: y1}
+      - {as: yi2, buffer: y2}
+    tolerance: {rel: 1e-06, abs: 1e-09}
+    expect:
+      y0: [-7.864379866173083e-17, 2.0, 6.0]
+      y1: [1.0, 3.0, 5.000000000000001]
+      y2: [1.0000000000000002, 1.0000000000000013, 0.9999999999999974]

@@ -1,0 +1,63 @@
+# Golden vectors: map. Nearest-gridpoint binning onto a
+# width x height grid with endpoints included; output row-major with
+# y as the outer loop; average of an empty cell is NaN, count is 0.
+module: map
+cases:
+  - name: average
+    description: >-
+      3x3 grid over [0,2]x[0,2]; empty cells give NaN in average
+      mode.
+    expected_source: reference
+    buffers:
+      x: {size: 8, init: [0.0, 1.0, 2.0, 0.1, 1.9, 0.0]}
+      y: {size: 8, init: [0.0, 0.0, 0.0, 2.0, 2.0, 1.0]}
+      z: {size: 8, init: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}
+      ox: {size: 16}
+      oy: {size: 16}
+      oz: {size: 16}
+    inputs:
+      - {as: mapWidth, value: 3}
+      - {as: minX, value: 0}
+      - {as: maxX, value: 2}
+      - {as: mapHeight, value: 3}
+      - {as: minY, value: 0}
+      - {as: maxY, value: 2}
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+      - {as: z, buffer: z}
+    outputs:
+      - {as: x, buffer: ox}
+      - {as: y, buffer: oy}
+      - {as: z, buffer: oz}
+    expect:
+      ox: [0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0]
+      oy: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0]
+      oz: [1.0, 2.0, 3.0, 6.0, "nan", "nan", 4.0, "nan", 5.0]
+  - name: count
+    description: >-
+      zMode=count: empty cells report 0 and no z input is required.
+    expected_source: reference
+    attributes: {zMode: count}
+    buffers:
+      x: {size: 8, init: [0.0, 1.0, 2.0, 0.1, 1.9, 0.0]}
+      y: {size: 8, init: [0.0, 0.0, 0.0, 2.0, 2.0, 1.0]}
+      ox: {size: 16}
+      oy: {size: 16}
+      oz: {size: 16}
+    inputs:
+      - {as: mapWidth, value: 3}
+      - {as: minX, value: 0}
+      - {as: maxX, value: 2}
+      - {as: mapHeight, value: 3}
+      - {as: minY, value: 0}
+      - {as: maxY, value: 2}
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+    outputs:
+      - {as: x, buffer: ox}
+      - {as: y, buffer: oy}
+      - {as: z, buffer: oz}
+    expect:
+      ox: [0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0]
+      oy: [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0]
+      oz: [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0]

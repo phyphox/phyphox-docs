@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.18" locale="en">
+    <title>golden vector: split/index-overlap</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/split.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0,3.0,4.0,5.0,6.0">d</container>
+        <container size="8">o1</container>
+        <container size="8">o2</container>
+    </data-containers>
+    <analysis>
+        <split>
+            <input as="data">d</input>
+            <input as="index" type="value">4</input>
+            <input as="overlap" type="value">2</input>
+            <output as="out1">o1</output>
+            <output as="out2">o2</output>
+        </split>
+    </analysis>
+</phyphox>

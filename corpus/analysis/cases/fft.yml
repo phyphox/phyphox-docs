@@ -1,0 +1,42 @@
+# Golden vectors: fft. Unnormalized forward DFT, full complex
+# spectrum. Power-of-two lengths ONLY - other lengths are platform-
+# defined (fft-non-power-of-two-input). Android's native path is
+# float32, hence the tolerance.
+module: fft
+cases:
+  - name: real-cosine
+    description: >-
+      N=8 cosine at bin 2: spectrum is 4 at bins 2 and 6, 0 elsewhere.
+    expected_source: reference
+    buffers:
+      re: {size: 8, init: [1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0]}
+      outre: {size: 8}
+      outim: {size: 8}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [0.0, 7.267471740958731e-17, 4.0, -3.2904645469127765e-16, 0.0, 2.3617750313732183e-15, 4.0, 9.345669101455923e-16]
+      outim: [0.0, -1.1102230246251565e-16, 7.347880794884119e-16, -4.440892098500626e-16, -4.898587196589412e-16, -6.661338147750939e-16, 2.204364238465236e-15, -8.881784197001252e-16]
+  - name: complex-input
+    description: >-
+      N=4 with an explicit imaginary input.
+    expected_source: reference
+    buffers:
+      re: {size: 4, init: [1.0, 2.0, 3.0, 4.0]}
+      im: {size: 4, init: [0.5, -0.5, 0.5, -0.5]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]
+      outim: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]

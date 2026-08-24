@@ -1,0 +1,30 @@
+# Golden vectors: cosh. No deg attribute exists for the
+# hyperbolic functions.
+module: cosh
+cases:
+  - name: base
+    description: >-
+      Plain input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, 1.0, -2.0, 3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 1.1276259652063807, 1.5430806348152437, 3.7621956910836314, 10.067661995777765]
+  - name: specials
+    description: >-
+      Non-finite propagation per IEEE.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf", "-inf"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "inf", "inf"]

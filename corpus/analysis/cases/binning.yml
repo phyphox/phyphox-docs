@@ -1,0 +1,23 @@
+# Golden vectors: binning. floor((v - x0)/dx): lower edge
+# inclusive; output covers the occupied span contiguously with zero
+# counts in gaps; binStarts holds left edges; non-finite values are
+# skipped.
+module: binning
+cases:
+  - name: base
+    description: >-
+      Boundary values land in the bin starting there; the -0.5 value
+      creates a negative bin; the empty bin 2 reports zero.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, 1.0, 1.5, 3.5, -0.5, "nan"]}
+      starts: {size: 8}
+      counts: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {as: binStarts, buffer: starts}
+      - {as: binCounts, buffer: counts}
+    expect:
+      starts: [-1.0, 0.0, 1.0, 2.0, 3.0]
+      counts: [1.0, 2.0, 2.0, 0.0, 1.0]

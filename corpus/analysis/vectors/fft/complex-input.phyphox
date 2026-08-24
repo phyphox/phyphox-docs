@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: fft/complex-input</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/fft.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="1.0,2.0,3.0,4.0">re</container>
+        <container size="4" init="0.5,-0.5,0.5,-0.5">im</container>
+        <container size="4">outre</container>
+        <container size="4">outim</container>
+    </data-containers>
+    <analysis>
+        <fft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </fft>
+    </analysis>
+</phyphox>

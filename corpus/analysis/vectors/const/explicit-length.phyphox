@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: const/explicit-length</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/const.yml - do not edit.</description>
+    <data-containers>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <const>
+            <input as="value" type="value">2.5</input>
+            <input as="length" type="value">4</input>
+            <output>out</output>
+        </const>
+    </analysis>
+</phyphox>

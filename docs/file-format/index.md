@@ -178,6 +178,8 @@ In data-containers all buffers are defined. Any input (sensors, microphone) writ
 
 The container tag defines the name of a single data container.
 
+{{inconsistency:static-buffer-lifecycle}}
+
 {{spec:root/data-containers/container}}
 
 ## Block: input

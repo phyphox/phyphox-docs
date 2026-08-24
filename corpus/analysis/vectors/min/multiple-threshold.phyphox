@@ -1,0 +1,18 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: min/multiple-threshold</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/min.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="5.0,2.0,1.0,8.0,4.0,0.5,9.0">y</container>
+        <container size="8">v</container>
+        <container size="8">p</container>
+    </data-containers>
+    <analysis>
+        <min multiple="true">
+            <input as="y">y</input>
+            <input as="threshold" type="value">4.0</input>
+            <output as="min">v</output>
+            <output as="position">p</output>
+        </min>
+    </analysis>
+</phyphox>

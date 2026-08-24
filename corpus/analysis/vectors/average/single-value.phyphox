@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.2" locale="en">
+    <title>golden vector: average/single-value</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/average.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="5.0">a</container>
+        <container size="1">avg</container>
+        <container size="1">dev</container>
+    </data-containers>
+    <analysis>
+        <average>
+            <input>a</input>
+            <output>avg</output>
+            <output as="stddev">dev</output>
+        </average>
+    </analysis>
+</phyphox>

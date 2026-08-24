@@ -4,6 +4,8 @@ The analysis block describes all the math required for the experiment. Each elem
 
 In most experiments the analysis block is executed in a loop, so the experiment data is analyzed as fast as possible (capped at roughly 100 executions per second). However, if you need to acquire a certain amount of data first (for example when recording from the microphone) or if the results only change if the user changes a parameter, you can define the attributes *sleep*, *dynamicSleep*, *requireFill* and/or *onUserInput* to pause the analysis loop.
 
+{{inconsistency:requirefill-first-run}}
+
 {{spec:analysis/phyphox/analysis|attributes}}
 
 An earlier attribute `optimization` was removed in phyphox file format 1.10

@@ -1,0 +1,30 @@
+# Golden vectors: count. The filled size of the input buffer
+# - NaN elements count, an empty buffer counts 0.
+module: count
+cases:
+  - name: base
+    description: >-
+      Plain length, NaN included.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, "nan", 3.0]}
+      out: {size: 1}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [3]
+  - name: empty
+    description: >-
+      Empty input counts zero.
+    expected_source: reference
+    buffers:
+      a: {size: 4}
+      out: {size: 1}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0]

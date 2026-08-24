@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>golden vector: formula/ieee-division</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/formula.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="1.0,0.0,-1.0">a</container>
+        <container size="4" init="0.0,0.0,0.0">b</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <formula formula="[1_]/[2_]">
+            <input>a</input>
+            <input>b</input>
+            <output>out</output>
+        </formula>
+    </analysis>
+</phyphox>

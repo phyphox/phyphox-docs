@@ -1,0 +1,26 @@
+{
+ "case": "base",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      0.0,
+      0.5210953054937474,
+      1.1752011936438014,
+      -3.626860407847019,
+      10.017874927409903
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "sinh"
+}

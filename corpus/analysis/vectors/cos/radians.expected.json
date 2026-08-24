@@ -1,0 +1,26 @@
+{
+ "case": "radians",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      1.0,
+      0.8775825618903728,
+      0.5403023058681398,
+      0.0707372016677029,
+      -0.9899924966004454
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "cos"
+}

@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: rangefilter/base</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/rangefilter.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,5.0,10.0,15.0,NaN">a</container>
+        <container size="8" init="100.0,200.0,300.0">b</container>
+        <container size="8">oa</container>
+        <container size="8">ob</container>
+    </data-containers>
+    <analysis>
+        <rangefilter>
+            <input>a</input>
+            <input as="min" type="value">2</input>
+            <input as="max" type="value">10</input>
+            <input>b</input>
+            <output>oa</output>
+            <output>ob</output>
+        </rangefilter>
+    </analysis>
+</phyphox>

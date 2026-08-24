@@ -1,0 +1,33 @@
+# Golden vectors: multiply.
+module: multiply
+cases:
+  - name: unequal-lengths
+    description: >-
+      Element-wise product with last-value repeat.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1, 2, 3, 4]}
+      b: {size: 8, init: [2, 0.5]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [2.0, 1.0, 1.5, 2.0]
+  - name: specials
+    description: >-
+      0 * Infinity = NaN; NaN propagates.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [0, "nan", 2]}
+      b: {size: 4, init: ["inf", 3, "-inf"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "nan", "-inf"]

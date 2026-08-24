@@ -1,0 +1,35 @@
+# Golden vectors: divide. IEEE division: x/0 = signed
+# infinity, 0/0 = NaN.
+module: divide
+cases:
+  - name: chain
+    description: >-
+      dividend / divisor / divisor with last-value repeat.
+    expected_source: reference
+    buffers:
+      d: {size: 8, init: [100, 200, 300]}
+      s: {size: 8, init: [2, 4]}
+      out: {size: 8}
+    inputs:
+      - {buffer: d}
+      - {buffer: s}
+      - {value: 5}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [10.0, 10.0, 15.0]
+  - name: by-zero
+    description: >-
+      1/0 = Inf, -1/0 = -Inf, 0/0 = NaN.
+    expected_source: reference
+    buffers:
+      d: {size: 4, init: [1, -1, 0]}
+      z: {size: 4, init: [0, 0, 0]}
+      out: {size: 4}
+    inputs:
+      - {buffer: d}
+      - {buffer: z}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["inf", "-inf", "nan"]

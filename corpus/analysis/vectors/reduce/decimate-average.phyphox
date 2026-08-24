@@ -1,0 +1,20 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>golden vector: reduce/decimate-average</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/reduce.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0,3.0,4.0,5.0">x</container>
+        <container size="8" init="10.0,20.0,30.0,40.0,50.0">y</container>
+        <container size="8">ox</container>
+        <container size="8">oy</container>
+    </data-containers>
+    <analysis>
+        <reduce averageY="true">
+            <input as="factor" type="value">2</input>
+            <input as="x">x</input>
+            <input as="y">y</input>
+            <output as="x">ox</output>
+            <output as="y">oy</output>
+        </reduce>
+    </analysis>
+</phyphox>

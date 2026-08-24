@@ -1,0 +1,18 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: threshold/rising-armed</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/threshold.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="2.0,1.0,0.5,1.5,3.0,0.2,4.0">y</container>
+        <container size="8" init="0.1,0.2,0.3,0.4,0.5,0.6,0.7">x</container>
+        <container size="1">out</container>
+    </data-containers>
+    <analysis>
+        <threshold>
+            <input as="y">y</input>
+            <input as="x">x</input>
+            <input as="threshold" type="value">1.2</input>
+            <output>out</output>
+        </threshold>
+    </analysis>
+</phyphox>

@@ -1,0 +1,17 @@
+# Golden vectors: differentiate. Forward difference of
+# neighbors; output is one shorter than the input.
+module: differentiate
+cases:
+  - name: base
+    description: >-
+      out[i] = in[i+1] - in[i].
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 4.0, 9.0, 16.0, 25.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [3.0, 5.0, 7.0, 9.0]

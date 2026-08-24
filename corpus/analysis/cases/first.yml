@@ -1,0 +1,22 @@
+# Golden vectors: first. Pairwise first element of each
+# input, no NaN filtering.
+module: first
+cases:
+  - name: base
+    description: >-
+      Two inputs, two outputs; a leading NaN is returned.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [7.0, 8.0]}
+      b: {size: 4, init: ["nan", 1.5, 2.0]}
+      oa: {size: 1}
+      ob: {size: 1}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: oa}
+      - {buffer: ob}
+    expect:
+      oa: [7.0]
+      ob: ["nan"]

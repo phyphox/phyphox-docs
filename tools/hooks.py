@@ -187,7 +187,24 @@ def on_config(config, **kwargs):
     _check_validators()
     _check_conversion_values()
     _check_test_matrix()
+    _check_analysis_vectors()
     return config
+
+
+def _check_analysis_vectors():
+    """The analysis golden vectors are generated from their case files
+    (corpus/analysis/cases/*.yml -> vectors/, tools/generate_analysis_vectors
+    .py); the committed artifacts must match a fresh generation, so the YAML
+    stays the single source of truth. Pure templating - the expected values
+    themselves are authored in the case files."""
+    if not os.path.isdir(os.path.join(ROOT, "corpus", "analysis", "cases")):
+        return
+    _ensure_path()
+    import generate_analysis_vectors as gav
+    problems = gav.generate(check=True)
+    if problems:
+        raise ValueError("analysis golden vectors are out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 def _check_conversion_values():
@@ -337,7 +354,9 @@ def _check_corpus():
     import xml.etree.ElementTree as ET
     import validate_experiments as ve
 
-    clean_dirs = [os.path.join(corpus, d) for d in ("valid", "generated")
+    clean_dirs = [os.path.join(corpus, d)
+                  for d in ("valid", "generated",
+                            os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
     doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
     if os.path.isdir(doc_examples):
@@ -485,7 +504,9 @@ def _check_validators():
                 for fa in sch.validation_report.iter(svrl)
                 if fa.get("role") != "warning"]
 
-    clean_dirs = [os.path.join(corpus, d) for d in ("valid", "generated")
+    clean_dirs = [os.path.join(corpus, d)
+                  for d in ("valid", "generated",
+                            os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
     doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
     if os.path.isdir(doc_examples):

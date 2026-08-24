@@ -1,0 +1,29 @@
+{
+ "case": "bandpass",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      0.0,
+      0.15799050110667284,
+      0.7071067811865475,
+      0.9887565583819392,
+      1.0,
+      0.9959744388432287,
+      0.9555235878955425,
+      0.7071067811865475
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "butterworth"
+}

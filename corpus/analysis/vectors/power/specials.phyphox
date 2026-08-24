@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: power/specials</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/power.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0,NaN,-8,0,2">b</container>
+        <container size="8" init="0,0,0.5,-2,NaN">e</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <power>
+            <input as="base">b</input>
+            <input as="exponent">e</input>
+            <output>out</output>
+        </power>
+    </analysis>
+</phyphox>

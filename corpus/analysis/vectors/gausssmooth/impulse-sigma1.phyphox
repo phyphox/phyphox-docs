@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: gausssmooth/impulse-sigma1</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/gausssmooth.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0">y</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <gausssmooth sigma="1">
+            <input>y</input>
+            <output>out</output>
+        </gausssmooth>
+    </analysis>
+</phyphox>

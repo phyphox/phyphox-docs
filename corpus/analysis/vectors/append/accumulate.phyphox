@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.17" locale="en">
+    <title>golden vector: append/accumulate</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/append.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0">a</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <append>
+            <input keep="true">a</input>
+            <output append="true">out</output>
+        </append>
+    </analysis>
+</phyphox>

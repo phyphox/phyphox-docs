@@ -1,0 +1,22 @@
+# Golden vectors: match. Rows up to the shortest input; a row
+# with any non-finite value is dropped from every output.
+module: match
+cases:
+  - name: base
+    description: >-
+      NaN in one input and Inf in the other drop their rows.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, "nan", 3.0, 4.0, 5.0]}
+      b: {size: 8, init: [10.0, 20.0, "inf", 40.0]}
+      oa: {size: 8}
+      ob: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: oa}
+      - {buffer: ob}
+    expect:
+      oa: [1.0, 4.0]
+      ob: [10.0, 40.0]

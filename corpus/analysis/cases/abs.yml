@@ -1,0 +1,29 @@
+# Golden vectors: abs.
+module: abs
+cases:
+  - name: base
+    description: >-
+      Element-wise abs of a plain buffer.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.5, -2.5, 0.0, -0.0, 3.0, -4.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.5, 2.5, 0.0, 0.0, 3.0, 4.0]
+  - name: specials
+    description: >-
+      Non-finite inputs pass through the documented special-value rules of abs.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: ["nan", "inf", "-inf", -1.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "inf", "inf", 1.0]

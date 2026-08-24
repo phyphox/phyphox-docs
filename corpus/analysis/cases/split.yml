@@ -1,0 +1,23 @@
+# Golden vectors: split. out1 = data[0:index); out2 starts
+# index-overlap into the data, so a positive overlap re-emits the
+# tail of out1.
+module: split
+cases:
+  - name: index-overlap
+    description: >-
+      index 4, overlap 2: out2 repeats the last two pre-split values.
+    expected_source: reference
+    buffers:
+      d: {size: 8, init: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}
+      o1: {size: 8}
+      o2: {size: 8}
+    inputs:
+      - {as: data, buffer: d}
+      - {as: index, value: 4}
+      - {as: overlap, value: 2}
+    outputs:
+      - {as: out1, buffer: o1}
+      - {as: out2, buffer: o2}
+    expect:
+      o1: [1.0, 2.0, 3.0, 4.0]
+      o2: [3.0, 4.0, 5.0, 6.0]

@@ -1,0 +1,29 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>golden vector: map/average</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/map.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,1.0,2.0,0.1,1.9,0.0">x</container>
+        <container size="8" init="0.0,0.0,0.0,2.0,2.0,1.0">y</container>
+        <container size="8" init="1.0,2.0,3.0,4.0,5.0,6.0">z</container>
+        <container size="16">ox</container>
+        <container size="16">oy</container>
+        <container size="16">oz</container>
+    </data-containers>
+    <analysis>
+        <map>
+            <input as="mapWidth" type="value">3</input>
+            <input as="minX" type="value">0</input>
+            <input as="maxX" type="value">2</input>
+            <input as="mapHeight" type="value">3</input>
+            <input as="minY" type="value">0</input>
+            <input as="maxY" type="value">2</input>
+            <input as="x">x</input>
+            <input as="y">y</input>
+            <input as="z">z</input>
+            <output as="x">ox</output>
+            <output as="y">oy</output>
+            <output as="z">oz</output>
+        </map>
+    </analysis>
+</phyphox>

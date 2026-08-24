@@ -1,0 +1,54 @@
+# Golden vectors: eventstream. A threshold event
+# detector over buffer data; its state travels through matching
+# input/output slots, which stay at their documented defaults here
+# (index 0, skip 0, last NaN).
+module: eventstream
+cases:
+  - name: no-events
+    description: >-
+      Nothing exceeds the threshold: no events, index advances by
+      the number of samples, skip 0, last is the final sample.
+    expected_source: reference
+    buffers:
+      d: {size: 8, init: [0.1, 0.2, 0.3]}
+      ev: {size: 8}
+      oi: {size: 1}
+      os: {size: 1}
+      ol: {size: 1}
+    inputs:
+      - {as: data, buffer: d}
+      - {as: threshold, value: 1.0}
+    outputs:
+      - {as: events, buffer: ev}
+      - {as: index, buffer: oi}
+      - {as: skip, buffer: os}
+      - {as: last, buffer: ol}
+    expect:
+      ev: []
+      oi: [3.0]
+      os: [0.0]
+      ol: [0.3]
+  - name: above-no-distance
+    description: >-
+      mode=above (the default), distance 0: every sample above the
+      threshold reports its index.
+    expected_source: reference
+    buffers:
+      d: {size: 8, init: [0.0, 2.0, 0.5, 3.0]}
+      ev: {size: 8}
+      oi: {size: 1}
+      os: {size: 1}
+      ol: {size: 1}
+    inputs:
+      - {as: data, buffer: d}
+      - {as: threshold, value: 1.0}
+    outputs:
+      - {as: events, buffer: ev}
+      - {as: index, buffer: oi}
+      - {as: skip, buffer: os}
+      - {as: last, buffer: ol}
+    expect:
+      ev: [1.0, 3.0]
+      oi: [4.0]
+      os: [0.0]
+      ol: [3.0]

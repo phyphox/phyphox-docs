@@ -1,0 +1,33 @@
+{
+ "case": "inflate",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "ox": {
+     "values": [
+      1.0,
+      1.0,
+      2.0,
+      2.0
+     ]
+    },
+    "oy": {
+     "values": [
+      10.0,
+      10.0,
+      20.0,
+      20.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "reduce"
+}

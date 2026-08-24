@@ -1,0 +1,35 @@
+# Golden vectors: power. The base and exponent slots require
+# their as attribute; IEEE pow special values.
+module: power
+cases:
+  - name: base
+    description: >-
+      Element-wise pow with last-value repeat.
+    expected_source: reference
+    buffers:
+      b: {size: 8, init: [2, 3, 4, 5]}
+      e: {size: 8, init: [2, 3]}
+      out: {size: 8}
+    inputs:
+      - {as: base, buffer: b}
+      - {as: exponent, buffer: e}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [4.0, 27.0, 64.0, 125.0]
+  - name: specials
+    description: >-
+      IEEE pow: 0^0 = 1, NaN^0 = 1, negative base with fractional
+      exponent = NaN, 0^-2 = Inf.
+    expected_source: reference
+    buffers:
+      b: {size: 8, init: [0, "nan", -8, 0, 2]}
+      e: {size: 8, init: [0, 0, 0.5, -2, "nan"]}
+      out: {size: 8}
+    inputs:
+      - {as: base, buffer: b}
+      - {as: exponent, buffer: e}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 1.0, "nan", "inf", "nan"]

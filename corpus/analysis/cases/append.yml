@@ -1,0 +1,40 @@
+# Golden vectors: append. Concatenates all inputs in
+# document order; a fixed value contributes one element; empty
+# inputs are skipped. The accumulate case pins append=true output
+# behavior and keep=true inputs across cycles.
+module: append
+cases:
+  - name: concat
+    description: >-
+      Buffers, a value and an empty input in order.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 2.0]}
+      b: {size: 8, init: [3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {value: 9.5}
+      - {buffer: b}
+      - {empty: true}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 2.0, 9.5, 3.0]
+  - name: accumulate
+    description: >-
+      keep=true input plus append=true output: the output grows by
+      the input's contents every cycle (nothing is cleared).
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 2.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a, keep: true}
+    outputs:
+      - {buffer: out, append: true}
+    cycles: 3
+    expect_per_cycle:
+      - {out: [1.0, 2.0]}
+      - {out: [1.0, 2.0, 1.0, 2.0]}
+      - {out: [1.0, 2.0, 1.0, 2.0, 1.0, 2.0]}

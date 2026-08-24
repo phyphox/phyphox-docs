@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: gausssmooth/default-sigma</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/gausssmooth.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0,4.0,8.0,4.0,2.0,1.0">y</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <gausssmooth>
+            <input>y</input>
+            <output>out</output>
+        </gausssmooth>
+    </analysis>
+</phyphox>

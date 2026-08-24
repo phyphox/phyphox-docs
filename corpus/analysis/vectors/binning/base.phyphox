@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.2" locale="en">
+    <title>golden vector: binning/base</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/binning.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,0.5,1.0,1.5,3.5,-0.5,NaN">a</container>
+        <container size="8">starts</container>
+        <container size="8">counts</container>
+    </data-containers>
+    <analysis>
+        <binning>
+            <input>a</input>
+            <output as="binStarts">starts</output>
+            <output as="binCounts">counts</output>
+        </binning>
+    </analysis>
+</phyphox>

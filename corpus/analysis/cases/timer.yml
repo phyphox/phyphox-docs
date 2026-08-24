@@ -1,0 +1,17 @@
+# Golden vectors: timer. The runner never starts the
+# experiment, so the experiment time is exactly 0.0 on both
+# platforms. The offset1970 output is NOT pinned: its never-started
+# value diverges (see the timer-offset1970-prestart inconsistency).
+module: timer
+cases:
+  - name: never-started
+    description: >-
+      Experiment time before the first start is exactly zero.
+    expected_source: reference
+    buffers:
+      out: {size: 4}
+    inputs:
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0]

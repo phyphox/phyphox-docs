@@ -1,0 +1,43 @@
+# Golden vectors: imagedecode. The input buffer holds
+# the raw bytes of an encoded image file, one byte per value. A
+# fully opaque PNG decodes bit-identically on both platforms
+# (channel values exactly k/255); JPEG and partial alpha would not.
+# luma uses Rec. 709 weights on the gamma-encoded values, luminance
+# the same weights after sRGB linearization.
+module: imagedecode
+cases:
+  - name: opaque-png
+    description: >-
+      A generated 2x2 RGB PNG (red, green / blue, white), read
+      line-wise from the top.
+    expected_source: reference
+    buffers:
+      img: {size: 75, init: [137.0, 80.0, 78.0, 71.0, 13.0, 10.0, 26.0, 10.0, 0.0, 0.0, 0.0, 13.0, 73.0, 72.0, 68.0, 82.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0, 8.0, 2.0, 0.0, 0.0, 0.0, 253.0, 212.0, 154.0, 115.0, 0.0, 0.0, 0.0, 18.0, 73.0, 68.0, 65.0, 84.0, 120.0, 156.0, 99.0, 248.0, 207.0, 192.0, 192.0, 0.0, 194.0, 12.0, 255.0, 129.0, 0.0, 0.0, 31.0, 238.0, 5.0, 251.0, 11.0, 217.0, 104.0, 139.0, 0.0, 0.0, 0.0, 0.0, 73.0, 69.0, 78.0, 68.0, 174.0, 66.0, 96.0, 130.0]}
+      w: {size: 1}
+      h: {size: 1}
+      r: {size: 4}
+      g: {size: 4}
+      b: {size: 4}
+      a: {size: 4}
+      lu: {size: 4}
+      ln: {size: 4}
+    inputs:
+      - {as: in, buffer: img}
+    outputs:
+      - {as: width, buffer: w}
+      - {as: height, buffer: h}
+      - {as: r, buffer: r}
+      - {as: g, buffer: g}
+      - {as: b, buffer: b}
+      - {as: a, buffer: a}
+      - {as: luma, buffer: lu}
+      - {as: luminance, buffer: ln}
+    expect:
+      w: [2.0]
+      h: [2.0]
+      r: [1.0, 0.0, 0.0, 1.0]
+      g: [0.0, 1.0, 0.0, 1.0]
+      b: [0.0, 0.0, 1.0, 1.0]
+      a: [1.0, 1.0, 1.0, 1.0]
+      lu: [0.2126, 0.7152, 0.0722, 1.0]
+      ln: [0.2126, 0.7152, 0.0722, 1.0]

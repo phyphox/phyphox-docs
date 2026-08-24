@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: differentiate/base</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/differentiate.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,4.0,9.0,16.0,25.0">a</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <differentiate>
+            <input>a</input>
+            <output>out</output>
+        </differentiate>
+    </analysis>
+</phyphox>

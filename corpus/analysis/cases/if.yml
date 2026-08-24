@@ -1,0 +1,80 @@
+# Golden vectors: if. Compares the LAST values of a and b with
+# exact IEEE comparisons (no epsilon; NaN fails every relation) and
+# passes the entire chosen input array through. Without a matching
+# branch input the output is left untouched - including its init
+# values - and an empty-type branch clears it.
+module: if
+cases:
+  - name: true-branch-array
+    description: >-
+      less=true with a<b: the whole true input passes through.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [1.0]}
+      b: {size: 4, init: [2.0]}
+      t: {size: 4, init: [7.0, 8.0, 9.0]}
+      out: {size: 4}
+    inputs:
+      - {as: a, buffer: a}
+      - {as: b, buffer: b}
+      - {as: true, buffer: t}
+    outputs:
+      - {as: result, buffer: out}
+    expect:
+      out: [7.0, 8.0, 9.0]
+  - name: nan-fails-all
+    description: >-
+      NaN operands make every relation false: the false branch is
+      taken even with equal=true.
+    expected_source: reference
+    attributes: {equal: true}
+    buffers:
+      a: {size: 4, init: ["nan"]}
+      b: {size: 4, init: ["nan"]}
+      f: {size: 4, init: [1.0]}
+      out: {size: 4}
+    inputs:
+      - {as: a, buffer: a}
+      - {as: b, buffer: b}
+      - {as: false, buffer: f}
+    outputs:
+      - {as: result, buffer: out}
+    expect:
+      out: [1.0]
+  - name: untouched-keeps-init
+    description: >-
+      Condition false with no false input: the output keeps its init
+      values (the module never clears what it does not write).
+    expected_source: reference
+    attributes: {less: true}
+    buffers:
+      a: {size: 4, init: [5.0]}
+      b: {size: 4, init: [2.0]}
+      t: {size: 4, init: [1.0]}
+      out: {size: 4, init: [42.0]}
+    inputs:
+      - {as: a, buffer: a}
+      - {as: b, buffer: b}
+      - {as: true, buffer: t}
+    outputs:
+      - {as: result, buffer: out}
+    expect:
+      out: [42.0]
+  - name: empty-branch-clears
+    description: >-
+      A type=empty branch input clears the output and writes nothing
+      - the documented reset idiom.
+    expected_source: reference
+    attributes: {less: true}
+    buffers:
+      a: {size: 4, init: [1.0]}
+      b: {size: 4, init: [2.0]}
+      out: {size: 4, init: [42.0]}
+    inputs:
+      - {as: a, buffer: a}
+      - {as: b, buffer: b}
+      - {as: true, empty: true}
+    outputs:
+      - {as: result, buffer: out}
+    expect:
+      out: []

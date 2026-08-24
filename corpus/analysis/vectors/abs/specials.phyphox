@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: abs/specials</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/abs.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="NaN,Infinity,-Infinity,-1.0">a</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <abs>
+            <input>a</input>
+            <output>out</output>
+        </abs>
+    </analysis>
+</phyphox>

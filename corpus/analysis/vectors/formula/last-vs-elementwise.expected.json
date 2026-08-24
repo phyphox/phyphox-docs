@@ -1,0 +1,24 @@
+{
+ "case": "last-vs-elementwise",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      5.0,
+      10.0,
+      15.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "formula"
+}

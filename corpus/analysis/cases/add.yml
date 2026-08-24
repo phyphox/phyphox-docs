@@ -1,0 +1,105 @@
+# Golden vectors: add. Pins the shared multi-input rule: output
+# length = longest input, shorter inputs repeat their last value, any
+# empty input yields an empty output, non-finite values propagate.
+# The multi-cycle cases pin input consumption: keep=false (the
+# default) clears an input buffer when it is read.
+module: add
+cases:
+  - name: unequal-lengths
+    description: >-
+      Two buffers of different length: the shorter repeats its last
+      value (10+1, 20+2, 30+3, 40+3).
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [10, 20, 30, 40]}
+      b: {size: 8, init: [1, 2, 3]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [11.0, 22.0, 33.0, 43.0]
+  - name: value-input
+    description: >-
+      A fixed value acts as a one-element input repeated to the buffer
+      length.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1, 2, 3]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {value: 0.5}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.5, 2.5, 3.5]
+  - name: empty-input-empties-output
+    description: >-
+      An empty summand buffer empties the result no matter how long
+      the other inputs are.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1, 2, 3]}
+      e: {size: 8}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: e}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: []
+  - name: specials
+    description: >-
+      NaN and infinities propagate; Inf + -Inf = NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf", "inf", 1]}
+      b: {size: 4, init: [1, 1, "-inf", 2]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "inf", "nan", 3.0]
+  - name: consume-on-read
+    description: >-
+      Default keep=false: reading clears the inputs, so cycle 1 sees
+      empty inputs and produces an empty (cleared) output.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1, 2]}
+      b: {size: 8, init: [10, 20]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    cycles: 2
+    expect_per_cycle:
+      - {out: [11.0, 22.0], a: [], b: []}
+      - {out: []}
+  - name: keep-inputs
+    description: >-
+      keep=true preserves the inputs, so every cycle recomputes the
+      same sum.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1, 2]}
+      b: {size: 8, init: [10, 20]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a, keep: true}
+      - {buffer: b, keep: true}
+    outputs:
+      - {buffer: out}
+    cycles: 2
+    expect_per_cycle:
+      - {out: [11.0, 22.0], a: [1.0, 2.0], b: [10.0, 20.0]}
+      - {out: [11.0, 22.0]}

@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: gcd/base</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/gcd.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="12,2.5,18,7">a</container>
+        <container size="8" init="8,3,24,0">b</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <gcd>
+            <input>a</input>
+            <input>b</input>
+            <output>out</output>
+        </gcd>
+    </analysis>
+</phyphox>

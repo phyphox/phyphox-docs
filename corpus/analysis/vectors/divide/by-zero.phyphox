@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: divide/by-zero</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/divide.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="1,-1,0">d</container>
+        <container size="4" init="0,0,0">z</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <divide>
+            <input>d</input>
+            <input>z</input>
+            <output>out</output>
+        </divide>
+    </analysis>
+</phyphox>

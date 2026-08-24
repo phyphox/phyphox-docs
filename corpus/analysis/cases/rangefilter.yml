@@ -1,0 +1,26 @@
+# Golden vectors: rangefilter. Inclusive bounds; rows
+# dropped across all outputs; iteration runs to the longest input and
+# exhausted inputs contribute NaN, which always passes the filter.
+module: rangefilter
+cases:
+  - name: base
+    description: >-
+      min=2 max=10 on the first input (10 passes, inclusive); the
+      second input runs out and appends NaN for surviving longer rows.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 5.0, 10.0, 15.0, "nan"]}
+      b: {size: 8, init: [100.0, 200.0, 300.0]}
+      oa: {size: 8}
+      ob: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {as: min, value: 2}
+      - {as: max, value: 10}
+      - {buffer: b}
+    outputs:
+      - {buffer: oa}
+      - {buffer: ob}
+    expect:
+      oa: [5.0, 10.0, "nan"]
+      ob: [200.0, 300.0, "nan"]

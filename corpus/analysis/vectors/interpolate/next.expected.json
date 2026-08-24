@@ -1,0 +1,26 @@
+{
+ "case": "next",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      0.0,
+      10.0,
+      10.0,
+      40.0,
+      40.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "interpolate"
+}

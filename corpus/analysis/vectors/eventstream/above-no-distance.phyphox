@@ -1,0 +1,22 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.18" locale="en">
+    <title>golden vector: eventstream/above-no-distance</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/eventstream.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,2.0,0.5,3.0">d</container>
+        <container size="8">ev</container>
+        <container size="1">oi</container>
+        <container size="1">os</container>
+        <container size="1">ol</container>
+    </data-containers>
+    <analysis>
+        <eventstream>
+            <input as="data">d</input>
+            <input as="threshold" type="value">1.0</input>
+            <output as="events">ev</output>
+            <output as="index">oi</output>
+            <output as="skip">os</output>
+            <output as="last">ol</output>
+        </eventstream>
+    </analysis>
+</phyphox>

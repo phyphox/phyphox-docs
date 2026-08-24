@@ -89,3 +89,105 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: atan2-scalar-input
+  title: atan2 with one fixed-value operand
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Element-wise like every other multi-input module: the output has the
+      length of the longest input, a fixed value repeats for every element,
+      so atan2 of a 5-element buffer and a value yields 5 results
+      (Analysis.java, atan2AM).
+    ios: >-
+      When exactly one operand is a fixed value (type="value") and the
+      other a buffer with more than one element, the scalar code path
+      computes a SINGLE value from the buffer's first element -
+      atan2(y[0], x) or atan2(y, x[0]) - instead of the element-wise
+      result (Atan2Analysis.swift, the scalar branches). Buffer-with-
+      buffer and value-with-value agree with Android.
+  summary: >-
+    Mixing a fixed value with a multi-element buffer in atan2 yields the
+    full element-wise result on Android but a single value computed from
+    the buffer's first element on iOS. The documentation describes the
+    Android behavior. Found 2026-08-24 while pinning the module semantics
+    for the analysis golden vectors; the vectors pin only the agreeing
+    input shapes until this is ruled.
+
+- id: timer-offset1970-prestart
+  title: timer offset1970 before the first start
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      With no start event recorded (the cycle-0 pre-run before the user
+      ever presses play), the offset1970 output appends 0.0:
+      getSystemTimeReferenceByIndex returns 0 for an empty mapping list
+      (ExperimentTimeReference.java).
+    ios: >-
+      The same lookup falls back to the CURRENT wall-clock time
+      (ExperimentTimeReference.swift, getSystemTimeReferenceByIndex
+      returning Date()), so the pre-start value is the moment of the
+      analysis run instead of 0.
+  summary: >-
+    The timer module's offset1970 output differs before the experiment
+    has ever been started: 0.0 on Android, the current Unix time on iOS.
+    After the first start both platforms report the start event's system
+    time and agree. Found 2026-08-24 while pinning module semantics for
+    the analysis golden vectors, which therefore pin only the experiment-
+    time output.
+
+- id: static-buffer-lifecycle
+  title: Static buffers and the modules that write them
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      A module whose outputs are all static is SKIPPED entirely from its
+      second execution on (AnalysisModule.isStatic / the executed flag,
+      Analysis.java), so it also stops clearing its keep=false input
+      buffers. Static outputs are locked by markSet() after the module
+      runs, even if it wrote nothing. The user's "clear data" resets
+      static buffers to their init values and re-arms the skipped
+      modules.
+    ios: >-
+      The module runs every cycle - the static buffers simply drop the
+      writes - so its keep=false inputs keep being cleared each cycle.
+      A static buffer locks on its first actual write (the written flag,
+      DataBuffer.swift), and once written, every clear including the
+      user's "clear data" is a no-op: static data survives a user clear
+      on iOS only.
+  summary: >-
+    Three related differences in how static data containers behave over
+    an experiment's life: whether the writing module keeps executing (and
+    consuming its inputs), whether an empty write locks the buffer, and
+    whether the user's clear-data action resets static buffers. Invisible
+    in a single analysis pass; visible in input-buffer state from the
+    second cycle on and after a user clear. Found 2026-08-24 in the
+    execution-model comparison for the analysis golden vectors, which
+    avoid static buffers until this is ruled.
+
+- id: requirefill-first-run
+  title: requireFill on the first analysis run
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      The requireFill gate is only applied when a previous run has
+      happened (lastAnalysis != 0, PhyphoxExperiment.java,
+      processAnalysis) - the first run after opening or starting always
+      executes, so cycle 0 can initialize buffers even though the
+      required container is still empty.
+    ios: >-
+      requireFill is checked on every run including cycle 0
+      (ExperimentAnalysis.swift, update()), so an experiment whose
+      initialization depends on the pre-start run never runs it until
+      the required container fills.
+  summary: >-
+    An analysis block with requireFill runs its first cycle
+    unconditionally on Android but not on iOS. An experiment that relies
+    on the cycle-0 pre-run to seed buffers while waiting for sensor data
+    behaves differently until the required container fills. Found
+    2026-08-24 in the execution-model comparison for the analysis golden
+    vectors (which do not use requireFill).

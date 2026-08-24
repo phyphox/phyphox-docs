@@ -1,0 +1,29 @@
+{
+ "case": "multiple-threshold",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "p": {
+     "values": [
+      2.0,
+      5.0
+     ]
+    },
+    "v": {
+     "values": [
+      1.0,
+      0.5
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "min"
+}

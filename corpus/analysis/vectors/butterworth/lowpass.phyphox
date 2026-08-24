@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <title>golden vector: butterworth/lowpass</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/butterworth.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0">y</container>
+        <container size="8" init="0.0,1.0,2.0,3.0,4.0,5.0,6.0,8.0">x</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <butterworth>
+            <input as="y">y</input>
+            <input as="x">x</input>
+            <input as="n" type="value">2</input>
+            <input as="cutoff" type="value">4</input>
+            <output>out</output>
+        </butterworth>
+    </analysis>
+</phyphox>

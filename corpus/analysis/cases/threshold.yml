@@ -1,0 +1,52 @@
+# Golden vectors: threshold. Strict crossing after arming:
+# the first sample can never fire; without an x input the sample index
+# is reported; no crossing gives NaN.
+module: threshold
+cases:
+  - name: rising-armed
+    description: >-
+      Starts above the threshold (1.2): must arm below it first, so
+      the reported crossing is at x = 0.4, not 0.1.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [2.0, 1.0, 0.5, 1.5, 3.0, 0.2, 4.0]}
+      x: {size: 8, init: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]}
+      out: {size: 1}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, buffer: x}
+      - {as: threshold, value: 1.2}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.4]
+  - name: falling-index
+    description: >-
+      falling=true without an x input reports the 0-based sample
+      index of the first drop below the threshold.
+    expected_source: reference
+    attributes: {falling: true}
+    buffers:
+      y: {size: 8, init: [1.0, 2.0, 0.5, 3.0]}
+      out: {size: 1}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: threshold, value: 1.0}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [2.0]
+  - name: no-crossing
+    description: >-
+      No crossing yields a single NaN.
+    expected_source: reference
+    buffers:
+      y: {size: 4, init: [1.0, 1.0, 1.0]}
+      out: {size: 1}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: threshold, value: 5.0}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan"]

@@ -1,0 +1,28 @@
+{
+ "case": "default-sigma",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-06",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      3.1876393402357643,
+      3.3537428985533633,
+      3.463496320905627,
+      3.501944107413544,
+      3.463496320905626,
+      3.3537428985533633,
+      3.187639340235764
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "gausssmooth"
+}

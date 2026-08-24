@@ -1,0 +1,19 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.3" locale="en">
+    <title>golden vector: if/nan-fails-all</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/if.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="NaN">a</container>
+        <container size="4" init="NaN">b</container>
+        <container size="4" init="1.0">f</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <if equal="true">
+            <input as="a">a</input>
+            <input as="b">b</input>
+            <input as="false">f</input>
+            <output as="result">out</output>
+        </if>
+    </analysis>
+</phyphox>

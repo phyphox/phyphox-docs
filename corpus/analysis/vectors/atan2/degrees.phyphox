@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.2" locale="en">
+    <title>golden vector: atan2/degrees</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/atan2.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="1,-1,1">y</container>
+        <container size="4" init="1,1,-1">x</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <atan2 deg="true">
+            <input as="y">y</input>
+            <input as="x">x</input>
+            <output>out</output>
+        </atan2>
+    </analysis>
+</phyphox>

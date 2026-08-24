@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: autocorrelation/no-x</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/autocorrelation.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="1.0,2.0,1.0,0.0,-1.0,-2.0,-1.0,0.0">y</container>
+        <container size="8">outx</container>
+        <container size="8">outy</container>
+    </data-containers>
+    <analysis>
+        <autocorrelation>
+            <input as="y">y</input>
+            <output as="y">outy</output>
+            <output as="x">outx</output>
+        </autocorrelation>
+    </analysis>
+</phyphox>

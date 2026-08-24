@@ -1,0 +1,38 @@
+{
+ "case": "quadratic-recovery",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-09",
+  "rel": "1e-06"
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "y0": {
+     "values": [
+      -7.864379866173083e-17,
+      2.0,
+      6.0
+     ]
+    },
+    "y1": {
+     "values": [
+      1.0,
+      3.0,
+      5.000000000000001
+     ]
+    },
+    "y2": {
+     "values": [
+      1.0000000000000002,
+      1.0000000000000013,
+      0.9999999999999974
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "loess"
+}

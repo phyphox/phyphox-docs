@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: sinh/base</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/sinh.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,0.5,1.0,-2.0,3.0">a</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <sinh>
+            <input>a</input>
+            <output>out</output>
+        </sinh>
+    </analysis>
+</phyphox>

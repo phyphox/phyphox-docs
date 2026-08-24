@@ -1,0 +1,30 @@
+# Golden vectors: tanh. No deg attribute exists for the
+# hyperbolic functions.
+module: tanh
+cases:
+  - name: base
+    description: >-
+      Plain input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, 1.0, -2.0, 3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.46211715726000974, 0.7615941559557649, -0.9640275800758169, 0.9950547536867305]
+  - name: specials
+    description: >-
+      Non-finite propagation per IEEE.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf", "-inf"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", 1.0, -1.0]

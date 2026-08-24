@@ -1,0 +1,15 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.5" locale="en">
+    <title>golden vector: round/ties-away-from-zero</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/round.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="2.5,-2.5,0.5,-0.5,1.4,-1.6">a</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <round>
+            <input>a</input>
+            <output>out</output>
+        </round>
+    </analysis>
+</phyphox>

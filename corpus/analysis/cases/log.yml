@@ -1,0 +1,29 @@
+# Golden vectors: log. Natural logarithm; the module has no base attribute.
+module: log
+cases:
+  - name: base
+    description: >-
+      Element-wise log of a plain buffer.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 2.0, 0.5, 10.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.6931471805599453, -0.6931471805599453, 2.302585092994046]
+  - name: specials
+    description: >-
+      Non-finite inputs pass through the documented special-value rules of log.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, -1.0, "nan", "inf", 1.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["-inf", "nan", "nan", "inf", 0.0]

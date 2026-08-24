@@ -1,0 +1,46 @@
+# Golden vectors: sin. deg=true interprets the INPUT as
+# degrees; non-finite inputs give NaN.
+module: sin
+cases:
+  - name: radians
+    description: >-
+      Plain radians input.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [0.0, 0.5, 1.0, -1.5, 3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.479425538604203, 0.8414709848078965, -0.9974949866040544, 0.1411200080598672]
+  - name: degrees
+    description: >-
+      deg=true: input interpreted as degrees. Note
+      sin(90 deg) is computed from the double closest to pi/2,
+      never the exact value.
+    expected_source: reference
+    attributes: {deg: true}
+    buffers:
+      a: {size: 8, init: [0.0, 30.0, 45.0, 90.0, 180.0, -60.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.49999999999999994, 0.7071067811865475, 1.0, 1.2246467991473532e-16, -0.8660254037844386]
+  - name: specials
+    description: >-
+      NaN and infinities give NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: ["nan", "inf", "-inf"]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "nan", "nan"]

@@ -1,0 +1,17 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: add/unequal-lengths</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/add.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="10,20,30,40">a</container>
+        <container size="8" init="1,2,3">b</container>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <add>
+            <input>a</input>
+            <input>b</input>
+            <output>out</output>
+        </add>
+    </analysis>
+</phyphox>

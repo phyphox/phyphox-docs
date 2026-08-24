@@ -1,0 +1,86 @@
+# Golden vectors: formula. [k] is the LAST value of input
+# k, constant over the iteration; [k_] iterates element-wise; the
+# output length is capped by every [k_]-referenced buffer. The
+# precedence cases pin the 2026-08 parser ruling: unary minus binds
+# looser than ^, ^ is right-associative, round ties go away from
+# zero.
+module: formula
+cases:
+  - name: last-vs-elementwise
+    description: >-
+      [1] uses the last value of input 1 (5); [2_] iterates.
+    expected_source: reference
+    attributes: {formula: "[1]*[2_]"}
+    buffers:
+      a: {size: 4, init: [2.0, 5.0]}
+      b: {size: 4, init: [1.0, 2.0, 3.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [5.0, 10.0, 15.0]
+  - name: unary-minus-vs-power
+    description: >-
+      -x^2 is -(x^2): unary minus binds looser than the power
+      operator.
+    expected_source: reference
+    attributes: {formula: "-[1_]^2"}
+    buffers:
+      a: {size: 4, init: [2.0, 3.0]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [-4.0, -9.0]
+  - name: power-right-assoc
+    description: >-
+      x^3^2 is x^(3^2) = x^9.
+    expected_source: reference
+    attributes: {formula: "[1_]^3^2"}
+    buffers:
+      a: {size: 4, init: [2.0]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [512.0]
+  - name: functions-and-ties
+    description: >-
+      round ties away from zero (round(-2.5) = -3); sign(0) = 0.
+    expected_source: reference
+    attributes: {formula: "round([1_])+sign([2_])"}
+    buffers:
+      a: {size: 4, init: [-2.5, 0.5]}
+      b: {size: 4, init: [-7.0, 0.0]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [-4.0, 1.0]
+  - name: ieee-division
+    description: >-
+      x/0 is signed infinity, 0/0 is NaN - element-wise evaluation
+      does not abort on non-finite results.
+    expected_source: reference
+    attributes: {formula: "[1_]/[2_]"}
+    buffers:
+      a: {size: 4, init: [1.0, 0.0, -1.0]}
+      b: {size: 4, init: [0.0, 0.0, 0.0]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["inf", "nan", "-inf"]

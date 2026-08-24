@@ -1,0 +1,36 @@
+# Golden vectors: crosscorrelation. Raw sums, no
+# normalization; output length is the size difference of the inputs.
+# Android's native path computes in float32, hence the tolerance.
+module: crosscorrelation
+cases:
+  - name: base
+    description: >-
+      len(a) - len(b) = 4 output values.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}
+      b: {size: 8, init: [1.0, 0.5]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      out: [2.0, 3.5, 5.0, 6.5]
+  - name: equal-lengths-empty
+    description: >-
+      Equal input sizes yield an empty output.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [1, 2, 3]}
+      b: {size: 4, init: [4, 5, 6]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: []

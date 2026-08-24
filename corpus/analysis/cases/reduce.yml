@@ -1,0 +1,46 @@
+# Golden vectors: reduce. factor > 1 decimates in chunks of
+# round(factor) - the final partial chunk averages over the elements
+# actually present; factor in (0,1] repeats each element
+# round(1/factor) times.
+module: reduce
+cases:
+  - name: decimate-average
+    description: >-
+      factor 2 with averageY: x keeps the chunk's first value, y
+      averages; the last chunk has one element.
+    expected_source: reference
+    attributes: {averageY: true}
+    buffers:
+      x: {size: 8, init: [1.0, 2.0, 3.0, 4.0, 5.0]}
+      y: {size: 8, init: [10.0, 20.0, 30.0, 40.0, 50.0]}
+      ox: {size: 8}
+      oy: {size: 8}
+    inputs:
+      - {as: factor, value: 2}
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+    outputs:
+      - {as: x, buffer: ox}
+      - {as: y, buffer: oy}
+    expect:
+      ox: [1.0, 3.0, 5.0]
+      oy: [15.0, 35.0, 50.0]
+  - name: inflate
+    description: >-
+      factor 0.5 repeats every pair twice.
+    expected_source: reference
+    buffers:
+      x: {size: 8, init: [1.0, 2.0]}
+      y: {size: 8, init: [10.0, 20.0]}
+      ox: {size: 8}
+      oy: {size: 8}
+    inputs:
+      - {as: factor, value: 0.5}
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+    outputs:
+      - {as: x, buffer: ox}
+      - {as: y, buffer: oy}
+    expect:
+      ox: [1.0, 1.0, 2.0, 2.0]
+      oy: [10.0, 10.0, 20.0, 20.0]

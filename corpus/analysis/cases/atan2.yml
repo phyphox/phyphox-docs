@@ -1,0 +1,37 @@
+# Golden vectors: atan2(y, x). Buffer-with-buffer only: mixing
+# a fixed value with a longer buffer currently behaves differently on
+# iOS (see the atan2-scalar-input inconsistency) and is pinned once
+# that is resolved.
+module: atan2
+cases:
+  - name: quadrants
+    description: >-
+      All four quadrants and the axes, radians.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1, 1, -1, -1, 0, 2]}
+      x: {size: 8, init: [1, -1, 1, -1, -2, 0]}
+      out: {size: 8}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, buffer: x}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.7853981633974483, 2.356194490192345, -0.7853981633974483, -2.356194490192345, 3.141592653589793, 1.5707963267948966]
+  - name: degrees
+    description: >-
+      deg=true converts the OUTPUT to degrees.
+    expected_source: reference
+    attributes: {deg: true}
+    buffers:
+      y: {size: 4, init: [1, -1, 1]}
+      x: {size: 4, init: [1, 1, -1]}
+      out: {size: 4}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, buffer: x}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [45.0, -45.0, 135.0]

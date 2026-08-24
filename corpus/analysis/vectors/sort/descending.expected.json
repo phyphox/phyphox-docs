@@ -1,0 +1,33 @@
+{
+ "case": "descending",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "ok": {
+     "values": [
+      "nan",
+      3.0,
+      2.0,
+      1.0
+     ]
+    },
+    "ov": {
+     "values": [
+      99.0,
+      30.0,
+      20.0,
+      10.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "sort"
+}

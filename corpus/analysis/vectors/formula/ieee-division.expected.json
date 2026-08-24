@@ -1,0 +1,24 @@
+{
+ "case": "ieee-division",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      "inf",
+      "nan",
+      "-inf"
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "formula"
+}

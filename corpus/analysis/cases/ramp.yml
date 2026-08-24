@@ -1,0 +1,32 @@
+# Golden vectors: ramp. Both endpoints inclusive: element i is
+# start + (stop-start)/(length-1)*i; length defaults to the output
+# buffer's size.
+module: ramp
+cases:
+  - name: explicit-length
+    description: >-
+      0 to 10 in 5 steps includes both endpoints.
+    expected_source: reference
+    buffers:
+      out: {size: 8}
+    inputs:
+      - {as: start, value: 0}
+      - {as: stop, value: 10}
+      - {as: length, value: 5}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 2.5, 5.0, 7.5, 10.0]
+  - name: default-length
+    description: >-
+      length absent: the output buffer size (4) is used.
+    expected_source: reference
+    buffers:
+      out: {size: 4}
+    inputs:
+      - {as: start, value: 1}
+      - {as: stop, value: -2}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [1.0, 0.0, -1.0, -2.0]

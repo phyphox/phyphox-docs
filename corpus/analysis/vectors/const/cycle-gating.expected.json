@@ -1,0 +1,36 @@
+{
+ "case": "cycle-gating",
+ "cycles": 2,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      1.0,
+      1.0,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "after_cycle": 2,
+   "buffers": {
+    "out": {
+     "values": [
+      1.0,
+      1.0,
+      1.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "const"
+}

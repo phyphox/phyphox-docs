@@ -1,0 +1,34 @@
+# Golden vectors: gcd. Operands rounded half away from zero;
+# negative or non-finite operands give NaN; gcd(x,0) = x.
+module: gcd
+cases:
+  - name: base
+    description: >-
+      Integer pairs plus the rounding rule (2.5 rounds to 3).
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [12, 2.5, 18, 7]}
+      b: {size: 8, init: [8, 3, 24, 0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [4.0, 3.0, 6.0, 7.0]
+  - name: domain
+    description: >-
+      Negative, NaN and infinite operands yield NaN.
+    expected_source: reference
+    buffers:
+      a: {size: 4, init: [-4, "nan", "inf"]}
+      b: {size: 4, init: [2, 2, 2]}
+      out: {size: 4}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: ["nan", "nan", "nan"]

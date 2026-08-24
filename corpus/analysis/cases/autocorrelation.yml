@@ -1,0 +1,43 @@
+# Golden vectors: autocorrelation. Per-lag sums
+# normalized by the overlap count (n - lag); the x axis is made
+# relative to its first value; minX/maxX filter the lag axis with
+# inclusive bounds.
+module: autocorrelation
+cases:
+  - name: no-x
+    description: >-
+      Without an x input the lag axis is the sample index.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1.0, 2.0, 1.0, 0.0, -1.0, -2.0, -1.0, 0.0]}
+      outx: {size: 8}
+      outy: {size: 8}
+    inputs:
+      - {as: y, buffer: y}
+    outputs:
+      - {as: y, buffer: outy}
+      - {as: x, buffer: outx}
+    expect:
+      outx: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
+      outy: [1.5, 1.1428571428571428, 0.16666666666666666, -0.8, -1.5, -1.3333333333333333, -0.5, 0.0]
+  - name: x-and-range
+    description: >-
+      With a time axis and an inclusive minX/maxX window on the lag
+      axis.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1.0, 2.0, 1.0, 0.0, -1.0, -2.0, -1.0, 0.0]}
+      x: {size: 8, init: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75]}
+      outx: {size: 8}
+      outy: {size: 8}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, buffer: x}
+      - {as: minX, value: 0.25}
+      - {as: maxX, value: 1.0}
+    outputs:
+      - {as: y, buffer: outy}
+      - {as: x, buffer: outx}
+    expect:
+      outx: [0.25, 0.5, 0.75, 1.0]
+      outy: [1.1428571428571428, 0.16666666666666666, -0.8, -1.5]

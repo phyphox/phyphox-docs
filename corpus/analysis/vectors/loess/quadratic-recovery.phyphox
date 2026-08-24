@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: loess/quadratic-recovery</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/loess.yml - do not edit.</description>
+    <data-containers>
+        <container size="16" init="0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0">x</container>
+        <container size="16" init="0.0,-0.25,0.0,0.75,2.0,3.75,6.0,8.75,12.0">y</container>
+        <container size="4" init="1.0,2.0,3.0">xi</container>
+        <container size="4">y0</container>
+        <container size="4">y1</container>
+        <container size="4">y2</container>
+    </data-containers>
+    <analysis>
+        <loess>
+            <input as="x">x</input>
+            <input as="y">y</input>
+            <input as="d" type="value">1.25</input>
+            <input as="xi">xi</input>
+            <output as="yi0">y0</output>
+            <output as="yi1">y1</output>
+            <output as="yi2">y2</output>
+        </loess>
+    </analysis>
+</phyphox>

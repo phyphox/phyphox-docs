@@ -1,0 +1,36 @@
+# Golden vectors: gausssmooth. Kernel half-width
+# round(3 sigma), truncate-and-renormalize at the edges; default
+# sigma is 3. iOS computes in single precision, hence the tolerance.
+module: gausssmooth
+cases:
+  - name: impulse-sigma1
+    description: >-
+      Unit impulse with sigma=1 shows the kernel including the edge
+      renormalization.
+    expected_source: reference
+    attributes: {sigma: 1}
+    buffers:
+      y: {size: 8, init: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: y}
+    outputs:
+      - {buffer: out}
+    tolerance: {rel: 0.0001, abs: 1e-06}
+    expect:
+      out: [0.00633722495855543, 0.05735747492292101, 0.24311396529634755, 0.3990502796524549, 0.2420362293761143, 0.05424605801089384, 0.0047081882501182806, 0.0]
+  - name: default-sigma
+    description: >-
+      Default sigma=3 on a short buffer - every sample is edge-
+      renormalized.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1.0, 2.0, 4.0, 8.0, 4.0, 2.0, 1.0]}
+      out: {size: 8}
+    inputs:
+      - {buffer: y}
+    outputs:
+      - {buffer: out}
+    tolerance: {rel: 0.0001, abs: 1e-06}
+    expect:
+      out: [3.1876393402357643, 3.3537428985533633, 3.463496320905627, 3.501944107413544, 3.463496320905626, 3.3537428985533633, 3.187639340235764]

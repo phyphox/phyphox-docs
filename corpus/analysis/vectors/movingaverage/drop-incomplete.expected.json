@@ -1,0 +1,24 @@
+{
+ "case": "drop-incomplete",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      1.5,
+      3.0,
+      4.5
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "movingaverage"
+}

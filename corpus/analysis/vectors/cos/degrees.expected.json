@@ -1,0 +1,27 @@
+{
+ "case": "degrees",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      1.0,
+      0.8660254037844387,
+      0.7071067811865476,
+      6.123233995736766e-17,
+      -1.0,
+      0.5000000000000001
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "cos"
+}

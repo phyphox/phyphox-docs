@@ -1,0 +1,44 @@
+# Golden vectors: max. NaN never wins a comparison; the
+# position output reports the paired x (or the 0-based index
+# without an x input); multiple=true splits the data into sets
+# at the threshold.
+module: max
+cases:
+  - name: with-x
+    description: >-
+      Running max with an x axis; the first strictly better value wins ties; NaN is skipped.
+    expected_source: reference
+    buffers:
+      y: {size: 8, init: [1.0, 5.0, "nan", 3.0, 5.0]}
+      x: {size: 8, init: [0.1, 0.2, 0.3, 0.4, 0.5]}
+      v: {size: 1}
+      p: {size: 1}
+    inputs:
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+    outputs:
+      - {as: max, buffer: v}
+      - {as: position, buffer: p}
+    expect:
+      v: [5.0]
+      p: [0.2]
+  - name: multiple-threshold
+    description: >-
+      multiple=true with a threshold: one result per contiguous
+      set on the trigger side; the index is the position without
+      an x input.
+    expected_source: reference
+    attributes: {multiple: true}
+    buffers:
+      y: {size: 8, init: [1.0, 4.0, 6.0, 0.5, 3.0, 7.0, 0.2]}
+      v: {size: 8}
+      p: {size: 8}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: threshold, value: 2.0}
+    outputs:
+      - {as: max, buffer: v}
+      - {as: position, buffer: p}
+    expect:
+      v: [6.0, 7.0]
+      p: [2.0, 5.0]

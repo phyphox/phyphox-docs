@@ -1,0 +1,19 @@
+# Golden vectors: lcm. Same domain rules as gcd; lcm with a
+# zero operand is 0.
+module: lcm
+cases:
+  - name: base
+    description: >-
+      Integer pairs, a zero operand, and the rounding rule.
+    expected_source: reference
+    buffers:
+      a: {size: 8, init: [4, 6, 0, 3.5]}
+      b: {size: 8, init: [6, 8, 5, 2]}
+      out: {size: 8}
+    inputs:
+      - {buffer: a}
+      - {buffer: b}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [12.0, 24.0, 0.0, 4.0]

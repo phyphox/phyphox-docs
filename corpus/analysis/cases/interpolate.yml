@@ -1,0 +1,80 @@
+# Golden vectors: interpolate. One output value per xi;
+# outside the input range the first/last y is used; exact hits
+# return the sample itself.
+module: interpolate
+cases:
+  - name: linear
+    description: >-
+      method=linear; values outside the x range clamp to the first
+      or last y; xi must be ascending (the cursor never rewinds).
+    expected_source: reference
+    buffers:
+      x: {size: 8, init: [0.0, 1.0, 2.0, 4.0]}
+      y: {size: 8, init: [0.0, 10.0, 20.0, 40.0]}
+      xi: {size: 8, init: [-1.0, 0.5, 1.0, 3.0, 5.0]}
+      out: {size: 8}
+    inputs:
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+      - {as: xi, buffer: xi}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 5.0, 10.0, 30.0, 40.0]
+  - name: previous
+    description: >-
+      method=previous; values outside the x range clamp to the first
+      or last y; xi must be ascending (the cursor never rewinds).
+    expected_source: reference
+    attributes: {method: "previous"}
+    buffers:
+      x: {size: 8, init: [0.0, 1.0, 2.0, 4.0]}
+      y: {size: 8, init: [0.0, 10.0, 20.0, 40.0]}
+      xi: {size: 8, init: [-1.0, 0.5, 1.0, 3.0, 5.0]}
+      out: {size: 8}
+    inputs:
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+      - {as: xi, buffer: xi}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 0.0, 10.0, 20.0, 40.0]
+  - name: next
+    description: >-
+      method=next; values outside the x range clamp to the first
+      or last y; xi must be ascending (the cursor never rewinds).
+    expected_source: reference
+    attributes: {method: "next"}
+    buffers:
+      x: {size: 8, init: [0.0, 1.0, 2.0, 4.0]}
+      y: {size: 8, init: [0.0, 10.0, 20.0, 40.0]}
+      xi: {size: 8, init: [-1.0, 0.5, 1.0, 3.0, 5.0]}
+      out: {size: 8}
+    inputs:
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+      - {as: xi, buffer: xi}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 10.0, 10.0, 40.0, 40.0]
+  - name: nearest
+    description: >-
+      method=nearest; values outside the x range clamp to the first
+      or last y; xi must be ascending (the cursor never rewinds).
+    expected_source: reference
+    attributes: {method: "nearest"}
+    buffers:
+      x: {size: 8, init: [0.0, 1.0, 2.0, 4.0]}
+      y: {size: 8, init: [0.0, 10.0, 20.0, 40.0]}
+      xi: {size: 8, init: [-1.0, 0.5, 1.0, 3.0, 5.0]}
+      out: {size: 8}
+    inputs:
+      - {as: x, buffer: x}
+      - {as: y, buffer: y}
+      - {as: xi, buffer: xi}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.0, 10.0, 10.0, 40.0, 40.0]

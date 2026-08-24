@@ -1,0 +1,16 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: ramp/explicit-length</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/ramp.yml - do not edit.</description>
+    <data-containers>
+        <container size="8">out</container>
+    </data-containers>
+    <analysis>
+        <ramp>
+            <input as="start" type="value">0</input>
+            <input as="stop" type="value">10</input>
+            <input as="length" type="value">5</input>
+            <output>out</output>
+        </ramp>
+    </analysis>
+</phyphox>
