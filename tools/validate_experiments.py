@@ -71,6 +71,13 @@ import yaml
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPEC = os.path.join(ROOT, "spec")
 
+import generate_validators as _gv
+NUMBER_LEX = {
+    "integer": re.compile(_gv.INT_LEX),
+    "float": re.compile(_gv.FLOAT_LEX),
+    "float-list": re.compile(_gv.FLOAT_LIST_LEX),
+}
+
 
 def load_spec():
     elements, common, slots, components = {}, {}, {}, {}
@@ -159,6 +166,19 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
         if allowed and value.lower() not in {str(v).lower() for v in allowed}:
             rep.add("bad enum value", fname,
                     f"{path}<{node.tag}> {attr}=\"{value}\" not in {allowed}")
+        # numeric and boolean syntax, per the number-invalid-value rule
+        # (decided 2026-08-24) and the boolean extension of
+        # enum-invalid-value. The lexes come from generate_validators so
+        # this checker and the published grammar cannot disagree.
+        kind = spec_a.get("type")
+        if kind == "boolean" and value.lower() not in ("true", "false"):
+            rep.add("bad boolean value", fname,
+                    f"{path}<{node.tag}> {attr}=\"{value}\"")
+        elif kind in NUMBER_LEX and not NUMBER_LEX[kind].fullmatch(value):
+            rep.add("bad numeric value", fname,
+                    f"{path}<{node.tag}> {attr}=\"{value}\" is not "
+                    + ("a comma-separated list of numbers"
+                       if kind == "float-list" else f"a valid {kind}"))
 
     # required attributes must be present (found missing 2026-08-24: the
     # generated RELAX NG checked this while nothing here did)

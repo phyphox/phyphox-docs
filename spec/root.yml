@@ -331,11 +331,19 @@ elements:
           cleared. If not set, the buffer starts empty. Since file
           format 1.5 several values may be given, separated by
           commas, to initialize a buffer with more than one value.
-        type: string
+        type: float-list
         summary: >-
           Values the buffer starts with, comma-separated. Also what it returns
           to when cleared.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: number-invalid-value
+        note: >-
+          The divergence is about malformed entries only: Android turns one
+          into NaN (PhyphoxFile.java, init parsing under case "container"),
+          iOS drops it and shifts the later entries forward
+          (DataContainersElementHandler.swift, compactMap). Well-formed
+          lists agree. Canonical (2026-08-24): reject, like every other
+          malformed number - see the number-invalid-value rule.
       - name: static
         description: >-
           If set to true, the content of this buffer should only be

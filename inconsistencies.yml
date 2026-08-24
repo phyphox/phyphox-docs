@@ -92,26 +92,35 @@
 
 
 - id: number-invalid-value
-  title: Malformed numeric attribute values
+  title: Malformed numeric values
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A numeric value that does not parse as a number rejects the experiment
+    file, exactly as an invalid enumerated value does (decided 2026-08-24;
+    see the number-invalid-value rule in spec/rules.yml for what counts as
+    a number). This covers plain numeric attributes and each entry of a
+    comma-separated numeric list - a data container's init attribute.
   affects:
     android: >-
-      Silently substitutes the attribute's default when a numeric value does
-      not parse: getIntAttribute and getDoubleAttribute catch every exception
-      and return the default (PhyphoxFile.java). A toggle with
-      default="true" loads as default 0.
+      Attributes: silently substitutes the attribute's default when the
+      value does not parse - getIntAttribute and getDoubleAttribute catch
+      every exception and return the default (PhyphoxFile.java), so a
+      toggle with default="true" loads as default 0. Container init
+      entries: an unparseable entry becomes NaN (PhyphoxFile.java, the
+      init parsing under case "container").
     ios: >-
-      Rejects the file: the central numeric attribute readers throw on a
-      failed decode (DocumentParser.swift, optionalValue/value for
-      LosslessStringConvertible types), the same way an invalid enumerated
-      value is treated.
+      Attributes: conforms - the central numeric readers throw on a failed
+      decode (DocumentParser.swift, optionalValue/value for
+      LosslessStringConvertible types). Container init entries: silently
+      DROPPED (DataContainersElementHandler.swift, compactMap), which also
+      shifts every later entry one position forward - a different buffer
+      content than Android's NaN, from the same file.
   summary: >-
     An attribute that should hold a number but does not parse as one -
     default="true" on a toggle, factor="1,5" with a decimal comma - loads
     with the default value on Android and rejects the whole file on iOS.
-    The enum-invalid-value and color-invalid-value rules settled the same
-    question for their types in favor of rejecting; nobody has decided it
-    for numbers and booleans-read-as-numbers yet. Found 2026-08-24 by the
-    generated RELAX NG grammar, which is strict about numeric syntax and
-    flagged a corpus fixture that iOS would reject.
+    In a container's init list the same malformed entry becomes NaN on
+    Android and disappears on iOS. Found 2026-08-24 by the generated
+    RELAX NG grammar, which flagged a corpus fixture that iOS would
+    reject.

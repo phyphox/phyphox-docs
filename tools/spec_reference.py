@@ -108,6 +108,7 @@ MARKER = re.compile(r"\{\{spec:([a-zA-Z0-9_\-]+)/(?:([a-zA-Z0-9_\-]+)/)?"
 PLACEHOLDER = {
     "integer": "INTEGER",
     "float": "FLOAT",
+    "float-list": "FLOATS",
     "boolean": "BOOLEAN",
     "string": "STRING",
     "color": "COLOR",
@@ -286,6 +287,8 @@ def _meta_line(attr, spec, link_prefix):
     unit = f" in {attr['unit']}" if attr.get("unit") else ""
     if kind == "enum" and attr.get("values"):
         bits.append("one of " + _code_list(attr["values"]) + unit)
+    elif kind == "float-list":
+        bits.append("comma-separated floats" + unit)
     elif kind and kind != "string":
         bits.append(kind + unit)
     elif unit:

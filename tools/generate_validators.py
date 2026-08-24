@@ -67,6 +67,19 @@ import yaml
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPEC = os.path.join(ROOT, "spec")
+
+# Lexical space of a number in the format (rules.yml, number-invalid-value):
+# plain decimal notation, plus the special values NaN and +-Infinity matched
+# case-insensitively (corpus files use init="NaN" as a deliberate gap marker
+# for graphs, and init="nan" exists too). Deliberately narrower than
+# xsd:double and than either platform's library parser - hexadecimal and
+# suffixed forms, "inf", and localized decimal commas parse on one platform
+# and not the other. tools/validate_experiments.py imports these so the
+# Python checker and the grammar cannot disagree on what a number is.
+FLOAT_LEX = (r"([+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?"
+             r"|[nN][aA][nN]|[+-]?[iI][nN][fF][iI][nN][iI][tT][yY])")
+INT_LEX = r"[+-]?[0-9]+"
+FLOAT_LIST_LEX = r"(\s*" + FLOAT_LEX + r"(\s*,\s*" + FLOAT_LEX + r")*\s*)?"
 DEFAULT_OUT = os.path.join(ROOT, "docs", "assets", "validators")
 
 PHYPHOX_NS = "http://phyphox.org/xml"
@@ -142,9 +155,11 @@ def attr_value_pattern(attr, colors):
     if kind == "boolean":
         return ci_choice(["true", "false"])
     if kind == "integer":
-        return P("data", xsd="integer")
+        return P("data", pattern=INT_LEX)
     if kind == "float":
-        return P("data", xsd="double")
+        return P("data", pattern=FLOAT_LEX)
+    if kind == "float-list":
+        return P("data", pattern=FLOAT_LIST_LEX)
     if kind == "color":
         return P("choice", parts=[P("data", pattern="#?[0-9a-fA-F]{6}")]
                  + [P("data", pattern=ci_pattern(c)) for c in colors])

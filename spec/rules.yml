@@ -146,6 +146,58 @@ rules:
         GraphViewElementHandler.swift). The released app silently substitutes
         its defaults.
 
+  - id: number-invalid-value
+    decided: 2026-08-24
+    inconsistency: number-invalid-value
+    summary: A numeric value that does not parse as a number is an error.
+    rule: >-
+      A parser must reject the experiment file when an attribute typed as an
+      integer or float - or an entry of a comma-separated numeric list, i.e.
+      a data container's init attribute - does not parse as a number. A
+      float is plain decimal notation - an optional sign, digits with an
+      optional decimal point ("1", "-0.5", ".5", "5."), an optional decimal
+      exponent ("1e-3", "2E5") - or one of the special values NaN, Infinity
+      and -Infinity, matched case-insensitively like enumerated values.
+      These special values are real values, not errors: an init="NaN" entry
+      is the documented way to put a gap marker into a buffer, and corpus
+      files use both "NaN" and "nan" (graph-nan-test.phyphox, if.phyphox).
+      An integer is sign and digits only. Localized forms (decimal commas),
+      hexadecimal or suffixed programming-language forms ("0x1p3", "1f")
+      and abbreviations like "inf" are not numbers - the platforms' library
+      parsers disagree on all of them, so no experiment can carry them
+      portably. Note the case folding is on the parsers, not their
+      libraries: Java's Double.parseDouble accepts exactly "NaN", so
+      Android must fold (or special-case) before parsing when it starts
+      rejecting, or init="nan" files would stop loading. Absent optional
+      attributes still take their default - this rule is about present
+      values only.
+    rationale: >-
+      Same reasoning as enum-invalid-value: silently substituting the
+      default produces an experiment that differs from what its author
+      wrote, with nothing to indicate it - and the file fails to load on
+      iOS anyway, which rejects malformed numeric attributes today. For
+      init lists the current behavior is worse than a wrong value: Android
+      turns a malformed entry into NaN while iOS drops it and shifts every
+      later entry one position forward, so the same file yields different
+      buffer contents on the two platforms.
+    applies_to: >-
+      every attribute with type: integer or float, and each entry of every
+      attribute with type: float-list (container init)
+    state:
+      android: >-
+        Does not conform: getIntAttribute and getDoubleAttribute
+        (PhyphoxFile.java) catch every exception and return the default,
+        and a malformed init entry becomes NaN. On the to-do list as of
+        2026-08-24.
+      ios: >-
+        Conforms for attributes as of the development branch: the central
+        readers throw on a failed decode (DocumentParser.swift,
+        optionalValue/value for LosslessStringConvertible; no try?-swallowed
+        numeric reads remain in Serialization, checked 2026-08-24). Does
+        not conform for init entries, which compactMap silently drops
+        (DataContainersElementHandler.swift). On the to-do list as of
+        2026-08-24.
+
   - id: output-component-validation
     decided: 2026-08-02
     summary: Component names and counts on outputs are validated, and a mismatch rejects the file.

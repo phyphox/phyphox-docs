@@ -596,6 +596,11 @@ def _expand_spec(markdown, link_prefix, src):
     if _spec is None:
         _spec = spec_reference.Spec()
     state = spec_reference.PageState(link_prefix)
+    # a marker the author already placed by hand counts as this page's one
+    # full admonition for that entry - the spec-driven emission must not
+    # render a second copy further down
+    state.seen.update(re.findall(r"\{\{inconsistency:([a-z0-9-]+)\}\}",
+                                 markdown))
     try:
         out = spec_reference.expand(markdown, _spec, state)
     except KeyError as e:
