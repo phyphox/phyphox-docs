@@ -60,11 +60,11 @@ tests:
     status: active
     description: >-
       Every corpus/invalid file whose expected.yml entry says
-      `parser: accepts` LOADS successfully: its only defects are unknown or
-      misapplied attributes, which the parsers ignore per the
-      unknown-attribute-ignored rule (spec/rules.yml). This pins the
+      `parser: accepts` LOADS successfully: its defects are tolerated for
+      compatibility per the unknown-attribute-ignored and
+      duplicate-metadata-last-wins rules (spec/rules.yml). This pins the
       compatibility guarantee - a parser that starts rejecting unknown
-      attributes breaks files in the wild.
+      attributes or legacy duplicates breaks files in the wild.
 
   - id: corpus-version-gate
     area: file-format

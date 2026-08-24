@@ -19,11 +19,13 @@ format surface that the shipped experiments alone never touch.
   `gcd`/`lcm`, `butterworth`, the `events` block of saved states, `appleBan`,
   and a set of rarely used view, network and I/O attributes. Each file states
   its purpose in a comment.
-- `invalid/` — real files carrying a documented defect each: dead draft
-  syntax that never shipped (`mode="trigger"` on a network connection, the
-  pre-BLE Bluetooth syntax, the 2018 device-specific conversion draft,
-  dev-era camera attributes, `precisionX`), typos (`cycle=` for `cycles=`,
-  `site=` for `size=`), and attributes applied to the wrong element.
+- `invalid/` — files carrying a documented defect each, nearly all
+  collected from real use: dead draft syntax that never shipped
+  (`mode="trigger"` on a network connection, the pre-BLE Bluetooth syntax,
+  the 2018 device-specific conversion draft, dev-era camera attributes,
+  `precisionX`), typos (`cycle=` for `cycles=`, `site=` for `size=`),
+  attributes applied to the wrong element, and a duplicated `state-title`
+  in the shape old Android re-saves wrote.
   `expected.yml` records the findings each file must produce and what the
   app parsers do with it (`parser: rejects|accepts` — see its header);
   names are flattened to the defect, so file names carry no trace of where
@@ -76,8 +78,9 @@ Both apps run this corpus in their own test suites (test-matrix rows
   do splits per the unknown-attribute-ignored rule, recorded as `parser:`
   in `expected.yml`: files marked `rejects` must fail to load (any error;
   message texts are platform wording and never asserted), files marked
-  `accepts` must LOAD — their only defects are unknown or misapplied
-  attributes, which the parsers ignore for compatibility, and that
+  `accepts` must LOAD — their defects are tolerated for compatibility:
+  unknown or misapplied attributes (which the parsers ignore) or
+  duplicated root metadata (where the last occurrence wins), and that
   tolerance is itself contract worth pinning. The classification was
   measured on the Android development branch (2026-08-24); an app runner
   disagreeing with it is a finding to report, not to code around.

@@ -338,19 +338,21 @@ rules:
         that produces the duplicates is a separate fix (handed off
         2026-08-24).
       ios: >-
-        Does not conform: every single-slot child handler throws
-        ElementHandlerError.duplicateElement on a second occurrence
-        (Serialization/ElementHandler.swift infrastructure), rejecting the
-        file. Recorded as duplicate-root-elements in inconsistencies.yml
-        until fixed.
+        Conforms as of the development branch (efff512c, 2026-08-24): the
+        six root metadata handlers read lastResult() instead of
+        expectOptionalResult() (DocumentParser+Extensions.swift,
+        PhyphoxElementHandler.swift), scoped so that a duplicate of any
+        other element stays an ElementHandlerError.duplicateElement, with
+        tests pinning both directions.
     check: >-
-      The published validators cannot flag a duplicate today: the grammar
-      deliberately folds the root's children into a repeated choice
-      ((a | b | ...)*) to sidestep libxml2's interleave blowup, and neither
-      the Schematron nor validate_experiments checks cardinality yet. A
-      corpus fixture pinning last-wins should follow once one of them does
-      - and once iOS conforms, so its runner can assert the load rather
-      than record a divergence.
+      The grammar cannot express the at-most-once constraint (the root's
+      children are deliberately folded into a repeated choice to sidestep
+      libxml2's interleave blowup), so the Schematron carries it (pattern
+      root-metadata-once) and validate_experiments checks it
+      (check_root_once). The corpus fixture
+      invalid/state-title-duplicate.phyphox pins both sides: the
+      validators flag it, the app suites assert it loads
+      (parser: accepts).
     applies_to: every element name in the format
     state:
       android: >-

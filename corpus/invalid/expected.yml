@@ -16,10 +16,12 @@
 #               rejects - the real loading path refuses the file (structural
 #                         defects, invalid enum values, unknown conversion
 #                         functions, the graph pairing rules)
-#               accepts - the file LOADS: its only defects are unknown or
-#                         misapplied attributes, which parsers ignore for
-#                         compatibility. The app suites assert the load
-#                         succeeds - that tolerance is itself contract.
+#               accepts - the file LOADS: its defects are tolerated for
+#                         compatibility - unknown or misapplied attributes
+#                         (unknown-attribute-ignored) or duplicated root
+#                         metadata (duplicate-metadata-last-wins). The app
+#                         suites assert the load succeeds - that tolerance
+#                         is itself contract.
 #             Classification measured on the Android development branch
 #             2026-08-24 (corpus runner); iOS confirms with its own runner
 #             and any disagreement is a finding to report, not to paper over.
@@ -106,6 +108,12 @@ analysis-optimization.phyphox:       # stale attribute no parser ever read
   parser: accepts
   findings:
     - '<analysis>: optimization='
+state-title-duplicate.phyphox:       # old Android re-saves appended a fresh
+  parser: accepts                     # state-title instead of replacing it;
+  findings:                           # parsers tolerate the duplicate, last
+    - 'state-title appears 2 times'   # occurrence wins (rule
+                                      # duplicate-metadata-last-wins,
+                                      # decided 2026-08-24)
 graph-unused-x.phyphox:              # x inputs no y input uses (decided 2026-08-20)
   parser: rejects
   findings:

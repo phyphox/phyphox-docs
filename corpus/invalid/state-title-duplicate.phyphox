@@ -1,0 +1,26 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.5" locale="en">
+    <title>Pendulum</title>
+    <state-title>Measurement 1/23/18 21:13</state-title>
+    <state-title>Pendulum on the swing</state-title>
+    <category>Saved states</category>
+    <description>
+        A saved state whose re-save appended a second state-title instead of
+        replacing the first, the shape old Android versions wrote (and the
+        current writer can still produce, see the live-NodeList removal skip
+        in PhyphoxExperiment.java). Parsers tolerate the duplicate and the
+        last occurrence wins (rule duplicate-metadata-last-wins); writing
+        one remains an error, which is what the validators flag here.
+    </description>
+    <data-containers>
+        <container size="0">t</container>
+        <container size="0">x</container>
+    </data-containers>
+    <views>
+        <view label="Data">
+            <graph label="x(t)" labelX="t" labelY="x">
+                <input axis="x">t</input>
+                <input axis="y">x</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

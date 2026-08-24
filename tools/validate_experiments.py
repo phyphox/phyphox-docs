@@ -234,6 +234,22 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
                       f"{path}<{node.tag}>/", fname)
 
 
+ROOT_ONCE = ("title", "state-title", "category", "icon", "color",
+             "description")
+
+
+def check_root_once(root, rep, fname):
+    """The root's metadata children may appear at most once (rule
+    duplicate-metadata-last-wins in spec/rules.yml): apps tolerate a legacy
+    duplicate - the last occurrence wins - but nothing may write one, so a
+    duplicate is an authoring error."""
+    counts = collections.Counter(ch.tag for ch in root)
+    for tag in ROOT_ONCE:
+        if counts[tag] > 1:
+            rep.add("duplicate metadata element", fname,
+                    f"<phyphox>: {tag} appears {counts[tag]} times")
+
+
 def check_slots(node, slots, components, rep, fname):
     """Analysis module slots and input-module output components."""
     for module, kinds in ((n.tag, slots.get(n.tag)) for n in node.iter() if n.tag in slots):
@@ -349,6 +365,7 @@ def main():
                     if a is None:
                         rep.add("unknown attribute", n, f"<phyphox>: {attr}=\"{value}\"")
                 check_slots(root, slots, components, rep, n)
+                check_root_once(root, rep, n)
 
     print(f"{files} experiment file(s) validated"
           + (f", {len(unparsed)} unparsable" if unparsed else ""))

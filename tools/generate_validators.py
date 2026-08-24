@@ -657,6 +657,21 @@ def schematron(els, common):
                "normalize-space(current())]) = 1",
             "Data container names must be unique.")
 
+    # --- root metadata appears at most once ------------------------------
+    # The grammar cannot express this: the root's children are deliberately
+    # folded into one repeated choice to sidestep libxml2's interleave
+    # blowup. Rule duplicate-metadata-last-wins (spec/rules.yml): apps
+    # tolerate a legacy duplicate - the last occurrence wins - but nothing
+    # may write one, so a duplicate is an authoring error.
+    p = pattern("root-metadata-once")
+    for name in ("title", "state-title", "category", "icon", "color",
+                 "description"):
+        r = rule(p, f"/{ln('phyphox')}/{ln(name)}")
+        assert_(r, f"count(../{ln(name)}) = 1",
+                f"The {name} element may appear at most once; apps "
+                "tolerate a legacy duplicate (the last occurrence wins) "
+                "but nothing may write one.")
+
     # --- graph dataset pairing (decided and amended 2026-08-20) ----------
     p = pattern("graph-dataset-pairing")
     ax = lambda v: ("translate(@axis,'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
