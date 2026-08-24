@@ -2,9 +2,10 @@
 
 Real and generated `.phyphox` files that, together with the shipped experiment
 collection, exercise **every element and attribute the format specification
-models** (`spec/*.yml`). This is the seed of the phase 4 conformance corpus:
-files the app and editor test suites can parse to catch regressions in the
-format surface that the shipped experiments alone never touch.
+models** (`spec/*.yml`). Both app test suites run this corpus on every commit
+(see "The app test suites" below) to catch regressions in the format surface
+that the shipped experiments alone never touch; wiring it into the editor
+test suite as well is planned.
 
 - `valid/` — files collected from real use: test files built during feature
   development, collaboration and support-request experiments, and student

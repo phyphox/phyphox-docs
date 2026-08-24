@@ -396,6 +396,8 @@ file-format page — the mechanism was there, the markers were never placed by h
 This repo was phase 1 of a larger plan recorded in `../CLAUDE.md`. Phase 2 (the OpenAPI description
 of the REST API) and phase 3 (the format spec, and the reference pages generated from it) are done.
 Phase 4a (the generated validators — RELAX NG and Schematron, published with the site and
-proven against the corpus on every build) is done. What is left is phase 4b — the conformance
-corpus run by the implementations' own test suites — and phase 5, making the Blockly editor
-consume the spec instead of encoding the format a fifth time.
+proven against the corpus on every build) is done, and so is phase 4b's app half (2026-08-24):
+both apps run the corpus in their own test suites with T0 CI, kept in step by `test-matrix.yml`
+and its checker. What is left of 4b is wiring the corpus into the editor test suite (deferred
+until the editor is picked up again), and phase 5, making the Blockly editor consume the spec
+instead of encoding the format a fifth time.
