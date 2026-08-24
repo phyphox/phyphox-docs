@@ -148,6 +148,7 @@ rules:
 
   - id: number-invalid-value
     decided: 2026-08-24
+    inconsistency: number-invalid-value
     summary: A numeric value that does not parse as a number is an error.
     rule: >-
       A parser must reject the experiment file when an attribute typed as an
@@ -183,17 +184,26 @@ rules:
       attribute with type: float-list (container init)
     state:
       android: >-
-        Conforms as of the development branch (2026-08-24): getIntAttribute
-        and getDoubleAttribute validate against the format's lexical space
-        before parsing and reject the file otherwise, and a malformed init
-        entry rejects the file instead of becoming NaN (PhyphoxFile.java).
+        Conforms as of the development branch (2026-08-24) in the attribute
+        helpers and the init list: getIntAttribute and getDoubleAttribute
+        validate against the format's lexical space before parsing and
+        reject the file otherwise, and a malformed init entry rejects the
+        file instead of becoming NaN (PhyphoxFile.java). Residual gap found
+        during verification the same day, on the to-do list: the value and
+        button map min/max and the graph input lineWidth still go through
+        raw Double.valueOf - rejecting on failure, but with Java's lexical
+        space rather than the format's.
       ios: >-
-        Conforms as of the development branch: for attributes the central
-        readers throw on a failed decode (DocumentParser.swift,
-        optionalValue/value for LosslessStringConvertible; no try?-swallowed
-        numeric reads remain in Serialization, checked 2026-08-24), and a
-        malformed init entry rejects the file instead of being dropped
-        (DataContainersElementHandler.swift, 2026-08-24).
+        Conforms as of the development branch (2026-08-24) for integer
+        attributes and the init list: the central readers throw on a failed
+        decode (DocumentParser.swift, optionalValue/value for
+        LosslessStringConvertible; no try?-swallowed numeric reads remain
+        in Serialization), and a malformed init entry rejects the file
+        instead of being dropped (DataContainersElementHandler.swift, with
+        the format's lexical space enforced by regex). Residual gap found
+        during verification the same day, on the to-do list: the central
+        Double decodes accept Swift-only forms - inf and hex floats - that
+        the format and Android reject.
 
   - id: output-component-validation
     decided: 2026-08-02
