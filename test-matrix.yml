@@ -1,0 +1,63 @@
+# The cross-platform test matrix.
+#
+# One row per test that the app test suites implement. This file is the
+# parity mechanism for testing, the way spec/*.yml is for the file format:
+# Android and iOS must cover the same rows (minus recorded platform
+# differences), and tools/check_test_matrix.py - run by the docs build when
+# the app checkouts sit next to this repository - verifies it mechanically
+# instead of by discipline.
+#
+# Each app test carries its row id in a tag comment in its source:
+#
+#     // phyphox-test: corpus-valid-load        (Kotlin/Java)
+#     // phyphox-test: corpus-valid-load        (Swift)
+#
+# The checker greps both repos for these tags. A tag that names no row here
+# fails the build (typo guard). A row's meaning by status:
+#
+#   planned  - agreed and listed, not yet implemented everywhere. Missing
+#              tags are reported as information, never as a failure.
+#   active   - implemented on every platform the row names. From then on a
+#              missing tag FAILS the docs build: a deleted or renamed test
+#              is a regression, not a cleanup. Rows are flipped to active by
+#              the docs session once both platforms carry the tag.
+#
+# Fields: id (kebab-case, the tag), area (see TESTING-PLAN), tier (T0-T3),
+# platforms (subset of [android, ios]; name only one for recorded platform
+# differences and say why in the description), status, description.
+
+tests:
+
+  - id: corpus-valid-load
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Every file in corpus/valid and corpus/generated whose declared format
+      version is at most the platform's supported version loads without
+      error. Files declaring a newer version are skipped, not failed - they
+      exist for future format versions. See corpus/README.md, "The app test
+      suites".
+
+  - id: corpus-invalid-reject
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Every file in corpus/invalid is rejected by the parser. Any error is
+      acceptable; error message texts are platform wording and are not
+      asserted. corpus/invalid/expected.yml documents each file's defect for
+      humans and for validate_experiments - the apps only assert rejection.
+
+  - id: corpus-version-gate
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      A file declaring a format version newer than the app supports (the
+      supported version + 0.1) is refused with the app's file-too-new
+      handling, and one declaring the exact supported version loads. Guards
+      the version gate that all feature rollout relies on.

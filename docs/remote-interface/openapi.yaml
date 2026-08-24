@@ -27,7 +27,7 @@ openapi: 3.1.1
 
 info:
   title: phyphox remote interface
-  version: 1.0.0
+  version: 1.1.0
   summary: Control a running phyphox experiment and stream its data over HTTP.
   description: |
     When remote access is enabled, phyphox runs a small webserver on the phone. It
@@ -332,6 +332,84 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/Parameters"
       responses: *controlResponses
+
+  /set:
+    post:
+      tags: [control]
+      summary: Write multiple buffers as JSON
+      operationId: set
+      description: |
+        Writes values into one or more data containers in a single request.
+        This is the bulk, array-valued counterpart of `/control?cmd=set`
+        (which writes one finite value into one buffer): it can fill several
+        buffers atomically and can write the non-finite values a buffer may
+        legitimately hold.
+
+        Unlike every other endpoint, `/set` takes **only a JSON body** — the
+        payload is structured, so the flat query/form parameter convention
+        does not apply. A request without a valid JSON body of the documented
+        shape (including a GET, or a form-encoded body) is answered with
+        `{"result": false}` and an error message; a body that is not valid
+        JSON at all is answered with `400`, like everywhere else.
+
+        Array entries may be JSON numbers, `null`, or strings in the file
+        format's number lexical space (see the number-invalid-value rule of
+        the format): `[1, 2.5, null, "nan", "Infinity", "-infinity"]`.
+        `null` writes NaN — it is exactly the representation `/get` uses for
+        every non-finite value, so `/get` output can be fed back into `/set`
+        unchanged. The strings exist to write the *distinguishable* special
+        values, which `null` cannot express; a string outside the lexical
+        space (`"inf"`, a decimal comma, hex notation) rejects the request,
+        exactly as it would reject an experiment file.
+
+        The request is **atomic**: everything is validated first — every
+        buffer name must exist and every entry must be well-formed — and on
+        any error nothing is written and the response is
+        `{"result": false}` with an `error` message. On success the values
+        are appended in array order, after clearing the buffer first unless
+        `mode` is `append`. Normal buffer semantics apply: a buffer keeps its
+        newest `size` values, and a static buffer is written like any other —
+        a caller names its target buffers deliberately and is expected to
+        know the experiment's internals. A successful write marks the
+        analysis as having new data, exactly like `/control?cmd=set`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [buffers]
+              properties:
+                buffers:
+                  type: object
+                  description: |
+                    Container names mapped to the values to write. An empty
+                    object is allowed and writes nothing.
+                  additionalProperties:
+                    type: array
+                    items:
+                      oneOf:
+                        - type: number
+                        - type: "null"
+                        - type: string
+                          pattern: '^([+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?|[nN][aA][nN]|[+-]?[iI][nN][fF][iI][nN][iI][tT][yY])$'
+                mode:
+                  type: string
+                  enum: [replace, append]
+                  default: replace
+                  description: |
+                    `replace` clears each named buffer before writing its
+                    values; `append` keeps the existing contents.
+      responses:
+        "200":
+          description: |
+            Whether the write was applied. A rejected request also answers
+            200 — check the `result` field, not the status code. Only a body
+            that is not parseable JSON at all answers 400.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetResult"
 
   /export:
     get:
@@ -647,6 +725,20 @@ components:
         result:
           type: boolean
           description: Whether the command was accepted.
+
+    SetResult:
+      type: object
+      required: [result]
+      properties:
+        result:
+          type: boolean
+          description: Whether the write was validated and applied.
+        error:
+          type: string
+          description: |
+            Present when `result` is false: what was wrong with the request.
+            Wording is implementation-defined; scripts should branch on
+            `result`, not on this text.
 
     Config:
       type: object

@@ -42,6 +42,31 @@ fails `mkdocs build --strict`. When the Android checkout sits next to this
 repository, the build also validates the shipped experiment collection; in a
 standalone checkout that check is skipped.
 
+## The app test suites
+
+Both apps run this corpus in their own test suites (test-matrix rows
+`corpus-valid-load`, `corpus-invalid-reject`, `corpus-version-gate` — see
+`test-matrix.yml` in the repository root). The contract for those runners:
+
+- **Where.** The corpus is found in a phyphox-docs checkout next to the app
+  repository — the same sibling convention the docs build uses for the
+  shipped collection, in reverse. If the checkout is missing, the runner
+  skips with a visible notice (a plain clone must still build and test);
+  CI checks the sibling out explicitly, so there the corpus always runs.
+- **valid/ and generated/** must load without error — but only files whose
+  declared `version` is at most the platform's supported file-format
+  version. Files declaring a newer version are *skipped, not failed*: they
+  are corpus entries for format features the app does not have yet, and the
+  skip keeps older app branches working against a newer corpus. (A file the
+  app must refuse *because* of its version is the separate version-gate
+  test, built from a supported file at test time, not a corpus fixture.)
+- **invalid/** must fail to load. Any error is acceptable; error message
+  texts are platform wording and are never asserted. `expected.yml`
+  documents each file's defect for humans and for validate_experiments —
+  the apps only assert rejection.
+- Parsing means the app's real experiment-loading path, not a lenient
+  subset: the same entry point a file arriving on the device goes through.
+
 These files are configurations for parsing, not maintained experiments: a
 `bluetooth` fixture will not find its device and a `network` fixture will not
 reach its example server. That is fine — their job is to hold the parser

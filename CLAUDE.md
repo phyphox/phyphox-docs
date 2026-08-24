@@ -370,6 +370,12 @@ file-format page — the mechanism was there, the markers were never placed by h
   file error.
 - `tools/hooks.py` checks the spec against `inconsistencies.yml`, that declared children are
   modelled, that an attribute does not predate its element, and that slot names survived YAML.
+- `tools/check_test_matrix.py` keeps `test-matrix.yml` (repository root) and the app test
+  suites in step: the matrix lists every cross-platform test, app tests carry their row id as
+  a `phyphox-test: <id>` tag comment, and the build fails when an `active` row's tag is
+  missing from a platform or a tag names no row. Rows start `planned` and are flipped to
+  `active` by a docs session once both platforms carry the tag. Like the shipped-collection
+  check, the comparison runs only when the app checkouts sit next to this repository.
 - `tools/generate_validators.py` derives the published RELAX NG grammar and Schematron rules
   (`docs/assets/validators/`, gitignored — generated on every build, write-if-changed so
   `mkdocs serve` does not loop). `_check_validators` in `tools/hooks.py` fails the build if

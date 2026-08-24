@@ -185,7 +185,26 @@ def on_config(config, **kwargs):
     _check_colors()
     _check_corpus()
     _check_validators()
+    _check_test_matrix()
     return config
+
+
+def _check_test_matrix():
+    """Keep test-matrix.yml and the app test suites in step.
+
+    The matrix is the parity mechanism for cross-platform testing (see
+    TESTING-PLAN in the working root, and tools/check_test_matrix.py for the
+    rules). Like the shipped-collection check, the app-repo comparisons run
+    only when the checkouts sit next to this repository.
+    """
+    if not os.path.exists(os.path.join(ROOT, "test-matrix.yml")):
+        return
+    _ensure_path()
+    import check_test_matrix
+    problems = check_test_matrix.check()
+    if problems:
+        raise ValueError("test matrix is out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 def _check_spec_against_docs():

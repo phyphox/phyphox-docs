@@ -32,6 +32,19 @@ If you want to share a phyphox file or a zip containing one or more phyphox file
 
 For this you need to be able to upload your experiment to a webserver and you need to be able to create a phyphox-link somewhere convenient for your audience. This usually means that you are placing the link on your own website as a `<a href="phyphox://...">`-tag, because many CMS, forums or blog systems might enforce using a <http://> or <https://> link.
 
+### Opening a bundled experiment: phyphox://asset=…
+
+**Not yet in a released app version (added to the development branches 2026-08).**
+
+A phyphox-link can also open one of the experiments that ship with the app, without any server involved. The identifier is the experiment file's path within the bundled collection, URL-encoded:
+
+```
+phyphox://asset=accelerometer.phyphox
+phyphox://asset=bluetooth%2Fphyphox_m_bmp581.phyphox
+```
+
+This is meant for links in worksheets, documentation and classroom materials that should land the user directly in the right bundled experiment, and it is what automated testing uses to drive the app. It is deliberately limited to the bundled collection: experiment titles are not unique, and files elsewhere on the device keep going through the regular file-opening routes. An unknown path shows the app's normal "could not load" message.
+
 ### Online QR-Codes (recommended)
 
 If your audience has internet access, this is the recommended method and the QR code can be created directly from our editor. This method is very similar to the phyphox:// URL, but the URL is encoded into a QR code, which can simply be scanned from the phyphox main menu. If you want to or need to create the QR code yourself, simply create a QR-Code that contains a link starting with phyphox://, <http://> or <https://> and phyphox should simply download the experiment after scanning the QR code.

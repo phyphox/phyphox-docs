@@ -82,6 +82,19 @@ Currently, there are four commands available:
 
 /control?cmd=set&buffer=abc&value=42 Writes the value 42 into the buffer abc (typically used for edit fields)
 
+### /set
+
+**Not yet in a released app version (added to the development branches 2026-08).**
+
+"set" is the bulk counterpart of /control?cmd=set: it writes whole arrays into one or more buffers in a single request. Unlike the other documents it takes only a POST with a JSON body — the payload is structured, so the usual flat parameter convention does not apply:
+
+```
+POST /set
+{"buffers": {"abc": [1, 2.5, null, "nan"], "t": [0, 1, 2, 3]}, "mode": "replace"}
+```
+
+Array entries are numbers, `null` (writes NaN — the same representation /get uses for every non-finite value, so /get output can be fed straight back in) or strings in the file format's number lexical space, which is how the distinguishable special values `"nan"`, `"Infinity"` and `"-infinity"` are written. `mode` is `replace` (clear each named buffer first, the default) or `append`. The request is atomic: an unknown buffer name or a malformed entry rejects the whole request with `{"result": false}` and an error message, and nothing is written. See the [API reference](api-reference.md) for the full definition.
+
 ### /export
 
 When requesting "export", you are effectively triggering the export function of phyphox to retrieve all recorded data in a single file. You can specify the format of this file using the index of the available formats. For example /export?format=0 will give an Excel file and /export?format=2 will give a CSV file (at the time of this writing).

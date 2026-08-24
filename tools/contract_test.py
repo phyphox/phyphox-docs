@@ -186,6 +186,33 @@ def build_probes(buffer_name, resource_name=None):
         Probe("control.trigger.out.of.range", "/control",
               {"cmd": "trigger", "element": "99999"},
               schema="ControlResult", destructive=True),
+        # /set - the bulk JSON write endpoint (API 1.1.0, 2026-08-24). JSON
+        # body only; atomic; entries are numbers, null (NaN) or strings in
+        # the format's number lexical space.
+        Probe("set.replace", "/set", schema="SetResult", destructive=True,
+              post_json={"buffers": {b: [1, 2.5, 3]}}),
+        Probe("set.specials", "/set", schema="SetResult", destructive=True,
+              post_json={"buffers": {b: [None, "nan", "Infinity",
+                                         "-infinity"]}}),
+        Probe("set.append", "/set", schema="SetResult", destructive=True,
+              post_json={"buffers": {b: [4]}, "mode": "append"}),
+        Probe("set.empty", "/set", schema="SetResult", destructive=True,
+              post_json={"buffers": {}}),
+        # atomicity: the known buffer must NOT be written when the unknown
+        # one rejects the request - result false either way
+        Probe("set.atomic.unknown.buffer", "/set", schema="SetResult",
+              destructive=True,
+              post_json={"buffers": {b: [1], "nosuchbuffer___": [1]}}),
+        Probe("set.invalid.entry", "/set", schema="SetResult",
+              destructive=True, post_json={"buffers": {b: ["inf"]}}),
+        Probe("set.invalid.mode", "/set", schema="SetResult",
+              destructive=True,
+              post_json={"buffers": {b: [1]}, "mode": "sideways"}),
+        Probe("set.no.body", "/set", schema="SetResult", destructive=True),
+        Probe("set.form.body", "/set", schema="SetResult", destructive=True,
+              post_form={"buffers": "abc"}),
+        Probe("post.set.malformed", "/set", destructive=True,
+              post_json='{"buffers": {'),
     ]
 
     clearing = [

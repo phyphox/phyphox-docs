@@ -19,6 +19,7 @@ needs.
 """
 
 import json
+import re
 import math
 import sys
 import threading
@@ -27,6 +28,12 @@ from urllib.parse import parse_qsl, urlparse
 
 CRC32 = "1a2b3c4d"
 BUFFERS = [{"name": "accX", "size": 200}, {"name": "t", "size": 200}]
+
+# the file format's number lexical space (generate_validators.FLOAT_LEX):
+# what a string entry of /set may contain
+NUMBER_RE = re.compile(
+    r"([+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?"
+    r"|[nN][aA][nN]|[+-]?[iI][nN][fF][iI][nN][iI][tT][yY])")
 SAMPLES = [0.1, 0.25, -0.4]
 
 
@@ -65,6 +72,7 @@ class Base(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        self._json_body = None
         u = urlparse(self.path)
         q = parse_qsl(u.query, keep_blank_values=True)
         self.dispatch(u.path, q)
@@ -75,6 +83,7 @@ class Base(BaseHTTPRequestHandler):
         # collision, malformed JSON answered with 400.
         u = urlparse(self.path)
         q = parse_qsl(u.query, keep_blank_values=True)
+        self._json_body = None
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length) if length else b""
         ctype = (self.headers.get("Content-Type") or "").split(";")[0].strip()
@@ -89,6 +98,7 @@ class Base(BaseHTTPRequestHandler):
                     self.send_json({"error": "Malformed request body."},
                                    status=400, cors=self.cors)
                     return
+                self._json_body = obj
                 def coerce(v):
                     if isinstance(v, bool):
                         return "true" if v else "false"
@@ -173,6 +183,44 @@ class Base(BaseHTTPRequestHandler):
                 out[name] = {"size": match["size"], "updateMode": "partial",
                              "buffer": list(SAMPLES)}
         self.send_json({"buffer": out, "status": self.status()}, cors=self.cors)
+
+    def h_set(self, q, pairs):
+        # bulk JSON write (API 1.1.0): JSON body only, atomic, entries are
+        # numbers, null (NaN) or strings in the format's number lexical
+        # space. The fake only validates - it stores nothing, like h_control.
+        body = getattr(self, "_json_body", None)
+        if not isinstance(body, dict) or not isinstance(body.get("buffers"),
+                                                        dict):
+            self.send_json({"result": False,
+                            "error": "A JSON body with a buffers object is "
+                                     "required."}, cors=self.cors)
+            return
+        if body.get("mode", "replace") not in ("replace", "append"):
+            self.send_json({"result": False, "error": "Unknown mode."},
+                           cors=self.cors)
+            return
+        for name, values in body["buffers"].items():
+            if not any(bf["name"] == name for bf in BUFFERS):
+                self.send_json({"result": False,
+                                "error": f"Unknown buffer \"{name}\"."},
+                               cors=self.cors)
+                return
+            if not isinstance(values, list):
+                self.send_json({"result": False,
+                                "error": "Buffer values must be an array."},
+                               cors=self.cors)
+                return
+            for v in values:
+                ok = (v is None
+                      or (isinstance(v, (int, float))
+                          and not isinstance(v, bool))
+                      or (isinstance(v, str) and NUMBER_RE.fullmatch(v)))
+                if not ok:
+                    self.send_json({"result": False,
+                                    "error": f"Invalid value \"{v}\"."},
+                                   cors=self.cors)
+                    return
+        self.send_json({"result": True}, cors=self.cors)
 
     def h_control(self, q, pairs):
         cmd = q.get("cmd")
