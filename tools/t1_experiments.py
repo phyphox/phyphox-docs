@@ -12,10 +12,11 @@ remote API as the bus.
         [--out results.json] [--collection PATH]
 
 Preconditions:
-  - The app must serve the remote API for the launched experiment. Until
-    the remote-enable launch seam exists (see the test plan), enable
-    remote access manually per run or point the driver at a build that
-    pre-enables it; the driver polls and reports a per-experiment
+  - The app must serve the remote API for launched experiments. The
+    driver flips the remote-enable switch itself (decided 2026-08-25):
+    Android `adb shell setprop debug.phyphox.remote 1` (cleared again at
+    the end of the run), iOS the `-phyphoxRemote` launch argument. On a
+    build without the switch it polls and reports a per-experiment
     "remote API not reachable" finding instead of hanging.
   - Android: adb in PATH, the device/emulator connected; the driver sets
     up `adb forward tcp:<port> tcp:8080` itself. With --emulator it
@@ -97,6 +98,13 @@ class Android:
         self.adb = ["adb"] + (["-s", serial] if serial else [])
         self.port = port
         sh(self.adb + ["forward", f"tcp:{port}", "tcp:8080"])
+        # the remote-enable switch: a debug.* property is writable only by
+        # the shell UID, so this is the host-controlled counterpart of the
+        # iOS launch argument. Sticky until reboot - cleanup() clears it.
+        sh(self.adb + ["shell", "setprop", "debug.phyphox.remote", "1"])
+
+    def cleanup(self):
+        sh(self.adb + ["shell", "setprop", "debug.phyphox.remote", "''"])
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
@@ -123,8 +131,11 @@ class IOS:
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
         r = sh(["xcrun", "simctl", "launch", self.udid, IOS_BUNDLE,
-                "-phyphoxUrl", url])
+                "-phyphoxUrl", url, "-phyphoxRemote"])
         return r.returncode == 0
+
+    def cleanup(self):
+        pass
 
     def stop_app(self):
         sh(["xcrun", "simctl", "terminate", self.udid, IOS_BUNDLE])
@@ -236,25 +247,35 @@ def main():
     base = f"http://127.0.0.1:{args.port}"
 
     results, hard_failures = [], 0
-    for rel in experiments:
-        print(f"== {rel}")
-        r = run_experiment(dev, base, rel, os.path.join(collection, rel), args)
-        results.append(r)
-        bad_exports = {f: p for f, p in r["exports"].items() if p}
-        if r["errors"] or not r["loaded"] or bad_exports:
-            hard_failures += 1
-            for e in r["errors"]:
-                print(f"   ! {e}")
-            for f, p in bad_exports.items():
-                print(f"   ! export format {f}: {'; '.join(p)}")
-        else:
-            print(f"   ok - {len(r['filled'])} buffer(s) filled")
+    try:
+        run_all(dev, base, collection, experiments, args, results)
+    finally:
+        dev.cleanup()
+    hard_failures = sum(
+        1 for r in results
+        if r["errors"] or not r["loaded"]
+        or any(p for p in r["exports"].values()))
 
     with open(args.out, "w") as f:
         json.dump({"platform": args.platform, "results": results}, f, indent=1)
     print(f"\n{len(results)} experiment(s), {hard_failures} with findings "
           f"-> {args.out}")
     return 1 if hard_failures else 0
+
+
+def run_all(dev, base, collection, experiments, args, results):
+    for rel in experiments:
+        print(f"== {rel}")
+        r = run_experiment(dev, base, rel, os.path.join(collection, rel), args)
+        results.append(r)
+        bad_exports = {f: p for f, p in r["exports"].items() if p}
+        if r["errors"] or not r["loaded"] or bad_exports:
+            for e in r["errors"]:
+                print(f"   ! {e}")
+            for f, p in bad_exports.items():
+                print(f"   ! export format {f}: {'; '.join(p)}")
+        else:
+            print(f"   ok - {len(r['filled'])} buffer(s) filled")
 
 
 if __name__ == "__main__":
