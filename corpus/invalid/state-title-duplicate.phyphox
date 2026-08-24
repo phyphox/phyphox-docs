@@ -5,11 +5,12 @@
     <category>Saved states</category>
     <description>
         A saved state whose re-save appended a second state-title instead of
-        replacing the first, the shape old Android versions wrote (and the
-        current writer can still produce, see the live-NodeList removal skip
-        in PhyphoxExperiment.java). Parsers tolerate the duplicate and the
-        last occurrence wins (rule duplicate-metadata-last-wins); writing
-        one remains an error, which is what the validators flag here.
+        replacing the first, the shape old Android versions wrote (the
+        writer bug, a live-NodeList removal skip in PhyphoxExperiment.java,
+        was fixed on the development branch 2026-08-24; files in this shape
+        remain in the wild). Parsers tolerate the duplicate and the last
+        occurrence wins (rule duplicate-metadata-last-wins); writing one
+        remains an error, which is what the validators flag here.
     </description>
     <data-containers>
         <container size="0">t</container>

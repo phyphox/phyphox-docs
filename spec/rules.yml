@@ -320,9 +320,10 @@ rules:
       versions appended a fresh state-title on every re-save of a saved
       state without removing the previous one
       (corpus/valid/taipei101_down.phyphox was collected from a real 2018
-      recording in exactly that shape, fixed 2026-08-24), and the current
-      Android writer can still leave a stale element behind (live-NodeList
-      removal skip, PhyphoxExperiment.java). Rejecting duplicates would
+      recording in exactly that shape, fixed 2026-08-24), and until the
+      same day's writer fix the Android save path could still leave a
+      stale element behind (live-NodeList removal skip,
+      PhyphoxExperiment.java, fixed in f248871b). Rejecting duplicates would
       strand users' own recordings; last-wins matches what Android has
       always done, so existing files keep showing the title the user gave
       last.
@@ -335,8 +336,9 @@ rules:
         Conforms by long-standing behavior: phyphoxBlockParser assigns the
         read value unconditionally per tag (PhyphoxFile.java, e.g. case
         "state-title"), so the last occurrence wins. The writer-side bug
-        that produces the duplicates is a separate fix (handed off
-        2026-08-24).
+        that produced the duplicates is fixed on the development branch
+        (f248871b, 2026-08-24): the save path now replaces the previous
+        metadata instead of accumulating it.
       ios: >-
         Conforms as of the development branch (efff512c, 2026-08-24): the
         six root metadata handlers read lastResult() instead of
