@@ -1,0 +1,18 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.11" locale="en">
+    <title>fixture: http server down</title>
+    <category>Network fixtures</category>
+    <description>The address points at a closed port. The app must keep running - no crash, no hang - and the buffer stays empty.</description>
+    <data-containers>
+        <container size="0">never</container>
+    </data-containers>
+    <network>
+        <connection address="http://FIXTURE-HOST:1/data" service="http/get" conversion="json" interval="0.2">
+            <receive id="seq">never</receive>
+        </connection>
+    </network>
+    <views>
+        <view label="Data">
+            <value label="never"><input>never</input></value>
+        </view>
+    </views>
+</phyphox>

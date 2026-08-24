@@ -1,0 +1,22 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.11" locale="en">
+    <title>fixture: http-get send roundtrip</title>
+    <category>Network fixtures</category>
+    <description>Sends the last value of out as GET parameter v to /collect; the fixture echoes it back flat, so after any poll the buffer back holds 42.5 - the send path validated purely through the app's own buffers.</description>
+    <data-containers>
+        <container size="1" init="42.5">out</container>
+        <container size="0">back</container>
+        <container size="0">seq</container>
+    </data-containers>
+    <network>
+        <connection address="http://FIXTURE-HOST:FIXTURE-PORT/collect" service="http/get" conversion="json" interval="0.2">
+            <send id="v" type="buffer" datatype="number">out</send>
+            <receive id="v">back</receive>
+            <receive id="seq">seq</receive>
+        </connection>
+    </network>
+    <views>
+        <view label="Data">
+            <value label="back"><input>back</input></value>
+        </view>
+    </views>
+</phyphox>

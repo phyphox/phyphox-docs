@@ -1,0 +1,20 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.13" locale="en">
+    <title>fixture: mqtt-json roundtrip</title>
+    <category>Network fixtures</category>
+    <description>Publishes the last value of out as JSON under id v and subscribes to the same topic, so the broker loops the message back and back receives 7.25. Needs the mosquitto fixture from the README.</description>
+    <data-containers>
+        <container size="1" init="7.25">out</container>
+        <container size="0">back</container>
+    </data-containers>
+    <network>
+        <connection address="FIXTURE-HOST:1883" service="mqtt/json" receiveTopic="phyphox/fixture" sendTopic="phyphox/fixture" interval="0.5">
+            <send id="v" type="buffer" datatype="number">out</send>
+            <receive id="v">back</receive>
+        </connection>
+    </network>
+    <views>
+        <view label="Data">
+            <value label="back"><input>back</input></value>
+        </view>
+    </views>
+</phyphox>

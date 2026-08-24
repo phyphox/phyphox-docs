@@ -64,7 +64,8 @@ class Probe:
 
     def __init__(self, name, path, params=None, schema=None, expect_json=True,
                  relates_to=(), destructive=False, clears=False, keep_values=(),
-                 post_json=None, post_form=None):
+                 post_json=None, post_form=None, expect_status=None,
+                 expect_values=None):
         self.name = name
         self.path = path
         self.params = params or {}
@@ -85,6 +86,14 @@ class Probe:
         # which is what the body-over-query probes rely on.
         self.post_json = post_json
         self.post_form = post_form
+        # Deterministic semantics this probe must see on EVERY platform -
+        # what makes the single-target mode a real gate rather than only a
+        # schema check. expect_status is an exact HTTP status;
+        # expect_values maps dotted JSON paths to exact literals. Only
+        # annotated where the answer is part of the contract (verified
+        # against the post-cleanup development builds, 2026-08-25).
+        self.expect_status = expect_status
+        self.expect_values = expect_values or {}
 
     def url(self, base):
         q = urllib.parse.urlencode(self.params)
@@ -116,12 +125,16 @@ def build_probes(buffer_name, resource_name=None):
               relates_to=["meta-sensors"]),
         Probe("time", "/time"),
 
-        Probe("get.single", "/get", {b: ""}, schema="GetResponse"),
-        Probe("get.full", "/get", {b: "full"}, schema="GetResponse"),
-        Probe("get.threshold", "/get", {b: "0"}, schema="GetResponse"),
-        Probe("get.threshold.ref", "/get", {b: f"0|{b}"}, schema="GetResponse"),
+        Probe("get.single", "/get", {b: ""}, schema="GetResponse",
+              expect_status=200),
+        Probe("get.full", "/get", {b: "full"}, schema="GetResponse",
+              expect_status=200),
+        Probe("get.threshold", "/get", {b: "0"}, schema="GetResponse",
+              expect_status=200),
+        Probe("get.threshold.ref", "/get", {b: f"0|{b}"}, schema="GetResponse",
+              expect_status=200),
         Probe("get.unknown.buffer", "/get", {"nosuchbuffer___": ""},
-              schema="GetResponse"),
+              schema="GetResponse", expect_status=200),
 
         # Edge cases the two used to handle differently. The divergences were
         # fixed in the 2026-08 cleanup and their entries deleted; the probes
@@ -129,7 +142,7 @@ def build_probes(buffer_name, resource_name=None):
         Probe("get.no.parameters", "/get"),
         Probe("get.unknown.reference", "/get", {b: "0|nosuchbuffer___"}),
         Probe("export.bad.format", "/export", {"format": "99"},
-              expect_json=False),
+              expect_json=False, expect_status=200),
         Probe("export.missing.format", "/export",
               expect_json=False),
         Probe("res.missing.src", "/res", keep_values=["error"]),
@@ -137,8 +150,9 @@ def build_probes(buffer_name, resource_name=None):
               keep_values=["error"]),
 
         Probe("control.bad.command", "/control", {"cmd": "nosuchcommand___"},
-              schema="ControlResult"),
-        Probe("control.no.command", "/control", schema="ControlResult"),
+              schema="ControlResult", expect_values={"result": False}),
+        Probe("control.no.command", "/control", schema="ControlResult",
+              expect_values={"result": False}),
 
         # The POST surface: every endpoint takes its parameters in a JSON or
         # form-encoded body as well, values coerced to strings, body winning
@@ -154,9 +168,10 @@ def build_probes(buffer_name, resource_name=None):
         Probe("post.get.body.over.query", "/get", {b: "full"},
               schema="GetResponse", post_json={b: ""}),
         Probe("post.malformed.json", "/get",
-              post_json='{"not json'),
+              post_json='{"not json', expect_status=400),
         Probe("post.config.body.ignored", "/config", schema="Config",
-              post_json={"ignored": "by a parameterless endpoint"}),
+              post_json={"ignored": "by a parameterless endpoint"},
+              expect_status=200),
     ]
 
     if resource_name:
@@ -167,52 +182,66 @@ def build_probes(buffer_name, resource_name=None):
 
     control = [
         Probe("control.set", "/control", {"cmd": "set", "buffer": b, "value": "1"},
-              schema="ControlResult", destructive=True),
+              schema="ControlResult", destructive=True,
+              expect_values={"result": True}),
         Probe("control.set.unknown.buffer", "/control",
               {"cmd": "set", "buffer": "nosuchbuffer___", "value": "1"},
-              schema="ControlResult", destructive=True),
+              schema="ControlResult", destructive=True,
+              expect_values={"result": False}),
         Probe("control.set.infinity", "/control",
               {"cmd": "set", "buffer": b, "value": "Infinity"},
-              schema="ControlResult", destructive=True),
+              schema="ControlResult", destructive=True,
+              expect_values={"result": False}),
         Probe("control.set.nan", "/control",
               {"cmd": "set", "buffer": b, "value": "NaN"},
-              schema="ControlResult", destructive=True),
+              schema="ControlResult", destructive=True,
+              expect_values={"result": False}),
         Probe("post.control.set.json.number", "/control",
               schema="ControlResult", destructive=True,
-              post_json={"cmd": "set", "buffer": b, "value": 1}),
+              post_json={"cmd": "set", "buffer": b, "value": 1},
+              expect_values={"result": True}),
         Probe("post.control.set.form", "/control",
               schema="ControlResult", destructive=True,
-              post_form={"cmd": "set", "buffer": b, "value": "1"}),
+              post_form={"cmd": "set", "buffer": b, "value": "1"},
+              expect_values={"result": True}),
         Probe("control.trigger.out.of.range", "/control",
               {"cmd": "trigger", "element": "99999"},
-              schema="ControlResult", destructive=True),
+              schema="ControlResult", destructive=True,
+              expect_values={"result": False}),
         # /set - the bulk JSON write endpoint (API 1.1.0, 2026-08-24). JSON
         # body only; atomic; entries are numbers, null (NaN) or strings in
         # the format's number lexical space.
         Probe("set.replace", "/set", schema="SetResult", destructive=True,
-              post_json={"buffers": {b: [1, 2.5, 3]}}),
+              post_json={"buffers": {b: [1, 2.5, 3]}},
+              expect_values={"result": True}),
         Probe("set.specials", "/set", schema="SetResult", destructive=True,
               post_json={"buffers": {b: [None, "nan", "Infinity",
-                                         "-infinity"]}}),
+                                         "-infinity"]}},
+              expect_values={"result": True}),
         Probe("set.append", "/set", schema="SetResult", destructive=True,
-              post_json={"buffers": {b: [4]}, "mode": "append"}),
+              post_json={"buffers": {b: [4]}, "mode": "append"},
+              expect_values={"result": True}),
         Probe("set.empty", "/set", schema="SetResult", destructive=True,
-              post_json={"buffers": {}}),
+              post_json={"buffers": {}}, expect_values={"result": True}),
         # atomicity: the known buffer must NOT be written when the unknown
         # one rejects the request - result false either way
         Probe("set.atomic.unknown.buffer", "/set", schema="SetResult",
               destructive=True,
-              post_json={"buffers": {b: [1], "nosuchbuffer___": [1]}}),
+              post_json={"buffers": {b: [1], "nosuchbuffer___": [1]}},
+              expect_values={"result": False}),
         Probe("set.invalid.entry", "/set", schema="SetResult",
-              destructive=True, post_json={"buffers": {b: ["inf"]}}),
+              destructive=True, post_json={"buffers": {b: ["inf"]}},
+              expect_values={"result": False}),
         Probe("set.invalid.mode", "/set", schema="SetResult",
               destructive=True,
-              post_json={"buffers": {b: [1]}, "mode": "sideways"}),
-        Probe("set.no.body", "/set", schema="SetResult", destructive=True),
+              post_json={"buffers": {b: [1]}, "mode": "sideways"},
+              expect_values={"result": False}),
+        Probe("set.no.body", "/set", schema="SetResult", destructive=True,
+              expect_values={"result": False}),
         Probe("set.form.body", "/set", schema="SetResult", destructive=True,
-              post_form={"buffers": "abc"}),
+              post_form={"buffers": "abc"}, expect_values={"result": False}),
         Probe("post.set.malformed", "/set", destructive=True,
-              post_json='{"buffers": {'),
+              post_json='{"buffers": {', expect_status=400),
     ]
 
     clearing = [
@@ -410,8 +439,9 @@ def run(args):
     targets = {"android": args.android, "ios": args.ios}
     targets = {k: v for k, v in targets.items() if v}
     if len(targets) < 2:
-        print("Need both --android and --ios to diff. With one, only schema "
-              "validation runs.\n")
+        print("Single-target mode: responses are validated against the "
+              "OpenAPI schemas and the annotated contract semantics; the "
+              "cross-platform diff needs both --android and --ios.\n")
 
     # Same experiment on both, or the comparison is meaningless.
     buffer_name, crc = None, {}
@@ -507,6 +537,28 @@ def run(args):
                             f"{probe.name} [{name}]: schema Error: "
                             f"{'/'.join(str(p) for p in err.path) or '<root>'}: "
                             f"{err.message}")
+
+            # Deterministic semantics annotated on the probe hold on every
+            # platform - this is what makes a single-target run a real gate.
+            if (probe.expect_status is not None
+                    and r["status"] != probe.expect_status):
+                failures.append(
+                    f"{probe.name} [{name}]: status {r['status']}, the "
+                    f"contract says {probe.expect_status}")
+            for vpath, want in probe.expect_values.items():
+                node, found = parsed, parsed is not None
+                for part in vpath.split("."):
+                    if isinstance(node, dict) and part in node:
+                        node = node[part]
+                    else:
+                        found = False
+                        break
+                if not found or node is not want and node != want or \
+                        isinstance(want, bool) != isinstance(node, bool):
+                    failures.append(
+                        f"{probe.name} [{name}]: {vpath} = "
+                        f"{node if found else '<absent>'!r}, the contract "
+                        f"says {want!r}")
 
             results[name] = {
                 "status": r["status"],

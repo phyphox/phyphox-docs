@@ -358,6 +358,9 @@ def _check_corpus():
                   for d in ("valid", "generated",
                             os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
+    net_fixtures = os.path.join(ROOT, "fixtures", "network")
+    if os.path.isdir(net_fixtures):
+        clean_dirs.append(net_fixtures)
     doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
     if os.path.isdir(doc_examples):
         clean_dirs.append(doc_examples)
@@ -508,6 +511,9 @@ def _check_validators():
                   for d in ("valid", "generated",
                             os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
+    net_fixtures = os.path.join(ROOT, "fixtures", "network")
+    if os.path.isdir(net_fixtures):
+        clean_dirs.append(net_fixtures)
     doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
     if os.path.isdir(doc_examples):
         clean_dirs.append(doc_examples)

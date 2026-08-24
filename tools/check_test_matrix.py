@@ -39,7 +39,11 @@ ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 TIERS = {"T0", "T1", "T2", "T3"}
 PLATFORMS = {"android", "ios"}
 STATUSES = {"planned", "active"}
-SOURCE_EXT = {".java", ".kt", ".swift"}
+# App test sources carry the tag as a code comment; rows driven by a
+# host-side tool (the T1 drivers in phyphox-docs) carry it as a
+# `# phyphox-test: <id>` comment in the repo's CI workflow instead, so
+# workflow YAML is scanned too.
+SOURCE_EXT = {".java", ".kt", ".swift", ".yml", ".yaml"}
 
 REPOS = {
     "android": os.path.normpath(os.path.join(ROOT, "..", "phyphox-android")),

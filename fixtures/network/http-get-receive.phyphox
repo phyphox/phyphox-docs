@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.11" locale="en">
+    <title>fixture: http-get receive</title>
+    <category>Network fixtures</category>
+    <description>Polls /data and collects the deterministic sequence. After k polls, seq holds the consecutive integers 1..k and value holds n/2 for each.</description>
+    <data-containers>
+        <container size="0">seq</container>
+        <container size="0">value</container>
+    </data-containers>
+    <network>
+        <connection address="http://FIXTURE-HOST:FIXTURE-PORT/data" service="http/get" conversion="json" interval="0.2">
+            <receive id="seq">seq</receive>
+            <receive id="value">value</receive>
+        </connection>
+    </network>
+    <views>
+        <view label="Data">
+            <value label="seq"><input>seq</input></value>
+            <value label="value"><input>value</input></value>
+        </view>
+    </views>
+</phyphox>

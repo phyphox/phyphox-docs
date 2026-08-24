@@ -233,6 +233,12 @@ instance and diffs the responses. Two design points are worth keeping:
 - **Recorded divergences pass; unrecorded ones fail.** A probe names the inconsistency ids it
   expects to trip. This is what makes the test usable against implementations known to disagree in
   a dozen places: it reports the backlog and fails only on something new.
+- **Single-target mode is a real gate.** With only one of `--android`/`--ios` given, the diff is
+  skipped but every response is validated against the OpenAPI schemas AND the deterministic
+  semantics annotated on the probes (`expect_status`, `expect_values` — exact statuses and result
+  booleans, verified against the post-cleanup builds 2026-08-25). This is what T1 CI runs against
+  a single emulator or simulator (test-matrix row `remote-contract-t1`); two-phone runs stay the
+  release gate.
 
 `tools/fake_phyphox.py` serves both platforms' quirks locally so the script can be exercised
 without hardware. It is a fixture for testing the test — not a third implementation of phyphox, not

@@ -1,0 +1,22 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.11" locale="en">
+    <title>fixture: http-post roundtrip</title>
+    <category>Network fixtures</category>
+    <description>POSTs the whole out buffer as JSON array under id arr to /collect; the fixture echoes it back, so back receives 1, 2.5, 3 per poll.</description>
+    <data-containers>
+        <container size="8" init="1,2.5,3">out</container>
+        <container size="0">back</container>
+        <container size="0">seq</container>
+    </data-containers>
+    <network>
+        <connection address="http://FIXTURE-HOST:FIXTURE-PORT/collect" service="http/post" conversion="json" interval="0.2">
+            <send id="arr" type="buffer" datatype="array">out</send>
+            <receive id="arr">back</receive>
+            <receive id="seq">seq</receive>
+        </connection>
+    </network>
+    <views>
+        <view label="Data">
+            <value label="seq"><input>seq</input></value>
+        </view>
+    </views>
+</phyphox>

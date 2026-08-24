@@ -90,3 +90,54 @@ tests:
       supported version + 0.1) is refused with the app's file-too-new
       handling, and one declaring the exact supported version loads. Guards
       the version gate that all feature rollout relies on.
+
+  - id: remote-contract-t1
+    area: remote-interface
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      tools/contract_test.py in single-target mode against the platform's
+      emulator/simulator build: every response validates against the
+      OpenAPI schemas and the annotated contract semantics (exact statuses
+      and result values). Host-driven - the phyphox-test tag lives in the
+      repo's T1 CI workflow, not in app source. Phone-vs-phone two-target
+      runs stay the release gate.
+
+  - id: network-http
+    area: network
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The http fixture experiments (phyphox-docs fixtures/network/, served
+      by tools/network_fixture.py): receive sequence, GET and POST send
+      round trips, malformed-response and server-down error paths - no
+      crash, no hang, buffer contents asserted through the remote API.
+      See fixtures/network/README.md for the runner contract including
+      the FIXTURE-HOST substitution.
+
+  - id: network-mqtt
+    area: network
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The mqtt fixture experiment against a local mosquitto broker
+      (fixtures/network/mosquitto.conf): publish/subscribe loopback
+      through a real broker; the TLS variants join once the mqtts
+      fixtures exist.
+
+  - id: experiments-e2e-t1
+    area: experiments
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      tools/t1_experiments.py over the shipped collection on an emulator/
+      simulator: open via phyphox://asset=, start, run, stop, download and
+      validate every export format (tools/validate_export.py), app stays
+      responsive. Android with emulator-injected sensors; iOS runs the
+      loadable subset without injection (recorded platform difference).
+      Host-driven - the tag lives in the T1 CI workflow. Depends on the
+      remote-enable launch seam.
