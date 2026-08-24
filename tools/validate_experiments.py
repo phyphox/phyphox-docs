@@ -187,6 +187,20 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
             rep.add("missing required attribute", fname,
                     f"{path}<{node.tag}>: {aname}")
 
+    # Both parsers hard-require credentials for the TLS MQTT services
+    # ("password must be set for the mqtts/json service" - NetworkService
+    # setup on Android, the network handler on iOS), found 2026-08-24 when a
+    # credential-less corpus fixture failed to load on Android. The spec
+    # cannot express conditional requiredness, so it lives here.
+    if node.tag == "connection":
+        service = (node.get("service") or "").lower()
+        if service.startswith("mqtts"):
+            for cred in ("username", "password"):
+                if not node.get(cred):
+                    rep.add("missing mqtts credential", fname,
+                            f"{path}<connection service=\"{service}\">: "
+                            f"{cred} is required for TLS MQTT")
+
     # The graph element's dataset pairing (decided 2026-08-20, amended the
     # same day; see docs/file-format/views/graph.md and spec/views.yml): with
     # exactly as many x as y inputs they pair 1-on-1 in order; with fewer x

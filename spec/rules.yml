@@ -146,6 +146,40 @@ rules:
         GraphViewElementHandler.swift). The released app silently substitutes
         its defaults.
 
+  - id: unknown-attribute-ignored
+    decided: 2026-08-24
+    summary: An attribute the parser does not recognize is silently ignored.
+    rule: >-
+      A parser ignores attributes it does not know - in the file's own
+      namespace or none, exactly like the documented handling of foreign
+      namespaces. This is the deliberate counterpart to the strictness rules
+      above: unknown ELEMENT names reject the file, invalid VALUES of known
+      attributes reject the file, but an unknown attribute NAME loads as if
+      it were absent. The published validators (RELAX NG and
+      tools/validate_experiments.py) still flag unknown attributes as
+      authoring errors - catching the cycle=-for-cycles= typo is their job,
+      at authoring time, not the app's job at load time.
+    rationale: >-
+      Compatibility reality, surfaced when the Android corpus runner showed
+      11 of 16 invalid fixtures loading fine (2026-08-24): both apps have
+      accepted unknown attributes since the beginning, so files relying on
+      that - including formerly shipped experiments with stale attributes
+      like precisionX on graphs - exist in numbers. Enforcing strictness
+      now would break working experiments, the exact opposite of what the
+      enum strictness protects (there, silence CHANGED meaning; here,
+      rejection would remove function).
+    applies_to: >-
+      every attribute name a parser does not model, on any element
+    state:
+      android: >-
+        Conforms by long-standing behavior everywhere except possibly the
+        camera element, which rejects the two dev-era camera fixtures
+        (corpus run 2026-08-24) - see the open question below.
+      ios: >-
+        Expected to conform (the typed attribute readers do not reject
+        unknown keys); confirmed when the iOS corpus runner lands.
+
+  - id: number-invalid-value
   - id: number-invalid-value
     decided: 2026-08-24
     summary: A numeric value that does not parse as a number is an error.
@@ -291,4 +325,14 @@ rules:
 # The lesson for the remaining blocks: an attribute that appears one-sided is
 # more often a misreading, a documented platform limit, or ordinary parity work
 # than a question anyone needs to decide. Check those three before recording it.
-open_questions: []
+open_questions:
+  - question: >-
+      Why does the camera element reject the dev-era camera fixtures
+      (camera-threshold.phyphox, camera-input-controls.phyphox) when every
+      other element ignores unknown attributes? If the newer camera parser
+      checks attribute names strictly, that is an intra-platform exception
+      to unknown-attribute-ignored that the rule must either name or the
+      parser must drop; if the rejection has another cause, the fixtures'
+      parser: rejects classification stands as is. The Android session
+      should pin the cause.
+    raised: 2026-08-24

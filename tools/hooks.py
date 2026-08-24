@@ -185,8 +185,57 @@ def on_config(config, **kwargs):
     _check_colors()
     _check_corpus()
     _check_validators()
+    _check_conversion_values()
     _check_test_matrix()
     return config
+
+
+def _check_conversion_values():
+    """The four bluetooth conversion attributes inline the vocabulary that
+    spec/output.yml records under `conversions:` (established name by name
+    from both parsers). Inlining is what lets every tool - the validator,
+    the grammar, the rendered reference - see the values without a cross-
+    file indirection; this check is what makes the duplication safe."""
+    with open(os.path.join(SPEC_DIR, "output.yml")) as f:
+        out = yaml.safe_load(f)
+    with open(os.path.join(SPEC_DIR, "input.yml")) as f:
+        inp = yaml.safe_load(f)
+    conv = out.get("conversions") or {}
+    vocab = {}
+    for key in ("input", "output", "config"):
+        sec = conv.get(key) or {}
+        vocab[key] = set(sec.get("functions") or []) | {
+            e["name"] for e in sec.get("extra") or []}
+
+    def attr_values(doc, parent, name):
+        for el in doc.get("elements") or []:
+            if el.get("parent") == parent and el.get("name") == name:
+                for a in el.get("attributes") or []:
+                    if a["name"] == "conversion":
+                        return set(a.get("values") or [])
+        return set()
+
+    expect = [
+        ("input.yml bluetooth/output", attr_values(inp, "bluetooth", "output"),
+         vocab["input"]),
+        ("input.yml bluetooth/config", attr_values(inp, "bluetooth", "config"),
+         vocab["config"]),
+        ("output.yml bluetooth/input", attr_values(out, "bluetooth", "input"),
+         vocab["output"]),
+        ("output.yml bluetooth/config", attr_values(out, "bluetooth", "config"),
+         vocab["config"]),
+    ]
+    problems = []
+    for where, got, want in expect:
+        if got != want:
+            missing = sorted(want - got)
+            extra = sorted(got - want)
+            problems.append(f"{where}: conversion values drifted from the "
+                            f"conversions section (missing {missing}, "
+                            f"extra {extra})")
+    if problems:
+        raise ValueError("conversion vocabularies out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 def _check_test_matrix():
@@ -320,6 +369,15 @@ def _check_corpus():
     names = sorted(n for n in os.listdir(invalid) if n.endswith(".phyphox"))
     for extra in set(expected) - set(names):
         problems.append(f"expected.yml lists {extra}, which does not exist")
+    for n, entry in expected.items():
+        # each entry carries the validator findings AND the app-parser
+        # behavior (rejects/accepts) the app test suites assert - see the
+        # header of expected.yml and the unknown-attribute-ignored rule
+        if (not isinstance(entry, dict)
+                or entry.get("parser") not in ("rejects", "accepts")
+                or not isinstance(entry.get("findings"), list)):
+            problems.append(f"{n}: expected.yml entry needs parser: "
+                            f"rejects|accepts and a findings list")
     for n in names:
         if n not in expected:
             problems.append(f"{n} has no entry in expected.yml")
@@ -336,7 +394,7 @@ def _check_corpus():
             problems.append(f"{n} validates cleanly - the spec now accepts "
                             f"its documented defect")
             continue
-        for sub in expected[n] or []:
+        for sub in (expected[n] or {}).get("findings") or []:
             if not any(sub in d for d in details):
                 problems.append(f"{n}: expected finding '{sub}' not produced; "
                                 f"got: {'; '.join(sorted(set(details))[:3])}")

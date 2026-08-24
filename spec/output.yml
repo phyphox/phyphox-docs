@@ -280,12 +280,38 @@ elements:
         summary: UUID of the characteristic to write.
         agreement: agreed
       - name: conversion
-        type: string
+        type: enum
+        values:
+          - uInt8
+          - int8
+          - uInt16LittleEndian
+          - uInt16BigEndian
+          - int16LittleEndian
+          - int16BigEndian
+          - uInt24LittleEndian
+          - uInt24BigEndian
+          - int24LittleEndian
+          - int24BigEndian
+          - uInt32LittleEndian
+          - uInt32BigEndian
+          - int32LittleEndian
+          - int32BigEndian
+          - float32LittleEndian
+          - float32BigEndian
+          - float64LittleEndian
+          - float64BigEndian
+          - singleByte
+          - string
+          - byteArray
         required: true
         summary: >-
           Name of the conversion turning numbers into bytes. See the conversion
           vocabulary at the end of this file.
+        note: >-
+          The values inline the output list of the conversions section below
+          (kept in step by a build check).
         agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: offset
         type: integer
         default: 0
@@ -323,10 +349,36 @@ elements:
         summary: UUID of the characteristic to write.
         agreement: agreed
       - name: conversion
-        type: string
+        type: enum
+        values:
+          - uInt8
+          - int8
+          - uInt16LittleEndian
+          - uInt16BigEndian
+          - int16LittleEndian
+          - int16BigEndian
+          - uInt24LittleEndian
+          - uInt24BigEndian
+          - int24LittleEndian
+          - int24BigEndian
+          - uInt32LittleEndian
+          - uInt32BigEndian
+          - int32LittleEndian
+          - int32BigEndian
+          - float32LittleEndian
+          - float32BigEndian
+          - float64LittleEndian
+          - float64BigEndian
+          - singleByte
+          - string
+          - hexadecimal
         required: true
         summary: Conversion turning the element's text into bytes.
+        note: >-
+          The values inline the config list of the conversions section below
+          (kept in step by a build check).
         agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]
 
 # The conversion vocabulary, shared by the bluetooth elements of both blocks.
 #

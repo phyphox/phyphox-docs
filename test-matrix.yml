@@ -46,10 +46,22 @@ tests:
     platforms: [android, ios]
     status: planned
     description: >-
-      Every file in corpus/invalid is rejected by the parser. Any error is
-      acceptable; error message texts are platform wording and are not
-      asserted. corpus/invalid/expected.yml documents each file's defect for
-      humans and for validate_experiments - the apps only assert rejection.
+      Every corpus/invalid file whose expected.yml entry says
+      `parser: rejects` fails to load. Any error is acceptable; error
+      message texts are platform wording and are not asserted.
+
+  - id: corpus-tolerated-attributes-load
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Every corpus/invalid file whose expected.yml entry says
+      `parser: accepts` LOADS successfully: its only defects are unknown or
+      misapplied attributes, which the parsers ignore per the
+      unknown-attribute-ignored rule (spec/rules.yml). This pins the
+      compatibility guarantee - a parser that starts rejecting unknown
+      attributes breaks files in the wild.
 
   - id: corpus-version-gate
     area: file-format

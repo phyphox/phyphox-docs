@@ -59,9 +59,14 @@ load today must validate, so it allows what they allow:
   editor-generated files carry their `editor:*` bookkeeping);
 - **unknown elements in foreign namespaces** likewise.
 
-An *unknown element or attribute in the phyphox namespace or in no
-namespace* is an error, matching the strictness the format rules require of
-the parsers themselves.
+An *unknown element* in the phyphox namespace or in no namespace is an
+error, matching the parsers. An *unknown attribute* is the one place the
+validators are deliberately stricter than the apps: the parsers silently
+ignore attributes they do not know (a compatibility guarantee — see the
+format rules), while the validators flag them, because a misspelled
+`cycle=` for `cycles=` loads fine and silently does the wrong thing. A
+validator pass therefore means "no unknown attributes"; an app accepting a
+file does not.
 
 A pass is therefore necessary, not sufficient: whether an experiment makes
 sense — buffers wired to the right modules, sensible rates, units that mean

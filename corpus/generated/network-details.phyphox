@@ -17,6 +17,7 @@
     </input>
     <network>
         <connection service="mqtts/json" address="mqtts://broker.example.org:8883"
+                    username="user" password="PLACEHOLDER"
                     discovery="http" discoveryAddress="http://discovery.example.org/phyphox"
                     certificate="broker-ca.pem" persistence="true" interval="1"
                     receiveTopic="phyphox/in" sendTopic="phyphox/out"

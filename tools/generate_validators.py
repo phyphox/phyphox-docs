@@ -41,7 +41,10 @@ What the grammar covers and what it deliberately does not:
     is NOT expressible in RELAX NG: the grammar accepts the canonical
     lowercase spelling only.
   * Attribute sets are closed: an attribute the spec does not model fails
-    validation, like in tools/validate_experiments.py. The one dynamically
+    validation, like in tools/validate_experiments.py. This is deliberately
+    STRICTER than the apps, which silently ignore unknown attributes
+    (rules.yml, unknown-attribute-ignored) - flagging the cycles= typo is
+    the validators' job at authoring time. The one dynamically
     numbered family (mapColor[N]) is admitted through a wildcard, tightened
     back to the exact name shape by a Schematron rule.
   * Child-element counts are approximated: presence is enforced where a

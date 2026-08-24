@@ -1,0 +1,21 @@
+<!-- Covers the bluetooth address= attribute (device matching by MAC), which
+     no other corpus file exercises since the dev-era conversion draft moved
+     to invalid/. The address is a documentation-style example value. -->
+<phyphox version="1.7">
+    <title>Bluetooth address matching</title>
+    <category>Corpus</category>
+    <description>Fixture for the address attribute of a bluetooth input.</description>
+    <data-containers>
+        <container size="0">value</container>
+    </data-containers>
+    <input>
+        <bluetooth address="00:11:22:33:44:55" mode="notification">
+            <output char="0000ffe1-0000-1000-8000-00805f9b34fb" conversion="float32LittleEndian">value</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Data">
+            <value label="Value"><input>value</input></value>
+        </view>
+    </views>
+</phyphox>

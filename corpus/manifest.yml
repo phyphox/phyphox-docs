@@ -49,6 +49,10 @@
   version: "1.20"
   adds:
     - phyphox@appleBan
+- file: generated/bluetooth-address.phyphox
+  version: "1.7"
+  adds:
+    - bluetooth@address
 - file: generated/events-state.phyphox
   version: "1.20"
   adds:
@@ -74,9 +78,11 @@
     - connection@discovery
     - connection@discoveryAddress
     - connection@interval
+    - connection@password
     - connection@persistence
     - connection@receiveTopic
     - connection@sendTopic
+    - connection@username
     - receive@append
     - receive@clear
     - send@datatype
@@ -138,10 +144,6 @@
   adds:
     - bluetooth@rate
     - bluetooth@subscribeOnStart
-- file: valid/bt-sensortag-acc-direct.phyphox
-  version: "1.5"
-  adds:
-    - bluetooth@address
 - file: valid/camera/camera-eaFPSTarget.phyphox
   version: "1.20"
   adds:

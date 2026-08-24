@@ -1102,14 +1102,42 @@ elements:
           time at which data arrived. No conversion applies when set.
         agreement: agreed
       - name: conversion
-        type: string
+        type: enum
+        values:
+          - uInt8
+          - int8
+          - uInt16LittleEndian
+          - uInt16BigEndian
+          - int16LittleEndian
+          - int16BigEndian
+          - uInt24LittleEndian
+          - uInt24BigEndian
+          - int24LittleEndian
+          - int24BigEndian
+          - uInt32LittleEndian
+          - uInt32BigEndian
+          - int32LittleEndian
+          - int32BigEndian
+          - float32LittleEndian
+          - float32BigEndian
+          - float64LittleEndian
+          - float64BigEndian
+          - singleByte
+          - string
+          - formattedString
         summary: >-
           Name of the conversion turning raw bytes into numbers. Required unless
           extra is set.
         note: >-
-          The vocabulary is the input list of the conversions section at the
-          end of output.yml, shared by all three conversion attributes.
+          The values inline the input list of the conversions section at the
+          end of output.yml (kept in step by a build check); matched
+          case-insensitively on both platforms (ConversionsInput dispatch;
+          InputElementHandler switch plus the folded enum). An unknown name
+          rejects the file on both. Do not confuse with the removed 2018
+          device-specific draft family (ti_acc_x and friends,
+          phyphox-android 37b3fb69) that never shipped.
         agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: offset
         type: integer
         default: 0
@@ -1156,10 +1184,33 @@ elements:
         summary: UUID of the characteristic to write.
         agreement: agreed
       - name: conversion
-        type: string
+        type: enum
+        values:
+          - uInt8
+          - int8
+          - uInt16LittleEndian
+          - uInt16BigEndian
+          - int16LittleEndian
+          - int16BigEndian
+          - uInt24LittleEndian
+          - uInt24BigEndian
+          - int24LittleEndian
+          - int24BigEndian
+          - uInt32LittleEndian
+          - uInt32BigEndian
+          - int32LittleEndian
+          - int32BigEndian
+          - float32LittleEndian
+          - float32BigEndian
+          - float64LittleEndian
+          - float64BigEndian
+          - singleByte
+          - string
+          - hexadecimal
         required: true
         summary: Conversion turning the element's text into bytes.
         note: >-
-          The vocabulary is the config list of the conversions section at the
-          end of output.yml.
+          The values inline the config list of the conversions section at the
+          end of output.yml (kept in step by a build check).
         agreement: agreed
+        rules: [enum-invalid-value, enum-case-insensitive]

@@ -1,52 +1,105 @@
-# Expected findings per invalid corpus file - checked by tools/hooks.py.
+# Expected behavior per invalid corpus file - checked by tools/hooks.py and
+# by the app test suites (test-matrix rows corpus-invalid-reject and
+# corpus-tolerated-attributes-load).
 #
-# Each file here is a real experiment configuration carrying a defect: dead
-# draft syntax that never shipped, a construct removed from the format, a
-# typo, or an attribute applied to the wrong element. The build fails if a
-# file stops producing its documented finding - that would mean the spec (or
-# the validator) silently started accepting it. Every listed substring must
-# match at least one finding for its file.
+# Each file is a real experiment configuration carrying a defect: dead draft
+# syntax that never shipped, a construct removed from the format, a typo, or
+# an attribute applied to the wrong element. Two fields per file:
+#
+#   findings  substrings that tools/validate_experiments.py must report. The
+#             build fails if a file stops producing its documented finding -
+#             that would mean the spec (or the validator) silently started
+#             accepting it. Every file is validator-invalid.
+#
+#   parser    what the APPS do with the file, per the unknown-attribute-
+#             ignored rule (spec/rules.yml, decided 2026-08-24):
+#               rejects - the real loading path refuses the file (structural
+#                         defects, invalid enum values, unknown conversion
+#                         functions, the graph pairing rules)
+#               accepts - the file LOADS: its only defects are unknown or
+#                         misapplied attributes, which parsers ignore for
+#                         compatibility. The app suites assert the load
+#                         succeeds - that tolerance is itself contract.
+#             Classification measured on the Android development branch
+#             2026-08-24 (corpus runner); iOS confirms with its own runner
+#             and any disagreement is a finding to report, not to paper over.
 
 graph-style-line.phyphox:            # "line" was never a valid graph style
-  - 'style="line"'
+  parser: rejects
+  findings:
+    - 'style="line"'
 network-mode-trigger.phyphox:        # draft network syntax that never shipped
-  - '<connection>: mode="trigger"'
+  parser: accepts
+  findings:
+    - '<connection>: mode="trigger"'
 bluetooth-pre-ble.phyphox:           # pre-BLE bluetooth of phyphox 1.0x
-  - '<bluetooth>: protocol='
-  - '<bluetooth>: separator='
-  - '<bluetooth>: mode'                # required by the BLE syntax it predates
+  parser: rejects
+  findings:
+    - '<bluetooth>: protocol='
+    - '<bluetooth>: separator='
+    - '<bluetooth>: mode'              # required by the BLE syntax it predates
+bluetooth-dev-conversion.phyphox:    # 2018 device-specific conversion draft
+  parser: rejects                      # (ti_acc_*, removed pre-release in
+  findings:                            # phyphox-android 37b3fb69)
+    - 'conversion="ti_acc_x"'
 camera-threshold.phyphox:            # dev-era camera attribute, removed
-  - '<camera>: threshold='
+  parser: rejects
+  findings:
+    - '<camera>: threshold='
 camera-input-controls.phyphox:       # camera-gui attributes on the camera input
-  - '<camera>: exposure_adjustment_level='
-  - '<camera>: show_controls='
+  parser: rejects
+  findings:
+    - '<camera>: exposure_adjustment_level='
+    - '<camera>: show_controls='
 camera-gui-locked-empty.phyphox:     # locked belongs to the camera input
-  - '<camera-gui>: locked='
+  parser: accepts
+  findings:
+    - '<camera-gui>: locked='
 analysis-cycle-typo.phyphox:         # cycle= instead of cycles= - runs every cycle
-  - '<formula>: cycle='
-  - '<map>: cycle='
+  parser: accepts
+  findings:
+    - '<formula>: cycle='
+    - '<map>: cycle='
 container-site-typo.phyphox:         # site= instead of size=
-  - '<container>: site='
+  parser: accepts
+  findings:
+    - '<container>: site='
 view-misapplied-attributes.phyphox:  # edit attributes on value, value attribute on edit
-  - '<value>: signed='
-  - '<value>: decimal='
-  - '<edit>: precision='
-  - '<config>: offset='
+  parser: accepts
+  findings:
+    - '<value>: signed='
+    - '<value>: decimal='
+    - '<edit>: precision='
+    - '<config>: offset='
 edit-misapplied-attributes.phyphox:  # value attributes on edit
-  - '<edit>: size='
-  - '<edit>: scientific='
+  parser: accepts
+  findings:
+    - '<edit>: size='
+    - '<edit>: scientific='
 network-receive-type.phyphox:        # type belongs to send, not receive
-  - '<receive>: type='
+  parser: accepts
+  findings:
+    - '<receive>: type='
 graph-value-attributes.phyphox:      # value attributes on graph
-  - '<graph>: size='
-  - '<graph>: precision='
-  - '<graph>: unit='
+  parser: accepts
+  findings:
+    - '<graph>: size='
+    - '<graph>: precision='
+    - '<graph>: unit='
 value-input-axis.phyphox:            # axis belongs to graph inputs
-  - '<input>: axis='
+  parser: accepts
+  findings:
+    - '<input>: axis='
 graph-precisionx.phyphox:            # dev syntax that never shipped
-  - '<graph>: precisionX='
+  parser: accepts
+  findings:
+    - '<graph>: precisionX='
 analysis-optimization.phyphox:       # stale attribute no parser ever read
-  - '<analysis>: optimization='
+  parser: accepts
+  findings:
+    - '<analysis>: optimization='
 graph-unused-x.phyphox:              # x inputs no y input uses (decided 2026-08-20)
-  - '<graph>: x input 2 of 2 is used by no y input'
-  - '<graph>: x input 1 of 2 is used by no y input'
+  parser: rejects
+  findings:
+    - '<graph>: x input 2 of 2 is used by no y input'
+    - '<graph>: x input 1 of 2 is used by no y input'
