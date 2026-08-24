@@ -335,15 +335,12 @@ elements:
         summary: >-
           Values the buffer starts with, comma-separated. Also what it returns
           to when cleared.
-        agreement: divergent
-        inconsistency: number-invalid-value
+        agreement: agreed
         note: >-
-          The divergence is about malformed entries only: Android turns one
-          into NaN (PhyphoxFile.java, init parsing under case "container"),
-          iOS drops it and shifts the later entries forward
-          (DataContainersElementHandler.swift, compactMap). Well-formed
-          lists agree. Canonical (2026-08-24): reject, like every other
-          malformed number - see the number-invalid-value rule.
+          A malformed entry - including an empty one from a stray comma -
+          rejects the file, while NaN and [+-]Infinity (case folded) are
+          valid entries; see the number-invalid-value rule. An init="NaN"
+          entry is the documented way to put a gap marker into a buffer.
       - name: static
         description: >-
           If set to true, the content of this buffer should only be

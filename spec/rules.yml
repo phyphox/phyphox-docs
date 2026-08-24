@@ -148,7 +148,6 @@ rules:
 
   - id: number-invalid-value
     decided: 2026-08-24
-    inconsistency: number-invalid-value
     summary: A numeric value that does not parse as a number is an error.
     rule: >-
       A parser must reject the experiment file when an attribute typed as an
@@ -167,36 +166,34 @@ rules:
       parsers disagree on all of them, so no experiment can carry them
       portably. Note the case folding is on the parsers, not their
       libraries: Java's Double.parseDouble accepts exactly "NaN", so
-      Android must fold (or special-case) before parsing when it starts
-      rejecting, or init="nan" files would stop loading. Absent optional
-      attributes still take their default - this rule is about present
-      values only.
+      Android has to fold (or special-case) before handing the value to
+      its library parser, or init="nan" files would stop loading. Absent
+      optional attributes still take their default - this rule is about
+      present values only.
     rationale: >-
       Same reasoning as enum-invalid-value: silently substituting the
       default produces an experiment that differs from what its author
-      wrote, with nothing to indicate it - and the file fails to load on
-      iOS anyway, which rejects malformed numeric attributes today. For
-      init lists the current behavior is worse than a wrong value: Android
-      turns a malformed entry into NaN while iOS drops it and shifts every
-      later entry one position forward, so the same file yields different
-      buffer contents on the two platforms.
+      wrote, with nothing to indicate it. For init lists the pre-rule
+      behavior was worse than a wrong value: Android turned a malformed
+      entry into NaN while iOS dropped it and shifted every later entry
+      one position forward, so the same file yielded different buffer
+      contents on the two platforms.
     applies_to: >-
       every attribute with type: integer or float, and each entry of every
       attribute with type: float-list (container init)
     state:
       android: >-
-        Does not conform: getIntAttribute and getDoubleAttribute
-        (PhyphoxFile.java) catch every exception and return the default,
-        and a malformed init entry becomes NaN. On the to-do list as of
-        2026-08-24.
+        Conforms as of the development branch (2026-08-24): getIntAttribute
+        and getDoubleAttribute validate against the format's lexical space
+        before parsing and reject the file otherwise, and a malformed init
+        entry rejects the file instead of becoming NaN (PhyphoxFile.java).
       ios: >-
-        Conforms for attributes as of the development branch: the central
+        Conforms as of the development branch: for attributes the central
         readers throw on a failed decode (DocumentParser.swift,
         optionalValue/value for LosslessStringConvertible; no try?-swallowed
-        numeric reads remain in Serialization, checked 2026-08-24). Does
-        not conform for init entries, which compactMap silently drops
-        (DataContainersElementHandler.swift). On the to-do list as of
-        2026-08-24.
+        numeric reads remain in Serialization, checked 2026-08-24), and a
+        malformed init entry rejects the file instead of being dropped
+        (DataContainersElementHandler.swift, 2026-08-24).
 
   - id: output-component-validation
     decided: 2026-08-02

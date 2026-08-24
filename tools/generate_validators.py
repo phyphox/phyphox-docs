@@ -32,10 +32,9 @@ What the grammar covers and what it deliberately does not:
   * Every element is mixed content: the pull parsers skip text nodes they
     do not expect, and real files use that for inline notes ("<input/> 64
     times"), so stray text must not fail validation.
-  * Numeric attribute values are checked by syntax. This is stricter than
-    Android (which silently substitutes the default when a number does not
-    parse) and matches iOS (which rejects the file) - recorded as the open
-    inconsistency number-invalid-value.
+  * Numeric attribute values are checked by syntax (rules.yml,
+    number-invalid-value): both apps reject the file when a present
+    number does not parse.
   * Enumerated values, booleans and named colors are matched
     case-insensitively via generated XSD patterns (rules.yml,
     enum-case-insensitive). Tag case-insensitivity (tag-case-insensitive)

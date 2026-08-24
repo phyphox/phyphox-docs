@@ -89,38 +89,3 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
-
-
-- id: number-invalid-value
-  title: Malformed numeric values
-  area: file-format
-  status: decided
-  canonical: >-
-    A numeric value that does not parse as a number rejects the experiment
-    file, exactly as an invalid enumerated value does (decided 2026-08-24;
-    see the number-invalid-value rule in spec/rules.yml for what counts as
-    a number). This covers plain numeric attributes and each entry of a
-    comma-separated numeric list - a data container's init attribute.
-  affects:
-    android: >-
-      Attributes: silently substitutes the attribute's default when the
-      value does not parse - getIntAttribute and getDoubleAttribute catch
-      every exception and return the default (PhyphoxFile.java), so a
-      toggle with default="true" loads as default 0. Container init
-      entries: an unparseable entry becomes NaN (PhyphoxFile.java, the
-      init parsing under case "container").
-    ios: >-
-      Attributes: conforms - the central numeric readers throw on a failed
-      decode (DocumentParser.swift, optionalValue/value for
-      LosslessStringConvertible types). Container init entries: silently
-      DROPPED (DataContainersElementHandler.swift, compactMap), which also
-      shifts every later entry one position forward - a different buffer
-      content than Android's NaN, from the same file.
-  summary: >-
-    An attribute that should hold a number but does not parse as one -
-    default="true" on a toggle, factor="1,5" with a decimal comma - loads
-    with the default value on Android and rejects the whole file on iOS.
-    In a container's init list the same malformed entry becomes NaN on
-    Android and disappears on iOS. Found 2026-08-24 by the generated
-    RELAX NG grammar, which flagged a corpus fixture that iOS would
-    reject.

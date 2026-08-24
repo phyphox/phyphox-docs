@@ -17,9 +17,7 @@ The phyphox format is based on XML. The entire experiment is encapsulated within
 
 Elements from a *foreign XML namespace* — any namespace other than the one of the root element, which is usually none — are ignored along with their entire content. This allows tools like experiment editors to embed their own metadata in an experiment file without breaking it for the apps. Elements in the file's own namespace remain strictly checked: an unknown element name is an error and the file will not load.
 
-Attribute values are checked when the file is loaded: an enumerated value outside its allowed set, an unparseable color and a boolean other than `true` or `false` (all matched case-insensitively) are errors, and the file will not load. Attributes from a foreign namespace are ignored like foreign elements are.
-
-{{inconsistency:number-invalid-value}}
+Attribute values are checked when the file is loaded: an enumerated value outside its allowed set, an unparseable color, a boolean other than `true` or `false` (all matched case-insensitively) and a value that does not parse as a number where one is expected are errors, and the file will not load. Attributes from a foreign namespace are ignored like foreign elements are.
 
 ## Block: phyphox
 
