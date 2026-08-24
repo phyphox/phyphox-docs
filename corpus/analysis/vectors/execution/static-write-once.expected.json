@@ -1,0 +1,40 @@
+{
+ "case": "static-write-once",
+ "cycles": 2,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "feed": {
+     "values": []
+    },
+    "total": {
+     "values": [
+      1
+     ]
+    }
+   }
+  },
+  {
+   "after_cycle": 2,
+   "buffers": {
+    "feed": {
+     "values": [
+      5
+     ]
+    },
+    "total": {
+     "values": [
+      1
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "execution"
+}

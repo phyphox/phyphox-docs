@@ -35,3 +35,20 @@ cases:
       - {buffer: out}
     expect:
       out: [45.0, -45.0, 135.0]
+  - name: value-with-buffer
+    description: >-
+      A fixed value with a longer buffer stays element-wise: the value
+      behaves exactly as a one-element buffer, repeating for every
+      element (ruled 2026-08-24, formerly the atan2-scalar-input
+      divergence).
+    expected_source: reference
+    buffers:
+      y: {size: 4, init: [1, 2, 3]}
+      out: {size: 4}
+    inputs:
+      - {as: y, buffer: y}
+      - {as: x, value: 1}
+    outputs:
+      - {buffer: out}
+    expect:
+      out: [0.7853981633974483, 1.1071487177940904, 1.2490457723982544]

@@ -70,7 +70,7 @@ tests:
     area: analysis
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Every case under corpus/analysis/vectors/ (a mini-experiment plus an
       .expected.json) loads through the real parser, its analysis block is

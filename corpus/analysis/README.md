@@ -37,9 +37,12 @@ Both app test suites run every pair under `vectors/`. The contract:
   current cycle number; snapshot the inputs; clear `keep=false`
   non-static input buffers on read; clear non-`append` output buffers
   before writing (the `if` module manages its own output clearing); run
-  the module. The scheduling layer above the kernel — `sleep`,
-  `dynamicSleep`, `onUserInput`, `requireFill` — must not gate the runs
-  (no vector uses those attributes).
+  the module. Of the scheduling layer above the kernel, `sleep`,
+  `dynamicSleep` and `onUserInput` must not gate the runs (no vector
+  uses them); `requireFill` MUST be honored with its ruled semantics —
+  the first run after opening or starting is exempt, later runs are
+  gated — because the execution/requirefill-first-run-exempt case pins
+  exactly that.
 - **Compare** after the cycle whose 1-based execution count equals an
   `expect` entry's `after_cycle`: for each listed buffer the full
   contents must match the expected list — same length, NaN equal to NaN,
@@ -51,23 +54,23 @@ Both app test suites run every pair under `vectors/`. The contract:
   reference expectation or both apps are wrong, and which one is a docs
   decision (the case files record the derivation).
 
+Most cases exercise a single module; `cases/execution.yml` holds the
+execution-model cases that need more than one (a per-case `modules:`
+list) or an analysis-block attribute (`analysis_attributes:`) — the
+static write-once skip and the requireFill first-run exemption, both
+ruled 2026-08-24.
+
 ## What the vectors deliberately avoid
 
-Constructs whose behavior currently differs between the platforms or is
-inherently non-deterministic are left out:
+Constructs that are inherently non-deterministic or platform-defined
+are left out:
 
-- `atan2` mixing a fixed value with a longer buffer
-  (`atan2-scalar-input`, decided: element-wise) — buffer-with-buffer
-  cases only until iOS conforms; then a mixed case is added.
 - `timer`'s `offset1970` output — the current timestamp before the first
-  start (both platforms conform since 2026-08-24), inherently unpinnable
-  as a golden value; only the experiment-time output is pinned, in the
-  never-started state.
-- `static="true"` buffers (`static-buffer-lifecycle`, decided: written
-  once, module skipped, reset by user clear) — a skip-pinning
-  multi-cycle case is added once iOS conforms.
-- The block-level `requireFill` gate (`requirefill-first-run`, decided:
-  the first run is exempt) — a case is added once iOS conforms.
+  start (ruled 2026-08-24), inherently unpinnable as a golden value;
+  only the experiment-time output is pinned, in the never-started state.
+- The static-buffer reset on the user's clear-data action (ruled with
+  the write-once lifecycle) — the runner has no user-clear step; the
+  write-once skip itself is pinned by execution/static-write-once.
 - `fft` with non-power-of-two input (`fft-non-power-of-two-input`,
   permanent) — power-of-two lengths only. The fft and crosscorrelation
   tolerances are widened to cover Android's float32 native path, and

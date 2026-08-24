@@ -24,8 +24,6 @@ Calculates the inverse tangent of a single input element-wise and writes the res
 
 Calculates the two-argument variant of the inverse tangent (corresponding to atan(y/x), see [Wikipedia](https://en.wikipedia.org/wiki/Atan2) for an explanation) element-wise and writes it to a single output buffer. The angle is returned in radians unless degrees are requested using the *deg* attribute. Like the other element-wise modules with several inputs, the output has the length of the longest input and a shorter input repeats its last value; any empty input yields an empty output.
 
-{{inconsistency:atan2-scalar-input}}
-
 {{spec:analysis/analysis/atan2}}
 
 ## cos

@@ -1,0 +1,34 @@
+{
+ "case": "requirefill-first-run-exempt",
+ "cycles": 2,
+ "default_tolerance": {
+  "abs": 1e-09,
+  "rel": 1e-06
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "out": {
+     "values": [
+      1,
+      2
+     ]
+    }
+   }
+  },
+  {
+   "after_cycle": 2,
+   "buffers": {
+    "out": {
+     "values": [
+      1,
+      2
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "execution"
+}

@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>golden vector: atan2/value-with-buffer</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/atan2.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="1,2,3">y</container>
+        <container size="4">out</container>
+    </data-containers>
+    <analysis>
+        <atan2>
+            <input as="y">y</input>
+            <input as="x" type="value">1</input>
+            <output>out</output>
+        </atan2>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

@@ -1,0 +1,57 @@
+# Golden vectors: execution-model semantics that need more than one module
+# or an analysis-block attribute. Each case carries its own modules list;
+# there is no single module this file belongs to.
+module:
+cases:
+  - name: static-write-once
+    description: >-
+      A module whose output buffers are all static executes once and is
+      skipped afterwards (ruled 2026-08-24, formerly the
+      static-buffer-lifecycle divergence). The append module refills
+      feed every cycle; count reads feed (keep=false) into the static
+      total. Cycle 0: count runs, consumes feed, writes total. Cycle 1:
+      count is skipped, so feed KEEPS the freshly appended value - a
+      platform that still ran the module would clear it.
+    expected_source: reference
+    buffers:
+      src: {size: 4, init: [5]}
+      feed: {size: 8}
+      total: {size: 1, static: true}
+    modules:
+      - module: append
+        inputs:
+          - {buffer: src, keep: true}
+        outputs:
+          - {buffer: feed, append: true}
+      - module: count
+        inputs:
+          - {buffer: feed}
+        outputs:
+          - {buffer: total}
+    cycles: 2
+    expect_per_cycle:
+      - {feed: [], total: [1]}
+      - {feed: [5], total: [1]}
+  - name: requirefill-first-run-exempt
+    description: >-
+      The first analysis run is exempt from the requireFill gate (ruled
+      2026-08-24, formerly the requirefill-first-run divergence): cycle 0
+      runs although the gate container is empty, so out receives the
+      appended data; cycle 1 is gated and the block does not run, so out
+      does not grow.
+    expected_source: reference
+    analysis_attributes: {requireFill: gate}
+    buffers:
+      gate: {size: 4}
+      src: {size: 4, init: [1, 2]}
+      out: {size: 8}
+    modules:
+      - module: append
+        inputs:
+          - {buffer: src, keep: true}
+        outputs:
+          - {buffer: out, append: true}
+    cycles: 2
+    expect_per_cycle:
+      - {out: [1, 2]}
+      - {out: [1, 2]}

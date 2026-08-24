@@ -359,8 +359,7 @@ elements:
         summary: >-
           Written once: the writing module runs a single time, until the
           user clears data.
-        agreement: divergent
-        inconsistency: static-buffer-lifecycle
+        agreement: agreed
       - name: type
         description: >-
           The only type supported right now is buffer. This

@@ -177,8 +177,7 @@ elements:
           required container is still empty - without the exemption most
           experiments using requireFill would never initialize. (Decided
           2026-08-24.)
-        agreement: divergent
-        inconsistency: requirefill-first-run
+        agreement: agreed
       - name: requireFillThreshold
         type: integer
         default: 1

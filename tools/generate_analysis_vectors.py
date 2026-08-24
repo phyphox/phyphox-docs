@@ -53,6 +53,7 @@ def load_spec_modules():
     with open(SPEC_ANALYSIS) as f:
         spec = yaml.safe_load(f)
     modules = {}
+    analysis_attrs = {}
     for el in spec.get("elements") or []:
         if el.get("parent") == "analysis":
             modules[el["name"]] = {
@@ -61,7 +62,22 @@ def load_spec_modules():
                           or spec.get("since") or "1.0"
                           for a in el.get("attributes") or []},
             }
-    return modules
+        elif el.get("name") == "analysis":
+            analysis_attrs = {a["name"]: a.get("since") or "1.0"
+                              for a in el.get("attributes") or []}
+    return modules, analysis_attrs
+
+
+def case_modules(module, case):
+    """A case is one module by default; execution-semantics cases may chain
+    several via a `modules:` list (each entry: module, attributes, inputs,
+    outputs), emitted in order."""
+    if case.get("modules"):
+        return case["modules"]
+    if not module:
+        raise ValueError("case without modules: needs a file-level module")
+    return [{"module": module, "attributes": case.get("attributes"),
+             "inputs": case.get("inputs"), "outputs": case.get("outputs")}]
 
 
 def fmt_number(v):
@@ -122,33 +138,49 @@ def xml_escape(s):
             .replace(">", "&gt;").replace('"', "&quot;"))
 
 
-def case_version(module, case, modules):
-    m = modules[module]
-    versions = [m["since"]]
-    for name in (case.get("attributes") or {}):
-        if name == "cycles":
-            versions.append(ATTR_SINCE["cycles"])
-        elif name in m["attrs"]:
-            versions.append(m["attrs"][name])
-        else:
-            raise ValueError(f"{module}/{case['name']}: attribute {name} not in spec")
-    for tag in (case.get("inputs") or []) + (case.get("outputs") or []):
-        for k in tag:
-            if k in ATTR_SINCE:
-                versions.append(ATTR_SINCE[k])
+def case_version(module, case, modules, analysis_attrs):
+    versions = []
+    for mod in case_modules(module, case):
+        name = mod["module"]
+        if name not in modules:
+            raise ValueError(f"{case['name']}: no analysis module {name} in the spec")
+        m = modules[name]
+        versions.append(m["since"])
+        for aname in (mod.get("attributes") or {}):
+            if aname == "cycles":
+                versions.append(ATTR_SINCE["cycles"])
+            elif aname in m["attrs"]:
+                versions.append(m["attrs"][aname])
+            else:
+                raise ValueError(f"{name}/{case['name']}: attribute {aname} not in spec")
+        for tag in (mod.get("inputs") or []) + (mod.get("outputs") or []):
+            for k in tag:
+                if k in ATTR_SINCE:
+                    versions.append(ATTR_SINCE[k])
+    for aname in (case.get("analysis_attributes") or {}):
+        if aname not in analysis_attrs:
+            raise ValueError(f"{case['name']}: analysis attribute {aname} not in spec")
+        versions.append(analysis_attrs[aname])
     if case.get("version"):
         versions.append(case["version"])
     return max(versions, key=_ver)
 
 
-def emit_phyphox(module, case, modules):
-    version = case_version(module, case, modules)
+def emit_phyphox(module, case, modules, analysis_attrs):
+    version = case_version(module, case, modules, analysis_attrs)
+    stem = module or "execution"
     lines = []
     a = lines.append
+
+    def attr_str(attrs):
+        return "".join(
+            f' {k}="{xml_escape(v).lower() if isinstance(v, bool) else xml_escape(v)}"'
+            for k, v in (attrs or {}).items())
+
     a(f'<phyphox xmlns="http://phyphox.org/xml" version="{version}" locale="en">')
-    a(f"    <title>golden vector: {xml_escape(module)}/{xml_escape(case['name'])}</title>")
+    a(f"    <title>golden vector: {xml_escape(stem)}/{xml_escape(case['name'])}</title>")
     a("    <category>Analysis golden vectors</category>")
-    a(f"    <description>Generated from corpus/analysis/cases/{module}.yml - do not edit.</description>")
+    a(f"    <description>Generated from corpus/analysis/cases/{stem}.yml - do not edit.</description>")
     a("    <data-containers>")
     for name, spec in (case.get("buffers") or {}).items():
         spec = spec or {}
@@ -160,30 +192,29 @@ def emit_phyphox(module, case, modules):
             attrs += ' static="true"'
         a(f"        <container{attrs}>{xml_escape(name)}</container>")
     a("    </data-containers>")
-    a("    <analysis>")
-    mattrs = "".join(f' {k}="{xml_escape(v).lower() if isinstance(v, bool) else xml_escape(v)}"'
-                     for k, v in (case.get("attributes") or {}).items())
-    a(f"        <{module}{mattrs}>")
-    for tag in case.get("inputs") or []:
-        attrs = ""
-        if "as" in tag:
-            attrs += f' as="{_as_name(tag["as"])}"'
-        if tag.get("keep"):
-            attrs += ' keep="true"'
-        if tag.get("empty"):
-            a(f'            <input{attrs} type="empty" />')
-        elif "value" in tag:
-            a(f'            <input{attrs} type="value">{fmt_number(tag["value"])}</input>')
-        else:
-            a(f'            <input{attrs}>{xml_escape(tag["buffer"])}</input>')
-    for tag in case.get("outputs") or []:
-        attrs = ""
-        if "as" in tag:
-            attrs += f' as="{_as_name(tag["as"])}"'
-        if tag.get("append"):
-            attrs += ' append="true"'
-        a(f'            <output{attrs}>{xml_escape(tag["buffer"])}</output>')
-    a(f"        </{module}>")
+    a(f"    <analysis{attr_str(case.get('analysis_attributes'))}>")
+    for mod in case_modules(module, case):
+        a(f"        <{mod['module']}{attr_str(mod.get('attributes'))}>")
+        for tag in mod.get("inputs") or []:
+            attrs = ""
+            if "as" in tag:
+                attrs += f' as="{_as_name(tag["as"])}"'
+            if tag.get("keep"):
+                attrs += ' keep="true"'
+            if tag.get("empty"):
+                a(f'            <input{attrs} type="empty" />')
+            elif "value" in tag:
+                a(f'            <input{attrs} type="value">{fmt_number(tag["value"])}</input>')
+            else:
+                a(f'            <input{attrs}>{xml_escape(tag["buffer"])}</input>')
+        for tag in mod.get("outputs") or []:
+            attrs = ""
+            if "as" in tag:
+                attrs += f' as="{_as_name(tag["as"])}"'
+            if tag.get("append"):
+                attrs += ' append="true"'
+            a(f'            <output{attrs}>{xml_escape(tag["buffer"])}</output>')
+        a(f"        </{mod['module']}>")
     a("    </analysis>")
     # The real loading path requires at least one view with a label and at
     # least one element on both platforms (found by the Android runner,
@@ -243,7 +274,7 @@ def emit_expected(module, case):
 
 
 def generate(check=False):
-    modules = load_spec_modules()
+    modules, analysis_attrs = load_spec_modules()
     problems = []
     wanted = {}
 
@@ -253,24 +284,33 @@ def generate(check=False):
         with open(os.path.join(CASES_DIR, fn)) as f:
             doc = yaml.safe_load(f)
         module = doc.get("module")
-        if module != os.path.splitext(fn)[0]:
+        stem = os.path.splitext(fn)[0]
+        if module is None:
+            # a file of multi-module execution-semantics cases; every case
+            # must carry its own modules: list
+            if any(not c.get("modules") for c in doc.get("cases") or []):
+                problems.append(f"{fn}: no module field, so every case "
+                                f"needs a modules list")
+                continue
+        elif module != stem:
             problems.append(f"{fn}: module field must match the file name")
             continue
-        if module not in modules:
+        elif module not in modules:
             problems.append(f"{fn}: no analysis module {module} in the spec")
             continue
         names = set()
         for case in doc.get("cases") or []:
             if case["name"] in names:
-                problems.append(f"{module}: duplicate case name {case['name']}")
+                problems.append(f"{stem}: duplicate case name {case['name']}")
                 continue
             names.add(case["name"])
-            base = os.path.join(module, case["name"])
+            base = os.path.join(stem, case["name"])
             try:
-                wanted[base + ".phyphox"] = emit_phyphox(module, case, modules)
-                wanted[base + ".expected.json"] = emit_expected(module, case)
+                wanted[base + ".phyphox"] = emit_phyphox(module, case, modules,
+                                                         analysis_attrs)
+                wanted[base + ".expected.json"] = emit_expected(stem, case)
             except (ValueError, KeyError) as e:
-                problems.append(f"{module}/{case.get('name', '?')}: {e}")
+                problems.append(f"{stem}/{case.get('name', '?')}: {e}")
 
     existing = {}
     if os.path.isdir(VECTORS_DIR):
