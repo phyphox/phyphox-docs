@@ -10,3 +10,12 @@ mkdocs-swagger-ui-tag==0.8.1
 # tools/hooks.py validates openapi.yaml during the build, so an invalid spec
 # fails `mkdocs build --strict` instead of producing a broken reference page.
 openapi-spec-validator==0.9.0
+
+# RELAX NG validation and Schematron execution for the validators that
+# tools/generate_validators.py derives from spec/*.yml during the build.
+lxml==6.1.2
+
+# Independent parser for the RELAX NG *compact* artifact - the .rnc emitter in
+# tools/generate_validators.py is hand-rolled string code, and this is the only
+# thing that would notice it emitting syntactically broken output.
+rnc2rng==2.7.0

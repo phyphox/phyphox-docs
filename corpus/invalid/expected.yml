@@ -14,6 +14,7 @@ network-mode-trigger.phyphox:        # draft network syntax that never shipped
 bluetooth-pre-ble.phyphox:           # pre-BLE bluetooth of phyphox 1.0x
   - '<bluetooth>: protocol='
   - '<bluetooth>: separator='
+  - '<bluetooth>: mode'                # required by the BLE syntax it predates
 camera-threshold.phyphox:            # dev-era camera attribute, removed
   - '<camera>: threshold='
 camera-input-controls.phyphox:       # camera-gui attributes on the camera input

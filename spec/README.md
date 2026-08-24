@@ -14,6 +14,21 @@ parsers (`InputElementHandler.swift`, `SensorInputDescriptor.defaults(forVersion
 `PhyphoxFile.java`, `inputBlockParser`). Version-dependent *defaults* are the reason this
 is structured YAML that generates a validator, rather than a validator written by hand.
 
+The RELAX NG grammar exists anyway — as a *product*: `tools/generate_validators.py`
+derives `docs/assets/validators/{phyphox.rng,phyphox.rnc,phyphox.sch}` from these files on
+every build, and `tools/hooks.py` (`_check_validators`) proves the result against the
+corpus and the shipped collection before the site ships it. The Schematron carries what
+the grammar cannot express — buffer references, container-name uniqueness, the graph
+dataset pairing, the `mapColor[N]` name shape, and the version gates as warnings. Two
+traps met while writing the generator, so nobody re-finds them the hard way: libxml2
+validates a plain run of optional attributes by backtracking and blows up exponentially
+once ~16 are present on one element (wrap each element's attributes in an `interleave`,
+which takes its linear attribute-group path), and it hangs compiling wide element
+interleaves and repeated inline `<data>` facets (merge all-optional children into one
+repeated `choice`; share value types as named defines). The grammar is deliberately no
+stricter than the parsers: stray text and foreign-namespace attributes are admitted
+everywhere, because the apps skip both.
+
 ## Shape
 
 One file per block. Each element:

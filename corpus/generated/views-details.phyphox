@@ -38,7 +38,7 @@
                 <input type="value">1</input>
                 <output>pressed</output>
             </button>
-            <toggle label="Enable" visibility="show" default="true">
+            <toggle label="Enable" visibility="show" default="1">
                 <output>flag</output>
             </toggle>
             <dropdown label="Mode" color="orange">

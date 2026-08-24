@@ -160,6 +160,13 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
             rep.add("bad enum value", fname,
                     f"{path}<{node.tag}> {attr}=\"{value}\" not in {allowed}")
 
+    # required attributes must be present (found missing 2026-08-24: the
+    # generated RELAX NG checked this while nothing here did)
+    for aname, a in entry.get("attrs", {}).items():
+        if a.get("required") and aname not in node.attrib:
+            rep.add("missing required attribute", fname,
+                    f"{path}<{node.tag}>: {aname}")
+
     # The graph element's dataset pairing (decided 2026-08-20, amended the
     # same day; see docs/file-format/views/graph.md and spec/views.yml): with
     # exactly as many x as y inputs they pair 1-on-1 in order; with fewer x

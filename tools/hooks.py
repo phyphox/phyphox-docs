@@ -184,6 +184,7 @@ def on_config(config, **kwargs):
     _check_spec_against_docs()
     _check_colors()
     _check_corpus()
+    _check_validators()
     return config
 
 
@@ -323,6 +324,102 @@ def _check_corpus():
     if problems:
         raise ValueError("corpus/invalid is out of step:\n"
                          + "\n".join(f"  {p}" for p in problems))
+
+
+# Invalid fixtures whose defect only validate_experiments can see (none at
+# the moment). A file listed here is excused from the "every invalid fixture
+# must fail the published validators" assertion below.
+VALIDATOR_BLIND = set()
+
+
+def _check_validators():
+    """Regenerate the published RELAX NG / Schematron and prove them.
+
+    tools/generate_validators.py derives docs/assets/validators/ from spec/
+    on every build (write-if-changed, so mkdocs serve does not loop). The
+    artifacts are then held to the same standard as the spec itself:
+
+    * every file that must load - corpus/valid, corpus/generated, the docs'
+      own example files, and the shipped collection when its checkout is
+      present - passes the RELAX NG and produces no Schematron error
+      (role="warning" asserts, the version gates, are advice and do not
+      fail);
+    * every corpus/invalid fixture fails at least one of the two, unless
+      VALIDATOR_BLIND lists it as only detectable by validate_experiments.
+    """
+    corpus = os.path.join(ROOT, "corpus")
+    if not os.path.isdir(corpus):
+        return
+    _ensure_path()
+    import generate_validators as gv
+    from lxml import etree
+    from lxml.isoschematron import Schematron
+
+    out_dir, _ = gv.generate()
+    # the compact-syntax artifact is never executed by this build, so parse
+    # it with an independent RNC parser or a syntax error would ship silently
+    import rnc2rng
+    rnc2rng.load(os.path.join(out_dir, "phyphox.rnc"))
+    rng = etree.RelaxNG(etree.parse(os.path.join(out_dir, "phyphox.rng")))
+    sch = Schematron(etree.parse(os.path.join(out_dir, "phyphox.sch")),
+                     store_report=True)
+    svrl = "{http://purl.oclc.org/dsdl/svrl}failed-assert"
+
+    def sch_errors(tree):
+        sch.validate(tree)
+        return [fa.findtext("{http://purl.oclc.org/dsdl/svrl}text").strip()
+                for fa in sch.validation_report.iter(svrl)
+                if fa.get("role") != "warning"]
+
+    clean_dirs = [os.path.join(corpus, d) for d in ("valid", "generated")
+                  if os.path.isdir(os.path.join(corpus, d))]
+    doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
+    if os.path.isdir(doc_examples):
+        clean_dirs.append(doc_examples)
+    shipped = os.path.normpath(os.path.join(
+        ROOT, "..", "phyphox-android", "app", "src", "main", "assets",
+        "experiments"))
+    if os.path.isdir(shipped):
+        clean_dirs.append(shipped)
+
+    problems = []
+    for d in clean_dirs:
+        for dirpath, _dirs, files in os.walk(d):
+            for fn in sorted(files):
+                if not fn.endswith(".phyphox"):
+                    continue
+                path = os.path.join(dirpath, fn)
+                rel = os.path.relpath(path, ROOT)
+                tree = etree.parse(path)
+                if not rng.validate(tree):
+                    problems.append(
+                        f"{rel}: {rng.error_log[0].message}"
+                        if len(rng.error_log) else f"{rel}: RELAX NG rejects")
+                for msg in sch_errors(tree)[:2]:
+                    problems.append(f"{rel}: schematron: {msg[:120]}")
+    if problems:
+        raise ValueError(
+            "the generated validators reject files that must load:\n"
+            + "\n".join(f"  {p}" for p in problems[:20]))
+
+    invalid = os.path.join(corpus, "invalid")
+    if os.path.isdir(invalid):
+        missed = []
+        for fn in sorted(os.listdir(invalid)):
+            if not fn.endswith(".phyphox") or fn in VALIDATOR_BLIND:
+                continue
+            try:
+                tree = etree.parse(os.path.join(invalid, fn))
+            except etree.XMLSyntaxError:
+                continue  # not well-formed fails every validator trivially
+            if rng.validate(tree) and not sch_errors(tree):
+                missed.append(fn)
+        if missed:
+            raise ValueError(
+                "corpus/invalid fixtures pass the generated validators - "
+                "either the grammar lost a check or the fixture belongs in "
+                "VALIDATOR_BLIND:\n"
+                + "\n".join(f"  {m}" for m in missed))
 
 
 def _check_spec(entries):

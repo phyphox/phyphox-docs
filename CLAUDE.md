@@ -370,11 +370,20 @@ file-format page — the mechanism was there, the markers were never placed by h
   file error.
 - `tools/hooks.py` checks the spec against `inconsistencies.yml`, that declared children are
   modelled, that an attribute does not predate its element, and that slot names survived YAML.
+- `tools/generate_validators.py` derives the published RELAX NG grammar and Schematron rules
+  (`docs/assets/validators/`, gitignored — generated on every build, write-if-changed so
+  `mkdocs serve` does not loop). `_check_validators` in `tools/hooks.py` fails the build if
+  they reject any file that must load (corpus/valid, corpus/generated, the docs examples,
+  the shipped collection when checked out) or accept a corpus/invalid fixture that is not in
+  its `VALIDATOR_BLIND` list. The artifacts are documented at `docs/reference/validators.md`.
+  libxml2 pathologies the generator works around are recorded in `spec/README.md` — read
+  that before restructuring the emitted grammar.
 
 ## Roadmap
 
 This repo was phase 1 of a larger plan recorded in `../CLAUDE.md`. Phase 2 (the OpenAPI description
 of the REST API) and phase 3 (the format spec, and the reference pages generated from it) are done.
-What is left is phase 4 — generated validators, RELAX NG and Schematron, plus a conformance corpus
-run by the implementations' test suites — and phase 5, making the Blockly editor consume the spec
-instead of encoding the format a fifth time.
+Phase 4a (the generated validators — RELAX NG and Schematron, published with the site and
+proven against the corpus on every build) is done. What is left is phase 4b — the conformance
+corpus run by the implementations' own test suites — and phase 5, making the Blockly editor
+consume the spec instead of encoding the format a fifth time.
