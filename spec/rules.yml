@@ -181,10 +181,10 @@ rules:
         as not well-formed (camera-threshold; the corpus fixture is fixed).
         No parser has attribute-name strictness anywhere.
       ios: >-
-        Expected to conform (the typed attribute readers do not reject
-        unknown keys); confirmed when the iOS corpus runner lands.
+        Conforms; confirmed 2026-08-24 by the iOS corpus runner
+        (CorpusConformanceTests, phyphox-ios f393ae8c), which verified
+        every rejects/accepts classification of corpus/invalid.
 
-  - id: number-invalid-value
   - id: number-invalid-value
     decided: 2026-08-24
     summary: A numeric value that does not parse as a number is an error.
@@ -300,6 +300,57 @@ rules:
       have. Matching case-sensitively would break those files; folding on
       iOS as well unifies the platforms in the direction that keeps
       existing files working, consistent with enum-case-insensitive.
+
+  - id: duplicate-metadata-last-wins
+    decided: 2026-08-24
+    summary: >-
+      A repeated metadata child of the root element is tolerated; the last
+      occurrence wins.
+    rule: >-
+      The metadata children of the root element - title, state-title,
+      category, icon, color and description - may appear at most once, and
+      nothing may ever write a second one. A parser, however, does not
+      reject a file that repeats one of them: it uses the LAST occurrence
+      and loads the file as if only that one had been written. Like
+      unknown-attribute-ignored, this is a compatibility rule for readers,
+      not a license for writers: authoring tools and the apps' own
+      state-saving code must emit exactly one.
+    rationale: >-
+      Files with a duplicated state-title exist in the wild: old Android
+      versions appended a fresh state-title on every re-save of a saved
+      state without removing the previous one
+      (corpus/valid/taipei101_down.phyphox was collected from a real 2018
+      recording in exactly that shape, fixed 2026-08-24), and the current
+      Android writer can still leave a stale element behind (live-NodeList
+      removal skip, PhyphoxExperiment.java). Rejecting duplicates would
+      strand users' own recordings; last-wins matches what Android has
+      always done, so existing files keep showing the title the user gave
+      last.
+    applies_to: >-
+      the once-only metadata children of the root element: title,
+      state-title, category, icon, color, description. Repeatable children
+      (link) and the block children are outside this rule.
+    state:
+      android: >-
+        Conforms by long-standing behavior: phyphoxBlockParser assigns the
+        read value unconditionally per tag (PhyphoxFile.java, e.g. case
+        "state-title"), so the last occurrence wins. The writer-side bug
+        that produces the duplicates is a separate fix (handed off
+        2026-08-24).
+      ios: >-
+        Does not conform: every single-slot child handler throws
+        ElementHandlerError.duplicateElement on a second occurrence
+        (Serialization/ElementHandler.swift infrastructure), rejecting the
+        file. Recorded as duplicate-root-elements in inconsistencies.yml
+        until fixed.
+    check: >-
+      The published validators cannot flag a duplicate today: the grammar
+      deliberately folds the root's children into a repeated choice
+      ((a | b | ...)*) to sidestep libxml2's interleave blowup, and neither
+      the Schematron nor validate_experiments checks cardinality yet. A
+      corpus fixture pinning last-wins should follow once one of them does
+      - and once iOS conforms, so its runner can assert the load rather
+      than record a divergence.
     applies_to: every element name in the format
     state:
       android: >-

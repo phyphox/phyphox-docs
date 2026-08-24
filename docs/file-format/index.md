@@ -33,7 +33,7 @@ The title of the experiment. This is just a simple string. Try to keep it short 
 
 ### Tag: state-title
 
-This should not be used for an experiment which will be distributed. This tag contains the title given by the user when saving the state of an experiment. If this is set, the app will show this experiment in the saved-states section. A file may carry at most one `state-title` — like the other metadata tags of the root element, it must not be repeated.
+This should not be used for an experiment which will be distributed. This tag contains the title given by the user when saving the state of an experiment. If this is set, the app will show this experiment in the saved-states section. A file may carry at most one `state-title` — like the other metadata tags of the root element, it must not be repeated. If a legacy file nevertheless carries a duplicate (old versions of the app could write one when re-saving a state), the app tolerates it and the last occurrence wins.
 
 {{inconsistency:duplicate-root-elements}}
 
