@@ -148,7 +148,6 @@ rules:
 
   - id: number-invalid-value
     decided: 2026-08-24
-    inconsistency: number-invalid-value
     summary: A numeric value that does not parse as a number is an error.
     rule: >-
       A parser must reject the experiment file when an attribute typed as an
@@ -184,26 +183,30 @@ rules:
       attribute with type: float-list (container init)
     state:
       android: >-
-        Conforms as of the development branch (2026-08-24) in the attribute
-        helpers and the init list: getIntAttribute and getDoubleAttribute
-        validate against the format's lexical space before parsing and
-        reject the file otherwise, and a malformed init entry rejects the
-        file instead of becoming NaN (PhyphoxFile.java). Residual gap found
-        during verification the same day, on the to-do list: the value and
-        button map min/max and the graph input lineWidth still go through
-        raw Double.valueOf - rejecting on failure, but with Java's lexical
-        space rather than the format's.
+        Conforms across the whole format as of the development branch
+        (2026-08-24): getIntAttribute and getDoubleAttribute validate
+        against the format's lexical space via the parseNumber helper and
+        reject the file otherwise, a malformed init entry rejects the file
+        instead of becoming NaN, and the residual sites found during
+        verification - the value and button map min/max and the graph
+        input lineWidth, previously on raw Double.valueOf - go through
+        parseNumber as well (PhyphoxFile.java, closed the same day). The
+        released app silently substitutes defaults for malformed numeric
+        attributes and turns malformed init entries into NaN.
       ios: >-
-        Conforms as of the development branch (2026-08-24) for integer
-        attributes and the init list: the central readers throw on a failed
-        decode (DocumentParser.swift, optionalValue/value for
-        LosslessStringConvertible; no try?-swallowed numeric reads remain
-        in Serialization), and a malformed init entry rejects the file
-        instead of being dropped (DataContainersElementHandler.swift, with
-        the format's lexical space enforced by regex). Residual gap found
-        during verification the same day, on the to-do list: the central
-        Double decodes accept Swift-only forms - inf and hex floats - that
-        the format and Android reject.
+        Conforms across the whole format as of the development branch
+        (2026-08-24): the central readers throw on a failed decode and
+        restrict the Double, CGFloat and Float decode paths to the
+        format's lexical space via the shared parseExperimentNumber helper
+        (DocumentParser.swift) - closing the residual acceptance of
+        Swift-only forms like "inf" and hex floats found during
+        verification - and a malformed init entry rejects the file
+        through the same helper instead of being dropped
+        (DataContainersElementHandler.swift). Integer decodes were
+        sign-and-digits only to begin with; DeserializerTests covers the
+        accepted and rejected forms on the Double and CGFloat paths and
+        the init list. The released app drops malformed init entries and
+        accepts every Swift-parseable attribute spelling.
 
   - id: output-component-validation
     decided: 2026-08-02

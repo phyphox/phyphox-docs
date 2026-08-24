@@ -19,8 +19,6 @@ Elements from a *foreign XML namespace* — any namespace other than the one of 
 
 Attribute values are checked when the file is loaded: an enumerated value outside its allowed set, an unparseable color, a boolean other than `true` or `false` (all matched case-insensitively) and a value that does not parse as a number where one is expected are errors, and the file will not load. Attributes from a foreign namespace are ignored like foreign elements are.
 
-{{inconsistency:number-invalid-value}}
-
 ## Block: phyphox
 
 The entire experiment is defined within the phyphox block. Its most important attribute is the version of the file format - not the version of the app. If the file format changes in a future version, this version number will increase. If phyphox (the app) encounters a file version newer than what it can read, it will not load the file but ask the user to update the app.
