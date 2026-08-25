@@ -1,7 +1,7 @@
 <phyphox xmlns="http://phyphox.org/xml" version="1.19" locale="en">
     <title>fixture: buttons and toggles</title>
     <category>View fixtures</category>
-    <description>Buttons writing values into buffers (behavior: press and assert via the remote API), a dynamic label fed from a buffer with a text map, and toggles.</description>
+    <description>Buttons writing values into buffers (behavior: press and assert via the remote API), including the two-pairs-one-buffer case that pins last-write-wins, a dynamic label fed from a buffer with a text map, and toggles.</description>
     <data-containers>
         <container size="1" init="0">target</container>
         <container size="8">log</container>
@@ -15,7 +15,11 @@
                 <input type="value">7</input>
                 <output>target</output>
             </button>
-            <button label="append two values">
+            <button label="two writes, last wins">
+                <!-- each input/output pair is applied independently and
+                     clears its output first, so after a press this buffer
+                     holds [2], never [1, 2] - the agreed semantics on both
+                     platforms, documented at the button element -->
                 <input type="value">1</input>
                 <output>log</output>
                 <input type="value">2</input>

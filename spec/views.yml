@@ -918,6 +918,15 @@ elements:
     parent: view
     since: "1.3"
     summary: A button that copies values or triggers a network connection.
+    description: >-
+      A button that copies values or triggers a network connection. On
+      press, each input/output pair is applied INDEPENDENTLY: the output
+      container is cleared and the input written to it. Two pairs naming
+      the same output container therefore leave only the second value -
+      the pairs do not accumulate. Verified identical on both platforms
+      2026-08-25 (iOS replaceValues per pair, Android clear-then-append
+      per pair); to place several values into one container, use several
+      containers and an analysis append module instead.
     children: [input, output, map, trigger]
     attributes:
       - name: dynamicLabel
