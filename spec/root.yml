@@ -416,8 +416,10 @@ elements:
       One sheet (Excel) or file (CSV) of the export, holding its data
       elements as columns. The number of rows is determined by the set's
       longest column (decided 2026-08-25 - see the export-set-row-count
-      entry while both platforms still size by the first column); shorter
-      columns are padded with NaN for the missing entries.
+      entry while Android still sizes by the first column); shorter
+      columns are padded for the missing entries - NaN in the Excel
+      output on both platforms, while the CSV padding is currently
+      platform-dependent (export-csv-padding).
     children: [data]
     attributes:
       - name: name

@@ -106,9 +106,11 @@
       The first column determines the number of rows (DataExport.java,
       the comment says so verbatim); longer later columns are truncated.
     ios: >-
-      Same rule - rows iterate 0..<columns.first.count
-      (ExperimentExportSet.swift), shorter later columns are NaN-padded,
-      longer ones truncated.
+      Conforms as of 2026-08-25: only the xlsx writer had the
+      first-column rule (serializeToXlsx, fixed); the CSV writer always
+      looped until no column had a value at that row, i.e. it used the
+      longest column all along, now pinned by a test so the two writers
+      cannot drift apart.
   summary: >-
     Both platforms size an export set by its FIRST column, so a set whose
     first data container holds fewer values than a later one silently
@@ -117,3 +119,23 @@
     (motion_stopwatch); ruled: the longest column determines the row
     count. Identical on both platforms today, so this is a decided
     behavior change rather than a divergence between them.
+
+- id: export-csv-padding
+  title: Padding of a missing CSV cell
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Writes NaN for a missing entry of a shorter column
+      (DataExport.java line 203, "No data? Enter NaN in the row").
+    ios: >-
+      Writes an empty quoted string ("") for the same cell
+      (ExperimentExportSet.swift, CSV writer). The xlsx writers agree on
+      NaN on both platforms.
+  summary: >-
+    When an export set's columns differ in length, the missing cells of
+    the shorter columns are padded NaN on Android but as an empty quoted
+    string in iOS's CSV output - the same row reads NaN,4 on Android and
+    "",4 on iOS. Surfaced 2026-08-25 by the longest-column ruling
+    (export-set-row-count), which makes padded rows routine instead of
+    rare. The xlsx writers already agree on NaN.
