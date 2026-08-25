@@ -1,7 +1,6 @@
-# Golden vectors: atan2(y, x). Buffer-with-buffer only: mixing
-# a fixed value with a longer buffer currently behaves differently on
-# iOS (see the atan2-scalar-input inconsistency) and is pinned once
-# that is resolved.
+# Golden vectors: atan2(y, x). Element-wise like every multi-input
+# module, a fixed value acting as a one-element buffer (ruled
+# 2026-08-24, pinned by value-with-buffer; both platforms conform).
 module: atan2
 cases:
   - name: quadrants

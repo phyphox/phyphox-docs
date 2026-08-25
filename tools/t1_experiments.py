@@ -170,6 +170,17 @@ class IOS:
         pass  # the iOS simulator cannot inject sensors (recorded platform difference)
 
 
+def is_link_entry(path):
+    """True for a collection entry with isLink=true - not a runnable
+    experiment but a redirect (opening it launches the browser), so the
+    sweep skips it."""
+    try:
+        root = ET.parse(path).getroot()
+    except Exception:
+        return False
+    return (root.get("isLink") or "").strip().lower() == "true"
+
+
 def uses_audio_input(path):
     """True if the experiment records audio - the iOS simulator's
     AVAudioEngine input can abort the whole app (AudioToolbox RPC
@@ -189,6 +200,9 @@ def uses_audio_input(path):
 def run_experiment(dev, base, rel, path, args):
     result = {"experiment": rel, "loaded": False, "remote": False,
               "started": False, "filled": [], "exports": {}, "errors": []}
+    if is_link_entry(path):
+        result["skipped"] = "link entry (isLink), not a runnable experiment"
+        return result
     if args.platform == "ios" and uses_audio_input(path):
         result["skipped"] = "audio input aborts the app on the simulator"
         return result

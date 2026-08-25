@@ -153,8 +153,10 @@ tests:
       Everything the host-controlled switches bypass must still work
       WITHOUT them (the switches must never mask a broken user path):
       the per-experiment menu toggle enables the remote server with
-      debug.phyphox.remote / -phyphoxRemote unset; the network privacy
-      dialog appears without auto-confirm, connects on accept and stays
-      offline on decline; opening a phyphox:// URL the regular way (not
-      via -phyphoxUrl) still reaches the app, confirmation dialog
-      included on iOS. UI-automated - lands with the phase-4 UI suites.
+      debug.phyphox.remote / -phyphoxRemote unset; without auto-confirm
+      the network privacy dialog appears (connects on accept, stays
+      offline on decline), the photosensitivity warning appears, and the
+      save-downloaded-experiment offer appears and works both ways;
+      opening a phyphox:// URL the regular way (not via -phyphoxUrl)
+      still reaches the app, confirmation dialog included on iOS.
+      UI-automated - lands with the phase-4 UI suites.
