@@ -89,3 +89,31 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: export-set-row-count
+  title: Row count of an export set
+  area: file-format
+  status: decided
+  canonical: >-
+    The number of rows a set exports is determined by its LONGEST column
+    (ruled 2026-08-25); shorter columns keep the existing NaN padding for
+    the missing entries. The current first-column rule silently drops
+    every value beyond the first column's length - motion_stopwatch's
+    dtlist data never appears in an export while tlist is empty, which is
+    data loss, not formatting.
+  affects:
+    android: >-
+      The first column determines the number of rows (DataExport.java,
+      the comment says so verbatim); longer later columns are truncated.
+    ios: >-
+      Same rule - rows iterate 0..<columns.first.count
+      (ExperimentExportSet.swift), shorter later columns are NaN-padded,
+      longer ones truncated.
+  summary: >-
+    Both platforms size an export set by its FIRST column, so a set whose
+    first data container holds fewer values than a later one silently
+    drops the excess - including the whole set when the first container
+    is empty. Found 2026-08-25 by the T1 export validation
+    (motion_stopwatch); ruled: the longest column determines the row
+    count. Identical on both platforms today, so this is a decided
+    behavior change rather than a divergence between them.
