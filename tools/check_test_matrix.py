@@ -43,7 +43,7 @@ STATUSES = {"planned", "active"}
 # host-side tool (the T1 drivers in phyphox-docs) carry it as a
 # `# phyphox-test: <id>` comment in the repo's CI workflow instead, so
 # workflow YAML is scanned too.
-SOURCE_EXT = {".java", ".kt", ".swift", ".yml", ".yaml"}
+SOURCE_EXT = {".java", ".kt", ".swift", ".yml", ".yaml", ".py"}
 
 REPOS = {
     "android": os.path.normpath(os.path.join(ROOT, "..", "phyphox-android")),

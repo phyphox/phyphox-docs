@@ -137,7 +137,9 @@ tests:
       tools/t1_experiments.py over the shipped collection on an emulator/
       simulator: open via phyphox://asset=, start, run, stop, download and
       validate every export format (tools/validate_export.py), app stays
-      responsive. Android with emulator-injected sensors; iOS runs the
-      loadable subset without injection (recorded platform difference).
-      Host-driven - the tag lives in the T1 CI workflow. Depends on the
-      remote-enable launch seam.
+      responsive. Android with emulator-injected sensors. iOS covers the
+      loadable subset: the driver skips audio-input experiments (they
+      abort the simulator app) and classifies sensor-unavailable ones as
+      not-loadable rather than failed - recorded platform difference.
+      Host-driven - the tag lives in the T1 CI workflow. Uses the
+      remote-enable and auto-confirm switches.

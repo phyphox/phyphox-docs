@@ -7,7 +7,7 @@
         <container size="0">back</container>
     </data-containers>
     <network>
-        <connection address="FIXTURE-HOST:1883" service="mqtt/json" receiveTopic="phyphox/fixture" sendTopic="phyphox/fixture" interval="0.5">
+        <connection address="FIXTURE-HOST:1883" service="mqtt/json" conversion="json" receiveTopic="phyphox/fixture" sendTopic="phyphox/fixture" interval="0.5">
             <send id="v" type="buffer" datatype="number">out</send>
             <receive id="v">back</receive>
         </connection>

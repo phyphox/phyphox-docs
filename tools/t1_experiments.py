@@ -44,6 +44,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import validate_export
@@ -130,8 +131,17 @@ class IOS:
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
-        r = sh(["xcrun", "simctl", "launch", self.udid, IOS_BUNDLE,
-                "-phyphoxUrl", url, "-phyphoxRemote"])
+        # --terminate-running-process: simctl launch onto a running app does
+        # not deliver new arguments (found by the iOS session 2026-08-25) -
+        # the app would keep the previous experiment and this driver would
+        # report a false ok. -phyphoxRemotePort keeps the served port and
+        # the driver's base URL in step; -phyphoxAutoConfirm accepts the
+        # dialogs a headless run cannot tap (network privacy).
+        r = sh(["xcrun", "simctl", "launch", "--terminate-running-process",
+                self.udid, IOS_BUNDLE,
+                "-phyphoxUrl", url, "-phyphoxRemote",
+                "-phyphoxRemotePort", str(self.port),
+                "-phyphoxAutoConfirm"])
         return r.returncode == 0
 
     def cleanup(self):
@@ -144,15 +154,40 @@ class IOS:
         pass  # the iOS simulator cannot inject sensors (recorded platform difference)
 
 
+def uses_audio_input(path):
+    """True if the experiment records audio - the iOS simulator's
+    AVAudioEngine input can abort the whole app (AudioToolbox RPC
+    timeout), so these are skipped there instead of launched."""
+    try:
+        root = ET.parse(path).getroot()
+    except Exception:
+        return False
+    ns = root.tag.split("}")[0] + "}" if root.tag.startswith("{") else ""
+    for inp in root.findall(f"{ns}input"):
+        for child in inp:
+            if child.tag == f"{ns}audio":
+                return True
+    return False
+
+
 def run_experiment(dev, base, rel, path, args):
     result = {"experiment": rel, "loaded": False, "remote": False,
               "started": False, "filled": [], "exports": {}, "errors": []}
+    if args.platform == "ios" and uses_audio_input(path):
+        result["skipped"] = "audio input aborts the app on the simulator"
+        return result
     if not dev.launch(rel):
         result["errors"].append("launch failed")
         return result
     result["loaded"] = True
 
     if not wait_api(base, args.api_wait):
+        if args.platform == "ios":
+            # the simulator lacks most sensors; the app declines the
+            # experiment ("sensor not available") and returns to the
+            # collection. That is the scoped iOS subset, not a failure.
+            result["not_loadable"] = True
+            return result
         result["errors"].append("remote API not reachable (is remote access "
                                 "enabled for launched experiments?)")
         return result
@@ -253,8 +288,9 @@ def main():
         dev.cleanup()
     hard_failures = sum(
         1 for r in results
-        if r["errors"] or not r["loaded"]
-        or any(p for p in r["exports"].values()))
+        if not r.get("skipped") and not r.get("not_loadable")
+        and (r["errors"] or not r["loaded"]
+             or any(p for p in r["exports"].values())))
 
     with open(args.out, "w") as f:
         json.dump({"platform": args.platform, "results": results}, f, indent=1)
@@ -268,6 +304,12 @@ def run_all(dev, base, collection, experiments, args, results):
         print(f"== {rel}")
         r = run_experiment(dev, base, rel, os.path.join(collection, rel), args)
         results.append(r)
+        if r.get("skipped"):
+            print(f"   - skipped: {r['skipped']}")
+            continue
+        if r.get("not_loadable"):
+            print("   - not loadable on this target (simulator subset)")
+            continue
         bad_exports = {f: p for f, p in r["exports"].items() if p}
         if r["errors"] or not r["loaded"] or bad_exports:
             for e in r["errors"]:
