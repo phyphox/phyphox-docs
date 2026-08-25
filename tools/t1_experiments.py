@@ -79,8 +79,23 @@ EMULATOR_SENSORS = {
 }
 
 
+class _Timeout:
+    """Failed-command stand-in for a call that timed out: a wedged
+    simulator or adb degrades into one failed step instead of an escaped
+    TimeoutExpired killing the whole sweep (seen on iOS CI: a stop_app
+    hanging >30 s on a simulator that normally answers in 0.4 s)."""
+    returncode = -1
+    stdout = ""
+    stderr = "timed out"
+
+
 def sh(cmd, timeout=30):
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(f"   ~ command timed out after {timeout}s: {' '.join(cmd[:4])} ...")
+        return _Timeout()
 
 
 def api(base, path, timeout=5):
@@ -213,9 +228,12 @@ def run_experiment(dev, base, rel, path, args):
     # a fresh app per experiment: on Android a stacked Experiment activity
     # keeps holding the remote port (the next one either fails to bind or
     # falls back to another port while the forward still points at the
-    # old one - found by the Android T1 run); on iOS launch already
-    # terminates, so this is belt and braces
-    dev.stop_app()
+    # old one - found by the Android T1 run). iOS is NOT force-stopped
+    # here: launch --terminate-running-process already does it, and the
+    # redundant simctl terminate was seen hanging >30 s on a wedged
+    # simulator.
+    if args.platform == "android":
+        dev.stop_app()
     if not dev.launch(rel):
         result["errors"].append("launch failed")
         return result
