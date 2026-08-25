@@ -30,6 +30,7 @@ see fixtures/network/README.md for the mosquitto setup.
 """
 
 import json
+import socketserver
 import sys
 import threading
 import time
@@ -120,9 +121,22 @@ def _num(s):
         return s
 
 
+class Server(ThreadingHTTPServer):
+    def server_bind(self):
+        # HTTPServer.server_bind resolves socket.getfqdn() between bind()
+        # and listen(); on a GitHub macOS runner that lookup can take tens
+        # of seconds, during which the port is bound but NOT listening -
+        # connections hang instead of being refused and the startup line
+        # has not printed, so the fixture looks dead (cost two iOS T1
+        # runs). Nothing here needs the real FQDN - server_name only feeds
+        # the Host default of CGI-ish paths - so skip the lookup.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = "localhost", self.server_address[1]
+
+
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8113
-    srv = ThreadingHTTPServer(("0.0.0.0", port), Handler)
+    srv = Server(("0.0.0.0", port), Handler)
     print(f"network fixture on port {port} (all interfaces - emulators "
           f"reach the host at 10.0.2.2, simulators at 127.0.0.1)")
     try:

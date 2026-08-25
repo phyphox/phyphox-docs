@@ -293,8 +293,18 @@ class IOS(Base):
         self.send_json(self.meta_common(), cors=True)
 
 
+class _Server(ThreadingHTTPServer):
+    def server_bind(self):
+        # skip HTTPServer's socket.getfqdn() between bind() and listen() -
+        # on some CI runners it takes tens of seconds, during which the
+        # port is bound but not listening (see tools/network_fixture.py)
+        import socketserver
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = "localhost", self.server_address[1]
+
+
 def serve(cls, port):
-    srv = ThreadingHTTPServer(("127.0.0.1", port), cls)
+    srv = _Server(("127.0.0.1", port), cls)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv
 
