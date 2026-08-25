@@ -1,0 +1,20 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.18" locale="en">
+    <title>fixture: info, separator, image</title>
+    <category>View fixtures</category>
+    <description>Static elements: info texts in every styling, separators, and an image with the dark and light filters (src resolves against the bundled res folder).</description>
+    <data-containers>
+        <container size="1" init="0">unused</container>
+    </data-containers>
+    <views>
+        <view label="Static">
+            <info label="plain info text" />
+            <info label="bold centered" bold="true" align="center" />
+            <info label="italic right, small" italic="true" align="right" size="0.7" />
+            <info label="big and colored" size="1.5" color="orange" />
+            <separator />
+            <separator height="0.5" color="orange" />
+            <image src="hue.png" />
+            <image src="hue.png" scale="0.5" darkFilter="invert" lightFilter="none" />
+        </view>
+    </views>
+</phyphox>

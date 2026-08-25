@@ -1,0 +1,41 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>fixture: graph styles</title>
+    <category>View fixtures</category>
+    <description>The basic drawing styles on fixed data: lines, dots, vertical and horizontal bars, line width, and one multi-dataset graph with per-set style and color.</description>
+    <data-containers>
+        <container size="9" init="0,1,2,3,4,5,6,7,8">x</container>
+        <container size="9" init="0,2,1,4,3,6,5,8,7">y1</container>
+        <container size="9" init="8,7,6,5,4,3,2,1,0">y2</container>
+        <container size="9" init="1,4,2,6,3,8,4,9,5">bars</container>
+    </data-containers>
+    <views>
+        <view label="Styles">
+            <graph label="lines" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y1</input>
+            </graph>
+            <graph label="dots" style="dots" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y1</input>
+            </graph>
+            <graph label="vbars" style="vbars" labelX="x" labelY="y" color="orange">
+                <input axis="x">x</input>
+                <input axis="y">bars</input>
+            </graph>
+            <graph label="hbars" style="hbars" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">bars</input>
+            </graph>
+            <graph label="thick line" lineWidth="3" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y1</input>
+            </graph>
+            <graph label="two datasets" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y" color="orange">y1</input>
+                <input axis="x">x</input>
+                <input axis="y" style="dots" color="green">y2</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

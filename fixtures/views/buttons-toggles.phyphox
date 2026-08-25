@@ -1,0 +1,38 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.19" locale="en">
+    <title>fixture: buttons and toggles</title>
+    <category>View fixtures</category>
+    <description>Buttons writing values into buffers (behavior: press and assert via the remote API), a dynamic label fed from a buffer with a text map, and toggles.</description>
+    <data-containers>
+        <container size="1" init="0">target</container>
+        <container size="8">log</container>
+        <container size="1" init="1">labelstate</container>
+        <container size="1" init="1">switch1</container>
+        <container size="1">switch2</container>
+    </data-containers>
+    <views>
+        <view label="Buttons">
+            <button label="write 7">
+                <input type="value">7</input>
+                <output>target</output>
+            </button>
+            <button label="append two values">
+                <input type="value">1</input>
+                <output>log</output>
+                <input type="value">2</input>
+                <output>log</output>
+            </button>
+            <button label="clear">
+                <input type="empty" />
+                <output>log</output>
+            </button>
+            <button dynamicLabel="labelstate">
+                <input type="value">0</input>
+                <output>target</output>
+                <map max="1">state one</map>
+                <map min="1">state two</map>
+            </button>
+            <toggle label="on by default" default="1"><output>switch1</output></toggle>
+            <toggle label="off"><output>switch2</output></toggle>
+        </view>
+    </views>
+</phyphox>

@@ -1,0 +1,28 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.19" locale="en">
+    <title>fixture: sliders and dropdowns</title>
+    <category>View fixtures</category>
+    <description>Sliders in normal and range type with steps, precision and colors, and dropdowns mapping choices to values.</description>
+    <data-containers>
+        <container size="1" init="2.5">s1</container>
+        <container size="1" init="20">lower</container>
+        <container size="1" init="60">upper</container>
+        <container size="1" init="10">coarse</container>
+        <container size="1" init="1">choice</container>
+    </data-containers>
+    <views>
+        <view label="Sliders">
+            <slider label="plain" minValue="0" maxValue="5" stepSize="0.1" default="2.5" precision="1"><output>s1</output></slider>
+            <slider label="range" type="range" minValue="0" maxValue="100" stepSize="5" precision="0">
+                <output value="lowerValue">lower</output>
+                <output value="upperValue">upper</output>
+            </slider>
+            <slider label="hidden value, colored" minValue="0" maxValue="50" stepSize="10" default="10" showValue="false" color="orange"><output>coarse</output></slider>
+            <dropdown label="mode" default="1">
+                <map value="0">off</map>
+                <map value="1">slow</map>
+                <map value="2">fast</map>
+                <output>choice</output>
+            </dropdown>
+        </view>
+    </views>
+</phyphox>

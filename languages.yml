@@ -1,0 +1,58 @@
+# The canonical language list - which translations a RELEASE ships.
+#
+# Mechanism (decided 2026-08-24, see the test plan's area P):
+#   - T0/T1 language tests follow whatever the BUILD enables (Android's
+#     LOCALE_ARRAY BuildConfig field, iOS's Bundle.main.localizations).
+#     Deviations from this list, and between the platforms, are WARNINGS
+#     in the report - development drift is harmless and stays visible.
+#   - At T2 the list is enforced against the BUILT ARTIFACTS (aapt dump
+#     badging / the .lproj set): a release build whose language set does
+#     not match this file FAILS. That is what makes forgetting to flip a
+#     testing locale off - or a new language on - impossible.
+#   - A per-language exception names the platforms that ship it and why;
+#     exceptions are machine-verified where possible (a behavioral probe
+#     that fails when the stated reason stops holding).
+#
+# Codes are BCP-47. The platforms spell some differently in their build
+# files; the comparison normalizes:
+#   Android resource qualifiers: zh-rCN -> zh-Hans, zh-rTW -> zh-Hant,
+#                                b+sr+Latn -> sr-Latn
+#   iOS knownRegions:            zh_Hans -> zh-Hans, zh_Hant -> zh-Hant,
+#                                sr_Latn/sr-Latn -> sr-Latn (both appear)
+#
+# Seeded 2026-08-25 from the current release gates: Android's
+# resourceConfigurations minus its testing-only locales (bn, gu, kn, or,
+# ta - per the comment in app/build.gradle), and iOS's knownRegions.
+
+languages:
+  - en
+  - cs
+  - de
+  - el
+  - es
+  - fr
+  - hi
+  - it
+  - ja
+  - ka
+  - ko
+  - nl
+  - pl
+  - pt
+  - ru
+  - sr
+  - sr-Latn
+  - tr
+  - vi
+  - zh-Hans
+  - zh-Hant
+
+exceptions:
+  - code: ta
+    platforms: [ios]
+    reason: >-
+      Shipped on iOS, testing-only on Android - by the translator's
+      preference, not a technical limit. The exception expires when the
+      Android translation is released; the T2 check warns when Android's
+      built artifact starts shipping ta so this entry gets removed
+      rather than silently diverging.

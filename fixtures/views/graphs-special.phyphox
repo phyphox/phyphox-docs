@@ -1,0 +1,43 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <title>fixture: graph specials</title>
+    <category>View fixtures</category>
+    <description>The special drawing paths on fixed data: NaN gaps, history depth, follow-x, the color map with explicit stops (interpolated and stepped), and pick labels.</description>
+    <data-containers>
+        <container size="9" init="0,1,2,3,4,5,6,7,8">x</container>
+        <container size="9" init="1,2,NaN,4,5,NaN,7,8,9">gappy</container>
+        <container size="9" init="0,2,1,4,3,6,5,8,7">y</container>
+        <container size="16" init="0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3">mx</container>
+        <container size="16" init="0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3">my</container>
+        <container size="16" init="0,1,2,3,1,2,3,4,2,3,4,5,3,4,5,6">mz</container>
+    </data-containers>
+    <views>
+        <view label="Specials">
+            <graph label="nan gaps" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">gappy</input>
+            </graph>
+            <graph label="history" history="5" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+            <graph label="follow x" followX="true" scaleMinX="fixed" scaleMaxX="fixed" minX="-5" maxX="0" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+            <graph label="color map" style="map" mapWidth="4" labelX="x" labelY="y" labelZ="z" unitZ="u" zPrecision="1" mapColor1="blue" mapColor2="green" mapColor3="red">
+                <input axis="x">mx</input>
+                <input axis="y">my</input>
+                <input axis="z">mz</input>
+            </graph>
+            <graph label="stepped map, no scale" style="map" mapWidth="4" interpolateMapColors="false" showColorScale="false" labelX="x" labelY="y" labelZ="z" mapColor1="blue" mapColor2="yellow">
+                <input axis="x">mx</input>
+                <input axis="y">my</input>
+                <input axis="z">mz</input>
+            </graph>
+            <graph label="pickable" pickLabel="sample" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

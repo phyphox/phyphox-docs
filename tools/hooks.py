@@ -188,7 +188,38 @@ def on_config(config, **kwargs):
     _check_conversion_values()
     _check_test_matrix()
     _check_analysis_vectors()
+    _check_languages()
     return config
+
+
+def _check_languages():
+    """languages.yml (the canonical release-language list) stays
+    well-formed: unique BCP-47-ish codes, exceptions naming known
+    platforms with a reason, no exception duplicating a plain entry."""
+    path = os.path.join(ROOT, "languages.yml")
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        doc = yaml.safe_load(f) or {}
+    problems = []
+    langs = doc.get("languages") or []
+    if len(set(langs)) != len(langs):
+        problems.append("duplicate language codes")
+    for code in langs:
+        if not re.match(r"^[a-z]{2,3}(-[A-Za-z]{2,8})*$", str(code)):
+            problems.append(f"language code {code!r} is not BCP-47-ish")
+    for exc in doc.get("exceptions") or []:
+        if exc.get("code") in langs:
+            problems.append(f"exception {exc.get('code')} duplicates a "
+                            f"plain entry")
+        if not set(exc.get("platforms") or []) <= {"android", "ios"}:
+            problems.append(f"exception {exc.get('code')}: platforms must "
+                            f"be a subset of android/ios")
+        if not exc.get("reason"):
+            problems.append(f"exception {exc.get('code')}: missing reason")
+    if problems:
+        raise ValueError("languages.yml is out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
 
 
 def _check_analysis_vectors():
@@ -358,9 +389,10 @@ def _check_corpus():
                   for d in ("valid", "generated",
                             os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
-    net_fixtures = os.path.join(ROOT, "fixtures", "network")
-    if os.path.isdir(net_fixtures):
-        clean_dirs.append(net_fixtures)
+    for fixture_dir in ("network", "views"):
+        d = os.path.join(ROOT, "fixtures", fixture_dir)
+        if os.path.isdir(d):
+            clean_dirs.append(d)
     doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
     if os.path.isdir(doc_examples):
         clean_dirs.append(doc_examples)
@@ -511,9 +543,10 @@ def _check_validators():
                   for d in ("valid", "generated",
                             os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
-    net_fixtures = os.path.join(ROOT, "fixtures", "network")
-    if os.path.isdir(net_fixtures):
-        clean_dirs.append(net_fixtures)
+    for fixture_dir in ("network", "views"):
+        d = os.path.join(ROOT, "fixtures", fixture_dir)
+        if os.path.isdir(d):
+            clean_dirs.append(d)
     doc_examples = os.path.join(ROOT, "docs", "assets", "examples")
     if os.path.isdir(doc_examples):
         clean_dirs.append(doc_examples)

@@ -160,3 +160,99 @@ tests:
       opening a phyphox:// URL the regular way (not via -phyphoxUrl)
       still reaches the app, confirmation dialog included on iOS.
       UI-automated - lands with the phase-4 UI suites.
+
+  - id: view-snapshots
+    area: ui
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Golden-image tests of the non-graph view elements over the
+      phyphox-docs fixtures/views/ set (values, edits, buttons-toggles,
+      sliders-dropdowns, info-separator-image), rendered in the
+      configuration matrix of fixtures/views/README.md (light/dark, two
+      font scales, phone/tablet width, RTL layout smoke). Android:
+      Robolectric; iOS: swift-snapshot-testing. Goldens live in the app
+      repos.
+
+  - id: graph-snapshots
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Golden-image tests of the OpenGL graph rendering over
+      fixtures/views/graphs-*.phyphox (styles, axes incl. log and fixed
+      scales, NaN gaps, history, follow-x, color maps, pick labels).
+      Android: emulator + PixelCopy; iOS: GLKView snapshot in the
+      simulator. Goldens live in the app repos.
+
+  - id: view-behavior
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Interaction tests over the same fixtures: typing into edits
+      (bounds, signed/decimal, factor), pressing buttons (value writes,
+      appends, empty-clear, trigger), toggles, both slider types,
+      dropdown selection - each asserted by its buffer effect through
+      the remote API. Espresso / XCUITest.
+
+  - id: app-chrome
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The screens around the experiment: collection (categories,
+      ordering, platform hiding), experiment menu and all its actions,
+      dialogs (timed run, export, remote access incl. privacy note,
+      save state, delete/rename), settings, about, hints, rotation per
+      screen, tablet layouts, permission flows (grant AND deny paths).
+
+  - id: lifecycle
+    area: robustness
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Rotation mid-run, background/foreground with a running experiment,
+      screen-off with keep-on, kill and relaunch, permission denied
+      yields a sensible error UI, timed-run edges, rapid start/stop,
+      opening a second experiment, low-memory smoke, remote access
+      toggled mid-run.
+
+  - id: accessibility-smoke
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Espresso AccessibilityChecks over the chrome suite on Android;
+      performAccessibilityAudit() on the main iOS screens. Report-only
+      at first; escalates to failing after the findings are triaged.
+
+  - id: translations-build
+    area: translations
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Language handling follows the build: the enabled set (LOCALE_ARRAY
+      / Bundle.main.localizations) loads, deviations from the canonical
+      languages.yml in phyphox-docs and between the platforms are
+      WARNINGS in the report, never failures. The hard enforcement
+      against built artifacts is the T2 release check.
+
+  - id: translations-ui
+    area: translations
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      UI regression per build-enabled language: the collection screen, a
+      representative experiment screen and the critical menus/dialogs
+      render without truncation/overlap regressions in every enabled
+      language (snapshot or layout-assertion based, the platform's
+      choice).

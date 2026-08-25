@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.1" locale="en">
+    <title>fixture: edit elements</title>
+    <category>View fixtures</category>
+    <description>Edit fields in their configurations. Behavior tests type into them and assert the buffer through the remote API; snapshots render the defaults.</description>
+    <data-containers>
+        <container size="1">plain</container>
+        <container size="1">bounded</container>
+        <container size="1">unsigned</container>
+        <container size="1">integer</container>
+        <container size="1">scaled</container>
+    </data-containers>
+    <views>
+        <view label="Edits">
+            <edit label="plain" default="1.5"><output>plain</output></edit>
+            <edit label="bounded" min="0" max="10" default="5"><output>bounded</output></edit>
+            <edit label="unsigned" signed="false" default="3"><output>unsigned</output></edit>
+            <edit label="integer only" decimal="false" default="7"><output>integer</output></edit>
+            <edit label="unit and factor" unit="cm" factor="100" default="0.42"><output>scaled</output></edit>
+        </view>
+    </views>
+</phyphox>

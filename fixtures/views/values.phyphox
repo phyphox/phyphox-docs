@@ -1,0 +1,32 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.19" locale="en">
+    <title>fixture: value elements</title>
+    <category>View fixtures</category>
+    <description>Every value-element configuration worth a golden: precision, scientific, unit and factor, signed units, the special formats and the range-to-text map. Data is fixed by init values.</description>
+    <data-containers>
+        <container size="1" init="1234.5678">v</container>
+        <container size="1" init="-0.000456">small</container>
+        <container size="1" init="52.520008">deg</container>
+        <container size="8" init="112,104,121,112,104,111,120,33">chars</container>
+        <container size="1" init="2">state</container>
+    </data-containers>
+    <views>
+        <view label="Values">
+            <value label="default"><input>v</input></value>
+            <value label="precision 0" precision="0"><input>v</input></value>
+            <value label="precision 6" precision="6"><input>v</input></value>
+            <value label="scientific" scientific="true" precision="3"><input>small</input></value>
+            <value label="unit and factor" unit="km" factor="0.001" precision="4"><input>v</input></value>
+            <value label="signed units" positiveUnit="N" negativeUnit="S" precision="4"><input>deg</input></value>
+            <value label="degree minutes" format="degree-minutes"><input>deg</input></value>
+            <value label="degree minutes seconds" format="degree-minutes-seconds"><input>deg</input></value>
+            <value label="ascii" format="ascii"><input>chars</input></value>
+            <value label="big and colored" size="2" color="orange"><input>v</input></value>
+            <value label="mapped">
+                <input>state</input>
+                <map max="1">low</map>
+                <map min="1" max="3">mid</map>
+                <map min="3">high</map>
+            </value>
+        </view>
+    </views>
+</phyphox>

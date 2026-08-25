@@ -1,0 +1,39 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.19" locale="en">
+    <title>fixture: graph axes</title>
+    <category>View fixtures</category>
+    <description>Axis handling on fixed data: units, unit-per-x, log scales, precisions, suppressed scientific notation, fixed and extended scales, aspect ratio.</description>
+    <data-containers>
+        <container size="8" init="1,2,4,8,16,32,64,128">xlog</container>
+        <container size="8" init="0.001,0.01,0.1,1,10,100,1000,10000">ylog</container>
+        <container size="8" init="0,1,2,3,4,5,6,7">x</container>
+        <container size="8" init="0.5,1.5,1.0,2.5,2.0,3.5,3.0,4.0">y</container>
+    </data-containers>
+    <views>
+        <view label="Axes">
+            <graph label="units" labelX="time" unitX="s" labelY="speed" unitY="m/s" unitYperX="m/s²">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+            <graph label="log log" logX="true" logY="true" labelX="f" unitX="Hz" labelY="A">
+                <input axis="x">xlog</input>
+                <input axis="y">ylog</input>
+            </graph>
+            <graph label="precisions" xPrecision="0" yPrecision="3" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+            <graph label="no scientific notation" suppressScientificNotation="true" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">ylog</input>
+            </graph>
+            <graph label="fixed scale" scaleMinX="fixed" scaleMaxX="fixed" minX="-2" maxX="10" scaleMinY="fixed" scaleMaxY="fixed" minY="-1" maxY="6" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+            <graph label="extended scale, square" scaleMinY="extend" scaleMaxY="extend" minY="0" maxY="10" aspectRatio="1" labelX="x" labelY="y">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>
