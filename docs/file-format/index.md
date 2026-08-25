@@ -259,10 +259,6 @@ The export block may hold one or more *set* blocks, grouping and naming multiple
 
 The set block will define a group of data-containers to be exported. The sets are represented in the final file: a CSV export results in a ZIP file containing a separate CSV file for each set, and an Excel export will contain a separate sheet for each set, in both cases named by the *name* attribute. The number of rows is determined by the set's longest column; shorter columns are padded with NaN for the missing entries.
 
-{{inconsistency:export-set-row-count}}
-
-{{inconsistency:export-csv-padding}}
-
 #### Tag: data
 
 Within each set, you can define multiple data entries. Each of them maps a data-container to a name displayed to the user.
