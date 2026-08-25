@@ -40,7 +40,15 @@ screen with no sensors and no analysis.
 - **Configurations per fixture**: the two explicit themes; two font
   scales (1.0 and the platform's large setting); phone and tablet width;
   one RTL smoke pass (forced RTL layout direction — no RTL language
-  ships yet, so this is layout-mirroring only, not translation).
+  ships yet, so this is layout-mirroring only, not translation). The
+  RTL pass currently means different things per platform, deliberately
+  recorded rather than papered over: iOS mirrors already (UIKit does it
+  without an opt-in), so its goldens capture real mirrored layouts;
+  Android does not yet declare RTL support, so its pass is a no-op whose
+  goldens are identical to LTR — which is itself the pin: the day
+  supportsRtl is switched on (needed before ar/fa can ship), those
+  goldens change loudly instead of silently. Do not read the row as
+  "RTL layout is covered on both platforms".
 - **Naming**: goldens are keyed by fixture stem, view element label and
   configuration (e.g. `values/precision-6/dark-phone`), so a failing
   golden names its fixture line directly.
