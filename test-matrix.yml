@@ -95,7 +95,7 @@ tests:
     area: remote-interface
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       tools/contract_test.py in single-target mode against the platform's
       emulator/simulator build: every response validates against the
@@ -108,7 +108,7 @@ tests:
     area: network
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The http fixture experiments (phyphox-docs fixtures/network/, served
       by tools/network_fixture.py): receive sequence, GET and POST send
@@ -121,7 +121,7 @@ tests:
     area: network
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The mqtt fixture experiment against a local mosquitto broker
       (fixtures/network/mosquitto.conf): publish/subscribe loopback
@@ -132,7 +132,7 @@ tests:
     area: experiments
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       tools/t1_experiments.py over the shipped collection on an emulator/
       simulator: open via phyphox://asset=, start, run, stop, download and

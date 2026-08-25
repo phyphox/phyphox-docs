@@ -19,9 +19,13 @@ Preconditions:
     build without the switch it polls and reports a per-experiment
     "remote API not reachable" finding instead of hanging.
   - Android: adb in PATH, the device/emulator connected; the driver sets
-    up `adb forward tcp:<port> tcp:8080` itself. With --emulator it
-    injects sensor values through the emulator console (adb emu) so the
-    real sensor pipeline produces data.
+    up `adb forward tcp:<port> tcp:8080` itself and pre-grants the
+    runtime permissions an unattended run cannot confirm (RECORD_AUDIO,
+    CAMERA, fine/coarse location) - without them every audio, camera,
+    GPS and depth experiment hangs in the permission dialog and reports
+    "remote API not reachable". With --emulator it injects sensor values
+    through the emulator console (adb emu) so the real sensor pipeline
+    produces data.
   - iOS (macOS host only): the app installed on a booted simulator;
     launches use `xcrun simctl launch <udid> <bundle> -phyphoxUrl ...`.
 
@@ -29,6 +33,12 @@ Experiments under bluetooth/ are skipped by default: headless, they stop
 at the device-scan dialog; their data plane is covered by the BLE lab
 (area J) and their parsing by the corpus. --include-bluetooth launches
 them anyway (load-phase smoke only, nothing is started).
+
+With --require-rows, a set whose source buffers never filled on this
+target (no microphone samples on an emulator, no GPS fix indoors,
+event-based sensors without events) is validated structurally but not
+required to carry rows - such sets are recorded per experiment under
+"no_stimulus_sets" instead of failing the run.
 
 Results: one JSON object per experiment (loaded, started, buffers that
 filled, export findings per format, errors), written to --out and
@@ -99,6 +109,12 @@ class Android:
         self.adb = ["adb"] + (["-s", serial] if serial else [])
         self.port = port
         sh(self.adb + ["forward", f"tcp:{port}", "tcp:8080"])
+        # runtime permissions an unattended run cannot confirm; failures
+        # are ignored (a permission not declared cannot be granted)
+        for perm in ("RECORD_AUDIO", "CAMERA", "ACCESS_FINE_LOCATION",
+                     "ACCESS_COARSE_LOCATION"):
+            sh(self.adb + ["shell", "pm", "grant", ANDROID_BUNDLE,
+                           f"android.permission.{perm}"])
         # the remote-enable switch: a debug.* property is writable only by
         # the shell UID, so this is the host-controlled counterpart of the
         # iOS launch argument. Sticky until reboot - cleanup() clears it.
@@ -176,6 +192,12 @@ def run_experiment(dev, base, rel, path, args):
     if args.platform == "ios" and uses_audio_input(path):
         result["skipped"] = "audio input aborts the app on the simulator"
         return result
+    # a fresh app per experiment: on Android a stacked Experiment activity
+    # keeps holding the remote port (the next one either fails to bind or
+    # falls back to another port while the forward still points at the
+    # old one - found by the Android T1 run); on iOS launch already
+    # terminates, so this is belt and braces
+    dev.stop_app()
     if not dev.launch(rel):
         result["errors"].append("launch failed")
         return result
@@ -223,17 +245,26 @@ def run_experiment(dev, base, rel, path, args):
 
     sets = validate_export.export_sets(path)
     if sets:
+        # rows are only required of sets whose source buffers actually
+        # filled on this target; the rest lack real-world stimulus here
+        filled = set(result["filled"])
+        rows_for = {name for name, _cols, bufs in sets
+                    if any(b in filled for b in bufs)}
+        result["no_stimulus_sets"] = sorted(
+            name for name, _cols, _bufs in sets if name not in rows_for)
         for fmt in FORMATS:
             status, body = api(base, f"/export?format={fmt}", timeout=30)
             if status != 200:
                 result["exports"][fmt] = [f"status {status}"]
                 continue
             problems = validate_export.validate(
-                body, sets, fmt, require_rows=args.require_rows)
+                body, sets, fmt, require_rows=args.require_rows,
+                require_rows_for=rows_for)
             result["exports"][fmt] = problems
 
-    # the app must still be alive
-    if not wait_api(base, 5):
+    # the app must still be alive (same patience as the startup wait - a
+    # loaded emulator can take a while after six export downloads)
+    if not wait_api(base, args.api_wait):
         result["errors"].append("app stopped answering after the run")
     return result
 

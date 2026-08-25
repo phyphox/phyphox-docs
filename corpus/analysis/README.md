@@ -27,9 +27,10 @@ Both app test suites run every pair under `vectors/`. The contract:
 - **Load** each `.phyphox` through the real experiment-loading path. A
   file declaring a newer format version than the platform supports is
   skipped, not failed (same rule as corpus-valid-load).
-- **Never start the experiment.** No start event is recorded, no sensors
-  run, no views exist. The `timer` cases rely on this: the experiment
-  time before the first start is exactly 0.
+- **Never start the experiment.** No start event is recorded and no
+  sensors run (the vectors carry a minimal view, but nothing renders).
+  The `timer` cases rely on this: the experiment time before the first
+  start is exactly 0.
 - **Drive the analysis kernel directly**, once per cycle, for the number
   of cycles the `.expected.json` states, with cycle numbers 0, 1, 2, ….
   One kernel run is exactly what one in-app analysis pass does per module
@@ -82,4 +83,5 @@ are left out:
   platforms differ at the edges.
 
 These files are parsing-and-math fixtures, not maintained experiments:
-they declare no views and are never started.
+they carry the minimal view the loading path requires and are never
+started.

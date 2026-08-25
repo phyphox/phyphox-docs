@@ -31,8 +31,14 @@ from the format.
 - **Reset, load, start.** Call `/reset` on the fixture, load the
   experiment, start it (the remote API is the bus), let it poll for a
   defined time, stop, then assert buffer contents via `/get`:
-    - `http-get-receive`: `seq` holds the consecutive integers 1..k for
-      some k ≥ 1 (no gaps, no duplicates), `value` holds n/2 pairwise.
+    - `http-get-receive`: `seq` holds a strictly increasing sequence of
+      positive integers (at least one value, no duplicates), `value`
+      holds n/2 pairwise. NOT gap-free: a completed request parks its
+      result until the next analysis pass copies it into the buffers,
+      and a response arriving before the parked one is consumed
+      overwrites it - identically on both platforms
+      (NetworkConnection.java, NetworkConnection.swift), so a busy
+      device legitimately drops values at the fixture's 0.2 s interval.
     - `http-get-send-roundtrip`: `back` holds 42.5 — the send went out
       and came back; `seq` proves how many round trips happened.
     - `http-post-roundtrip`: `back` holds the pattern 1, 2.5, 3 repeated

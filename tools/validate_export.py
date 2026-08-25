@@ -35,7 +35,11 @@ CSV_SEP = {1: ",", 2: "\t", 3: ";", 4: "\t", 5: ";"}
 
 
 def export_sets(phyphox_path):
-    """[(set name, [data names])] from the experiment's export block."""
+    """[(set name, [column names], [source buffer names])] from the
+    experiment's export block. The buffer names let a driver decide per
+    set whether data rows can be expected on the current target (a set
+    whose source buffers never filled - no microphone on an emulator, no
+    GPS fix - is validated structurally but not required to have rows)."""
     root = ET.parse(phyphox_path).getroot()
     ns = ""
     if root.tag.startswith("{"):
@@ -43,8 +47,10 @@ def export_sets(phyphox_path):
     sets = []
     for exp in root.iter(f"{ns}export"):
         for st in exp.findall(f"{ns}set"):
-            names = [d.get("name") for d in st.findall(f"{ns}data")]
-            sets.append((st.get("name"), names))
+            datas = st.findall(f"{ns}data")
+            names = [d.get("name") for d in datas]
+            buffers = [(d.text or "").strip() for d in datas]
+            sets.append((st.get("name"), names, buffers))
     return sets
 
 
@@ -102,6 +108,11 @@ def _csv_tables(data, sep, single_set_name=None):
         for entry in z.namelist():
             if entry.endswith("/"):
                 continue
+            # the archive also carries metadata files under meta/; keyed
+            # by basename they would shadow an export set of the same
+            # name ("Time" in sonar - found by the Android T1 run)
+            if "meta" in entry.split("/")[:-1]:
+                continue
             name = entry.rsplit("/", 1)[-1]
             name = name[:-4] if name.lower().endswith(".csv") else name
             out[name] = _one_csv(z.read(entry), sep)
@@ -118,8 +129,13 @@ def _one_csv(data, sep):
     return (headers, len(lines) - 1)
 
 
-def validate(data, sets, fmt, require_rows=False):
-    """Return a list of findings (empty = the export matches)."""
+def validate(data, sets, fmt, require_rows=False, require_rows_for=None):
+    """Return a list of findings (empty = the export matches).
+
+    require_rows_for: optional set of set names - with require_rows on,
+    only those sets must have data rows (the driver passes the sets whose
+    source buffers actually filled on this target; the metadata sheets in
+    xlsx are ignored either way). None means every set."""
     problems = []
     try:
         if fmt == 0:
@@ -131,7 +147,8 @@ def validate(data, sets, fmt, require_rows=False):
         return [f"file does not parse as format {fmt}: "
                 f"{type(e).__name__}: {e}"]
     bynorm = {_norm(k): (k, v) for k, v in tables.items()}
-    for set_name, columns in sets:
+    for entry in sets:
+        set_name, columns = entry[0], entry[1]
         hit = bynorm.get(_norm(set_name))
         if hit is None:
             problems.append(f"set {set_name!r}: no table (have: "
@@ -141,7 +158,9 @@ def validate(data, sets, fmt, require_rows=False):
         if [_norm(h) for h in headers[:len(columns)]] != [_norm(c) for c in columns]:
             problems.append(f"set {set_name!r}: headers {headers!r} do not "
                             f"match the export block's {columns!r}")
-        if require_rows and rows < 1:
+        need_rows = require_rows and (require_rows_for is None
+                                      or set_name in require_rows_for)
+        if need_rows and rows < 1:
             problems.append(f"set {set_name!r}: no data rows")
     return problems
 
