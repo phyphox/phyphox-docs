@@ -41,12 +41,21 @@ elements:
         agreement: agreed
       - name: privacy
         description: >-
-          A URL to a privacy policy for your experiment.
+          A URL to a privacy policy for your experiment, offered from the
+          network privacy notice the app shows when the experiment is
+          opened.
         type: string
         summary: >-
-          URL of a privacy policy for the service. Shown to the user before any
-          data leaves the device.
+          URL of a privacy policy for the service, offered from the network
+          privacy notice.
         agreement: agreed
+        note: >-
+          The notice is deliberately informational, not a consent gate: a
+          single OK (plus this link when set), no decline. Merely opening
+          the experiment records nothing sensitive, the user can simply
+          leave, and a connection made before start has nothing meaningful
+          to transmit (maintainer, 2026-08-25 - confirmed when the
+          switch-bypassed-ui wording wrongly assumed a decline path).
       - name: address
         description: >-
           An address for the service. This is typically a fixed IP

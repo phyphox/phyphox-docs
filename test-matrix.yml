@@ -154,8 +154,13 @@ tests:
       WITHOUT them (the switches must never mask a broken user path):
       the per-experiment menu toggle enables the remote server with
       debug.phyphox.remote / -phyphoxRemote unset; without auto-confirm
-      the network privacy dialog appears (connects on accept, stays
-      offline on decline), the photosensitivity warning appears, and the
+      the network privacy notice appears and is dismissed by its single
+      OK - deliberately informational, not a consent gate (no decline
+      exists: opening an experiment records nothing sensitive, and a
+      connection before start has nothing meaningful to transmit), so a
+      decline control turning up is a finding, and the privacy-policy
+      link works when the experiment sets one; the
+      photosensitivity warning appears, and the
       save-downloaded-experiment offer appears and works both ways;
       opening a phyphox:// URL the regular way (not via -phyphoxUrl)
       still reaches the app, confirmation dialog included on iOS.
