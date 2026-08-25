@@ -143,3 +143,18 @@ tests:
       not-loadable rather than failed - recorded platform difference.
       Host-driven - the tag lives in the T1 CI workflow. Uses the
       remote-enable and auto-confirm switches.
+
+  - id: switch-bypassed-ui
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Everything the host-controlled switches bypass must still work
+      WITHOUT them (the switches must never mask a broken user path):
+      the per-experiment menu toggle enables the remote server with
+      debug.phyphox.remote / -phyphoxRemote unset; the network privacy
+      dialog appears without auto-confirm, connects on accept and stays
+      offline on decline; opening a phyphox:// URL the regular way (not
+      via -phyphoxUrl) still reaches the app, confirmation dialog
+      included on iOS. UI-automated - lands with the phase-4 UI suites.
