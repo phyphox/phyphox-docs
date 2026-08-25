@@ -138,9 +138,15 @@ class Android:
         # the shell UID, so this is the host-controlled counterpart of the
         # iOS launch argument. Sticky until reboot - cleanup() clears it.
         sh(self.adb + ["shell", "setprop", "debug.phyphox.remote", "1"])
+        # ...and the auto-confirm switch, or a network experiment's privacy
+        # notice sits modally over the sweep (sensordb in the shipped
+        # collection has a <network> block) - the iOS branch passes
+        # -phyphoxAutoConfirm on every launch
+        sh(self.adb + ["shell", "setprop", "debug.phyphox.autoConfirm", "1"])
 
     def cleanup(self):
         sh(self.adb + ["shell", "setprop", "debug.phyphox.remote", "''"])
+        sh(self.adb + ["shell", "setprop", "debug.phyphox.autoConfirm", "''"])
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
