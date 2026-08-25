@@ -90,12 +90,26 @@ class _Timeout:
 
 
 def sh(cmd, timeout=30):
-    try:
-        return subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=timeout)
-    except subprocess.TimeoutExpired:
-        print(f"   ~ command timed out after {timeout}s: {' '.join(cmd[:4])} ...")
-        return _Timeout()
+    """One retry on timeout: a 30 s hang on launch or terminate is a
+    simulator/adb hiccup, not a property of the experiment (measured
+    healthy duration 0.2-0.4 s) - the retry costs nothing when things
+    work and removes the one failure mode that has turned this workflow
+    red without an app defect behind it. The ~ retried note keeps the
+    hiccup visible even when the retry succeeds."""
+    for attempt in (1, 2):
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True,
+                               timeout=timeout)
+            if attempt == 2:
+                print(f"   ~ retried after a timeout: "
+                      f"{' '.join(cmd[:4])} ...")
+            return r
+        except subprocess.TimeoutExpired:
+            if attempt == 1:
+                continue
+            print(f"   ~ command timed out twice ({timeout}s each): "
+                  f"{' '.join(cmd[:4])} ...")
+            return _Timeout()
 
 
 def api(base, path, timeout=5):
