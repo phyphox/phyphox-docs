@@ -20,9 +20,11 @@
 #   iOS knownRegions:            zh_Hans -> zh-Hans, zh_Hant -> zh-Hant,
 #                                sr_Latn/sr-Latn -> sr-Latn (both appear)
 #
-# Seeded 2026-08-25 from the current release gates: Android's
-# resourceConfigurations minus its testing-only locales (bn, gu, kn, or,
-# ta - per the comment in app/build.gradle), and iOS's knownRegions.
+# Seeded 2026-08-25 from the release gates and corrected by the
+# maintainer: the upcoming release ships every language of the previous
+# releases plus the newly completed Korean and Tamil. (Android's
+# build.gradle comment still listing ta as testing-only is stale;
+# bn, gu, kn and or remain testing-only.)
 
 languages:
   - en
@@ -42,17 +44,13 @@ languages:
   - ru
   - sr
   - sr-Latn
+  - ta
   - tr
   - vi
   - zh-Hans
   - zh-Hant
 
-exceptions:
-  - code: ta
-    platforms: [ios]
-    reason: >-
-      Shipped on iOS, testing-only on Android - by the translator's
-      preference, not a technical limit. The exception expires when the
-      Android translation is released; the T2 check warns when Android's
-      built artifact starts shipping ta so this entry gets removed
-      rather than silently diverging.
+# No exceptions: the platforms match on release. An entry here needs a
+# genuinely technical reason (a language one platform cannot support),
+# machine-verified where possible - never preference.
+exceptions: []
