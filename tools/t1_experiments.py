@@ -94,14 +94,18 @@ def api(base, path, timeout=5):
         return None, str(e).encode()
 
 
-def wait_api(base, seconds):
-    deadline = time.time() + seconds
+def wait_api(base, seconds, probe_timeout=2):
+    """Seconds until /config answered, or None. The elapsed time is a
+    datum: a late answer distinguishes a slow host from an experiment the
+    app declined."""
+    t0 = time.time()
+    deadline = t0 + seconds
     while time.time() < deadline:
-        status, _ = api(base, "/config", timeout=2)
+        status, _ = api(base, "/config", timeout=probe_timeout)
         if status == 200:
-            return True
+            return time.time() - t0
         time.sleep(0.5)
-    return False
+    return None
 
 
 class Android:
@@ -217,16 +221,30 @@ def run_experiment(dev, base, rel, path, args):
         return result
     result["loaded"] = True
 
-    if not wait_api(base, args.api_wait):
+    elapsed = wait_api(base, args.api_wait)
+    if elapsed is None:
+        # a second, more patient window separates "the app declined this
+        # experiment" from "the host was too slow this time" - without it
+        # a loadable experiment on a loaded host silently shrinks the
+        # covered subset (observed on sensordb, which normally answers
+        # 1.1 s after launch)
+        elapsed = wait_api(base, args.api_wait, probe_timeout=10)
+        if elapsed is not None:
+            elapsed += args.api_wait
+    if elapsed is None:
         if args.platform == "ios":
             # the simulator lacks most sensors; the app declines the
             # experiment ("sensor not available") and returns to the
-            # collection. That is the scoped iOS subset, not a failure.
+            # collection. That is the scoped iOS subset, not a failure -
+            # but a hung loadable experiment ends up here too, which is
+            # why the slow path above gets its own verdict.
             result["not_loadable"] = True
             return result
         result["errors"].append("remote API not reachable (is remote access "
                                 "enabled for launched experiments?)")
         return result
+    if elapsed > args.api_wait:
+        result["slow_api"] = round(elapsed, 1)
     result["remote"] = True
 
     status, body = api(base, "/config")
@@ -355,6 +373,9 @@ def run_all(dev, base, collection, experiments, args, results):
         if r.get("not_loadable"):
             print("   - not loadable on this target (simulator subset)")
             continue
+        if r.get("slow_api"):
+            print(f"   ~ remote API answered late ({r['slow_api']} s) - "
+                  f"kept in the run")
         bad_exports = {f: p for f, p in r["exports"].items() if p}
         if r["errors"] or not r["loaded"] or bad_exports:
             for e in r["errors"]:

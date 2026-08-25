@@ -46,21 +46,23 @@ elements:
         default: false
         since: "1.13"
         summary: >-
-          Marks a collection entry that is not a runnable experiment but a
-          redirect: selecting it sends the user to the page named by its link
-          rather than opening an experiment.
+          Marks an entry that is not a runnable experiment but a redirect:
+          opening it - from the collection, a URL, a QR code or a shared
+          file - sends the user to the page named by its link rather than
+          opening an experiment.
         agreement: agreed
         note: >-
-          Absent from Android's main parser by design, and this is worth knowing
-          before reading anything into it. iOS uses one parser for both the
-          collection and a running experiment, so it handles the attribute
-          there. Android has two: the full parser in PhyphoxFile.java and a
-          minimal one that only builds the experiment list. Because isLink means
-          the file is never opened as an experiment, the full parser never sees
-          it, and only the list parser
-          (ExperimentList/datasource/AssetExperimentLoader.java) implements it.
-          Searching PhyphoxFile.java alone therefore suggests it is iOS-only,
-          which it is not.
+          Android has two parsers - the full one in PhyphoxFile.java and a
+          minimal collection-list scanner
+          (ExperimentList/datasource/AssetExperimentLoader.java) - and both
+          read this attribute since 2026-08-25. Until then only the list
+          scanner did, on the premise that a link entry is never opened as
+          an experiment; that premise was wrong: a file arriving by URL, QR
+          code or share bypasses the collection and hits the full parser,
+          which crashed iOS and made Android reject the file for lacking
+          views. Both platforms now redirect from every route in, and the
+          full parsers exempt isLink files from the views-required rule
+          (pinned by corpus/generated/link-entry.phyphox).
       - name: appleBan
         type: boolean
         default: false

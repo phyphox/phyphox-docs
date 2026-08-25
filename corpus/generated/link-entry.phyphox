@@ -1,0 +1,12 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.13" locale="en" isLink="true">
+    <!-- A link entry: isLink="true", a link, no views. Not a runnable
+         experiment but a redirect - and it reaches the FULL parser
+         whenever it arrives by URL, QR code or share instead of the
+         collection, which crashed iOS and failed Android's views-required
+         rule until 2026-08-25. Both parsers must accept it and route it
+         to the redirect. -->
+    <title>Link entry</title>
+    <category>Corpus</category>
+    <description>A collection entry that redirects instead of running.</description>
+    <link label="Open">https://phyphox.org/</link>
+</phyphox>

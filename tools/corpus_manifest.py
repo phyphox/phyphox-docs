@@ -73,6 +73,9 @@ def main():
     for rel, root in sorted(usage(CORPUS)):
         if rel.startswith("invalid" + os.sep):
             continue     # documented in invalid/expected.yml, not here
+        if rel.startswith("analysis" + os.sep):
+            continue     # generated golden-vector artifacts, documented by
+                         # their case files and .expected.json
         p, a = constructs(root)
         adds = sorted(f"{parent}>{el}" for parent, el in p - base_pairs) + \
                sorted(f"{el}@{attr}" for el, attr in a - base_attrs)

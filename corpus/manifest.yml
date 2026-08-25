@@ -71,6 +71,9 @@
     - bluetooth@subscribeOnStart
     - container@type
     - output@decimalPoint
+- file: generated/link-entry.phyphox
+  version: "1.13"
+  adds: []
 - file: generated/network-details.phyphox
   version: "1.20"
   adds:
