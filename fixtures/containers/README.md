@@ -19,8 +19,7 @@ not a lenient unzip):
 - `traversal.zip` - the whole archive is REFUSED: an entry pointing
   outside the extraction directory is evidence of tampering, so nothing
   is extracted and nothing opens, not even the legitimate entry (ruled
-  2026-08-26; iOS still salvages the rest - `container-traversal-entry`
-  - so its test pins the old behavior until it conforms).
+  2026-08-26).
 - `partial.bin` - the headerless STORED-plus-descriptor form is
   detected by its trailing PK\x07\x08 signature, rebuilt into a zip and
   loads as container-a. This is the QR/BLE delivery path. Stored, not
@@ -31,8 +30,7 @@ not a lenient unzip):
   The form is accepted ONLY from the QR scanner and the Bluetooth
   transfer (ruled 2026-08-26 - those are the low-bandwidth paths that
   justify it; elsewhere a file nobody can inspect or edit is the wrong
-  answer). A test opening it as a local file must assert the REFUSAL;
-  iOS still accepts it from any route (`partial-zip-intake-scope`).
+  answer), so a test opening it as a local file asserts the REFUSAL.
 
 ## `save-to-collection` (T1)
 

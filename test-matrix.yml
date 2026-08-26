@@ -314,7 +314,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The container forms through the real intake route
       (fixtures/containers/): the multi-experiment zip unpacks to
@@ -329,7 +329,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Saving external experiments to the collection - the flow the
       auto-confirm switch deliberately declines - driven by UI

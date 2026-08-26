@@ -85,6 +85,7 @@ class AndroidDevice:
 
     def prepare(self, fixture_port=None):
         _claim_host_port(self.adb, self.port)
+        self._keep_awake()
         if fixture_port:
             # the phone reaches the host's fixture server at 127.0.0.1
             sh(self.adb + ["reverse", f"tcp:{fixture_port}",
@@ -99,6 +100,44 @@ class AndroidDevice:
     def cleanup(self):
         for prop in ("remote", "autoConfirm"):
             sh(self.adb + ["shell", "setprop", f"debug.phyphox.{prop}", "''"])
+        self._restore_awake()
+
+    # --- standby -------------------------------------------------------
+    # A phone that falls asleep mid-sweep drops out of the run (seen on
+    # the Linux host 2026-08-26). "svc power stayon usb" holds it awake
+    # while charging - but it holds the SCREEN on too, which is extra
+    # draw on exactly the old devices whose battery already loses against
+    # USB, so the brightness goes to its minimum for the run and both
+    # settings are restored afterwards. iOS devices need none of this:
+    # they stay awake on USB power by themselves.
+
+    def _setting(self, ns, key):
+        r = sh(self.adb + ["shell", "settings", "get", ns, key])
+        v = (r.stdout or "").strip()
+        return v if v and v != "null" else None
+
+    def _keep_awake(self):
+        self._prev_stayon = self._setting("global", "stay_on_while_plugged_in")
+        self._prev_brightness = self._setting("system", "screen_brightness")
+        self._prev_autobright = self._setting("system", "screen_brightness_mode")
+        sh(self.adb + ["shell", "svc", "power", "stayon", "usb"])
+        # manual brightness at its minimum; auto-brightness would fight it
+        sh(self.adb + ["shell", "settings", "put", "system",
+                       "screen_brightness_mode", "0"])
+        sh(self.adb + ["shell", "settings", "put", "system",
+                       "screen_brightness", "1"])
+
+    def _restore_awake(self):
+        sh(self.adb + ["shell", "svc", "power", "stayon", "false"])
+        for ns, key, prev in (
+                ("global", "stay_on_while_plugged_in", getattr(self, "_prev_stayon", None)),
+                ("system", "screen_brightness_mode", getattr(self, "_prev_autobright", None)),
+                ("system", "screen_brightness", getattr(self, "_prev_brightness", None))):
+            if prev is not None:
+                sh(self.adb + ["shell", "settings", "put", ns, key, prev])
+        # note: with auto-brightness restored, the phone immediately
+        # re-owns screen_brightness, so that one value may come back a
+        # digit or two off - the mode and the stayon flag restore exactly
 
     def launch(self, asset_path):
         self.stop_app()

@@ -14,7 +14,11 @@ Android devices (`--host linuxbox`) while the MacBook runs iOS - each
 writes `<host>.json` into the shared results directory and `--merge`
 combines them. Phones stay in developer mode and are unlocked once per
 run; media volume for the audio suite is set automatically on Android
-and by hand on iOS (part of the unlock-once ritual).
+and by hand on iOS (part of the unlock-once ritual). Android devices
+are held awake for the run (`svc power stayon usb`, with the screen
+dimmed to its minimum because staying awake means staying lit - the old
+phones already lose against USB power) and both settings are restored
+afterwards; iOS devices stay awake on USB by themselves.
 
 iOS hardware additionally needs its system permission prompts confirmed
 BY HAND once per app install - there is no simctl privacy on a real
