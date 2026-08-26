@@ -1,0 +1,14 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.18" locale="en">
+    <title>Container fixture with resource</title>
+    <category>Container fixtures</category>
+    <description>References an image delivered in the zip's res folder: saving to the collection must extract it into the per-experiment resource folder (named by the hex CRC32 of the experiment file) and the image element must render it.</description>
+    <data-containers>
+        <container size="1" init="0">unused</container>
+    </data-containers>
+    <views>
+        <view label="Picture">
+            <image src="pic.png" />
+            <value label="unused"><input>unused</input></value>
+        </view>
+    </views>
+</phyphox>

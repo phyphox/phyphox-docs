@@ -189,6 +189,7 @@ def on_config(config, **kwargs):
     _check_test_matrix()
     _check_analysis_vectors()
     _check_languages()
+    _check_containers()
     return config
 
 
@@ -219,6 +220,21 @@ def _check_languages():
             problems.append(f"exception {exc.get('code')}: missing reason")
     if problems:
         raise ValueError("languages.yml is out of step:\n"
+                         + "\n".join(f"  {p}" for p in problems))
+
+
+def _check_containers():
+    """The container fixtures (fixtures/containers/) stay in step with
+    their src/: content-level verification via tools/make_containers.py
+    (byte-exact zip reproducibility across zlib builds is not
+    guaranteed; content equality is the contract)."""
+    if not os.path.isdir(os.path.join(ROOT, "fixtures", "containers")):
+        return
+    _ensure_path()
+    import make_containers
+    problems = make_containers.check()
+    if problems:
+        raise ValueError("container fixtures are out of step:\n"
                          + "\n".join(f"  {p}" for p in problems))
 
 
@@ -389,7 +405,8 @@ def _check_corpus():
                   for d in ("valid", "generated",
                             os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
-    for fixture_dir in ("network", "views"):
+    for fixture_dir in ("network", "views",
+                        os.path.join("containers", "src")):
         d = os.path.join(ROOT, "fixtures", fixture_dir)
         if os.path.isdir(d):
             clean_dirs.append(d)
@@ -543,7 +560,8 @@ def _check_validators():
                   for d in ("valid", "generated",
                             os.path.join("analysis", "vectors"))
                   if os.path.isdir(os.path.join(corpus, d))]
-    for fixture_dir in ("network", "views"):
+    for fixture_dir in ("network", "views",
+                        os.path.join("containers", "src")):
         d = os.path.join(ROOT, "fixtures", fixture_dir)
         if os.path.isdir(d):
             clean_dirs.append(d)

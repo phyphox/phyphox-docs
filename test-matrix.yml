@@ -309,3 +309,32 @@ tests:
       dump badging / the .lproj set) must equal languages.yml exactly -
       a missing language or a testing locale left in FAILS. Runs when
       the lab host names the release artifacts.
+
+  - id: containers-load
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The container forms through the real intake route
+      (fixtures/containers/): the multi-experiment zip unpacks to
+      exactly its two experiments, the resource zip delivers its image
+      to the experiment, the traversal zip's ../ entry is REJECTED with
+      nothing written outside the extraction directory (security pin),
+      and the headerless partial zip (the QR/BLE form) is detected by
+      its trailing signature, rebuilt and loaded. See
+      fixtures/containers/README.md.
+
+  - id: save-to-collection
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Saving external experiments to the collection - the flow the
+      auto-confirm switch deliberately declines - driven by UI
+      automation accepting the offer: the with-resource zip lands in
+      the collection with its image extracted into the CRC32-named
+      resource folder and reopens intact; the multi-experiment zip
+      saves both via the picker. Hermetic: the saved entries are
+      deleted at the end.

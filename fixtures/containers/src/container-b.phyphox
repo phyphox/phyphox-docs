@@ -1,0 +1,13 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.0" locale="en">
+    <title>Container fixture B</title>
+    <category>Container fixtures</category>
+    <description>Second of two experiments in the multi-experiment zip.</description>
+    <data-containers>
+        <container size="8" init="5">b</container>
+    </data-containers>
+    <views>
+        <view label="B">
+            <value label="b"><input>b</input></value>
+        </view>
+    </views>
+</phyphox>
