@@ -16,6 +16,15 @@ combines them. Phones stay in developer mode and are unlocked once per
 run; media volume for the audio suite is set automatically on Android
 and by hand on iOS (part of the unlock-once ritual).
 
+iOS hardware additionally needs its system permission prompts confirmed
+BY HAND once per app install - there is no simctl privacy on a real
+device, devicectl offers nothing, and -phyphoxAutoConfirm deliberately
+touches no system dialog. The first record run raises Motion & Fitness
+and Location, the first audio run Microphone, the first experiments
+sweep Camera; tap them as they come and every later run is dialog-free
+until the app is reinstalled. (Android needs none of this: the driver
+pre-grants via pm grant.)
+
 ## Suites and their matrix rows
 
 - `sensors` (`device-sensors`): per-device manifest driven - liveness,
