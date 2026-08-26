@@ -1,0 +1,61 @@
+# The device lab (T2)
+
+Host-side driver for the hardware tier: the full experiment matrix,
+per-device sensor plausibility, the audio loopback and the release
+language check, on the seven lab phones - split-host capable, one entry
+point, JSON per host, merged report.
+
+    cp lab.yml.example lab.yml       # local: serials, host address, artifacts
+    python3 tools/lab/run.py --config tools/lab/lab.yml --host macbook
+    python3 tools/lab/run.py --merge lab-results/
+
+The split: the MacBook can run everything; or the Linux machine runs the
+Android devices (`--host linuxbox`) while the MacBook runs iOS - each
+writes `<host>.json` into the shared results directory and `--merge`
+combines them. Phones stay in developer mode and are unlocked once per
+run; media volume for the audio suite is set automatically on Android
+and by hand on iOS (part of the unlock-once ritual).
+
+## Suites and their matrix rows
+
+- `sensors` (`device-sensors`): per-device manifest driven - liveness,
+  plausibility (|accel| at rest, gyro near zero, earth-field magnitude,
+  pressure range, light positive), achieved rate vs expectation, and the
+  graceful GPS no-fix path indoors. A real fix is T3.
+- `audio` (`device-audio`): fixtures/audio/loopback.phyphox - speaker to
+  microphone, FFT peak at the played 1 kHz (corrected by the achieved
+  rate), level above the floor. The fixture is served from this checkout
+  over http (adb reverse on Android, the host's LAN address for iOS).
+- `experiments` (`device-experiments`): the full shipped matrix through
+  tools/t1_experiments.py per device - open, run, stop, all six export
+  formats validated. Bluetooth experiments stay load-phase only (their
+  data plane is the phase-6 board lab).
+- `languages` (`device-languages`): runs when the host entry names built
+  artifacts - the apk's `aapt dump badging` locales / the ipa's .lproj
+  set against languages.yml. This is the release gate that makes a
+  forgotten testing locale or missing language impossible; mismatch
+  FAILS.
+
+## Per-device sensor manifests
+
+`devices/<id>.yml`, committed - the expected truth per lab phone. First
+time on a device:
+
+    python3 tools/lab/run.py --config lab.yml --host X --record-manifest pixel-9-pro
+
+writes `devices/pixel-9-pro.skeleton.yml` with the observed buffer names
+per core experiment and the /meta sensor list (Android). Hand-finish it:
+which sensors this device HAS, per sensor the experiment, value/time
+buffer names, a plausibility kind (magnitude9.81, near0, earthfield,
+pressure, positive) and the expected rate. A sensor absent from the
+manifest is not tested on that device - the older phones are in the lab
+precisely because their sensor sets differ.
+
+## Honesty notes
+
+- The iOS device paths (devicectl launch, pymobiledevice3 forward) were
+  written on the Linux machine and are UNVERIFIED until the first
+  MacBook run; whatever needed fixing is a finding for the docs session.
+- The suites carry the phyphox-test tags in suites.py - one driver
+  serves both platforms, so the matrix checker accepts tags from this
+  repository for the T2 rows.

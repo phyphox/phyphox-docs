@@ -50,6 +50,11 @@ REPOS = {
     "ios": os.path.normpath(os.path.join(ROOT, "..", "phyphox-ios")),
 }
 
+# The T2 device-lab rows are implemented once, host-side, in this
+# repository's tools/lab/ - one driver serves both platforms. Tags found
+# there count for EVERY platform a row names.
+SHARED_TOOLS = os.path.join(ROOT, "tools")
+
 
 def load_matrix():
     with open(MATRIX, encoding="utf-8") as f:
@@ -112,6 +117,12 @@ def check(verbose=True):
         if not os.path.isdir(repo):
             continue
         found[platform] = scan_tags(repo)
+    if found and os.path.isdir(SHARED_TOOLS):
+        shared = scan_tags(SHARED_TOOLS)
+        for platform in found:
+            for tag, files in shared.items():
+                found[platform].setdefault(tag, []).extend(
+                    "phyphox-docs/" + f for f in files)
 
     for platform, tags in found.items():
         for tag, files in sorted(tags.items()):

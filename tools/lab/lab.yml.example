@@ -1,0 +1,27 @@
+# Device-lab assignment - copy to lab.yml (local, NEVER committed: it
+# holds serials and host addresses) and adjust. Each host runs
+#   python3 tools/lab/run.py --config lab.yml --host <name>
+# and produces one JSON; --merge combines them.
+
+hosts:
+  macbook:            # the default full set
+    host_ip: 192.168.2.50     # how iOS devices reach this host's fixture server
+    aapt: aapt                # or the full path into Android build-tools
+    artifacts:                # optional: enables the languages release check
+      android: /path/to/phyphox-release.apk
+      ios: /path/to/phyphox.ipa
+    devices:
+      iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081}
+      iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
+      ipad-pro:      {platform: ios, serial: "UDID-HERE", port: 8083}
+      pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091}
+      pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
+      nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}
+      galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}
+
+  linuxbox:           # the split: Android (+ boards, phase 6) here,
+    devices:          # iOS stays with the MacBook
+      pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091}
+      pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
+      nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}
+      galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}

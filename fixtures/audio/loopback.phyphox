@@ -1,0 +1,68 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.17" locale="en">
+    <title>fixture: audio loopback</title>
+    <category>Audio fixtures</category>
+    <description>Self-contained loopback for the device lab (row device-audio): the speaker plays a 1 kHz sine while the microphone records; the analysis reports the dominant frequency and its magnitude. The frequency axis assumes 48 kHz - the lab driver corrects the expectation by the achievedrate buffer where the system chose another rate (iOS). Covers audio input, audio output and the fft in one automated test.</description>
+    <data-containers>
+        <container size="2048">recording</container>
+        <container size="1">achievedrate</container>
+        <container size="2048">fre</container>
+        <container size="2048">fim</container>
+        <container size="2048">mag</container>
+        <container size="1024">magh</container>
+        <container size="1024">freqs</container>
+        <container size="1">peakfreq</container>
+        <container size="1">level</container>
+    </data-containers>
+    <input>
+        <audio rate="48000">
+            <output component="out">recording</output>
+            <output component="rate">achievedrate</output>
+        </audio>
+    </input>
+    <output>
+        <audio rate="48000" loop="true">
+            <tone waveform="sine">
+                <input parameter="frequency" type="value">1000</input>
+                <input parameter="amplitude" type="value">1</input>
+                <input parameter="duration" type="value">1</input>
+            </tone>
+        </audio>
+    </output>
+    <analysis requireFill="recording" requireFillThreshold="2048">
+        <fft>
+            <input as="re">recording</input>
+            <output as="re">fre</output>
+            <output as="im">fim</output>
+        </fft>
+        <formula formula="sqrt([1_]^2+[2_]^2)">
+            <input>fre</input>
+            <input>fim</input>
+            <output>mag</output>
+        </formula>
+        <subrange>
+            <input as="from" type="value">1</input>
+            <input as="length" type="value">1023</input>
+            <input>mag</input>
+            <output>magh</output>
+        </subrange>
+        <ramp>
+            <input as="start" type="value">23.4375</input>
+            <input as="stop" type="value">23976.5625</input>
+            <input as="length" type="value">1023</input>
+            <output>freqs</output>
+        </ramp>
+        <max>
+            <input as="x" keep="true">freqs</input>
+            <input as="y">magh</input>
+            <output as="max">level</output>
+            <output as="position">peakfreq</output>
+        </max>
+    </analysis>
+    <views>
+        <view label="Loopback">
+            <value label="peak frequency" unit="Hz" precision="1"><input>peakfreq</input></value>
+            <value label="level" precision="4"><input>level</input></value>
+            <value label="achieved rate" unit="Hz" precision="0"><input>achievedrate</input></value>
+        </view>
+    </views>
+</phyphox>

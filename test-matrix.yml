@@ -261,3 +261,49 @@ tests:
       render without truncation/overlap regressions in every enabled
       language (snapshot or layout-assertion based, the platform's
       choice).
+
+  - id: device-sensors
+    area: hardware
+    tier: T2
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Per-device sensor truth on the seven lab phones, manifest-driven
+      (tools/lab/devices/): liveness, plausibility windows (|accel| at
+      rest, gyro near zero, earth-field magnitude, pressure range, light
+      positive), achieved rate vs expectation, graceful GPS no-fix
+      indoors. Implemented once host-side in tools/lab/ - the tag there
+      counts for both platforms.
+
+  - id: device-audio
+    area: hardware
+    tier: T2
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The self-contained audio loopback (fixtures/audio/loopback.phyphox)
+      per device: speaker plays 1 kHz while the microphone records, the
+      FFT peak matches (corrected by the achieved rate), level above the
+      floor. Covers audio input, output and analysis in one test.
+
+  - id: device-experiments
+    area: hardware
+    tier: T2
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The full shipped experiment matrix on every lab device through
+      tools/t1_experiments.py: open via phyphox://asset=, run, stop, all
+      six export formats validated. Bluetooth experiments load-phase
+      only (the phase-6 board lab owns their data plane).
+
+  - id: device-languages
+    area: translations
+    tier: T2
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The release language gate: the BUILT artifact's locale set (aapt
+      dump badging / the .lproj set) must equal languages.yml exactly -
+      a missing language or a testing locale left in FAILS. Runs when
+      the lab host names the release artifacts.
