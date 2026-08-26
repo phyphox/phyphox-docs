@@ -167,8 +167,11 @@ class IOSDevice:
             # developer disk image (python3 -m pymobiledevice3 mounter
             # auto-mount). UNVERIFIED until it records a skeleton - a
             # failure lands in the skeleton with this stderr.
+            # NB: the developer/dvt subcommands select the device with
+            # --udid, unlike usbmux's --serial (the captured error listed
+            # the valid options)
             r = sh([sys.executable, "-m", "pymobiledevice3", "developer",
-                    "dvt", "launch", "--serial", self.udid,
+                    "dvt", "launch", "--udid", self.udid,
                     " ".join([IOS_BUNDLE] + args)], timeout=90)
             self.last_error = (r.stderr or r.stdout or "").strip()[-300:]
             return r.returncode == 0
