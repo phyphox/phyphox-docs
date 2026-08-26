@@ -2,51 +2,51 @@ device: iphone-14-pro
 recorded: hand-finish this file into devices/iphone-14-pro.yml - see README
 experiments:
   accelerometer.phyphox:
+  - acc_time
+  - accY
   - accX
   - acc
-  - accY
   - accZ
-  - acc_time
   gyroscope.phyphox:
-  - gyr
   - gyr_time
   - gyrZ
   - gyrX
+  - gyr
   - gyrY
   magnetometer.phyphox:
-  - magY
   - magZ
-  - mag_time
-  - magAccuracy
-  - mag
   - magX
+  - mag
+  - mag_time
+  - magY
+  - magAccuracy
   pressure.phyphox:
   - p_time
   - pressure
   light.phyphox: no remote API (sensor missing on this device?)
   gps.phyphox:
+  - t
+  - countUpdated
+  - subLat
+  - subLon
   - zwgs84
-  - v
   - countT
-  - satellites
+  - dLon
+  - d
   - accuracy
   - startLat
-  - dir
-  - z
-  - dnew
-  - status
-  - dLat
-  - dist
-  - countUpdated+1
-  - countUpdated
-  - d
-  - zAccuracy
-  - t
-  - subLon
-  - subLat
-  - diststart
-  - lon
-  - lat
+  - v
   - startLon
-  - dLon
+  - satellites
+  - z
+  - dist
+  - diststart
+  - dnew
+  - countUpdated+1
+  - dLat
+  - status
+  - dir
+  - lat
+  - lon
+  - zAccuracy
 meta_sensors: []

@@ -44,9 +44,18 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, "..", ".."))
 FIXTURES = os.path.join(ROOT, "fixtures")
 
-CORE_EXPERIMENTS = ["accelerometer.phyphox", "gyroscope.phyphox",
-                    "magnetometer.phyphox", "pressure.phyphox",
-                    "light.phyphox", "gps.phyphox"]
+# the record-mode probe set per platform: iOS has no ambient light API
+# (recorded platform difference - the light row is Android-only), and
+# probing it there raises a sensor-not-available dialog that blocks the
+# run while the API behind it still answers, so the skeleton would
+# happily record a sensor the device cannot serve.
+CORE_EXPERIMENTS = {
+    "android": ["accelerometer.phyphox", "gyroscope.phyphox",
+                "magnetometer.phyphox", "pressure.phyphox",
+                "light.phyphox", "gps.phyphox"],
+    "ios": ["accelerometer.phyphox", "gyroscope.phyphox",
+            "magnetometer.phyphox", "pressure.phyphox", "gps.phyphox"],
+}
 
 
 class _FixtureServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
@@ -76,7 +85,10 @@ def record_manifest(dev, dev_id, args):
                 "devices/" + dev_id + ".yml - see README"}
     exps = {}
     status, body = None, b""  # /meta is read once an experiment serves the API
-    for asset in CORE_EXPERIMENTS:
+    print("   watch the device: a sensor-not-available dialog blocks the "
+          "run silently while the API behind it still answers - if one "
+          "appears, that sensor does not belong in this device's manifest")
+    for asset in CORE_EXPERIMENTS[dev.platform]:
         if not dev.launch(asset):
             exps[asset] = ("launch failed: "
                            + (getattr(dev, "last_error", "") or "no stderr"))
