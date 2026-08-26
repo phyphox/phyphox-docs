@@ -1,8 +1,7 @@
 # iPad Pro - lab sensor truth. Hand-finished 2026-08-26 from the
 # recorded skeleton. No light entry: iOS has no ambient light API
-# (Android-only row). Rates are FIRST GUESSES - iOS delivers motion
-# sensors at the requested rate (typically 100 Hz) and the barometer at
-# roughly 1 Hz via CMAltimeter; tightened after the first green run.
+# (Android-only row). Rates tightened to the first green run's measured values
+# (motion 100 Hz as requested, barometer 1.1 Hz via CMAltimeter).
 device: ipad-pro
 sensors:
   accelerometer:
@@ -10,28 +9,28 @@ sensors:
     value_buffers: [accX, accY, accZ]
     time_buffer: acc_time
     plausibility: magnitude9.81
-    rate: {expect: 100, tol: 0.5}
+    rate: {expect: 100, tol: 0.2}
     seconds: 8
   gyroscope:
     experiment: gyroscope.phyphox
     value_buffers: [gyrX, gyrY, gyrZ]
     time_buffer: gyr_time
     plausibility: near0
-    rate: {expect: 100, tol: 0.5}
+    rate: {expect: 100, tol: 0.2}
     seconds: 8
   magnetometer:
     experiment: magnetometer.phyphox
     value_buffers: [magX, magY, magZ]
     time_buffer: mag_time
     plausibility: earthfield
-    rate: {expect: 100, tol: 0.5}
+    rate: {expect: 100, tol: 0.2}
     seconds: 8
   pressure:
     experiment: pressure.phyphox
     value_buffers: [pressure]
     time_buffer: p_time
     plausibility: pressure
-    rate: {expect: 1, tol: 0.9}
+    rate: {expect: 1.1, tol: 0.5}
     seconds: 10
 gps:
   experiment: gps.phyphox

@@ -139,6 +139,17 @@ elements:
           (ExperimentAnalysis.swift). The docs used to claim sleep=0
           re-runs immediately. iOS skips the delay entirely for the
           first cycle after start; the floor applies from then on.
+          The two schedulers differ structurally, and it matters: Android
+          polls processAnalysis from the measurement loop with no
+          busy/queued bookkeeping, while iOS chains updates through a
+          busy flag with a one-deep request queue. A request queued
+          while a pass is busy MUST keep its own character when
+          re-issued - a queued remote start is a normal run even if the
+          pass that absorbed it was the open-time pre-run, and a queued
+          paused-user-input request keeps its pre-run flavour (cycle 0).
+          Load-bearing since 2026-08-26: the device lab found remote
+          starts silently dropped when they raced the pre-run (fixed on
+          iOS; Android has no counterpart by construction).
       - name: dynamicSleep
         type: string
         since: "1.5"
