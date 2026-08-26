@@ -148,7 +148,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Everything the host-controlled switches bypass must still work
       WITHOUT them (the switches must never mask a broken user path):
@@ -170,7 +170,7 @@ tests:
     area: ui
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Golden-image tests of the non-graph view elements over the
       phyphox-docs fixtures/views/ set (values, edits, buttons-toggles,
@@ -184,7 +184,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Golden-image tests of the OpenGL graph rendering over
       fixtures/views/graphs-*.phyphox (styles, axes incl. log and fixed
@@ -196,7 +196,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Interaction tests over the same fixtures: typing into edits
       (bounds, signed/decimal, factor), pressing buttons (value writes,
@@ -208,7 +208,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The screens around the experiment: collection (categories,
       ordering, platform hiding), experiment menu and all its actions,
@@ -220,7 +220,7 @@ tests:
     area: robustness
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Rotation mid-run, background/foreground with a running experiment,
       screen-off with keep-on, kill and relaunch, permission denied
@@ -232,7 +232,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Espresso AccessibilityChecks over the chrome suite on Android;
       performAccessibilityAudit() on the main iOS screens. Report-only
@@ -242,7 +242,7 @@ tests:
     area: translations
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Language handling follows the build: the enabled set (LOCALE_ARRAY
       / Bundle.main.localizations) loads, deviations from the canonical
@@ -254,7 +254,7 @@ tests:
     area: translations
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       UI regression per build-enabled language: the collection screen, a
       representative experiment screen and the critical menus/dialogs
