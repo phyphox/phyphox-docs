@@ -172,14 +172,37 @@ def run_audio_suite(dev, args):
         if bufs and _finite(bufs.get("peakfreq") or []):
             det["time_to_result"] = round(time.time() - t0, 1)
             break
-    api(dev.base, "/control?cmd=stop")
     if not bufs or not _finite(bufs.get("peakfreq") or []):
+        # recovery probe: a stop/start revives a dropped analysis chain
+        # (the iOS pre-run swallows a start queued during its update -
+        # see the finding in the iOS TODO). If the retry yields results,
+        # that is the diagnosis - still a failure, but a named one.
+        api(dev.base, "/control?cmd=stop")
+        time.sleep(1.0)
+        api(dev.base, "/control?cmd=start")
+        t1 = time.time()
+        deadline2 = t1 + max(args.seconds, 10)
+        while time.time() < deadline2:
+            time.sleep(0.5)
+            bufs = _get_buffers(dev.base,
+                                ["peakfreq", "level", "achievedrate"])
+            if bufs and _finite(bufs.get("peakfreq") or []):
+                det["recovered_after_restart_s"] = round(time.time() - t1, 1)
+                break
+        api(dev.base, "/control?cmd=stop")
+        if bufs and _finite(bufs.get("peakfreq") or []):
+            return {"passed": False,
+                    "findings": ["no result from the driver's start, but a "
+                                 "restart recovered the analysis loop - the "
+                                 "dropped-start race (see the iOS TODO), not "
+                                 "an audio problem"],
+                    "details": det}
         return {"passed": False,
                 "findings": [f"no analysis result within "
-                             f"{max(3 * args.seconds, 20):.0f}s (tone "
-                             f"audible? see time_to_result on passing "
-                             f"devices)"],
+                             f"{max(3 * args.seconds, 20):.0f}s, restart "
+                             f"did not recover (tone audible?)"],
                 "details": det}
+    api(dev.base, "/control?cmd=stop")
     peak = _finite(bufs["peakfreq"])[-1]
     level = _finite(bufs.get("level") or [0])[-1]
     ach = _finite(bufs.get("achievedrate") or [48000])
