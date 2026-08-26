@@ -269,11 +269,13 @@ tests:
     status: planned
     description: >-
       Per-device sensor truth on the seven lab phones, manifest-driven
-      (tools/lab/devices/): liveness, plausibility windows (|accel| at
-      rest, gyro near zero, earth-field magnitude, pressure range, light
-      positive), achieved rate vs expectation, graceful GPS no-fix
-      indoors. Implemented once host-side in tools/lab/ - the tag there
-      counts for both platforms.
+      (tools/lab/devices/): liveness and achieved rate FAIL; the value
+      plausibility windows (|accel| at rest, gyro near zero, earth-field
+      magnitude, pressure range, light positive) WARN only - bench
+      magnetics and stale calibration violate them routinely, and no
+      plausible app bug changes values while keeping the rate right.
+      Graceful GPS no-fix indoors. Implemented once host-side in
+      tools/lab/ - the tag there counts for both platforms.
 
   - id: device-audio
     area: hardware

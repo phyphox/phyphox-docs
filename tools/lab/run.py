@@ -187,7 +187,8 @@ def main():
                 for r_name, r in result.items():
                     state = "ok" if r.get("passed") else "FAIL"
                     print(f"   {r_name}: {state}"
-                          + ("".join(f"\n      ! {x}" for x in r.get("findings", []))))
+                          + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
+                          + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
                 report["devices"][dev_id] = result
             finally:
                 dev.cleanup()

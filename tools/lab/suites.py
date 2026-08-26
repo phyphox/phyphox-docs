@@ -57,8 +57,14 @@ def run_sensor_suite(dev, manifest, args):
     """Per manifest sensor: launch its experiment, run, check liveness,
     plausibility and achieved rate. A sensor the manifest excludes is
     skipped; the app's graceful sensor-missing path is covered by the
-    experiments suite loading everything."""
-    findings, details = [], {}
+    experiments suite loading everything.
+
+    Liveness and rate FAIL; the value-plausibility windows only WARN
+    (maintainer, 2026-08-26): a lab phone routinely sits on a screw or
+    holds a stale magnetometer calibration, and no plausible phyphox bug
+    changes sensor values while keeping the rate right - so a window
+    violation is bench information, not a red suite."""
+    findings, warnings, details = [], [], {}
     for name, spec in (manifest.get("sensors") or {}).items():
         det = {"sensor": name}
         details[name] = det
@@ -90,7 +96,8 @@ def run_sensor_suite(dev, manifest, args):
             det["mean_magnitude"] = round(mean, 3)
             lo, hi = PLAUSIBLE[kind]
             if not lo <= mean <= hi:
-                findings.append(f"{name}: |mean| {mean:.2f} outside {lo}..{hi}")
+                warnings.append(f"{name}: |mean| {mean:.2f} outside {lo}..{hi}"
+                                " (bench or calibration, not failed)")
         elif kind in PLAUSIBLE:
             lo, hi = PLAUSIBLE[kind]
             if kind == "earthfield":
@@ -102,7 +109,8 @@ def run_sensor_suite(dev, manifest, args):
                 mean = sum(allv) / len(allv)
             det["mean"] = round(mean, 3)
             if not lo <= mean <= hi:
-                findings.append(f"{name}: mean {mean:.2f} outside {lo}..{hi}")
+                warnings.append(f"{name}: mean {mean:.2f} outside {lo}..{hi}"
+                                " (bench or calibration, not failed)")
         tb = spec.get("time_buffer")
         if tb and spec.get("rate"):
             ts = _finite(bufs.get(tb) or [])

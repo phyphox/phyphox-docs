@@ -21,7 +21,12 @@ and by hand on iOS (part of the unlock-once ritual).
 - `sensors` (`device-sensors`): per-device manifest driven - liveness,
   plausibility (|accel| at rest, gyro near zero, earth-field magnitude,
   pressure range, light positive), achieved rate vs expectation, and the
-  graceful GPS no-fix path indoors. A real fix is T3.
+  graceful GPS no-fix path indoors. A real fix is T3. Liveness and rate
+  FAIL; the plausibility windows only WARN (maintainer, 2026-08-26): a
+  lab phone routinely sits on a screw or carries a stale magnetometer
+  calibration - a figure-eight fixed the A3's 176 uT - and no plausible
+  phyphox bug changes the values while keeping the rate right. The
+  warnings stay in the report as bench information.
 - `audio` (`device-audio`): fixtures/audio/loopback.phyphox - speaker to
   microphone, FFT peak at the played 1 kHz (corrected by the achieved
   rate), level above the floor. The fixture is served from this checkout
