@@ -1,6 +1,7 @@
 # Pixel 9 Pro - lab sensor truth. Hand-finished 2026-08-26 from the
-# recorded skeleton. Rates are FIRST BASELINES (baseline first, tighten
-# after - the suite warns/fails outside expect*(1±tol)); the light check
+# recorded skeleton; rates tightened to the first run's measurements
+# (accel/gyro 398 Hz, mag 100 Hz, pressure 40 Hz - the 20 Hz first
+# guess was wrong). The light check
 # needs a bench that is not pitch dark (the plan's rule is light > 0).
 device: pixel-9-pro
 sensors:
@@ -9,28 +10,28 @@ sensors:
     value_buffers: [accX, accY, accZ]
     time_buffer: acc_time
     plausibility: magnitude9.81
-    rate: {expect: 400, tol: 0.8}
+    rate: {expect: 400, tol: 0.3}
     seconds: 8
   gyroscope:
     experiment: gyroscope.phyphox
     value_buffers: [gyrX, gyrY, gyrZ]
     time_buffer: gyr_time
     plausibility: near0
-    rate: {expect: 400, tol: 0.8}
+    rate: {expect: 400, tol: 0.3}
     seconds: 8
   magnetometer:
     experiment: magnetometer.phyphox
     value_buffers: [magX, magY, magZ]
     time_buffer: mag_time
     plausibility: earthfield
-    rate: {expect: 100, tol: 0.8}
+    rate: {expect: 100, tol: 0.3}
     seconds: 8
   pressure:
     experiment: pressure.phyphox
     value_buffers: [pressure]
     time_buffer: p_time
     plausibility: pressure
-    rate: {expect: 20, tol: 0.9}
+    rate: {expect: 40, tol: 0.5}
     seconds: 8
   light:
     experiment: light.phyphox

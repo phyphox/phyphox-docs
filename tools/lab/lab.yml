@@ -15,13 +15,13 @@ hosts:
       iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
       ipad-pro:      {platform: ios, serial: "UDID-HERE", port: 8083}
       pixel-9-pro:   {platform: android, serial: "53291FDAP0026B", port: 8091}
-      pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
-      nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}
-      galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}
+      pixel-3:       {platform: android, serial: "8C5X1J8JL", port: 8092}
+      nexus-5x:      {platform: android, serial: "025e9f6567c4d0e5", port: 8093}
+      galaxy-a3:     {platform: android, serial: "33007f6cd2ab1445", port: 8094}
 
   linuxbox:           # the split: Android (+ boards, phase 6) here,
     devices:          # iOS stays with the MacBook
       pixel-9-pro:   {platform: android, serial: "53291FDAP0026B", port: 8091}
-      pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
-      nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}
-      galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}
+      pixel-3:       {platform: android, serial: "8C5X1J8JL", port: 8092}
+      nexus-5x:      {platform: android, serial: "025e9f6567c4d0e5", port: 8093}
+      galaxy-a3:     {platform: android, serial: "33007f6cd2ab1445", port: 8094}

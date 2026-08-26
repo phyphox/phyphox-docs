@@ -15,7 +15,7 @@
     </data-containers>
     <input>
         <audio rate="48000">
-            <output component="out">recording</output>
+            <output>recording</output>
             <output component="rate">achievedrate</output>
         </audio>
     </input>
