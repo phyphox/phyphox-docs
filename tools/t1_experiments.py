@@ -295,6 +295,13 @@ def uses_audio_input(path):
 def run_experiment(dev, base, rel, path, args):
     result = {"experiment": rel, "loaded": False, "remote": False,
               "started": False, "filled": [], "exports": {}, "errors": []}
+    # Every step below is individually bounded, but their sum was not:
+    # one pathological experiment (doppler on the Galaxy A3, whose
+    # buffer-reading requests stall) held a whole sweep open long after
+    # the other devices had finished, 2026-08-27. A sweep must end; the
+    # budget turns such a stall into a reported finding on that one
+    # experiment instead of an open-ended wait.
+    budget_ends = time.time() + args.experiment_budget
     if is_link_entry(path):
         result["skipped"] = "link entry (isLink), not a runnable experiment"
         return result
@@ -399,6 +406,11 @@ def run_experiment(dev, base, rel, path, args):
         result["no_stimulus_sets"] = sorted(
             name for name, _cols, _bufs in sets if name not in rows_for)
         for fmt in FORMATS:
+            if time.time() > budget_ends:
+                result["errors"].append(
+                    f"over the {args.experiment_budget:.0f}s budget for one "
+                    f"experiment - formats {fmt}..5 not tried")
+                break
             status, body = api(base, f"/export?format={fmt}",
                                timeout=args.export_timeout)
             if status != 200:
@@ -448,9 +460,16 @@ def main():
                     help="only experiments whose path starts with this")
     ap.add_argument("--seconds", type=float, default=10.0)
     ap.add_argument("--api-wait", type=float, default=15.0)
-    ap.add_argument("--export-timeout", type=float, default=120.0,
-                    help="seconds to wait for one export; old devices need "
-                         "far longer than an emulator for a large dataset")
+    ap.add_argument("--experiment-budget", type=float, default=300.0,
+                    help="seconds one experiment may take before the driver "
+                         "gives up and moves on, reporting the overrun - a "
+                         "sweep has to end even when a device stalls")
+    ap.add_argument("--export-timeout", type=float, default=30.0,
+                    help="seconds to wait for one export. 30 is already "
+                         "generous: the heaviest shipped experiment exports "
+                         "a few hundred rows, which even the oldest lab "
+                         "phone writes in well under a second, so a longer "
+                         "wait buys nothing and only hides a stall")
     ap.add_argument("--emulator", action="store_true",
                     help="inject sensor values via the emulator console")
     ap.add_argument("--require-rows", action="store_true",

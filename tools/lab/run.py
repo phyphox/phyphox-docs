@@ -148,14 +148,49 @@ def _summarize(merged):
     return "\n".join(lines) + "\n"
 
 
+class _ThreadTee:
+    """stdout that keeps each worker thread's output apart.
+
+    contextlib.redirect_stdout swaps sys.stdout for the whole PROCESS,
+    so with several suites running at once the workers clobbered each
+    other's redirect and swallowed the main thread's prints - which is
+    why a parallel run stopped showing results at all. This routes a
+    thread with a registered buffer into it and everyone else through to
+    the real stdout."""
+
+    def __init__(self, real):
+        self._real = real
+        self._buffers = {}
+
+    def register(self, buf):
+        self._buffers[threading.get_ident()] = buf
+
+    def unregister(self):
+        self._buffers.pop(threading.get_ident(), None)
+
+    def write(self, data):
+        buf = self._buffers.get(threading.get_ident())
+        (buf or self._real).write(data)
+
+    def flush(self):
+        self._real.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+_TEE = None
+
+
 def _one_suite(suite, dev_id, dev, args):
     """One suite on one device, capturing whatever it prints so parallel
     devices cannot interleave their output mid-line."""
-    import contextlib
     import io
     buf = io.StringIO()
     r = None
-    with contextlib.redirect_stdout(buf):
+    if _TEE is not None:
+        _TEE.register(buf)
+    try:
         if suite == "sensors":
             manifest_path = os.path.join(HERE, "devices", f"{dev_id}.yml")
             if not os.path.exists(manifest_path):
@@ -170,31 +205,39 @@ def _one_suite(suite, dev_id, dev, args):
             r = suites.run_audio_suite(dev, args)
         elif suite == "experiments":
             r = suites.run_experiments_suite(dev, args)
+    finally:
+        if _TEE is not None:
+            _TEE.unregister()
     return r, [ln for ln in buf.getvalue().splitlines() if ln.strip()]
 
 
 def _run_suite(suite, devices, args, jobs):
-    """[(dev_id, entry, result, captured lines)] for one suite, run
+    """Yields (dev_id, entry, result, captured lines) per device as
+    each finishes, run
     sequentially or across a small thread pool. The suites are I/O-bound
     - HTTP against a phone, a subprocess per device - so threads fit, and
     an exception on one device becomes that device's finding instead of
     ending the run."""
     if jobs <= 1:
-        out = []
         for dev_id, entry, dev in devices:
-            print(f"== {suite} @ {dev_id} ({entry['platform']})")
+            print(f"== {suite} @ {dev_id} ({entry['platform']})", flush=True)
             r, captured = _one_suite(suite, dev_id, dev, args)
             for line in captured:
                 print(f"   {line}")
-            out.append((dev_id, entry, r, []))
-        return out
+            yield dev_id, entry, r, []
+        return
 
-    from concurrent.futures import ThreadPoolExecutor
+    from concurrent.futures import ThreadPoolExecutor, as_completed
     results = []
     with ThreadPoolExecutor(max_workers=jobs) as pool:
         futures = {pool.submit(_one_suite, suite, dev_id, dev, args):
                    (dev_id, entry) for dev_id, entry, dev in devices}
-        for fut, (dev_id, entry) in futures.items():
+        # as_completed, not submission order: a device reports the moment
+        # IT finishes. Collecting in order meant the whole pool went
+        # silent until the slowest device was done, which on a parallel
+        # experiments sweep is most of an hour of nothing (2026-08-27).
+        for fut in as_completed(futures):
+            dev_id, entry = futures[fut]
             try:
                 r, captured = fut.result()
             except Exception as e:
@@ -202,9 +245,8 @@ def _run_suite(suite, devices, args, jobs):
                      "findings": [f"{type(e).__name__}: {e}"]}
                 captured = []
             results.append((dev_id, entry, r, captured))
-    order = {d: i for i, (d, _e, _dev) in enumerate(devices)}
-    results.sort(key=lambda x: order.get(x[0], 0))
-    return results
+            yield dev_id, entry, r, captured
+    return
 
 
 def make_device(entry, host_cfg):
@@ -310,6 +352,10 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
     wanted = {d for d in args.devices.split(",") if d}
 
+    global _TEE
+    if _TEE is None:
+        _TEE = _ThreadTee(sys.stdout)
+        sys.stdout = _TEE
     srv = serve_fixtures(args.fixture_port)
     report = {"host": args.host, "devices": {}}
     # SUITE-MAJOR order: every device runs the sensors suite before any
