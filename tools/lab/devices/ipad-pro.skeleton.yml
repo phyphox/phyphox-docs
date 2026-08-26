@@ -1,9 +1,51 @@
 device: ipad-pro
 recorded: hand-finish this file into devices/ipad-pro.yml - see README
 experiments:
-  accelerometer.phyphox: launch failed
-  gyroscope.phyphox: launch failed
-  magnetometer.phyphox: launch failed
-  pressure.phyphox: launch failed
-  light.phyphox: launch failed
-  gps.phyphox: launch failed
+  accelerometer.phyphox:
+  - acc_time
+  - accX
+  - accY
+  - accZ
+  - acc
+  gyroscope.phyphox:
+  - gyr
+  - gyr_time
+  - gyrY
+  - gyrX
+  - gyrZ
+  magnetometer.phyphox:
+  - mag
+  - mag_time
+  - magX
+  - magAccuracy
+  - magY
+  - magZ
+  pressure.phyphox:
+  - pressure
+  - p_time
+  gps.phyphox:
+  - dLat
+  - lon
+  - subLat
+  - t
+  - dist
+  - dLon
+  - v
+  - countT
+  - zAccuracy
+  - lat
+  - status
+  - accuracy
+  - z
+  - dir
+  - satellites
+  - d
+  - dnew
+  - countUpdated
+  - countUpdated+1
+  - subLon
+  - startLat
+  - startLon
+  - zwgs84
+  - diststart
+meta_sensors: []

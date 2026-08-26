@@ -4,49 +4,48 @@ experiments:
   accelerometer.phyphox:
   - acc_time
   - accY
+  - accZ
   - accX
   - acc
-  - accZ
   gyroscope.phyphox:
   - gyr_time
-  - gyrZ
-  - gyrX
-  - gyr
   - gyrY
+  - gyr
+  - gyrX
+  - gyrZ
   magnetometer.phyphox:
-  - magZ
-  - magX
-  - mag
-  - mag_time
   - magY
   - magAccuracy
+  - magX
+  - magZ
+  - mag_time
+  - mag
   pressure.phyphox:
-  - p_time
   - pressure
-  light.phyphox: no remote API (sensor missing on this device?)
+  - p_time
   gps.phyphox:
-  - t
-  - countUpdated
-  - subLat
+  - countUpdated+1
   - subLon
-  - zwgs84
-  - countT
-  - dLon
-  - d
-  - accuracy
+  - z
   - startLat
-  - v
+  - zwgs84
   - startLon
   - satellites
-  - z
-  - dist
+  - subLat
+  - dLat
+  - d
+  - v
+  - countT
   - diststart
   - dnew
-  - countUpdated+1
-  - dLat
-  - status
+  - dLon
+  - lon
+  - dist
+  - accuracy
   - dir
   - lat
-  - lon
+  - status
+  - t
   - zAccuracy
+  - countUpdated
 meta_sensors: []

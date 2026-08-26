@@ -148,17 +148,31 @@ class IOSDevice:
         return self._launch_args(["-phyphoxUrl", url])
 
     def _launch_args(self, extra):
+        args = extra + ["-phyphoxRemote", "-phyphoxRemotePort", "80",
+                        "-phyphoxAutoConfirm"]
         # the "--" keeps devicectl from parsing the app's dash-prefixed
         # arguments as its own options (first hardware attempt failed on
         # every launch; simctl passes trailing args, devicectl does not)
         r = sh(["xcrun", "devicectl", "device", "process", "launch",
                 "--terminate-existing", "--device", self.udid, "--",
-                IOS_BUNDLE] + extra
-               + ["-phyphoxRemote", "-phyphoxRemotePort", "80",
-                  "-phyphoxAutoConfirm"],
-               timeout=60)
+                IOS_BUNDLE] + args, timeout=60)
         self.last_error = (r.stderr or r.stdout or "").strip()[-300:]
-        return r.returncode == 0
+        if r.returncode == 0:
+            return True
+        if "device was not found" in self.last_error:
+            # devicectl is CoreDevice, which only speaks to iOS 17+ - the
+            # iPhone 8 tops out at iOS 16 and is in the lab precisely to
+            # be old. Legacy path via pymobiledevice3's instruments
+            # tunnel; needs developer mode and, on iOS <17, a mounted
+            # developer disk image (python3 -m pymobiledevice3 mounter
+            # auto-mount). UNVERIFIED until it records a skeleton - a
+            # failure lands in the skeleton with this stderr.
+            r = sh([sys.executable, "-m", "pymobiledevice3", "developer",
+                    "dvt", "launch", "--serial", self.udid,
+                    " ".join([IOS_BUNDLE] + args)], timeout=90)
+            self.last_error = (r.stderr or r.stdout or "").strip()[-300:]
+            return r.returncode == 0
+        return False
 
     def stop_app(self):
         pass  # --terminate-existing on launch
