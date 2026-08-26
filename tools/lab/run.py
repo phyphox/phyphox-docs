@@ -72,6 +72,19 @@ def serve_fixtures(port):
     return srv
 
 
+def _resolve_artifact(path, config_path):
+    if os.path.isabs(path):
+        return path
+    bases = [os.getcwd(),
+             os.path.dirname(os.path.abspath(config_path)),
+             ROOT, os.path.dirname(ROOT)]
+    for base in bases:
+        candidate = os.path.normpath(os.path.join(base, path))
+        if os.path.exists(candidate):
+            return candidate
+    return os.path.normpath(os.path.join(bases[0], path))
+
+
 def _summarize(merged):
     """The merged run as something a human reads: one line per device and
     suite, findings and warnings underneath, the language gate last. The
@@ -271,6 +284,12 @@ def main():
                       + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
                       + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
         art = host_cfg.get("artifacts") or {}
+        # a relative artifact path is tried against the obvious bases -
+        # where the command was run, the lab.yml's own directory, the
+        # phyphox-docs root and the working root above it - so one synced
+        # config works from either host without anyone having to know
+        # which directory the driver happened to start in
+        art = {p: _resolve_artifact(v, args.config) for p, v in art.items()}
         for platform, path in art.items():
             r = suites.run_languages_suite(platform, path,
                                            aapt=host_cfg.get("aapt", "aapt"))
