@@ -148,6 +148,65 @@ def _summarize(merged):
     return "\n".join(lines) + "\n"
 
 
+def _one_suite(suite, dev_id, dev, args):
+    """One suite on one device, capturing whatever it prints so parallel
+    devices cannot interleave their output mid-line."""
+    import contextlib
+    import io
+    buf = io.StringIO()
+    r = None
+    with contextlib.redirect_stdout(buf):
+        if suite == "sensors":
+            manifest_path = os.path.join(HERE, "devices", f"{dev_id}.yml")
+            if not os.path.exists(manifest_path):
+                r = {"passed": False,
+                     "findings": [f"no manifest devices/{dev_id}.yml - run "
+                                  f"--record-manifest first"]}
+            else:
+                with open(manifest_path) as f:
+                    manifest = yaml.safe_load(f)
+                r = suites.run_sensor_suite(dev, manifest, args)
+        elif suite == "audio":
+            r = suites.run_audio_suite(dev, args)
+        elif suite == "experiments":
+            r = suites.run_experiments_suite(dev, args)
+    return r, [ln for ln in buf.getvalue().splitlines() if ln.strip()]
+
+
+def _run_suite(suite, devices, args, jobs):
+    """[(dev_id, entry, result, captured lines)] for one suite, run
+    sequentially or across a small thread pool. The suites are I/O-bound
+    - HTTP against a phone, a subprocess per device - so threads fit, and
+    an exception on one device becomes that device's finding instead of
+    ending the run."""
+    if jobs <= 1:
+        out = []
+        for dev_id, entry, dev in devices:
+            print(f"== {suite} @ {dev_id} ({entry['platform']})")
+            r, captured = _one_suite(suite, dev_id, dev, args)
+            for line in captured:
+                print(f"   {line}")
+            out.append((dev_id, entry, r, []))
+        return out
+
+    from concurrent.futures import ThreadPoolExecutor
+    results = []
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        futures = {pool.submit(_one_suite, suite, dev_id, dev, args):
+                   (dev_id, entry) for dev_id, entry, dev in devices}
+        for fut, (dev_id, entry) in futures.items():
+            try:
+                r, captured = fut.result()
+            except Exception as e:
+                r = {"passed": False,
+                     "findings": [f"{type(e).__name__}: {e}"]}
+                captured = []
+            results.append((dev_id, entry, r, captured))
+    order = {d: i for i, (d, _e, _dev) in enumerate(devices)}
+    results.sort(key=lambda x: order.get(x[0], 0))
+    return results
+
+
 def make_device(entry, host_cfg):
     if entry["platform"] == "android":
         return AndroidDevice(entry["serial"], entry.get("port", 8080))
@@ -207,6 +266,11 @@ def main():
     ap.add_argument("--api-wait", type=float, default=15.0)
     ap.add_argument("--audio-floor", type=float, default=1.0)
     ap.add_argument("--fixture-port", type=int, default=8113)
+    ap.add_argument("--jobs", type=int, default=1,
+                    help="devices to run in parallel per suite (audio is "
+                         "always serial - the phones share a room). This is "
+                         "for the long experiments sweep; N phones at once "
+                         "also draw N times the USB power")
     ap.add_argument("--out", dest="out_dir", default="lab-results")
     ap.add_argument("--record-manifest", metavar="DEVICE_ID")
     ap.add_argument("--merge", metavar="DIR")
@@ -270,24 +334,23 @@ def main():
                     record_manifest(dev, dev_id, args)
         else:
           for suite in args.suites.split(","):
-            for dev_id, entry, dev in devices:
-                print(f"== {suite} @ {dev_id} ({entry['platform']})")
-                r = None
-                if suite == "sensors":
-                    manifest_path = os.path.join(HERE, "devices",
-                                                 f"{dev_id}.yml")
-                    if not os.path.exists(manifest_path):
-                        r = {"passed": False,
-                             "findings": [f"no manifest devices/{dev_id}.yml"
-                                          f" - run --record-manifest first"]}
-                    else:
-                        with open(manifest_path) as f:
-                            manifest = yaml.safe_load(f)
-                        r = suites.run_sensor_suite(dev, manifest, args)
-                elif suite == "audio":
-                    r = suites.run_audio_suite(dev, args)
-                elif suite == "experiments":
-                    r = suites.run_experiments_suite(dev, args)
+            # Devices are independent - own serial, own forwarded port,
+            # own app instance - so a suite can run on all of them at
+            # once, which is what matters for `experiments`: four devices
+            # in sequence is a multi-hour run, in parallel it is one
+            # device's worth. AUDIO IS THE EXCEPTION and is forced
+            # serial: the phones share a room, so one device's tone would
+            # land in another's microphone. --jobs 1 (the default) keeps
+            # everything sequential; raise it deliberately, and mind that
+            # N phones at once also draw N times the USB power.
+            jobs = 1 if suite == "audio" else max(1, args.jobs)
+            if jobs > 1:
+                print(f"== {suite}: {len(devices)} device(s), "
+                      f"{jobs} at a time")
+            for dev_id, entry, r, captured in _run_suite(suite, devices,
+                                                         args, jobs):
+                if jobs > 1:
+                    print(f"== {suite} @ {dev_id} ({entry['platform']})")
                 if r is None:
                     continue
                 report["devices"][dev_id][suite] = r
@@ -295,6 +358,8 @@ def main():
                 print(f"   {state}"
                       + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
                       + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
+                for line in captured:
+                    print(f"      {line}")
         art = host_cfg.get("artifacts") or {}
         # a relative artifact path is tried against the obvious bases -
         # where the command was run, the lab.yml's own directory, the

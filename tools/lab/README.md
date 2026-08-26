@@ -20,7 +20,18 @@ non-zero if any suite failed.
 The split: the MacBook can run everything; or the Linux machine runs the
 Android devices (`--host linuxbox`) while the MacBook runs iOS - each
 writes `<host>.json` into the shared results directory and `--merge`
-combines them. Phones stay in developer mode and are unlocked once per
+combines them.
+
+`--jobs N` runs a suite on N devices at once. The devices are
+independent (own serial, own forwarded port, own app), so this is
+mostly free time: the `experiments` sweep across four phones takes one
+phone's worth instead of four. **Audio is always serial regardless of
+`--jobs`** - the phones share a room and one device's tone would land in
+another's microphone. Two things to weigh before raising it: N phones
+running camera and audio experiments at once draw N times the USB power
+(the lab has already seen a battery lose against its charger), and a
+parallel suite's per-device output is collected and printed when that
+device finishes rather than streamed. Phones stay in developer mode and are unlocked once per
 run; media volume for the audio suite is set automatically on Android
 and by hand on iOS (part of the unlock-once ritual). Android devices
 are held awake for the run (`svc power stayon usb`, with the screen
