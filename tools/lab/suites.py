@@ -158,39 +158,48 @@ def run_audio_suite(dev, args):
                 "findings": ["remote API not reachable after loading the fixture"],
                 "details": det}
     api(dev.base, "/control?cmd=start")
-    # poll instead of a fixed window: on iOS hardware the audio session
-    # can take seconds to warm up after a remote start (route/session
-    # negotiation), and the time to the first result is itself a datum -
-    # a device that NEVER yields while the tone is audibly playing is a
-    # real finding, a slow one just needs patience
+    # Poll for a SETTLED reading, not for any reading at all. peakfreq
+    # gets a value from the very first analysis pass - computed from the
+    # silence before the speaker has even started - so "wait until the
+    # buffer is non-empty" reads noise and stops, which is exactly what
+    # it did: the phone's own display showed the 1 kHz peak while the
+    # log reported a random frequency from an earlier pass (found
+    # 2026-08-27, all four Android devices). A human looks at the screen
+    # after the tone has been playing a while; so does this now.
     deadline = time.time() + max(3 * args.seconds, 20)
     t0 = time.time()
-    bufs = None
+    last = None
     while time.time() < deadline:
         time.sleep(0.5)
         bufs = _get_buffers(dev.base, ["peakfreq", "level", "achievedrate"])
-        if bufs and _finite(bufs.get("peakfreq") or []):
-            det["time_to_result"] = round(time.time() - t0, 1)
+        if not bufs or not _finite(bufs.get("peakfreq") or []):
+            continue
+        peak = _finite(bufs["peakfreq"])[-1]
+        level = _finite(bufs.get("level") or [0.0])[-1]
+        ach = _finite(bufs.get("achievedrate") or [])
+        achieved = ach[-1] if ach else 48000.0
+        expected = 1000.0 * 48000.0 / achieved if achieved else 1000.0
+        last = (peak, level, achieved, expected)
+        if abs(peak - expected) <= 75 and level >= args.audio_floor:
+            det["time_to_lock"] = round(time.time() - t0, 1)
             break
-    if not bufs or not _finite(bufs.get("peakfreq") or []):
-        # recovery probe: a stop/start revives a dropped analysis chain
-        # (a start queued behind the open-time pre-run used to be dropped
-        # on iOS; fixed 2026-08-26). If the retry yields results,
-        # that is the diagnosis - still a failure, but a named one.
-        api(dev.base, "/control?cmd=stop")
-        time.sleep(1.0)
+    api(dev.base, "/control?cmd=stop")
+
+    if last is None:
+        # nothing at all: the analysis never produced a value. A stop and
+        # start revives a dropped analysis chain (a start queued behind
+        # the open-time pre-run used to be dropped on iOS; fixed
+        # 2026-08-26), so try that once to name the cause.
         api(dev.base, "/control?cmd=start")
         t1 = time.time()
-        deadline2 = t1 + max(args.seconds, 10)
-        while time.time() < deadline2:
+        while time.time() - t1 < max(args.seconds, 10):
             time.sleep(0.5)
-            bufs = _get_buffers(dev.base,
-                                ["peakfreq", "level", "achievedrate"])
+            bufs = _get_buffers(dev.base, ["peakfreq"])
             if bufs and _finite(bufs.get("peakfreq") or []):
                 det["recovered_after_restart_s"] = round(time.time() - t1, 1)
                 break
         api(dev.base, "/control?cmd=stop")
-        if bufs and _finite(bufs.get("peakfreq") or []):
+        if det.get("recovered_after_restart_s"):
             return {"passed": False,
                     "findings": ["no result from the driver's start, but a "
                                  "restart recovered the analysis loop - a "
@@ -198,21 +207,27 @@ def run_audio_suite(dev, args):
                     "details": det}
         return {"passed": False,
                 "findings": [f"no analysis result within "
-                             f"{max(3 * args.seconds, 20):.0f}s, restart "
-                             f"did not recover (tone audible?)"],
+                             f"{max(3 * args.seconds, 20):.0f}s (tone "
+                             f"audible?)"],
                 "details": det}
-    api(dev.base, "/control?cmd=stop")
-    peak = _finite(bufs["peakfreq"])[-1]
-    level = _finite(bufs.get("level") or [0])[-1]
-    ach = _finite(bufs.get("achievedrate") or [48000])
-    achieved = ach[-1] if ach else 48000.0
-    expected = 1000.0 * 48000.0 / achieved if achieved else 1000.0
+
+    peak, level, achieved, expected = last
     det.update({"peak": peak, "level": level, "achieved_rate": achieved,
                 "expected_peak": round(expected, 1)})
-    if abs(peak - expected) > 75:
-        findings.append(f"peak {peak:.0f} Hz, expected ~{expected:.0f}")
+    if "time_to_lock" not in det:
+        # never settled: report the last reading, which says WHICH half
+        # failed - a wrong peak at a healthy level is a bench problem, a
+        # silent-room level means the tone never reached the microphone
+        det["settled"] = False
+        if abs(peak - expected) > 75:
+            findings.append(f"never settled: last peak {peak:.0f} Hz, "
+                            f"expected ~{expected:.0f}")
     if level < args.audio_floor:
-        findings.append(f"level {level:.4f} below floor {args.audio_floor}")
+        findings.append(f"never settled: last level {level:.4f} below floor "
+                        f"{args.audio_floor} (a silent room: did the tone "
+                        f"play, is the media volume up?)"
+                        if "time_to_lock" not in det else
+                        f"level {level:.4f} below floor {args.audio_floor}")
     return {"passed": not findings, "findings": findings, "details": det}
 
 
