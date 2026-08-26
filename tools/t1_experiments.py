@@ -255,6 +255,27 @@ def is_link_entry(path):
     return (root.get("isLink") or "").strip().lower() == "true"
 
 
+_SAVED = []
+
+
+def _save_artifact(args, rel, fmt, body, limit=8):
+    """Write a failing export next to --out, capped so a systematically
+    broken run cannot fill the disk."""
+    if len(_SAVED) >= limit:
+        return None
+    out_dir = os.path.dirname(os.path.abspath(args.out)) or "."
+    stem = rel.replace("/", "_").replace(".phyphox", "")
+    ext = "xlsx" if fmt == 0 else "zip"
+    path = os.path.join(out_dir, f"failed-export-{stem}-fmt{fmt}.{ext}")
+    try:
+        with open(path, "wb") as f:
+            f.write(body)
+    except OSError:
+        return None
+    _SAVED.append(path)
+    return path
+
+
 def uses_audio_input(path):
     """True if the experiment records audio - the iOS simulator's
     AVAudioEngine input can abort the whole app (AudioToolbox RPC
@@ -371,6 +392,20 @@ def run_experiment(dev, base, rel, path, args):
                 body, sets, fmt, require_rows=args.require_rows,
                 require_rows_for=rows_for)
             result["exports"][fmt] = problems
+            if problems:
+                # keep the evidence: an export finding is otherwise a
+                # sentence with no file behind it, and the interesting
+                # ones are the odd formats out (an iPad reported one
+                # empty set in format 2 while the other five were fine -
+                # unreproducible on Android, and unexaminable without
+                # the bytes)
+                saved = _save_artifact(args, rel, fmt, body)
+                if saved:
+                    result.setdefault("saved_exports", {})[fmt] = saved
+                result["exports"][fmt] = problems + [
+                    f"({len(body)} bytes"
+                    + (f", saved as {os.path.basename(saved)}" if saved else "")
+                    + ")"]
 
     # the app must still be alive (same patience as the startup wait - a
     # loaded emulator can take a while after six export downloads)
