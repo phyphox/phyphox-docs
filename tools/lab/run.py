@@ -78,7 +78,8 @@ def record_manifest(dev, dev_id, args):
     status, body = None, b""  # /meta is read once an experiment serves the API
     for asset in CORE_EXPERIMENTS:
         if not dev.launch(asset):
-            exps[asset] = "launch failed"
+            exps[asset] = ("launch failed: "
+                           + (getattr(dev, "last_error", "") or "no stderr"))
             continue
         if wait_api(dev.base, args.api_wait) is None:
             exps[asset] = "no remote API (sensor missing on this device?)"

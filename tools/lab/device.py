@@ -145,11 +145,19 @@ class IOSDevice:
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
+        return self._launch_args(["-phyphoxUrl", url])
+
+    def _launch_args(self, extra):
+        # the "--" keeps devicectl from parsing the app's dash-prefixed
+        # arguments as its own options (first hardware attempt failed on
+        # every launch; simctl passes trailing args, devicectl does not)
         r = sh(["xcrun", "devicectl", "device", "process", "launch",
-                "--terminate-existing", "--device", self.udid, IOS_BUNDLE,
-                "-phyphoxUrl", url, "-phyphoxRemote",
-                "-phyphoxRemotePort", "80", "-phyphoxAutoConfirm"],
+                "--terminate-existing", "--device", self.udid, "--",
+                IOS_BUNDLE] + extra
+               + ["-phyphoxRemote", "-phyphoxRemotePort", "80",
+                  "-phyphoxAutoConfirm"],
                timeout=60)
+        self.last_error = (r.stderr or r.stdout or "").strip()[-300:]
         return r.returncode == 0
 
     def stop_app(self):
@@ -161,12 +169,7 @@ class IOSDevice:
         return getattr(self, "host_ip", None) or "HOST-IP-UNSET"
 
     def open_url(self, phyphox_url):
-        r = sh(["xcrun", "devicectl", "device", "process", "launch",
-                "--terminate-existing", "--device", self.udid, IOS_BUNDLE,
-                "-phyphoxUrl", phyphox_url, "-phyphoxRemote",
-                "-phyphoxRemotePort", "80", "-phyphoxAutoConfirm"],
-               timeout=60)
-        return r.returncode == 0
+        return self._launch_args(["-phyphoxUrl", phyphox_url])
 
     def set_media_volume_max(self):
         pass  # no CLI path; the unlock-once checklist sets the volume

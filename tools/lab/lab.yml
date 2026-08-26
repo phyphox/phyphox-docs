@@ -9,11 +9,11 @@ hosts:
     aapt: aapt                # or the full path into Android build-tools
     artifacts:                # optional: enables the languages release check
       android: /home/dicon/phyphox/git/phyphox-android/app/regular/release/phyphox-release.apk
-      ios: /path/to/phyphox.ipa
+      ios: /Users/sebastianstaacks/phyphox.ipa
     devices:
       iphone-14-pro: {platform: ios, serial: "00008120-001C31520EC0C01E", port: 8081}
-      iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
-      ipad-pro:      {platform: ios, serial: "UDID-HERE", port: 8083}
+      iphone-8:      {platform: ios, serial: "abff2ed0b2ee61af08467e4381063a5e45da4ad0", port: 8082}
+      ipad-pro:      {platform: ios, serial: "00008103-0015196202A3001E", port: 8083}
       pixel-9-pro:   {platform: android, serial: "53291FDAP0026B", port: 8091}
       pixel-3:       {platform: android, serial: "8C5X1J8JL", port: 8092}
       nexus-5x:      {platform: android, serial: "025e9f6567c4d0e5", port: 8093}
