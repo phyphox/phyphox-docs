@@ -89,3 +89,51 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: container-traversal-entry
+  title: What a path-traversal entry in a container does
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Refuses the WHOLE archive: the canonical-path check in
+      ZipIntentHandler returns a security error, so nothing is extracted
+      and nothing opens, however many legitimate entries the archive
+      also holds.
+    ios: >-
+      Skips the offending ENTRY and proceeds: containerEntryDestination
+      returns nil, the loop continues, and the remaining entries are
+      extracted and opened normally
+      (ExperimentsCollectionViewController, extractContainer).
+  summary: >-
+    Both platforms refuse to write outside the extraction directory - the
+    guard itself is sound on both (iOS gained one 2026-08-26) - but they
+    disagree on the blast radius: Android treats a tampered archive as
+    untrustworthy as a whole and refuses it, iOS drops the bad entry and
+    opens the rest. Found 2026-08-26 when the two container test suites,
+    written in parallel from the same contract, pinned opposite outcomes.
+    Which is right is a security-posture decision: refusing everything is
+    the conservative reading (an archive with a traversal entry is
+    evidence of tampering), tolerating the rest is the forgiving one.
+
+- id: partial-zip-intake-scope
+  title: Where a partial zip is accepted from
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Only from the QR scanner and the Bluetooth experiment transfer
+      (ExperimentListActivity's QR path, BluetoothExperimentLoader).
+      A partial zip arriving as a local file or download is not
+      recognized - handleIntent sniffs only the PK\x03\x04 of a real zip.
+    ios: >-
+      From any route: detectFileType classifies any local file or
+      downloaded URL by its trailing PK\x07\x08 signature and
+      launchExperimentByURL routes it to handlePartialZipFile.
+  summary: >-
+    The headerless partial zip is the compact form QR codes and BLE
+    transfers carry. iOS accepts it from any source, Android only from
+    those two paths - so a .bin saved from a QR code and opened from the
+    file manager works on iOS and fails on Android. Found 2026-08-26
+    while comparing the two container test suites; neither platform has
+    a test covering the file-manager route.

@@ -12,11 +12,16 @@ transfers carry. This script builds each form deterministically:
     traversal.zip         a normal entry plus ../evil.phyphox - the
                           handlers must REJECT the traversal entry (a
                           security pin; Android's ZipIntentHandler guard)
-    partial.bin           container-a as a single raw-deflate stream with
+    partial.bin           container-a as a single STORED entry with
                           a trailing data descriptor (PK\\x07\\x08 + crc +
                           sizes), no local file header, no central
                           directory - the QR/BLE form both apps rebuild a
-                          zip around
+                          zip around. STORED, not deflated: both apps
+                          synthesize a local header with compression
+                          method 0 and the editor's offlineQrCode.ts
+                          writes STORE, so a deflated payload loads
+                          nowhere (this fixture had it wrong until
+                          2026-08-26)
 
 tools/hooks.py verifies the built artifacts against src/ content-wise on
 every docs build (byte-exact zip reproducibility across zlib builds is
@@ -78,9 +83,9 @@ def build(out_dir=CDIR):
         zwrite(z, "container-a.phyphox", a)
         zwrite(z, "../evil.phyphox", b)
 
-    # the partial zip: raw deflate stream + data descriptor, nothing else
-    comp = zlib.compressobj(9, zlib.DEFLATED, -15)
-    stream = comp.compress(a) + comp.flush()
+    # the partial zip: a STORED payload plus the data descriptor, matching
+    # what the apps rebuild (method 0) and what the editor emits
+    stream = a
     descriptor = (b"PK\x07\x08"
                   + struct.pack("<III", zlib.crc32(a) & 0xffffffff,
                                 len(stream), len(a)))
@@ -115,7 +120,7 @@ def check():
             problems.append("partial.bin: no trailing data descriptor")
         else:
             crc, csize, usize = struct.unpack("<III", blob[-12:])
-            data = zlib.decompress(blob[:-16], -15)
+            data = blob[:-16]          # stored: the payload IS the file
             if (len(blob) - 16 != csize or len(data) != usize
                     or zlib.crc32(data) & 0xffffffff != crc
                     or data != read_src("container-a.phyphox")):

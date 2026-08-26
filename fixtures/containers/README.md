@@ -16,13 +16,22 @@ not a lenient unzip):
   chooser path offers both; each loads.
 - `with-resource.zip` - the experiment loads and its resource is
   available to the image element.
-- `traversal.zip` - the `../evil.phyphox` entry is REJECTED and nothing
-  is written outside the extraction directory; the legitimate entry
-  still works. This is a security pin (Android's ZipIntentHandler
-  guard; iOS must match).
-- `partial.bin` - the headerless deflate-plus-descriptor form is
+- `traversal.zip` - nothing is written outside the extraction
+  directory. That much is contract on both platforms; what happens
+  BEYOND it is not yet decided - Android refuses the whole archive,
+  iOS skips the entry and opens the rest
+  (`container-traversal-entry`, open). Each platform's test pins its
+  own current behavior until the maintainer rules; do not read this
+  line as requiring either. The guard itself is the security pin.
+- `partial.bin` - the headerless STORED-plus-descriptor form is
   detected by its trailing PK\x07\x08 signature, rebuilt into a zip and
-  loads as container-a. This is the QR/BLE delivery path.
+  loads as container-a. This is the QR/BLE delivery path. Stored, not
+  deflated: both apps synthesize a local header with compression
+  method 0, so a deflated payload loads nowhere - the fixture carried
+  one until 2026-08-26 and both app suites had to hand-build their own
+  payload; with the corrected fixture they can consume it directly.
+  Note the routes differ (`partial-zip-intake-scope`, open): Android
+  accepts this form only from QR/BLE, iOS from any source.
 
 ## `save-to-collection` (T1)
 
