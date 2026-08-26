@@ -8,7 +8,7 @@ hosts:
     host_ip: 192.168.2.195    # how iOS devices reach this host's fixture server
     aapt: aapt                # or the full path into Android build-tools
     artifacts:                # optional: enables the languages release check
-      android: /home/dicon/phyphox/git/phyphox-android/app/regular/release/phyphox-release.apk
+      android: ../phyphox-android/app/regular/release/phyphox-release.apk
       ios: /Users/sebastianstaacks/phyphox.ipa
     devices:
       iphone-14-pro: {platform: ios, serial: "00008120-001C31520EC0C01E", port: 8181}

@@ -364,15 +364,30 @@ def run_experiment(dev, base, rel, path, args):
     api(base, "/control?cmd=stop")
 
     if buffers:
-        q = "&".join(urllib.parse.quote(b) + "=full" for b in buffers)
-        status, body = api(base, "/get?" + q, timeout=20)
+        # WITHOUT "=full": the single-value form answers with each
+        # buffer's last value, which is all this check needs (a buffer
+        # that produced data has a non-null last value). Asking for the
+        # full contents of every buffer moves megabytes for an audio
+        # experiment and simply never completed on the Galaxy A3
+        # (doppler: no answer in 60 s, while /config answered in 20 ms)
+        # - the value of knowing WHICH buffers filled does not justify
+        # downloading all of them. Caveat: a buffer holding only NaN
+        # reads as not filled, since /get sends non-finite values as
+        # null; that only ever relaxes an export row requirement.
+        q = "&".join(urllib.parse.quote(b) + "=" for b in buffers)
+        status, body = api(base, "/get?" + q, timeout=30)
         if status == 200:
             try:
                 got = json.loads(body).get("buffer", {})
                 result["filled"] = sorted(
-                    n for n, v in got.items() if v.get("buffer"))
+                    n for n, v in got.items()
+                    if any(x is not None for x in (v.get("buffer") or [])))
             except Exception:
                 result["errors"].append("/get unparsable")
+        else:
+            result["errors"].append(
+                f"/get did not answer (status {status}) - the device may be "
+                f"too slow for this experiment's data volume")
 
     sets = validate_export.export_sets(path)
     if sets:
@@ -384,9 +399,14 @@ def run_experiment(dev, base, rel, path, args):
         result["no_stimulus_sets"] = sorted(
             name for name, _cols, _bufs in sets if name not in rows_for)
         for fmt in FORMATS:
-            status, body = api(base, f"/export?format={fmt}", timeout=30)
+            status, body = api(base, f"/export?format={fmt}",
+                               timeout=args.export_timeout)
             if status != 200:
-                result["exports"][fmt] = [f"status {status}"]
+                result["exports"][fmt] = [
+                    f"no export: status {status}"
+                    + (f" (no answer within {args.export_timeout:.0f}s - "
+                       f"raise --export-timeout if this device is simply "
+                       f"slow)" if status is None else "")]
                 continue
             problems = validate_export.validate(
                 body, sets, fmt, require_rows=args.require_rows,
@@ -428,6 +448,9 @@ def main():
                     help="only experiments whose path starts with this")
     ap.add_argument("--seconds", type=float, default=10.0)
     ap.add_argument("--api-wait", type=float, default=15.0)
+    ap.add_argument("--export-timeout", type=float, default=120.0,
+                    help="seconds to wait for one export; old devices need "
+                         "far longer than an emulator for a large dataset")
     ap.add_argument("--emulator", action="store_true",
                     help="inject sensor values via the emulator console")
     ap.add_argument("--require-rows", action="store_true",
