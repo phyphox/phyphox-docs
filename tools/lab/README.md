@@ -6,8 +6,16 @@ language check, on the seven lab phones - split-host capable, one entry
 point, JSON per host, merged report.
 
     cp lab.yml.example lab.yml       # local: serials, host address, artifacts
-    python3 tools/lab/run.py --config tools/lab/lab.yml --host macbook
-    python3 tools/lab/run.py --merge lab-results/
+    python3 tools/lab/run.py --config tools/lab/lab.yml --host macbook \
+        --out /home/dicon/phyphox/lab-results
+    python3 tools/lab/run.py --merge /home/dicon/phyphox/lab-results
+
+**Both hosts must write into the SAME directory** for the merge to see
+them - the working root syncs between the machines, so a path inside it
+works for both. `--merge` writes `merged.json` (everything) and
+`merged.md` (the readable summary: one line per device and suite,
+findings collapsed by repetition, the language gate last) and exits
+non-zero if any suite failed.
 
 The split: the MacBook can run everything; or the Linux machine runs the
 Android devices (`--host linuxbox`) while the MacBook runs iOS - each

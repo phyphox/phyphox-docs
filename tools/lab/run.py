@@ -72,6 +72,59 @@ def serve_fixtures(port):
     return srv
 
 
+def _summarize(merged):
+    """The merged run as something a human reads: one line per device and
+    suite, findings and warnings underneath, the language gate last. The
+    JSON keeps everything; this is what tells you whether to ship."""
+    lines = ["# Device lab run", ""]
+    total = {"ok": 0, "fail": 0, "warn": 0}
+    for host, data in sorted(merged.get("hosts", {}).items()):
+        lines.append(f"## {host}")
+        for dev_id, suites in sorted((data.get("devices") or {}).items()):
+            if not suites:
+                lines.append(f"- **{dev_id}**: no suite ran")
+                continue
+            states = []
+            for name, r in sorted(suites.items()):
+                ok = r.get("passed")
+                states.append(f"{name} {'ok' if ok else 'FAIL'}")
+                total["ok" if ok else "fail"] += 1
+            lines.append(f"- **{dev_id}**: " + ", ".join(states))
+            for name, r in sorted(suites.items()):
+                # collapse repeats: a sweep that fails the same way for
+                # every experiment must not bury the run in 39 identical
+                # lines (the report is read by a human deciding whether
+                # to ship)
+                for mark, key in (("!!", "findings"), ("~", "warnings")):
+                    seen = {}
+                    for item in r.get(key) or []:
+                        text = str(item).lstrip("! ").strip()
+                        seen[text] = seen.get(text, 0) + 1
+                        if key == "warnings":
+                            total["warn"] += 1
+                    for text, n in seen.items():
+                        lines.append(f"    - {mark} {name}: {text}"
+                                     + (f"  (x{n})" if n > 1 else ""))
+        for platform, r in sorted((data.get("languages") or {}).items()):
+            if r.get("skipped"):
+                lines.append(f"- languages[{platform}]: skipped "
+                             f"({r['skipped']})")
+            elif r.get("passed"):
+                n = len((r.get("details") or {}).get("locales") or [])
+                lines.append(f"- languages[{platform}]: ok ({n} locales "
+                             f"match the canonical list)")
+            else:
+                lines.append(f"- languages[{platform}]: FAIL")
+                for f in r.get("findings") or []:
+                    lines.append(f"    - !! {f}")
+        lines.append("")
+    lines.append(f"**{total['ok']} suite(s) passed, {total['fail']} failed, "
+                 f"{total['warn']} warning(s).** Warnings are bench "
+                 f"conditions (sensor plausibility), never failures - see "
+                 f"tools/lab/README.md.")
+    return "\n".join(lines) + "\n"
+
+
 def make_device(entry, host_cfg):
     if entry["platform"] == "android":
         return AndroidDevice(entry["serial"], entry.get("port", 8080))
@@ -152,7 +205,12 @@ def main():
         out = os.path.join(args.merge, "merged.json")
         with open(out, "w") as f:
             json.dump(merged, f, indent=1)
-        print(f"{failures} failing suite(s) -> {out}")
+        report = _summarize(merged)
+        report_path = os.path.join(args.merge, "merged.md")
+        with open(report_path, "w") as f:
+            f.write(report)
+        print(report)
+        print(f"{failures} failing suite(s) -> {out}, {report_path}")
         return 1 if failures else 0
 
     with open(args.config) as f:
