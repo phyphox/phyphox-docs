@@ -158,11 +158,27 @@ def run_audio_suite(dev, args):
                 "findings": ["remote API not reachable after loading the fixture"],
                 "details": det}
     api(dev.base, "/control?cmd=start")
-    time.sleep(6)
+    # poll instead of a fixed window: on iOS hardware the audio session
+    # can take seconds to warm up after a remote start (route/session
+    # negotiation), and the time to the first result is itself a datum -
+    # a device that NEVER yields while the tone is audibly playing is a
+    # real finding, a slow one just needs patience
+    deadline = time.time() + max(3 * args.seconds, 20)
+    t0 = time.time()
+    bufs = None
+    while time.time() < deadline:
+        time.sleep(0.5)
+        bufs = _get_buffers(dev.base, ["peakfreq", "level", "achievedrate"])
+        if bufs and _finite(bufs.get("peakfreq") or []):
+            det["time_to_result"] = round(time.time() - t0, 1)
+            break
     api(dev.base, "/control?cmd=stop")
-    bufs = _get_buffers(dev.base, ["peakfreq", "level", "achievedrate"])
     if not bufs or not _finite(bufs.get("peakfreq") or []):
-        return {"passed": False, "findings": ["no analysis result"],
+        return {"passed": False,
+                "findings": [f"no analysis result within "
+                             f"{max(3 * args.seconds, 20):.0f}s (tone "
+                             f"audible? see time_to_result on passing "
+                             f"devices)"],
                 "details": det}
     peak = _finite(bufs["peakfreq"])[-1]
     level = _finite(bufs.get("level") or [0])[-1]

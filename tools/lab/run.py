@@ -165,46 +165,53 @@ def main():
 
     srv = serve_fixtures(args.fixture_port)
     report = {"host": args.host, "devices": {}}
+    # SUITE-MAJOR order: every device runs the sensors suite before any
+    # device starts the next suite, so the first-run dialogs of a suite
+    # (local network, microphone, camera) cluster at its start and the
+    # operator can leave once a suite's first pass is through, instead
+    # of supervising every device separately (maintainer, 2026-08-26)
+    devices = []
+    for dev_id, entry in (host_cfg.get("devices") or {}).items():
+        if wanted and dev_id not in wanted:
+            continue
+        if args.platform and entry["platform"] != args.platform:
+            continue
+        dev = make_device(entry, host_cfg)
+        dev.prepare(fixture_port=args.fixture_port)
+        devices.append((dev_id, entry, dev))
+        report["devices"][dev_id] = {}
     try:
-        for dev_id, entry in (host_cfg.get("devices") or {}).items():
-            if wanted and dev_id not in wanted:
-                continue
-            if args.platform and entry["platform"] != args.platform:
-                continue
-            print(f"== {dev_id} ({entry['platform']} {entry['serial']})")
-            dev = make_device(entry, host_cfg)
-            dev.prepare(fixture_port=args.fixture_port)
-            try:
+        if args.record_manifest:
+            for dev_id, entry, dev in devices:
                 if args.record_manifest == dev_id:
                     record_manifest(dev, dev_id, args)
-                    continue
-                result = {}
-                manifest_path = os.path.join(HERE, "devices", f"{dev_id}.yml")
-                for suite in args.suites.split(","):
-                    if suite == "sensors":
-                        if not os.path.exists(manifest_path):
-                            result["sensors"] = {
-                                "passed": False,
-                                "findings": [f"no manifest devices/{dev_id}.yml "
-                                             f"- run --record-manifest first"]}
-                            continue
+        else:
+          for suite in args.suites.split(","):
+            for dev_id, entry, dev in devices:
+                print(f"== {suite} @ {dev_id} ({entry['platform']})")
+                r = None
+                if suite == "sensors":
+                    manifest_path = os.path.join(HERE, "devices",
+                                                 f"{dev_id}.yml")
+                    if not os.path.exists(manifest_path):
+                        r = {"passed": False,
+                             "findings": [f"no manifest devices/{dev_id}.yml"
+                                          f" - run --record-manifest first"]}
+                    else:
                         with open(manifest_path) as f:
                             manifest = yaml.safe_load(f)
-                        result["sensors"] = suites.run_sensor_suite(
-                            dev, manifest, args)
-                    elif suite == "audio":
-                        result["audio"] = suites.run_audio_suite(dev, args)
-                    elif suite == "experiments":
-                        result["experiments"] = suites.run_experiments_suite(
-                            dev, args)
-                for r_name, r in result.items():
-                    state = "ok" if r.get("passed") else "FAIL"
-                    print(f"   {r_name}: {state}"
-                          + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
-                          + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
-                report["devices"][dev_id] = result
-            finally:
-                dev.cleanup()
+                        r = suites.run_sensor_suite(dev, manifest, args)
+                elif suite == "audio":
+                    r = suites.run_audio_suite(dev, args)
+                elif suite == "experiments":
+                    r = suites.run_experiments_suite(dev, args)
+                if r is None:
+                    continue
+                report["devices"][dev_id][suite] = r
+                state = "ok" if r.get("passed") else "FAIL"
+                print(f"   {state}"
+                      + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
+                      + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
         art = host_cfg.get("artifacts") or {}
         for platform, path in art.items():
             r = suites.run_languages_suite(platform, path,
@@ -215,6 +222,8 @@ def main():
             print(f"   languages[{platform}]: {state}"
                   + ("".join(f"\n      ! {x}" for x in r.get("findings", []))))
     finally:
+        for _dev_id, _entry, dev in devices:
+            dev.cleanup()
         srv.shutdown()
 
     out = os.path.join(args.out_dir, f"{args.host}.json")
