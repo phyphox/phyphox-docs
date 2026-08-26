@@ -333,11 +333,18 @@ class ToolMissing(Exception):
     pass
 
 
-def run_languages_suite(platform, artifact, aapt="aapt"):
-    """FAILS on canonical-list mismatch - the T2 semantics. A missing
-    tool or artifact SKIPS with a notice (passed: None) instead of
-    aborting the run: one misconfigured lab.yml line must not kill the
-    device suites that were fine."""
+def run_languages_suite(platform, artifact, aapt="aapt", release=True):
+    """FAILS on canonical-list mismatch - the T2 release semantics. A
+    missing tool or artifact SKIPS with a notice (passed: None) instead
+    of aborting the run: one misconfigured lab.yml line must not kill
+    the device suites that were fine.
+
+    release=False marks an artifact that is NOT a release candidate (a
+    development or test build). The comparison still runs and its result
+    is reported, but a mismatch is information rather than a failure -
+    a test build legitimately carries the locales that are testing-only,
+    and a check that is red by design every single run teaches everyone
+    to ignore red. The gate keeps its teeth exactly where it matters."""
     if not os.path.exists(artifact):
         return {"passed": None,
                 "skipped": f"artifact not found: {artifact}", "details": {}}
@@ -357,6 +364,13 @@ def run_languages_suite(platform, artifact, aapt="aapt"):
         findings.append(f"missing from the artifact: {', '.join(missing)}")
     if extra:
         findings.append(f"in the artifact but not canonical: {', '.join(extra)}"
-                        " (a testing locale left in a release build?)")
-    return {"passed": not findings, "findings": findings,
-            "details": {"artifact": artifact, "locales": sorted(got)}}
+                        + (" (a testing locale left in a release build?)"
+                           if release else ""))
+    details = {"artifact": artifact, "locales": sorted(got),
+               "release": release}
+    if findings and not release:
+        return {"passed": True, "findings": [],
+                "warnings": [f"not a release artifact, so this is "
+                             f"information only: {'; '.join(findings)}"],
+                "details": details}
+    return {"passed": not findings, "findings": findings, "details": details}

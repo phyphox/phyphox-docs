@@ -66,6 +66,14 @@ pre-grants via pm grant.)
   failing the run). aapt is discovered in the usual SDK locations, so
   the Android host normally needs no `aapt:` entry.
 
+  A bare path means a RELEASE candidate and a mismatch fails. For a
+  development build write `{path: ..., release: false}`: the comparison
+  still runs and its result is reported as a warning, but it does not
+  fail the run - a test build legitimately carries the testing-only
+  locales, and a check that is red by design every run teaches everyone
+  to ignore red. Point the entry at a release artifact (or drop the
+  flag) and the gate has its teeth back.
+
 ## Per-device sensor manifests
 
 `devices/<id>.yml`, committed - the expected truth per lab phone. First

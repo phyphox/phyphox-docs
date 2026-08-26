@@ -289,15 +289,22 @@ def main():
         # phyphox-docs root and the working root above it - so one synced
         # config works from either host without anyone having to know
         # which directory the driver happened to start in
-        art = {p: _resolve_artifact(v, args.config) for p, v in art.items()}
-        for platform, path in art.items():
-            r = suites.run_languages_suite(platform, path,
-                                           aapt=host_cfg.get("aapt", "aapt"))
+        # an entry is either a bare path (a release candidate: a mismatch
+        # FAILS) or {path: ..., release: false} for a development build,
+        # where the comparison is reported but does not fail the run
+        art = {p: (v if isinstance(v, dict) else {"path": v})
+               for p, v in art.items()}
+        for platform, spec in art.items():
+            path = _resolve_artifact(spec["path"], args.config)
+            r = suites.run_languages_suite(
+                platform, path, aapt=host_cfg.get("aapt", "aapt"),
+                release=spec.get("release", True))
             report.setdefault("languages", {})[platform] = r
             state = ("skipped: " + r["skipped"] if r.get("skipped")
                      else "ok" if r["passed"] else "FAIL")
             print(f"   languages[{platform}]: {state}"
-                  + ("".join(f"\n      ! {x}" for x in r.get("findings", []))))
+                  + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
+                  + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
     finally:
         for _dev_id, _entry, dev in devices:
             dev.cleanup()

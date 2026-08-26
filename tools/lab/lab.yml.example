@@ -15,6 +15,10 @@ hosts:
       # automatically in the usual SDK locations; `aapt: /full/path`
       # overrides that.
       ios: /path/to/phyphox.ipa
+      # a bare path is a RELEASE candidate and a locale mismatch FAILS;
+      # for a development build write it as
+      #   android: {path: /path/to/dev.apk, release: false}
+      # and the comparison is reported without failing the run
     devices:
       iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081}
       iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
