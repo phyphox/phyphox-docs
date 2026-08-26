@@ -64,9 +64,19 @@ class _FixtureServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.server_name, self.server_port = "localhost", self.server_address[1]
 
 
+class _QuietFixtureHandler(http.server.SimpleHTTPRequestHandler):
+    """SimpleHTTPRequestHandler narrates every request to stderr, which
+    buries the run's own output - and it is not only one line per
+    fixture fetch: a phone that tries https against the port produces a
+    "Bad request version" wall of binary. The lab prints what the suites
+    find; the fixture server is plumbing."""
+
+    def log_message(self, *args):
+        pass
+
+
 def serve_fixtures(port):
-    handler = functools.partial(
-        http.server.SimpleHTTPRequestHandler, directory=FIXTURES)
+    handler = functools.partial(_QuietFixtureHandler, directory=FIXTURES)
     srv = _FixtureServer(("0.0.0.0", port), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv
@@ -211,6 +221,8 @@ def main():
                     host = json.load(f)
                 merged["hosts"][fn[:-5]] = host
                 for dev in host.get("devices", {}).values():
+                    if not dev:
+                        failures += 1      # recorded nothing: not a pass
                     for suite in dev.values():
                         if isinstance(suite, dict) and suite.get("passed") is False:
                             failures += 1
@@ -310,6 +322,11 @@ def main():
             dev.cleanup()
         srv.shutdown()
 
+    if args.record_manifest:
+        # recording a manifest is not a test run - writing a report full
+        # of empty device entries only invites reading it as a green run
+        print("manifest recorded; no run report written")
+        return 0
     out = os.path.join(args.out_dir, f"{args.host}.json")
     with open(out, "w") as f:
         json.dump(report, f, indent=1)
@@ -317,6 +334,16 @@ def main():
               for s in d.values() if s.get("passed") is False)
     bad += sum(1 for r in (report.get("languages") or {}).values()
                if r.get("passed") is False)
+    # a device that recorded NO suite result is not a pass: an empty
+    # report used to exit 0 and merge as green, which is the worst
+    # possible failure mode for a run someone reads to decide whether to
+    # ship (found 2026-08-27 in a report whose device entries were all
+    # empty)
+    empty = [d for d, suites in report["devices"].items() if not suites]
+    if empty:
+        print(f"\n!! no suite result recorded for: {', '.join(sorted(empty))}"
+              f" - check --suites")
+        bad += len(empty)
     print(f"\n{bad} failing suite(s) -> {out}")
     return 1 if bad else 0
 
