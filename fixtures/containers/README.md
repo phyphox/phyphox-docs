@@ -16,13 +16,11 @@ not a lenient unzip):
   chooser path offers both; each loads.
 - `with-resource.zip` - the experiment loads and its resource is
   available to the image element.
-- `traversal.zip` - nothing is written outside the extraction
-  directory. That much is contract on both platforms; what happens
-  BEYOND it is not yet decided - Android refuses the whole archive,
-  iOS skips the entry and opens the rest
-  (`container-traversal-entry`, open). Each platform's test pins its
-  own current behavior until the maintainer rules; do not read this
-  line as requiring either. The guard itself is the security pin.
+- `traversal.zip` - the whole archive is REFUSED: an entry pointing
+  outside the extraction directory is evidence of tampering, so nothing
+  is extracted and nothing opens, not even the legitimate entry (ruled
+  2026-08-26; iOS still salvages the rest - `container-traversal-entry`
+  - so its test pins the old behavior until it conforms).
 - `partial.bin` - the headerless STORED-plus-descriptor form is
   detected by its trailing PK\x07\x08 signature, rebuilt into a zip and
   loads as container-a. This is the QR/BLE delivery path. Stored, not
@@ -30,8 +28,11 @@ not a lenient unzip):
   method 0, so a deflated payload loads nowhere - the fixture carried
   one until 2026-08-26 and both app suites had to hand-build their own
   payload; with the corrected fixture they can consume it directly.
-  Note the routes differ (`partial-zip-intake-scope`, open): Android
-  accepts this form only from QR/BLE, iOS from any source.
+  The form is accepted ONLY from the QR scanner and the Bluetooth
+  transfer (ruled 2026-08-26 - those are the low-bandwidth paths that
+  justify it; elsewhere a file nobody can inspect or edit is the wrong
+  answer). A test opening it as a local file must assert the REFUSAL;
+  iOS still accepts it from any route (`partial-zip-intake-scope`).
 
 ## `save-to-collection` (T1)
 

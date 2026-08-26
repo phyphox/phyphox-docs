@@ -93,7 +93,13 @@
 - id: container-traversal-entry
   title: What a path-traversal entry in a container does
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Refuse the whole archive (decided 2026-08-26): an entry pointing
+    outside the extraction directory is evidence that the file was
+    tampered with, so nothing in it is trustworthy and none of it is
+    extracted or opened. Android conforms; iOS must stop salvaging the
+    remaining entries.
   affects:
     android: >-
       Refuses the WHOLE archive: the canonical-path check in
@@ -119,7 +125,15 @@
 - id: partial-zip-intake-scope
   title: Where a partial zip is accepted from
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Only from the QR scanner and the Bluetooth transfer (decided
+    2026-08-26). Those are low-bandwidth paths that justify the hack;
+    everywhere else it should be discouraged, because the resulting file
+    is not something most users can inspect or modify - a plain
+    .phyphox file or an ordinary zip serves every other route better.
+    Android conforms; iOS must stop accepting the form from arbitrary
+    files and downloads.
   affects:
     android: >-
       Only from the QR scanner and the Bluetooth experiment transfer

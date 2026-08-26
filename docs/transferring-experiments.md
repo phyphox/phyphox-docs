@@ -76,7 +76,9 @@ and
 
 followed by the raw data. As the CRC32 is calculated across the entire experiment, it is identical in all three codes and is used by the app to check if the codes belong to the same experiment.
 
-In practice, you should try to fit your experiment into a single QR code, so you should strip unnecessary tags and attributes from your phyphox XML file. Also, you can save a few more bytes if you do not include the entire zip file. If your zip file only contains a single experiment, you can leave out the local file header and the entire local directory. Just include our 13 byte header, followed by the compressed data and add a single data descriptor at the end. Phyphox will add a default local file header and a default local directory to extract and interpret the experiment file inside.
+In practice, you should try to fit your experiment into a single QR code, so you should strip unnecessary tags and attributes from your phyphox XML file. Also, you can save a few more bytes if you do not include the entire zip file. If your zip file only contains a single experiment, you can leave out the local file header and the entire local directory. Just include our 13 byte header, followed by the data and add a single data descriptor at the end. Phyphox will add a default local file header and a default local directory to extract and interpret the experiment file inside. Note that the entry has to be *stored* rather than deflated, because the header phyphox adds declares compression method 0.
+
+This shortened form is deliberately limited to the QR-code and Bluetooth routes, which are the low-bandwidth paths that justify it. Do not distribute it as a file: it is not something a recipient can inspect or modify with ordinary tools, and every other route is better served by a plain phyphox-file or an ordinary zip.
 
 ### Bluetooth device
 
