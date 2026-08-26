@@ -174,8 +174,8 @@ def run_audio_suite(dev, args):
             break
     if not bufs or not _finite(bufs.get("peakfreq") or []):
         # recovery probe: a stop/start revives a dropped analysis chain
-        # (the iOS pre-run swallows a start queued during its update -
-        # see the finding in the iOS TODO). If the retry yields results,
+        # (a start queued behind the open-time pre-run used to be dropped
+        # on iOS; fixed 2026-08-26). If the retry yields results,
         # that is the diagnosis - still a failure, but a named one.
         api(dev.base, "/control?cmd=stop")
         time.sleep(1.0)
@@ -193,9 +193,8 @@ def run_audio_suite(dev, args):
         if bufs and _finite(bufs.get("peakfreq") or []):
             return {"passed": False,
                     "findings": ["no result from the driver's start, but a "
-                                 "restart recovered the analysis loop - the "
-                                 "dropped-start race (see the iOS TODO), not "
-                                 "an audio problem"],
+                                 "restart recovered the analysis loop - a "
+                                 "dropped start, not an audio problem"],
                     "details": det}
         return {"passed": False,
                 "findings": [f"no analysis result within "

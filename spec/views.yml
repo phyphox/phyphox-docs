@@ -89,8 +89,8 @@ elements:
       # read it (PhyphoxFile.java, case "view", label only) and iOS parses
       # it into ViewCollectionDescriptor and drops it when building the
       # experiment (PhyphoxElementHandler.swift). Removed from the docs
-      # 2026-08-20 per maintainer ruling; the dead iOS parse is on the iOS
-      # TODO list.
+      # 2026-08-20 per maintainer ruling; the dead iOS parse is harmless
+      # (the value is dropped, never applied) and was left in place.
 
   # ------------------------------------------------------------------- info --
   - name: info
@@ -1161,8 +1161,12 @@ elements:
     attributes:
       - name: src
         description: >-
-          The file name of the image that should be displayed.
-          (Relative to the resource folder.)
+          The file name of the image that should be displayed,
+          relative to the experiment's resource folder. Images are
+          delivered in a `res` folder inside the zip the experiment
+          comes in, and the app copies them into a per-experiment folder
+          when the experiment is saved - see "Bundling images" in
+          transferring experiments.
         type: string
         required: true
         summary: >-

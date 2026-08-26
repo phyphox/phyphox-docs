@@ -943,8 +943,9 @@ elements:
         # A "wavelength" component existed here as part of a superseded
         # calibration draft. It never shipped in any release or beta - the
         # data picker replaced it - and was removed from the format on
-        # 2026-08-19. Android never accepted it; iOS still accepts (and never
-        # fills) the buffer, which is recorded as an iOS-TODO item.
+        # 2026-08-19. Android never accepted it; iOS still accepts (and
+        # never fills) the buffer - harmless, since nothing writes to it,
+        # and left alone deliberately rather than tracked as a divergence.
       agreement: agreed
       rules: [output-component-validation]
 

@@ -187,7 +187,15 @@ elements:
           gate, so the initialization pass (cycle 0) runs even while the
           required container is still empty - without the exemption most
           experiments using requireFill would never initialize. (Decided
-          2026-08-24.)
+          2026-08-24.) STOPPING does not exempt anything: the passes
+          that run while an experiment is paused are gated like any
+          other. Both platforms had this wrong in opposite ways and both
+          were corrected 2026-08-26 - the exemption is armed by opening
+          and by starting, never by stopping. It matters because a
+          paused pass runs with the inputs already consumed: exempting
+          it lets the modules clear their outputs, which destroyed the
+          recorded results of an audio experiment as soon as anything
+          read them over the remote interface.
         agreement: agreed
       - name: requireFillThreshold
         type: integer

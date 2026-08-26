@@ -422,6 +422,19 @@ paths:
         The export sets and their column labels are fixed by the experiment; see
         `/config`.
 
+        Exporting a **running** experiment is allowed and returns a consistent
+        snapshot: the data is collected under the same lock the analysis and
+        sensor threads write through, once around all sets, so the sets agree
+        with each other and no set can be caught mid-update. Which moment the
+        snapshot represents is not specified - it is whatever the buffers held
+        when the export was served. Both apps had to be corrected to guarantee
+        this (2026-08-26): the unguarded version could return a set that was
+        empty or short while the others were complete, and on Android it could
+        fail the request outright.
+
+        The number of rows a set exports is that of its longest column, with
+        shorter columns padded with NaN - see the file format's export block.
+
         The format is selected by index into a fixed list, which is the same on
         both platforms:
 

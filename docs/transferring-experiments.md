@@ -14,6 +14,12 @@ The most basic experiment definition is a .phyphox file as described by our [phy
 
 Alternatively, you can place .phyphox-files in a zip file. Phyphox will list all phyphox-files found within a zip file and ask the user how to proceed. If only a single phyphox-file is found in the zip file, it is handled as if the phyphox-file was transferred directly. Zip files should be preferred for direct transfer or offline QR codes.
 
+### Bundling images
+
+A zip is also how an experiment brings its own images along. Put them in a folder called `res` next to the phyphox-file, and an [image view element](file-format/views/basics.md#view-element-image) reaches them by name — `src="pic.png"` for `res/pic.png`; that folder is the "resource folder" the image element's `src` is relative to. When the experiment is saved to the user's collection, the app copies those files into a per-experiment resource folder of its own, so the images stay with the experiment.
+
+Only `.phyphox` files and the contents of `res` are taken out of the archive; anything else in it is ignored. An entry whose path points outside the archive's own folder (a `../` in the name) is treated as tampering and the **whole** archive is refused, not just that entry.
+
 ## Transfer method
 
 ### Direct transfer
