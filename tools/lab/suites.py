@@ -227,6 +227,10 @@ def run_experiments_suite(dev, args):
            "--serial", getattr(dev, "serial", None) or dev.udid,
            "--port", str(dev.port), "--seconds", str(args.seconds),
            "--require-rows", "--out", out]
+    if dev.platform == "ios":
+        # lab devices are real hardware: devicectl, port 80 on the
+        # device, and the forward this handle already established
+        cmd += ["--ios-target", "device"]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
     findings = []
     if r.returncode != 0:

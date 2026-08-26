@@ -195,9 +195,15 @@ class Android:
 
 
 class IOS:
-    def __init__(self, udid, port):
+    """Simulator by default (what CI drives); --ios-target device switches
+    to devicectl for real hardware, where the app serves port 80 and the
+    host-side forward is set up by the caller (the lab driver's
+    IOSDevice.prepare) rather than here."""
+
+    def __init__(self, udid, port, target="simulator"):
         self.udid = udid or "booted"
         self.port = port
+        self.target = target
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
@@ -207,6 +213,15 @@ class IOS:
         # report a false ok. -phyphoxRemotePort keeps the served port and
         # the driver's base URL in step; -phyphoxAutoConfirm accepts the
         # dialogs a headless run cannot tap (network privacy).
+        if self.target == "device":
+            # hardware: devicectl needs "--" before the app's own
+            # dash-prefixed arguments, and the app serves port 80 there
+            r = sh(["xcrun", "devicectl", "device", "process", "launch",
+                    "--terminate-existing", "--device", self.udid, "--",
+                    IOS_BUNDLE, "-phyphoxUrl", url, "-phyphoxRemote",
+                    "-phyphoxRemotePort", "80", "-phyphoxAutoConfirm"],
+                   timeout=60)
+            return r.returncode == 0
         r = sh(["xcrun", "simctl", "launch", "--terminate-running-process",
                 self.udid, IOS_BUNDLE,
                 "-phyphoxUrl", url, "-phyphoxRemote",
@@ -218,6 +233,8 @@ class IOS:
         pass
 
     def stop_app(self):
+        if self.target == "device":
+            return          # --terminate-existing on launch
         sh(["xcrun", "simctl", "terminate", self.udid, IOS_BUNDLE])
 
     def inject(self, t):
@@ -285,16 +302,16 @@ def run_experiment(dev, base, rel, path, args):
         if elapsed is not None:
             elapsed += args.api_wait
     if elapsed is None:
-        if args.platform == "ios":
-            # the simulator lacks most sensors; the app declines the
-            # experiment ("sensor not available") and returns to the
-            # collection. That is the scoped iOS subset, not a failure -
-            # but a hung loadable experiment ends up here too, which is
-            # why the slow path above gets its own verdict.
-            result["not_loadable"] = True
-            return result
-        result["errors"].append("remote API not reachable (is remote access "
-                                "enabled for launched experiments?)")
+        # The app declines an experiment the target cannot run ("sensor
+        # not available") and returns to the collection, so no API comes
+        # up. That is scoping, not failure - on EITHER platform: the iOS
+        # simulator lacks most sensors, and a phone without depth
+        # hardware declines depth.phyphox just the same (Pixel 9 Pro,
+        # found by the lab 2026-08-26). It is only indistinguishable
+        # from a broken remote switch in the abstract - run_all() has
+        # the evidence and reclassifies afterwards, so this verdict is
+        # provisional.
+        result["not_loadable"] = True
         return result
     if elapsed > args.api_wait:
         result["slow_api"] = round(elapsed, 1)
@@ -373,6 +390,11 @@ def main():
     ap.add_argument("--require-rows", action="store_true",
                     help="an export set without rows is a finding")
     ap.add_argument("--include-bluetooth", action="store_true")
+    ap.add_argument("--ios-target", choices=["simulator", "device"],
+                    default="simulator",
+                    help="iOS only: simulator (simctl, the CI default) or "
+                         "device (devicectl; the caller provides the port "
+                         "forward)")
     ap.add_argument("--out", default="t1-results.json")
     args = ap.parse_args()
 
@@ -394,7 +416,7 @@ def main():
     if args.platform == "android":
         dev = Android(args.serial, args.port)
     else:
-        dev = IOS(args.serial, args.port)
+        dev = IOS(args.serial, args.port, args.ios_target)
     base = f"http://127.0.0.1:{args.port}"
 
     results, hard_failures = [], 0
@@ -402,6 +424,18 @@ def main():
         run_all(dev, base, collection, experiments, args, results)
     finally:
         dev.cleanup()
+
+    # Provisional not-loadable verdicts, judged with the whole run as
+    # evidence: if NOTHING reached the remote API, the switch or the
+    # forward is broken and every one of them is a real failure; if some
+    # experiments did, the app simply declined the others.
+    if not any(r.get("remote") for r in results):
+        for r in results:
+            if r.pop("not_loadable", None):
+                r["errors"].append(
+                    "remote API not reachable, and no experiment on this "
+                    "target reached it - remote-enable switch or port "
+                    "forward broken?")
     hard_failures = sum(
         1 for r in results
         if not r.get("skipped") and not r.get("not_loadable")
@@ -424,7 +458,8 @@ def run_all(dev, base, collection, experiments, args, results):
             print(f"   - skipped: {r['skipped']}")
             continue
         if r.get("not_loadable"):
-            print("   - not loadable on this target (simulator subset)")
+            print("   - not loadable on this target (the app declined it - "
+                  "hardware or simulator lacks what it needs)")
             continue
         if r.get("slow_api"):
             print(f"   ~ remote API answered late ({r['slow_api']} s) - "
