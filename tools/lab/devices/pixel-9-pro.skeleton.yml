@@ -1,0 +1,53 @@
+device: pixel-9-pro
+recorded: hand-finish this file into devices/pixel-9-pro.yml - see README
+experiments:
+  accelerometer.phyphox:
+  - accX
+  - accY
+  - accZ
+  - acc
+  - acc_time
+  gyroscope.phyphox:
+  - gyrX
+  - gyrY
+  - gyrZ
+  - gyr
+  - gyr_time
+  magnetometer.phyphox:
+  - mag_time
+  - magX
+  - magY
+  - magZ
+  - mag
+  - magAccuracy
+  pressure.phyphox:
+  - pressure
+  - p_time
+  light.phyphox:
+  - illum
+  - illum_time
+  gps.phyphox:
+  - lat
+  - lon
+  - z
+  - zwgs84
+  - v
+  - dir
+  - accuracy
+  - zAccuracy
+  - t
+  - status
+  - satellites
+  - countT
+  - d
+  - dist
+  - dnew
+  - countUpdated
+  - countUpdated+1
+  - subLat
+  - subLon
+  - dLat
+  - dLon
+  - startLat
+  - startLon
+  - diststart

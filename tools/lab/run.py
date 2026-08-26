@@ -74,8 +74,8 @@ def make_device(entry, host_cfg):
 def record_manifest(dev, dev_id, args):
     skeleton = {"device": dev_id, "recorded": "hand-finish this file into "
                 "devices/" + dev_id + ".yml - see README"}
-    status, body = api(dev.base, "/meta")
     exps = {}
+    status, body = None, b""  # /meta is read once an experiment serves the API
     for asset in CORE_EXPERIMENTS:
         if not dev.launch(asset):
             exps[asset] = "launch failed"
@@ -88,6 +88,8 @@ def record_manifest(dev, dev_id, args):
             exps[asset] = [b["name"] for b in json.loads(cfg).get("buffers", [])]
         except Exception:
             exps[asset] = "unparsable /config"
+        if status != 200:
+            status, body = api(dev.base, "/meta")
     skeleton["experiments"] = exps
     if status == 200:
         try:
