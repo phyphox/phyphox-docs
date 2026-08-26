@@ -5,13 +5,13 @@
 
 hosts:
   macbook:            # the default full set
-    host_ip: 192.168.2.50     # how iOS devices reach this host's fixture server
+    host_ip: 192.168.2.195    # how iOS devices reach this host's fixture server
     aapt: aapt                # or the full path into Android build-tools
     artifacts:                # optional: enables the languages release check
       android: /home/dicon/phyphox/git/phyphox-android/app/regular/release/phyphox-release.apk
       ios: /path/to/phyphox.ipa
     devices:
-      iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081}
+      iphone-14-pro: {platform: ios, serial: "00008120-001C31520EC0C01E", port: 8081}
       iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
       ipad-pro:      {platform: ios, serial: "UDID-HERE", port: 8083}
       pixel-9-pro:   {platform: android, serial: "53291FDAP0026B", port: 8091}

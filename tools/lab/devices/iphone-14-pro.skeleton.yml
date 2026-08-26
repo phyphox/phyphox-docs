@@ -1,0 +1,9 @@
+device: iphone-14-pro
+recorded: hand-finish this file into devices/iphone-14-pro.yml - see README
+experiments:
+  accelerometer.phyphox: launch failed
+  gyroscope.phyphox: launch failed
+  magnetometer.phyphox: launch failed
+  pressure.phyphox: launch failed
+  light.phyphox: launch failed
+  gps.phyphox: launch failed

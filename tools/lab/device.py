@@ -11,6 +11,7 @@ that needed fixing there is a finding for the docs session.
 """
 
 import subprocess
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -122,11 +123,19 @@ class IOSDevice:
     def prepare(self, fixture_port=None):
         self.fixture_port = fixture_port
         # forward local port -> device port 80 (the app's server on
-        # hardware). pymobiledevice3 is the portable choice; iproxy works
-        # too. UNVERIFIED on hardware.
+        # hardware). Invoked as a MODULE: a pip-installed console script
+        # not being on PATH is the normal state on macOS, and a missing
+        # binary in a background Popen would only surface later as an
+        # unreachable port (found on the first MacBook run, 2026-08-26).
+        try:
+            import pymobiledevice3  # noqa: F401 - presence check only
+        except ImportError:
+            raise SystemExit(
+                "pymobiledevice3 is not installed for this Python "
+                f"({sys.executable}) - pip install pymobiledevice3")
         self._forward = subprocess.Popen(
-            ["pymobiledevice3", "usbmux", "forward", str(self.port), "80",
-             "--serial", self.udid],
+            [sys.executable, "-m", "pymobiledevice3", "usbmux", "forward",
+             str(self.port), "80", "--serial", self.udid],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(1)
 
