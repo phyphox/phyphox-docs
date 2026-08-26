@@ -57,7 +57,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import validate_export
+import validate_export   # noqa: E402 - after the path insert
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 DEFAULT_COLLECTION = os.path.join(
@@ -204,6 +204,16 @@ class IOS:
         self.udid = udid or "booted"
         self.port = port
         self.target = target
+        self._hw = None
+        if target == "device":
+            # hardware launching lives in tools/lab/device.py, which
+            # already handles devicectl AND the pymobiledevice3 dvt
+            # fallback for iOS 16 devices that CoreDevice cannot see
+            # (the iPhone 8). Delegate rather than duplicate it - the
+            # first duplicate cost the whole iPhone 8 sweep. prepare()
+            # is NOT called: the caller owns the port forward.
+            from lab.device import IOSDevice
+            self._hw = IOSDevice(udid, port)
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
@@ -213,15 +223,8 @@ class IOS:
         # report a false ok. -phyphoxRemotePort keeps the served port and
         # the driver's base URL in step; -phyphoxAutoConfirm accepts the
         # dialogs a headless run cannot tap (network privacy).
-        if self.target == "device":
-            # hardware: devicectl needs "--" before the app's own
-            # dash-prefixed arguments, and the app serves port 80 there
-            r = sh(["xcrun", "devicectl", "device", "process", "launch",
-                    "--terminate-existing", "--device", self.udid, "--",
-                    IOS_BUNDLE, "-phyphoxUrl", url, "-phyphoxRemote",
-                    "-phyphoxRemotePort", "80", "-phyphoxAutoConfirm"],
-                   timeout=60)
-            return r.returncode == 0
+        if self._hw is not None:
+            return self._hw.launch(asset_path)
         r = sh(["xcrun", "simctl", "launch", "--terminate-running-process",
                 self.udid, IOS_BUNDLE,
                 "-phyphoxUrl", url, "-phyphoxRemote",
@@ -274,7 +277,12 @@ def run_experiment(dev, base, rel, path, args):
     if is_link_entry(path):
         result["skipped"] = "link entry (isLink), not a runnable experiment"
         return result
-    if args.platform == "ios" and uses_audio_input(path):
+    if (args.platform == "ios" and args.ios_target == "simulator"
+            and uses_audio_input(path)):
+        # simulator only: its AVAudioEngine input can abort the app. On
+        # real hardware the microphone works and these experiments are
+        # exactly the ones worth running (the lab skipped 11 of 40 for
+        # this reason until 2026-08-26)
         result["skipped"] = "audio input aborts the app on the simulator"
         return result
     # a fresh app per experiment: on Android a stacked Experiment activity
