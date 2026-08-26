@@ -222,8 +222,12 @@ def _canonical():
 
 
 def apk_locales(apk_path, aapt="aapt"):
-    r = subprocess.run([aapt, "dump", "badging", apk_path],
-                       capture_output=True, text=True, timeout=120)
+    try:
+        r = subprocess.run([aapt, "dump", "badging", apk_path],
+                           capture_output=True, text=True, timeout=120)
+    except FileNotFoundError:
+        raise ToolMissing(f"aapt not found ({aapt!r}) - name the full "
+                          f"build-tools path in lab.yml (aapt:)")
     m = re.search(r"locales:((?:\s+'[^']+')+)", r.stdout)
     if not m:
         return None
@@ -234,21 +238,44 @@ def apk_locales(apk_path, aapt="aapt"):
 
 
 def ipa_locales(ipa_path):
-    """The .lproj set of an .ipa (or a zipped .app / .xcarchive)."""
+    """The APP BUNDLE's own .lproj set from an .ipa (or a zipped .app /
+    .xcarchive) - the set the App Store derives supported languages from
+    and the set Bundle.main.localizations reports in the T0 row. Nested
+    bundles are deliberately excluded: phyphox.app/Settings.bundle
+    carries a larger translation set (40 lproj folders, 18 languages the
+    app does not enable) that belongs to the Weblate workflow - the
+    translation lives on a branch of the same repo - so it is there on
+    purpose and is not what this check is about; matching anywhere in
+    the archive over-counted exactly those (found on the first MacBook
+    run, 2026-08-26)."""
     out = set()
     with zipfile.ZipFile(ipa_path) as z:
         for entry in z.namelist():
-            m = re.search(r"([A-Za-z0-9_\-]+)\.lproj/", entry)
+            m = re.match(r"(?:Payload/)?[^/]+\.app/([A-Za-z0-9_\-]+)\.lproj/",
+                         entry)
             if m and m.group(1) != "Base":
                 out.add(IOS_LOCALE_MAP.get(m.group(1), m.group(1)))
     return out or None
 
 
+class ToolMissing(Exception):
+    pass
+
+
 def run_languages_suite(platform, artifact, aapt="aapt"):
-    """FAILS on canonical-list mismatch - the T2 semantics."""
+    """FAILS on canonical-list mismatch - the T2 semantics. A missing
+    tool or artifact SKIPS with a notice (passed: None) instead of
+    aborting the run: one misconfigured lab.yml line must not kill the
+    device suites that were fine."""
+    if not os.path.exists(artifact):
+        return {"passed": None,
+                "skipped": f"artifact not found: {artifact}", "details": {}}
+    try:
+        got = (apk_locales(artifact, aapt) if platform == "android"
+               else ipa_locales(artifact))
+    except ToolMissing as e:
+        return {"passed": None, "skipped": str(e), "details": {}}
     canonical = _canonical()[platform]
-    got = (apk_locales(artifact, aapt) if platform == "android"
-           else ipa_locales(artifact))
     if got is None:
         return {"passed": False,
                 "findings": [f"could not read the locale set from {artifact}"],

@@ -133,7 +133,7 @@ def main():
                 merged["hosts"][fn[:-5]] = host
                 for dev in host.get("devices", {}).values():
                     for suite in dev.values():
-                        if isinstance(suite, dict) and not suite.get("passed", True):
+                        if isinstance(suite, dict) and suite.get("passed") is False:
                             failures += 1
         merged["failed_suites"] = failures
         out = os.path.join(args.merge, "merged.json")
@@ -197,8 +197,9 @@ def main():
             r = suites.run_languages_suite(platform, path,
                                            aapt=host_cfg.get("aapt", "aapt"))
             report.setdefault("languages", {})[platform] = r
-            print(f"   languages[{platform}]: "
-                  + ("ok" if r["passed"] else "FAIL")
+            state = ("skipped: " + r["skipped"] if r.get("skipped")
+                     else "ok" if r["passed"] else "FAIL")
+            print(f"   languages[{platform}]: {state}"
                   + ("".join(f"\n      ! {x}" for x in r.get("findings", []))))
     finally:
         srv.shutdown()
@@ -207,9 +208,9 @@ def main():
     with open(out, "w") as f:
         json.dump(report, f, indent=1)
     bad = sum(1 for d in report["devices"].values()
-              for s in d.values() if not s.get("passed", True))
+              for s in d.values() if s.get("passed") is False)
     bad += sum(1 for r in (report.get("languages") or {}).values()
-               if not r.get("passed", True))
+               if r.get("passed") is False)
     print(f"\n{bad} failing suite(s) -> {out}")
     return 1 if bad else 0
 
