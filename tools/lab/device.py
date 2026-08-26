@@ -60,6 +60,21 @@ def wait_api(base, seconds, probe_timeout=2):
     return None
 
 
+
+def _claim_host_port(adb_serial_cmd, port):
+    """Evict any existing forward of this HOST port before binding it:
+    adb does not rebind a port owned by another device, so a stale
+    forward silently routes the driver to the wrong phone (cost a lab
+    run: host 8080 still pointed at the Pixel 3 while the Pixel 9 Pro
+    was being tested)."""
+    r = sh(["adb", "forward", "--list"])
+    for line in (r.stdout or "").splitlines():
+        parts = line.split()
+        if len(parts) >= 3 and parts[1] == f"tcp:{port}":
+            sh(["adb", "-s", parts[0], "forward", "--remove", f"tcp:{port}"])
+    sh(adb_serial_cmd + ["forward", f"tcp:{port}", "tcp:8080"])
+
+
 class AndroidDevice:
     platform = "android"
 
@@ -69,7 +84,7 @@ class AndroidDevice:
         self.adb = ["adb", "-s", serial]
 
     def prepare(self, fixture_port=None):
-        sh(self.adb + ["forward", f"tcp:{self.port}", "tcp:8080"])
+        _claim_host_port(self.adb, self.port)
         if fixture_port:
             # the phone reaches the host's fixture server at 127.0.0.1
             sh(self.adb + ["reverse", f"tcp:{fixture_port}",
