@@ -1,7 +1,6 @@
 # Pixel 3 - lab sensor truth. Hand-finished 2026-08-26 from the recorded
 # skeleton (all core experiments loaded, so all five sensors exist).
-# Rates are FIRST GUESSES with generous tolerance - tightened to measured
-# values after the first green run, like the Pixel 9 Pro's were.
+# Rates tightened to the first run's measured values (2026-08-26).
 device: pixel-3
 sensors:
   accelerometer:
@@ -9,28 +8,28 @@ sensors:
     value_buffers: [accX, accY, accZ]
     time_buffer: acc_time
     plausibility: magnitude9.81
-    rate: {expect: 400, tol: 0.6}
+    rate: {expect: 397, tol: 0.3}
     seconds: 8
   gyroscope:
     experiment: gyroscope.phyphox
     value_buffers: [gyrX, gyrY, gyrZ]
     time_buffer: gyr_time
     plausibility: near0
-    rate: {expect: 400, tol: 0.6}
+    rate: {expect: 397, tol: 0.3}
     seconds: 8
   magnetometer:
     experiment: magnetometer.phyphox
     value_buffers: [magX, magY, magZ]
     time_buffer: mag_time
     plausibility: earthfield
-    rate: {expect: 100, tol: 0.7}
+    rate: {expect: 100, tol: 0.3}
     seconds: 8
   pressure:
     experiment: pressure.phyphox
     value_buffers: [pressure]
     time_buffer: p_time
     plausibility: pressure
-    rate: {expect: 25, tol: 0.8}
+    rate: {expect: 25, tol: 0.4}
     seconds: 8
   light:
     experiment: light.phyphox

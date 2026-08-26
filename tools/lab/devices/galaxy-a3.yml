@@ -2,8 +2,7 @@
 # recorded skeleton: gyroscope.phyphox and pressure.phyphox LOADED, so
 # this is the 2017 model (SM-A320) with gyro and barometer - the load
 # probe, not /meta, is the presence truth (/meta lists the whole
-# vocabulary on every device). Rates are FIRST GUESSES with generous
-# tolerance - tightened after the first green run.
+# vocabulary on every device). Rates tightened to the first run's measured values (2026-08-26).
 device: galaxy-a3
 sensors:
   accelerometer:
@@ -11,28 +10,28 @@ sensors:
     value_buffers: [accX, accY, accZ]
     time_buffer: acc_time
     plausibility: magnitude9.81
-    rate: {expect: 200, tol: 0.8}
+    rate: {expect: 185, tol: 0.4}
     seconds: 8
   gyroscope:
     experiment: gyroscope.phyphox
     value_buffers: [gyrX, gyrY, gyrZ]
     time_buffer: gyr_time
     plausibility: near0
-    rate: {expect: 200, tol: 0.8}
+    rate: {expect: 193, tol: 0.4}
     seconds: 8
   magnetometer:
     experiment: magnetometer.phyphox
     value_buffers: [magX, magY, magZ]
     time_buffer: mag_time
     plausibility: earthfield
-    rate: {expect: 100, tol: 0.8}
+    rate: {expect: 100, tol: 0.4}
     seconds: 8
   pressure:
     experiment: pressure.phyphox
     value_buffers: [pressure]
     time_buffer: p_time
     plausibility: pressure
-    rate: {expect: 25, tol: 0.9}
+    rate: {expect: 5.5, tol: 0.6}
     seconds: 8
   light:
     experiment: light.phyphox
