@@ -1,0 +1,44 @@
+# Galaxy A3 - lab sensor truth. Hand-finished 2026-08-26 from the
+# recorded skeleton: gyroscope.phyphox and pressure.phyphox LOADED, so
+# this is the 2017 model (SM-A320) with gyro and barometer - the load
+# probe, not /meta, is the presence truth (/meta lists the whole
+# vocabulary on every device). Rates are FIRST GUESSES with generous
+# tolerance - tightened after the first green run.
+device: galaxy-a3
+sensors:
+  accelerometer:
+    experiment: accelerometer.phyphox
+    value_buffers: [accX, accY, accZ]
+    time_buffer: acc_time
+    plausibility: magnitude9.81
+    rate: {expect: 200, tol: 0.8}
+    seconds: 8
+  gyroscope:
+    experiment: gyroscope.phyphox
+    value_buffers: [gyrX, gyrY, gyrZ]
+    time_buffer: gyr_time
+    plausibility: near0
+    rate: {expect: 200, tol: 0.8}
+    seconds: 8
+  magnetometer:
+    experiment: magnetometer.phyphox
+    value_buffers: [magX, magY, magZ]
+    time_buffer: mag_time
+    plausibility: earthfield
+    rate: {expect: 100, tol: 0.8}
+    seconds: 8
+  pressure:
+    experiment: pressure.phyphox
+    value_buffers: [pressure]
+    time_buffer: p_time
+    plausibility: pressure
+    rate: {expect: 25, tol: 0.9}
+    seconds: 8
+  light:
+    experiment: light.phyphox
+    value_buffers: [illum]
+    time_buffer: illum_time
+    plausibility: positive
+    seconds: 8
+gps:
+  experiment: gps.phyphox

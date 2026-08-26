@@ -1,5 +1,5 @@
-device: pixel-9-pro
-recorded: hand-finish this file into devices/pixel-9-pro.yml - see README
+device: pixel-3
+recorded: hand-finish this file into devices/pixel-3.yml - see README
 experiments:
   accelerometer.phyphox:
   - accX
