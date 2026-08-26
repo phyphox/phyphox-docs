@@ -6,9 +6,14 @@
 hosts:
   macbook:            # the default full set
     host_ip: 192.168.2.50     # how iOS devices reach this host's fixture server
-    aapt: aapt                # or the full path into Android build-tools
     artifacts:                # optional: enables the languages release check
-      android: /path/to/phyphox-release.apk
+      # Each artifact belongs on a host that can READ it: the .ipa needs
+      # nothing special, the .apk needs aapt from the Android SDK. A
+      # MacBook that only drives iPhones has no SDK, so putting
+      # artifacts.android here just skips with a notice - give it to the
+      # host that builds Android instead. aapt itself is found
+      # automatically in the usual SDK locations; `aapt: /full/path`
+      # overrides that.
       ios: /path/to/phyphox.ipa
     devices:
       iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081}
@@ -20,7 +25,9 @@ hosts:
       galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}
 
   linuxbox:           # the split: Android (+ boards, phase 6) here,
-    devices:          # iOS stays with the MacBook
+    artifacts:        # iOS stays with the MacBook
+      android: /path/to/phyphox-release.apk   # the SDK lives here
+    devices:
       pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091}
       pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
       nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}

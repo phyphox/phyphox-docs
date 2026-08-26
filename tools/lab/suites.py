@@ -264,13 +264,41 @@ def _canonical():
     return per_platform
 
 
+def find_aapt(configured="aapt"):
+    """The configured name first, then the usual SDK locations - so the
+    host with the Android SDK needs no lab.yml entry, and the host
+    without one (a MacBook that only drives iPhones) gets a skip naming
+    the fix rather than a path to hardcode."""
+    import glob
+    import shutil
+    if shutil.which(configured):
+        return configured
+    if os.path.isfile(configured):
+        return configured
+    roots = [os.environ.get("ANDROID_HOME"),
+             os.environ.get("ANDROID_SDK_ROOT"),
+             os.path.expanduser("~/Android/Sdk"),
+             os.path.expanduser("~/Library/Android/sdk"),
+             "/opt/android-sdk", "/usr/lib/android-sdk"]
+    found = []
+    for root in filter(None, roots):
+        found += glob.glob(os.path.join(root, "build-tools", "*", "aapt"))
+    return sorted(found)[-1] if found else None
+
+
 def apk_locales(apk_path, aapt="aapt"):
+    resolved = find_aapt(aapt)
+    if resolved is None:
+        raise ToolMissing(
+            "aapt not found (not on PATH and no Android SDK build-tools "
+            "in the usual places) - run the Android artifact check on the "
+            "host that has the SDK, i.e. put artifacts.android in that "
+            "host's lab.yml entry, or name the full path there as aapt:")
     try:
-        r = subprocess.run([aapt, "dump", "badging", apk_path],
+        r = subprocess.run([resolved, "dump", "badging", apk_path],
                            capture_output=True, text=True, timeout=120)
     except FileNotFoundError:
-        raise ToolMissing(f"aapt not found ({aapt!r}) - name the full "
-                          f"build-tools path in lab.yml (aapt:)")
+        raise ToolMissing(f"aapt not usable ({resolved!r})")
     m = re.search(r"locales:((?:\s+'[^']+')+)", r.stdout)
     if not m:
         return None

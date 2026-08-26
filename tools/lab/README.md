@@ -60,7 +60,11 @@ pre-grants via pm grant.)
   artifacts - the apk's `aapt dump badging` locales / the ipa's .lproj
   set against languages.yml. This is the release gate that makes a
   forgotten testing locale or missing language impossible; mismatch
-  FAILS.
+  FAILS. Put each artifact on a host that can read it: the `.ipa` needs
+  nothing, the `.apk` needs aapt from the Android SDK, which a MacBook
+  driving only iPhones does not have (it skips with a notice instead of
+  failing the run). aapt is discovered in the usual SDK locations, so
+  the Android host normally needs no `aapt:` entry.
 
 ## Per-device sensor manifests
 
