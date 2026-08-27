@@ -475,6 +475,11 @@ def main():
     ap.add_argument("--require-rows", action="store_true",
                     help="an export set without rows is a finding")
     ap.add_argument("--include-bluetooth", action="store_true")
+    ap.add_argument("--shard", metavar="I/N",
+                    help="run only shard I of N (1-based), so the sweep can "
+                         "be split across parallel CI jobs. Round-robin, so "
+                         "the shards are comparable in cost; deterministic, "
+                         "so a rerun of a shard covers the same files")
     ap.add_argument("--ios-target", choices=["simulator", "device"],
                     default="simulator",
                     help="iOS only: simulator (simctl, the CI default) or "
@@ -497,6 +502,26 @@ def main():
                 experiments.append(rel)
     if not experiments:
         sys.exit(f"no experiments under {collection}")
+
+    if args.shard:
+        try:
+            index, count = (int(x) for x in args.shard.split("/", 1))
+        except ValueError:
+            sys.exit("--shard takes i/n, e.g. 1/3")
+        if not 1 <= index <= count:
+            sys.exit(f"--shard {args.shard}: i must be within 1..n")
+        # round-robin, not contiguous blocks: the sweep's cost per
+        # experiment varies a lot (a camera experiment against a value
+        # display), and neighbouring paths tend to be similar, so
+        # interleaving balances the shards better than slicing does.
+        # Deterministic given the same collection, so a rerun of shard
+        # 2/3 covers exactly what it covered before.
+        experiments = [e for i, e in enumerate(experiments)
+                       if i % count == index - 1]
+        print(f"shard {index}/{count}: {len(experiments)} experiment(s)")
+        if not experiments:
+            sys.exit(f"shard {args.shard} is empty - fewer experiments "
+                     f"than shards?")
 
     if args.platform == "android":
         dev = Android(args.serial, args.port)

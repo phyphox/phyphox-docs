@@ -262,6 +262,16 @@ tests:
       language (snapshot or layout-assertion based, the platform's
       choice).
 
+      Splittable across CI jobs by a convention both platforms share, so
+      the shards stay comparable: sort the build's language set, then
+      honour PHYPHOX_TEST_LANGUAGE_SHARD=i/n (1-based, round-robin over
+      that sorted list) and PHYPHOX_TEST_LANGUAGES=de,fr (an explicit
+      subset, for reproducing one language). A code named in
+      PHYPHOX_TEST_LANGUAGES that the build does not enable FAILS rather
+      than being skipped - a typo must not quietly remove coverage. With
+      neither variable set, every enabled language runs, which is what a
+      local run and a release run do.
+
   - id: device-sensors
     area: hardware
     tier: T2
