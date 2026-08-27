@@ -20,10 +20,15 @@ hosts:
       #   android: {path: /path/to/dev.apk, release: false}
       # and the comparison is reported without failing the run
     devices:
-      iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081}
+      # `newest: true` marks the phone the ble suite uses for the
+      # scenarios scoped `phones: newest` - the ones that only need to
+      # prove they still work, as opposed to the four that run everywhere
+      # because BLE behaviour varies by version and manufacturer. Without
+      # it the first device of each platform is taken.
+      iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081, newest: true}
       iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
       ipad-pro:      {platform: ios, serial: "UDID-HERE", port: 8083}
-      pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091}
+      pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091, newest: true}
       pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
       nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}
       galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}
@@ -32,7 +37,11 @@ hosts:
     artifacts:        # iOS stays with the MacBook
       android: /path/to/phyphox-release.apk   # the SDK lives here
     devices:
-      pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091}
+      pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091, newest: true}
       pixel-3:       {platform: android, serial: "SERIAL", port: 8092}
       nexus-5x:      {platform: android, serial: "SERIAL", port: 8093}
       galaxy-a3:     {platform: android, serial: "SERIAL", port: 8094}
+    # the ble suite runs here, where the boards are:
+    #   --suites ble --board-port esp32=/dev/ttyUSB0
+    #                --board-port nano33ble=/dev/ttyACM1
+    #                --micropython-firmware /path/to/ESP32_GENERIC-*.bin
