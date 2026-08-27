@@ -14,3 +14,9 @@ __pycache__/
 # Generated at build time by tools/generate_validators.py from spec/*.yml
 # (see tools/hooks.py, _check_validators). Never edited by hand.
 docs/assets/validators/
+
+# The device lab's own assignment: phone serials and iOS UDIDs, host
+# addresses, local artifact paths. lab.yml.example is the committed one -
+# this file is per-machine and its own header says it is never committed.
+tools/lab/lab.yml
+lab-results/
