@@ -147,6 +147,10 @@
   adds:
     - bluetooth@rate
     - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/arduino-connectionParameter-nano33ble.phyphox
+  version: "1.15"
+  adds:
+    - bluetooth@subscribeOnStart
 - file: valid/ble-libraries/arduino-getDataFromSmartphone.phyphox
   version: "1.15"
   adds:
