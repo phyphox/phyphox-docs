@@ -251,6 +251,22 @@ def pick_distractor(scenario, cfg, boards_available):
 # ------------------------------------------------------- the phone-side step
 
 RELEASE_PROP = "debug.phyphox.labRelease"
+# What BleCompatConnectTest logs once it is parked and the phone is the
+# host's to drive. Matching on the app's own line rather than on a
+# timeout is what makes the handover exact.
+HOLD_TAG = "phyphoxBleCompat"
+HOLD_LINE = "holding the app open"
+
+
+def _await_hold(dev, timeout):
+    """True once the connect test says it is holding the app for us."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        r = sh(dev.adb + ["logcat", "-d", "-s", HOLD_TAG], timeout=30)
+        if HOLD_LINE in (r.stdout or ""):
+            return True
+        time.sleep(1)
+    return False
 ANDROID_PACKAGE = "de.rwth_aachen.phyphox"
 # Where Android leaves the experiment a device just sent it.
 TRANSFER_FILE = "files/temp_bt/bt.phyphox"
@@ -286,6 +302,9 @@ def connect_phone(dev, scenario, args):
         sh(dev.adb + ["shell", "run-as", ANDROID_PACKAGE,
                       "rm", "-f", TRANSFER_FILE])
         sh(dev.adb + ["shell", "setprop", RELEASE_PROP, "0"])
+        # Cleared so the hold line found below is THIS run's, not the
+        # previous scenario's.
+        sh(dev.adb + ["logcat", "-c"])
         proc = subprocess.Popen(
             dev.adb + ["shell", "am", "instrument", "-w",
                        "-e", "class",
@@ -299,8 +318,19 @@ def connect_phone(dev, scenario, args):
                        "de.rwth_aachen.phyphox.test/"
                        "androidx.test.runner.AndroidJUnitRunner"],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        # The API coming up IS the signal that the experiment loaded -
-        # there is no other one while the test is still running.
+        # Wait for the test to say it is HOLDING, not merely for the API.
+        # The remote server comes up the moment the experiment loads,
+        # which is while the test is still asserting - and one of those
+        # assertions is that nothing is measuring, so a host that starts
+        # at the API fails the test it is waiting on. The Android session
+        # hit this three runs out of four (2026-08-27) before either of
+        # us worked out it was the host doing it.
+        if not _await_hold(dev, args.connect_timeout):
+            proc.kill()
+            sh(dev.adb + ["shell", "am", "force-stop", ANDROID_PACKAGE])
+            out = (proc.communicate()[0] or "")[-300:]
+            return False, ("the connect test never reached its hold: " + out
+                           ), None
         if wait_api(dev.base, args.connect_timeout) is None:
             proc.kill()
             # Killing the local adb does NOT stop the instrumentation on
@@ -374,54 +404,39 @@ def read_serial(port, seconds, baud=115200, until=None):
         return None, f"{type(e).__name__}: {e}"
 
 
-def await_live_link(dev, buffers, args, first_try=12.0):
-    """Start the experiment and wait until the board's data actually
-    arrives. Returns (live, seconds waited, restarts).
+def await_live_link(dev, buffers, args):
+    """Start the experiment and wait until the board's data arrives.
+    Returns (live, seconds waited).
 
-    The remote API answers as soon as the experiment LOADS, which is not
-    the same as being able to measure. Measured on the Pixel 3 on
-    2026-08-27 against an ESP32: a start issued as soon as /config
-    answered returned {"result": true} and collected NOTHING - not
-    slowly, at all, for 45 s - while the same start twelve seconds later
-    collected the full 2 Hz, and a stop/clear/start after a dead one
-    recovered it immediately (0 values, then 19).
+    Not a workaround - a measurement. How long a board takes to deliver
+    its first value after start is exactly where BLE stacks differ, so it
+    is recorded per phone, and a link that never comes up fails the
+    scenario here rather than as a puzzling zero-rate later.
 
-    logcat says why: on that first start the app calls
-    setCharacteristicNotification on cddf1002 and only THEN connect(),
-    registerApp() and discoverServices(). The subscription is issued
-    against a link that is still being re-established after the transfer
-    and is never re-applied, so the board notifies nobody.
-
-    That is an app-side race - a user who taps play immediately after the
-    experiment arrives sees an empty graph - and it is reported as a
-    warning rather than worked around silently: one restart, recorded.
+    This function briefly carried a retry, for a race that turned out to
+    be the harness racing the connect test rather than anything in the
+    app: with the handover done properly (connect_phone waits for the
+    test's hold, not for the API), a start issued as early as the host
+    legitimately can gives the full rate from the first second - 10, 20,
+    30 values at t+5, +10, +15 s on the Pixel 3 against the MicroPython
+    example. The retry is gone; a workaround for a bug that does not
+    exist is worse than none.
     """
     q = "&".join(b + "=full" for b in buffers)
-
-    def data_within(seconds):
-        t0 = time.time()
-        while time.time() - t0 < seconds:
-            status, body = api(dev.base, "/get?" + q, timeout=20)
-            if status == 200:
-                try:
-                    data = json.loads(body).get("buffer", {})
-                except ValueError:
-                    data = {}
-                if any(v is not None for b in data.values()
-                       for v in (b.get("buffer") or [])):
-                    return True
-            time.sleep(1)
-        return False
-
     started = time.time()
     api(dev.base, "/control?cmd=start")
-    if data_within(first_try):
-        return True, round(time.time() - started, 1), 0
-    api(dev.base, "/control?cmd=stop")
-    api(dev.base, "/control?cmd=clear")
-    api(dev.base, "/control?cmd=start")
-    live = data_within(max(0.0, args.link_timeout - first_try))
-    return live, round(time.time() - started, 1), 1
+    while time.time() - started < args.link_timeout:
+        status, body = api(dev.base, "/get?" + q, timeout=20)
+        if status == 200:
+            try:
+                data = json.loads(body).get("buffer", {})
+            except ValueError:
+                data = {}
+            if any(v is not None for b in data.values()
+                   for v in (b.get("buffer") or [])):
+                return True, round(time.time() - started, 1)
+        time.sleep(1)
+    return False, round(time.time() - started, 1)
 
 
 def assert_scenario(dev, scenario, baseline, args, board_port):
@@ -477,18 +492,12 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     # button and cmd=start), so this is about repeat runs, not about a
     # phone that was already measuring. One request, and a rerun against
     # an already-loaded phone then means the same as a fresh one.
-    live, waited, restarts = await_live_link(dev, buffers, args)
+    live, waited = await_live_link(dev, buffers, args)
     det["time_to_data_s"] = waited
-    det["restarts"] = restarts
     if not live:
         return [f"no data arrived from the board within {args.link_timeout:.0f}"
                 f" s of starting - the experiment loaded and the API answers, "
                 f"so this is the BLE link, not the transfer"], det
-    if restarts:
-        det["warnings"] = det.get("warnings", []) + [
-            "the first start collected nothing and the measurement had to "
-            "be restarted - the subscribe-before-connect race (see "
-            "await_live_link)"]
     api(dev.base, "/control?cmd=clear")
     api(dev.base, "/control?cmd=start")
     time.sleep(args.seconds)

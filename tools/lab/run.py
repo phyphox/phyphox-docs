@@ -345,6 +345,9 @@ def main():
                     help="languages runs only when the host entry names "
                          "artifacts; ble needs --board-port and is not in "
                          "the default set because it wants the bench")
+    ap.add_argument("--force-bench", action="store_true",
+                    help="take the bench lock even though another run holds "
+                         "it. Only when you know that run is gone")
     ap.add_argument("--record-ble-baseline", action="store_true",
                     help="ble suite: record what each board produces on the "
                          "REFERENCE release (normally the current store "
@@ -419,6 +422,16 @@ def main():
     if _TEE is None:
         _TEE = _ThreadTee(sys.stdout)
         sys.stdout = _TEE
+
+    # The phones and the boards are shared with whoever else is working in
+    # this folder. See lab/bench.py for the afternoon that bought this.
+    from lab import bench
+    ok, msg = bench.acquire(f"lab/run.py --host {args.host}",
+                            force=args.force_bench)
+    print(f"   {msg}")
+    if not ok:
+        return 1
+
     srv = serve_fixtures(args.fixture_port)
     report = {"host": args.host, "devices": {}}
     baseline_rc = 0
@@ -518,6 +531,7 @@ def main():
         for _dev_id, _entry, dev in devices:
             dev.cleanup()
         srv.shutdown()
+        bench.release()
 
     if args.record_ble_baseline:
         # same reasoning as the manifest below: recording is not a run

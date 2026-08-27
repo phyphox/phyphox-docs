@@ -48,6 +48,23 @@ sweep Camera; tap them as they come and every later run is dialog-free
 until the app is reinstalled. (Android needs none of this: the driver
 pre-grants via pm grant.)
 
+## One session at a time
+
+The phones and the boards are shared with whoever else is working in this
+folder, and a run takes an advisory lock before touching them:
+`.bench-lock` in the working root, naming who holds it, since when and
+with which pid. A second run refuses to start and says who has it;
+`--force-bench` overrides, and a lock whose process is gone is taken over
+automatically.
+
+This is not bureaucracy. On 2026-08-27 a full ble pass and an Android
+session ran at once: the pass held a connection to each board in turn (a
+BLE peripheral stops advertising while connected) and drove the shared
+Pixel 3, so the other session saw a dead bench and an experiment that
+started measuring by itself a second after loading. Both were the other
+session. If you are about to touch the hardware by hand, look at that
+file first.
+
 ## Host prerequisites for the ble suite
 
 Only the BLE suite needs more than adb/Xcode: `arduino-cli` and `mpremote`
@@ -126,12 +143,21 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   Instrumentation runs in the app's own process, so the app dies the
   moment `am instrument` returns - on the Pixel 3 the remote API answered
   at 33 s and was gone at 36 s with the process. The driver therefore
-  starts the run in the background, treats the API coming up as the
-  signal that the experiment loaded, measures, and then sets
-  `debug.phyphox.labRelease` to `1`; the test polls that property and
-  returns, and its own assertions are collected afterwards. iOS needs
-  none of it - `-phyphoxBleConnect` is the app launching itself and it
-  stays up.
+  starts the run in the background, waits for the test to say it is
+  holding, measures, and then sets `debug.phyphox.labRelease` to `1`; the
+  test polls that property and returns, and its own assertions are
+  collected afterwards. iOS needs none of it - `-phyphoxBleConnect` is
+  the app launching itself and it stays up.
+
+  Waiting for the HOLD rather than for the API matters more than it
+  looks. The remote server comes up when the experiment loads, which is
+  while the test is still asserting - and one of its assertions is that
+  nothing is measuring. A host that starts there fails the test it is
+  waiting on, the test throws before reaching its hold, and the app dies
+  with it; what the host then sees is a phone serving nothing, which
+  reads exactly like a BLE fault. Two sessions chased that as an app bug
+  for an afternoon. The handshake is the app's own log line
+  (`phyphoxBleCompat: holding the app open`).
 
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
