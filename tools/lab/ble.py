@@ -119,11 +119,20 @@ def flash(scenario, board, cfg, args):
                 time.sleep(5)
         out = (r.stderr or r.stdout) or ""
         if "No device found" in out:
-            # bossac saying this while the port is still there means the
-            # 1200 bps touch did not reach the bootloader - the running
-            # sketch is not servicing USB any more. Only a human can undo
-            # that, so say so instead of printing the tool's error and
-            # leaving the reader to know what it implies.
+            # Same tool error, two opposite causes, and the difference is
+            # visible in the USB product id: 0x805a is the sketch running,
+            # 0x005a is the bootloader. Telling a maintainer to double-tap
+            # a board that is ALREADY in its bootloader wastes their time
+            # and is exactly what this message did once.
+            if _usb_pid(live) == "005a":
+                return False, (
+                    f"{board} is sitting in its bootloader (usb 2341:005a) "
+                    f"and bossac still cannot reach it on {live}. Press "
+                    f"reset ONCE to leave the bootloader and run the sketch "
+                    f"again - the upload does its own 1200 bps reset from "
+                    f"there. If it persists, something on the host is "
+                    f"claiming the port as it appears (ModemManager is the "
+                    f"usual one)")
             return False, (f"{board} did not enter its bootloader: the port "
                            f"({live}) is there but the 1200 bps touch got no "
                            f"answer, which means the sketch on it is wedged. "
@@ -157,6 +166,25 @@ def flash(scenario, board, cfg, args):
         return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
     sh(["mpremote", "connect", port, "reset"], timeout=60)
     return True, "copied and reset"
+
+
+def _usb_pid(port):
+    """The USB product id behind a serial port, lowercase and unprefixed,
+    or None. It is what distinguishes an Arduino running its sketch from
+    the same board sitting in its bootloader."""
+    r = sh(["arduino-cli", "board", "list", "--format", "json"], timeout=60)
+    if r.returncode != 0:
+        return None
+    try:
+        doc = json.loads(r.stdout or "{}")
+    except ValueError:
+        return None
+    for entry in doc.get("detected_ports") or []:
+        p = entry.get("port") or {}
+        if p.get("address") == port:
+            pid = ((p.get("properties") or {}).get("pid") or "")
+            return pid.lower().replace("0x", "") or None
+    return None
 
 
 def resolve_arduino_port(fqbn, configured):
