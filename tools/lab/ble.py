@@ -117,7 +117,19 @@ def flash(scenario, board, cfg, args):
             # mid-re-enumeration: it is absent for a second and then back.
             if attempt == 1:
                 time.sleep(5)
-        return False, f"upload failed: {(r.stderr or r.stdout)[-300:]}"
+        out = (r.stderr or r.stdout) or ""
+        if "No device found" in out:
+            # bossac saying this while the port is still there means the
+            # 1200 bps touch did not reach the bootloader - the running
+            # sketch is not servicing USB any more. Only a human can undo
+            # that, so say so instead of printing the tool's error and
+            # leaving the reader to know what it implies.
+            return False, (f"{board} did not enter its bootloader: the port "
+                           f"({live}) is there but the 1200 bps touch got no "
+                           f"answer, which means the sketch on it is wedged. "
+                           f"Double-tap the board's reset button and run "
+                           f"again; nothing here can do it remotely")
+        return False, f"upload failed: {out[-300:]}"
 
     # MicroPython: the ESP32 is shared with the Arduino scenarios, whose
     # uploads overwrite the whole flash, so the firmware cannot be a
@@ -755,6 +767,8 @@ def run_suite(devices, args):
 
     flashed = {}                      # board -> the name it advertises now
     holds = {}                        # board -> (library, example) on it
+    failures = {}                     # board -> consecutive flash failures
+    dead_boards = {}                  # board -> why it was given up on
     flashes = 0
 
     def put(sc, board, why):
@@ -765,12 +779,26 @@ def run_suite(devices, args):
         key = (sc["library"], sc["example"])
         if holds.get(board) == key:
             return True, "already on the board"
+        # A board that cannot be flashed twice will not be flashable the
+        # eight other times this pass asks either: a wedged Nano needs a
+        # finger on its reset button. Give up on it once, with one
+        # message, instead of spending 35 s per attempt rediscovering it.
+        if board in dead_boards:
+            return False, dead_boards[board]
         print(f"   {why}: {sc['example']} -> {board}", flush=True)
         ok, msg = flash(sc, board, cfg, args)
         if ok:
             flashes += 1
             holds[board] = key
             flashed[board] = sc.get("device_name")
+            failures.pop(board, None)     # consecutive, not cumulative
+        else:
+            failures[board] = failures.get(board, 0) + 1
+            if failures[board] >= 2:
+                dead_boards[board] = (
+                    f"{board} is out of this run after {failures[board]} "
+                    f"failed flashes: {msg}")
+                print(f"   !! {dead_boards[board]}", flush=True)
         return ok, msg
 
     for scenario in scenarios:
