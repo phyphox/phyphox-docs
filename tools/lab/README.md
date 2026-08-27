@@ -121,6 +121,19 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   be mistaken for a pass), and `--capture-ble-xml` freezes the XML each
   board serves into `corpus/valid/ble-libraries/` - the T0 half. That one
   rewrites corpus files, so use it when you mean to and read the diff.
+
+  **Baselines are recorded by hand, and cannot be otherwise.** The point
+  of a baseline is that the PREVIOUS release worked, so it has to come
+  from that release - which predates everything the driver uses to steer
+  a phone. Android v1.2.0 has no `debug.phyphox.remote`; an
+  instrumentation test must be signed with the same key as the app it
+  drives, which a Play-signed build rules out; and `-phyphoxBleConnect`
+  is likewise newer than the released iOS binary. What the released app
+  does have is remote access as an ordinary user feature. So
+  `--record-ble-baseline` flashes each board, waits while an operator
+  connects the phone and switches remote access on, and then measures and
+  writes `fixtures/ble/baselines/` itself. Ten scenarios, ten pauses,
+  once per reference release.
 - `languages` (`device-languages`): runs when the host entry names built
   artifacts - the apk's `aapt dump badging` locales / the ipa's .lproj
   set against languages.yml. This is the release gate that makes a

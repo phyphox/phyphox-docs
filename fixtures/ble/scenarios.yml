@@ -47,6 +47,11 @@
 # Buffer names and recorded values live in baselines/, captured once from
 # the CURRENT STORE RELEASE so that "the previous version worked" is a
 # measured fact. Re-recording is deliberate and reviewed.
+#
+# That release predates every seam the driver steers a phone with, so the
+# recording is operator-assisted by necessity, not by choice:
+# `run.py --record-ble-baseline` flashes and measures, a human does the
+# connect and switches remote access on. See tools/lab/README.md.
 
 libraries:
   arduino:

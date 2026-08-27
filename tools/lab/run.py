@@ -339,6 +339,14 @@ def main():
                     help="languages runs only when the host entry names "
                          "artifacts; ble needs --board-port and is not in "
                          "the default set because it wants the bench")
+    ap.add_argument("--record-ble-baseline", action="store_true",
+                    help="ble suite: record what each board produces on the "
+                         "REFERENCE release (normally the current store "
+                         "build), so 'the previous version worked' is "
+                         "measured. Interactive: that build predates the "
+                         "automation seam, so a human connects the phone "
+                         "and switches remote access on for each scenario. "
+                         "Pass one --devices id")
     ap.add_argument("--ble-scenario", metavar="[LIB/]EXAMPLE",
                     help="ble suite: run only this scenario (bring-up and "
                          "debugging - the report is marked as narrowed)")
@@ -407,6 +415,7 @@ def main():
         sys.stdout = _TEE
     srv = serve_fixtures(args.fixture_port)
     report = {"host": args.host, "devices": {}}
+    baseline_rc = 0
     # SUITE-MAJOR order: every device runs the sensors suite before any
     # device starts the next suite, so the first-run dialogs of a suite
     # (local network, microphone, camera) cluster at its start and the
@@ -423,7 +432,13 @@ def main():
         devices.append((dev_id, entry, dev))
         report["devices"][dev_id] = {}
     try:
-        if args.record_manifest:
+        if args.record_ble_baseline:
+            # Operator-assisted and interactive, so it is a mode of its
+            # own rather than a suite: the reference release predates the
+            # automation seam and cannot be driven.
+            from lab import ble
+            baseline_rc = ble.record_baselines(devices, args)
+        elif args.record_manifest:
             for dev_id, entry, dev in devices:
                 if args.record_manifest == dev_id:
                     record_manifest(dev, dev_id, args)
@@ -498,6 +513,10 @@ def main():
             dev.cleanup()
         srv.shutdown()
 
+    if args.record_ble_baseline:
+        # same reasoning as the manifest below: recording is not a run
+        print("baselines recorded; no run report written")
+        return baseline_rc
     if args.record_manifest:
         # recording a manifest is not a test run - writing a report full
         # of empty device entries only invites reading it as a green run

@@ -297,11 +297,14 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
                 f"phone->board direction did not arrive")
         return findings, det
 
-    # Clear first: `start` resumes rather than restarts, so anything the
-    # experiment collected between loading and here - the app starts BLE
-    # experiments on its own in some paths - is counted into the window
-    # and doubles the measured rate. Costs one request and makes a rerun
-    # against an already-loaded phone mean the same as a fresh one.
+    # Clear first: `start` resumes rather than restarts, so whatever is
+    # already in the buffers counts into the window - measured during
+    # bring-up as a doubled rate when the same phone was measured twice.
+    # Neither app auto-starts a BLE-delivered experiment (iOS confirmed
+    # 2026-08-27: startExperiment has exactly two callers, the toolbar
+    # button and cmd=start), so this is about repeat runs, not about a
+    # phone that was already measuring. One request, and a rerun against
+    # an already-loaded phone then means the same as a fresh one.
     api(dev.base, "/control?cmd=clear")
     api(dev.base, "/control?cmd=start")
     time.sleep(args.seconds)
@@ -573,3 +576,135 @@ def run_suite(devices, args):
     for r in results.values():
         r["flashes"] = flashes
     return results
+
+
+# --------------------------------------------------------- baselines
+
+def record_baselines(devices, args):
+    """Record what each board produces on the app version being used as
+    the reference - normally the CURRENT STORE RELEASE, so that "the
+    previous version worked" is measured rather than assumed.
+
+    This one is operator-assisted on purpose, because the released app
+    cannot be driven the way a development build can:
+
+      * the automation seam is newer than the release (v1.2.0 has no
+        debug.phyphox.remote), so remote access has to be switched on by
+        hand - it is an ordinary user-facing feature, two taps in the
+        menu;
+      * an instrumentation test must be signed with the same key as the
+        app under test, and a Play-signed build cannot host ours, so the
+        scan-and-connect step cannot run either;
+      * on iOS the same holds - -phyphoxBleConnect does not exist in the
+        released binary.
+
+    So the tool flashes, waits for a human to connect the phone and turn
+    remote access on, and then does the measuring and the writing itself.
+    Ten scenarios is ten pauses; this happens once per reference release,
+    not per run.
+    """
+    import datetime
+    cfg = load_scenarios()
+    boards = dict(getattr(args, "board_ports", {}) or {})
+    if not boards:
+        print("!! no --board-port given, so there is no board to record from")
+        return 1
+    if len(devices) != 1:
+        print("!! record one phone at a time: pass --devices <id> naming the "
+              "phone that runs the reference release")
+        return 1
+    dev_id, _entry, dev = devices[0]
+
+    scenarios = [s for s in order_scenarios(cfg["scenarios"])
+                 if set(s["boards"]) & set(boards)]
+    only = getattr(args, "ble_scenario", None)
+    if only:
+        scenarios = [s for s in scenarios
+                     if only in (s["example"],
+                                 f"{s['library']}/{s['example']}")]
+    if not scenarios:
+        print("!! nothing to record")
+        return 1
+
+    os.makedirs(BASELINES, exist_ok=True)
+    written, failed = [], []
+    for scenario in scenarios:
+        board = next(b for b in scenario["boards"] if b in boards)
+        name = scenario.get("device_name")
+        label = f"{scenario['library']}/{scenario['example']}"
+        print(f"\n== {label} on {board}", flush=True)
+        ok, msg = flash(scenario, board, cfg, args)
+        if not ok:
+            print(f"   !! {msg}")
+            failed.append(f"{label}: {msg}")
+            continue
+        print(f"   On {dev_id}, by hand:\n"
+              f"     1. add an experiment for a Bluetooth device and pick "
+              f"{name!r}\n"
+              f"     2. let it load, then switch remote access on from the "
+              f"menu\n"
+              f"   Enter to record, or 's' to skip this scenario: ", end="",
+              flush=True)
+        try:
+            if (input().strip().lower() or "") == "s":
+                failed.append(f"{label}: skipped by the operator")
+                continue
+        except EOFError:
+            print("\n!! not an interactive terminal - this mode needs one")
+            return 1
+
+        if wait_api(dev.base, args.api_wait) is None:
+            print("   !! the phone is not serving the remote API - is remote "
+                  "access on, and on this network?")
+            failed.append(f"{label}: no remote API")
+            continue
+        meta = {}
+        status, body = api(dev.base, "/meta")
+        if status == 200:
+            try:
+                meta = json.loads(body)
+            except Exception:
+                pass
+        status, body = api(dev.base, "/config")
+        config = json.loads(body) if status == 200 else {}
+        buffers = [b["name"] for b in config.get("buffers", [])]
+        api(dev.base, "/control?cmd=clear")
+        api(dev.base, "/control?cmd=start")
+        time.sleep(args.seconds)
+        api(dev.base, "/control?cmd=stop")
+        q = "&".join(b + "=full" for b in buffers)
+        status, body = api(dev.base, "/get?" + q, timeout=30)
+        if status != 200:
+            print(f"   !! /get answered {status}")
+            failed.append(f"{label}: /get {status}")
+            continue
+        got = {n: [v for v in (b.get("buffer") or []) if v is not None]
+               for n, b in json.loads(body).get("buffer", {}).items()}
+        baseline = {
+            "recorded": datetime.date.today().isoformat(),
+            "device": dev_id,
+            "app": {"version": meta.get("version"),
+                    "build": meta.get("build"),
+                    "fileFormat": meta.get("fileFormat")},
+            "seconds": args.seconds,
+            "title": config.get("title"),
+            "buffer_names": buffers,
+            "counts": {n: len(v) for n, v in got.items()},
+            # Only the head of each buffer: a baseline is a fingerprint of
+            # what the board produces, not a recording of a measurement,
+            # and a full run would put thousands of random numbers into a
+            # reviewed file.
+            "buffers": {n: v[:20] for n, v in got.items() if v},
+        }
+        path = baseline_path(scenario)
+        with open(path, "w") as f:
+            json.dump(baseline, f, indent=2, sort_keys=True)
+            f.write("\n")
+        print(f"   recorded {os.path.relpath(path, ROOT)} "
+              f"(app {baseline['app']['version']}, "
+              f"{sum(baseline['counts'].values())} values)")
+        written.append(label)
+
+    print(f"\n{len(written)} baseline(s) written"
+          + (f", {len(failed)} not: " + "; ".join(failed) if failed else ""))
+    return 1 if failed else 0
