@@ -256,6 +256,16 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   for an afternoon. The handshake is the app's own log line
   (`phyphoxBleCompat: holding the app open`).
 
+  Known flakiness, 2026-08-28: `connectionParameter` on the Nano 33 BLE
+  failed its experiment TRANSFER once in four attempts - the phone found and
+  picked the board, and the 90 s wait for the experiment to arrive expired.
+  Two immediate repeats passed (1002 and 998 values), so it is occasional
+  rather than broken, and it is the one sketch that sets an aggressive
+  connection interval (7.5-30 ms) and a 500 ms supervision timeout, which is
+  where a chunked transfer would be expected to suffer first. Watch it: if it
+  recurs at this rate it is worth a finding of its own, and the number to
+  quote is transfers attempted versus transfers completed, not cycles passed.
+
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
   from that release - which predates everything the driver uses to steer
