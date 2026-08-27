@@ -1,0 +1,183 @@
+# BLE compatibility scenarios (test-matrix rows ble-compat-arduino and
+# ble-compat-micropython, tier T2, release-gated).
+#
+# What is under test is the PHYPHOX APP, not the libraries: a release must
+# not break Arduino or MicroPython projects that worked with the previous
+# release. The sketches are stimulus and are flashed UNMODIFIED - a
+# modified sketch would no longer represent a real project - so anything
+# odd about what they emit (the library sends XML with no xmlns and
+# declares format 1.15) is the compatibility surface to preserve, not a
+# defect to report.
+#
+# Per scenario:
+#   example      the example's directory name in the library repository
+#   device_name  what it advertises (from its start() call; the library
+#                default is "phyphox-Arduino"). The suite picks a
+#                DISTRACTOR for the idle board whose name differs from
+#                this, so the scan has to discriminate - a room with one
+#                BLE device in it is not the room these run in.
+#   boards       which lab boards it is flashed to
+#   phones       all | newest - the four scenarios that exercise
+#                different parts of the BLE implementation run on every
+#                phone (Android's BLE behaviour varies by version and by
+#                manufacturer, which is the point of the lab); the rest
+#                only prove they still work, on the newest phone of each
+#                platform
+#   expect.kind  exact | range_rate | connection | board_serial
+#                - exact:        recorded buffer values must match
+#                - range_rate:   the stimulus is random, so only its
+#                                range and cadence can be asserted
+#                - connection:   negotiated parameters; assert the link
+#                                works and data flows in the right order
+#                                of magnitude
+#                - board_serial: the direction is phone -> board, so the
+#                                assertion channel is the board's own
+#                                serial output
+#
+# Buffer names and recorded values live in baselines/, captured once from
+# the CURRENT STORE RELEASE so that "the previous version worked" is a
+# measured fact. Re-recording is deliberate and reviewed.
+
+libraries:
+  arduino:
+    repository: ../phyphox-arduino
+    examples: examples
+    declares_format_version: "1.15"
+    flash:
+      tool: arduino-cli
+      fqbn:
+        esp32: esp32:esp32:esp32
+        nano33ble: arduino:mbed_nano:nano33ble
+  micropython:
+    repository: ../phyphox-micropython
+    examples: examples
+    declares_format_version: "1.10"
+    boards: [esp32]        # the library supports the ESP32 only
+    flash:
+      tool: mpremote       # firmware flashed once with esptool, then the
+                           # library and the example are copied over
+
+scenarios:
+  # --- Arduino, on every phone -------------------------------------------
+  - example: randomNumbers
+    library: arduino
+    device_name: "phyphox device"
+    boards: [esp32, nano33ble]
+    phones: all
+    expect:
+      kind: range_rate
+      min: 0
+      max: 100
+      rate_hz: 20          # write() every 50 ms in the sketch
+      rate_tolerance: 0.5
+    why: >-
+      The plainest case: no experiment is defined in the sketch, so the
+      library serves its default one. Proves discovery, transfer of the
+      default experiment and the data path.
+
+  - example: connectionParameter
+    library: arduino
+    device_name: "phyphox-Arduino"
+    boards: [esp32, nano33ble]
+    phones: all
+    expect:
+      kind: connection
+      min_connection_interval_ms: 7.5
+      max_connection_interval_ms: 30
+    why: >-
+      Sets the BLE connection interval explicitly. Phones and stacks
+      handle negotiation differently, which is exactly the kind of
+      difference this lab exists to catch.
+
+  - example: getSensorDataFromSmartphone
+    library: arduino
+    device_name: "phyphox-Arduino"
+    boards: [esp32, nano33ble]
+    phones: all
+    expect:
+      kind: board_serial
+      contains_any: ["Acc", "acc"]
+    why: >-
+      The phone sends its accelerometer data TO the board over the config
+      characteristic. The board prints what it received, so its serial
+      output is the assertion channel.
+
+  - example: getSystemAndEventTime
+    library: arduino
+    device_name: "phyphox-Arduino"
+    boards: [esp32, nano33ble]
+    phones: all
+    expect:
+      kind: board_serial
+      trigger: start_stop      # the host starts and stops the experiment
+      contains_any: ["event", "Event", "time", "Time"]
+    why: >-
+      Exercises the event characteristic: the board reacts to the
+      experiment being started and stopped on the phone. No MicroPython
+      counterpart exists.
+
+  # --- Arduino, newest phone of each platform only -----------------------
+  - example: CreateExperiment
+    library: arduino
+    device_name: "create experiment"
+    boards: [esp32]
+    phones: newest
+    expect:
+      kind: exact
+    why: >-
+      A full hand-written experiment definition - the widest XML surface
+      the library emits.
+
+  - example: getDataFromSmartphone
+    library: arduino
+    device_name: "phyphox-Arduino"
+    boards: [esp32]
+    phones: newest
+    expect:
+      kind: board_serial
+      contains_any: ["received", "Received", "value"]
+    why: The write direction from a view element rather than a sensor.
+
+  - example: multigraph
+    library: arduino
+    device_name: "phyphox-Arduino"
+    boards: [esp32]
+    phones: newest
+    expect:
+      kind: exact
+    why: Several channels at once, which is where channel mapping breaks.
+
+  # --- MicroPython, ESP32 only -------------------------------------------
+  - example: randomNumbers
+    library: micropython
+    device_name: null          # recorded at capture time: start() default
+    boards: [esp32]
+    phones: all
+    expect:
+      kind: range_rate
+      min: 0
+      max: 100
+      rate_hz: 10
+      rate_tolerance: 0.5
+    why: The MicroPython counterpart of the plainest Arduino case.
+
+  - example: createExperiment
+    library: micropython
+    device_name: "My Device"
+    boards: [esp32]
+    phones: newest
+    expect:
+      kind: exact
+    why: The MicroPython library's own XML generator, end to end.
+
+  - example: getDataFromSmartphone
+    library: micropython
+    device_name: null
+    boards: [esp32]
+    phones: all
+    expect:
+      kind: board_serial
+      contains_any: ["received", "Received"]
+    why: >-
+      The write direction on MicroPython. Runs on every phone because the
+      config characteristic is where stacks differ most.

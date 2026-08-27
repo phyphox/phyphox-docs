@@ -319,6 +319,16 @@ def main():
     ap.add_argument("--platform", choices=["android", "ios"])
     ap.add_argument("--devices", default="",
                     help="comma-separated device ids (default: all of this host)")
+    ap.add_argument("--board-port", action="append", default=[],
+                    metavar="BOARD=PORT",
+                    help="serial port per lab board for the ble suite, e.g. "
+                         "--board-port esp32=/dev/ttyUSB0")
+    ap.add_argument("--connect-timeout", type=float, default=180.0,
+                    help="ble suite: seconds for the phone's scan-and-connect "
+                         "test")
+    ap.add_argument("--serial-window", type=float, default=8.0,
+                    help="ble suite: seconds of board serial output to read "
+                         "for the phone-to-board scenarios")
     ap.add_argument("--suites", default="sensors,audio,experiments",
                     help="languages runs only when the host entry names artifacts")
     ap.add_argument("--seconds", type=float, default=10.0)
@@ -334,6 +344,8 @@ def main():
     ap.add_argument("--record-manifest", metavar="DEVICE_ID")
     ap.add_argument("--merge", metavar="DIR")
     args = ap.parse_args()
+    args.board_ports = dict(
+        kv.split("=", 1) for kv in args.board_port if "=" in kv)
 
     if args.merge:
         merged = {"hosts": {}}
@@ -409,7 +421,9 @@ def main():
             # land in another's microphone. --jobs 1 (the default) keeps
             # everything sequential; raise it deliberately, and mind that
             # N phones at once also draw N times the USB power.
-            jobs = 1 if suite == "audio" else max(1, args.jobs)
+            # audio shares a room, ble shares the radio and a flashing
+            # cycle - both are serial whatever --jobs says
+            jobs = 1 if suite in ("audio", "ble") else max(1, args.jobs)
             if jobs > 1:
                 print(f"== {suite}: {len(devices)} device(s), "
                       f"{jobs} at a time")

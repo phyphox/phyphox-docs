@@ -24,7 +24,10 @@
 #
 # Fields: id (kebab-case, the tag), area (a short topic label), tier (T0-T3),
 # platforms (subset of [android, ios]; name only one for recorded platform
-# differences and say why in the description), status, description.
+# differences and say why in the description), status, description, and the
+# optional host_driven: true for a row implemented entirely in this
+# repository's tools/ - for those, and only those, a tag found there counts
+# as the implementation for every platform the row names.
 
 tests:
 
@@ -273,6 +276,7 @@ tests:
       local run and a release run do.
 
   - id: device-sensors
+    host_driven: true        # implemented once in phyphox-docs tools/lab/
     area: hardware
     tier: T2
     platforms: [android, ios]
@@ -288,6 +292,7 @@ tests:
       tools/lab/ - the tag there counts for both platforms.
 
   - id: device-audio
+    host_driven: true        # implemented once in phyphox-docs tools/lab/
     area: hardware
     tier: T2
     platforms: [android, ios]
@@ -299,6 +304,7 @@ tests:
       floor. Covers audio input, output and analysis in one test.
 
   - id: device-experiments
+    host_driven: true        # implemented once in phyphox-docs tools/lab/
     area: hardware
     tier: T2
     platforms: [android, ios]
@@ -310,6 +316,7 @@ tests:
       only (the phase-6 board lab owns their data plane).
 
   - id: device-languages
+    host_driven: true        # implemented once in phyphox-docs tools/lab/
     area: translations
     tier: T2
     platforms: [android, ios]
@@ -348,3 +355,32 @@ tests:
       resource folder and reopens intact; the multi-experiment zip
       saves both via the picker. Hermetic: the saved entries are
       deleted at the end.
+
+  - id: ble-compat-arduino
+    area: hardware
+    tier: T2
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      A release must not break Arduino projects that worked with the
+      previous one. Seven library examples, flashed UNMODIFIED as
+      stimulus (the library is not under test and is due its own
+      session), are driven end to end: discovery with another device
+      advertising nearby, the experiment transferred over cddf0002,
+      data decoded, and the phone-to-board direction observed on the
+      board's own serial output. Four scenarios run on every phone
+      because Android's BLE behaviour varies by version and vendor; the
+      rest on the newest phone of each platform. Definitions in
+      fixtures/ble/scenarios.yml, baselines recorded from the store
+      release. Release-gated: this is the slowest suite in the lab.
+
+  - id: ble-compat-micropython
+    area: hardware
+    tier: T2
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The same guarantee for MicroPython projects, on the ESP32 (the
+      only board that library supports): all three of its examples, with
+      randomNumbers and getDataFromSmartphone on every phone and
+      createExperiment on the newest of each platform.

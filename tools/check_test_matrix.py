@@ -50,9 +50,12 @@ REPOS = {
     "ios": os.path.normpath(os.path.join(ROOT, "..", "phyphox-ios")),
 }
 
-# The T2 device-lab rows are implemented once, host-side, in this
-# repository's tools/lab/ - one driver serves both platforms. Tags found
-# there count for EVERY platform a row names.
+# Some T2 rows are implemented once, host-side, in this repository's
+# tools/lab/ - one driver serves both platforms. Tags found there count
+# for every platform such a row names, but ONLY if the row says so with
+# `host_driven: true`: a row that also needs code in the app repos (the
+# BLE compatibility rows need a scan-and-connect test on the phone)
+# would otherwise report itself ready the moment the driver exists.
 SHARED_TOOLS = os.path.join(ROOT, "tools")
 
 
@@ -80,6 +83,8 @@ def load_matrix():
         if row.get("status") not in STATUSES:
             problems.append(f"{where}: status must be one of "
                             f"{sorted(STATUSES)}")
+        if "host_driven" in row and not isinstance(row["host_driven"], bool):
+            problems.append(f"{where}: host_driven must be true or false")
         for field in ("area", "description"):
             if not row.get(field):
                 problems.append(f"{where}: missing {field}")
@@ -117,10 +122,13 @@ def check(verbose=True):
         if not os.path.isdir(repo):
             continue
         found[platform] = scan_tags(repo)
+    host_driven = {r.get("id") for r in rows if r.get("host_driven")}
     if found and os.path.isdir(SHARED_TOOLS):
         shared = scan_tags(SHARED_TOOLS)
         for platform in found:
             for tag, files in shared.items():
+                if tag not in host_driven:
+                    continue        # needs app-repo code too
                 found[platform].setdefault(tag, []).extend(
                     "phyphox-docs/" + f for f in files)
 
