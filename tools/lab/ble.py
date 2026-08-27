@@ -647,13 +647,18 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
         # for that - the evidence IS the board's output.
         lines, err = read_serial(
             board_port, args.serial_window + args.link_timeout,
-            until=(lambda ls: any(w in ln for ln in ls for w in wanted))
+            until=(lambda ls: any(w in "\n".join(ls) for w in wanted))
             if wanted else None)
         api(dev.base, "/control?cmd=stop")
         if err:
             return [f"could not read the board's serial output: {err}"], det
         det["serial_lines"] = lines[-10:]
-        if wanted and not any(w in ln for ln in lines for w in wanted):
+        # Matched against the joined output, not line by line: a
+        # readline() that starts mid-line splits "New Interval:  300.0"
+        # into "New Inter" + "val:  300.0" and a per-line match then fails
+        # against a board that said exactly the right thing.
+        joined = "\n".join(lines)
+        if wanted and not any(w in joined for w in wanted):
             findings.append(
                 f"nothing matching {wanted} in the board's output - the "
                 f"phone->board direction did not arrive")
