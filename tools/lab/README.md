@@ -93,8 +93,14 @@ board re-enumerates. Fix it once, as root:
 `sudo systemctl stop ModemManager` works for one session if you would rather
 not add a rule.
 
-**The Nano 33 BLE wedges after a flash or two and only a physical re-plug
-clears it.** With
+**Keep the Nano 33 BLE off the shared hub.** It wedged after a flash or
+two while it hung off the same 1a86 hub as the ESP32, and only a physical
+re-plug cleared it; moved to a root port on the machine it took four
+consecutive flashes without complaint (2026-08-27). The kernel had been
+logging `device descriptor read/64, error -32` around those resets, so the
+hub was the story all along - not the board, not the bootloader, and not
+the reset button. What follows is kept because it is what the symptom looks
+like if it comes back: With
 ModemManager excluded and the board in its bootloader, `bossac` still gets no
 answer: a raw SAM-BA `V#` on the port returns nothing. Measured on
 2026-08-27 — after a re-plug one or two uploads succeed, then one leaves it
