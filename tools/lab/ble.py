@@ -460,10 +460,24 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
 
     if kind == "board_serial":
         wanted = scenario["expect"].get("contains_any") or []
-        if scenario["expect"].get("trigger") == "start_stop":
+        trigger = scenario["expect"].get("trigger")
+        if trigger == "start_stop":
             api(dev.base, "/control?cmd=start")
             time.sleep(2)
             api(dev.base, "/control?cmd=stop")
+        elif isinstance(trigger, dict) and "set" in trigger:
+            # Some boards only hear from the phone when a view element
+            # changes - an edit or a slider the user would move. Nothing
+            # arrives just because the experiment is running, so the host
+            # moves it: cmd=set is that user, and without it the board
+            # prints nothing and the scenario fails against hardware that
+            # is working.
+            api(dev.base, "/control?cmd=start")
+            time.sleep(2)
+            spec = trigger["set"]
+            api(dev.base, f"/control?cmd=set&buffer={spec['buffer']}"
+                          f"&value={spec['value']}")
+            det["triggered"] = f"{spec['buffer']}={spec['value']}"
         else:
             api(dev.base, "/control?cmd=start")
         # Generous window, ended as soon as the board says what we are

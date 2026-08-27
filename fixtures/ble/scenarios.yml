@@ -126,7 +126,11 @@ scenarios:
     phones: all
     expect:
       kind: board_serial
-      contains_any: ["Acc", "acc"]
+      # What the sketch actually prints on receiving a value, read off
+      # getSensorDataFromSmartphone.ino:51-61 - the first pass asserted
+      # invented strings ("Acc") and failed against a board that was
+      # working perfectly.
+      contains_any: ["x: ", "data:"]
     why: >-
       The phone sends its accelerometer data TO the board over the config
       characteristic. The board prints what it received, so its serial
@@ -174,7 +178,14 @@ scenarios:
         compiler.cpp.extra_flags: -DLED_BUILTIN=2
     expect:
       kind: board_serial
-      contains_any: ["received", "Received", "value"]
+      # Nothing reaches this board until a view element changes: it takes
+      # its interval from an edit/slider on channel 1 (CB1 in the
+      # generated XML), so the host writes one. 300 ms is inside the
+      # slider's 50..1000 range.
+      trigger:
+        set: {buffer: CB1, value: 300}
+      # getDataFromSmartphone.ino:107-112.
+      contains_any: ["interval: 300", "Mode: ", "LED state: "]
     why: The write direction from a view element rather than a sensor.
 
   - example: multigraph
@@ -217,7 +228,10 @@ scenarios:
     phones: all
     expect:
       kind: board_serial
-      contains_any: ["received", "Received"]
+      trigger:
+        set: {buffer: CB1, value: 300}
+      # examples/getDataFromSmartphone.py:51.
+      contains_any: ["New Interval"]
     why: >-
       The write direction on MicroPython. Runs on every phone because the
       config characteristic is where stacks differ most.
