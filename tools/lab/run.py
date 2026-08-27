@@ -133,18 +133,35 @@ def _summarize(merged):
                 lines.append(f"- languages[{platform}]: skipped "
                              f"({r['skipped']})")
             elif r.get("passed"):
-                n = len((r.get("details") or {}).get("locales") or [])
-                lines.append(f"- languages[{platform}]: ok ({n} locales "
-                             f"match the canonical list)")
+                det = r.get("details") or {}
+                n = len(det.get("locales") or [])
+                if det.get("release", True):
+                    lines.append(f"- languages[{platform}]: ok ({n} locales, "
+                                 f"matching the canonical list)")
+                else:
+                    # never claim a match for a test build: it carries the
+                    # testing-only locales by design, and saying "26 match"
+                    # against a canonical list of 22 was simply false
+                    lines.append(f"- languages[{platform}]: ok, not a release "
+                                 f"artifact ({n} locales; differences below "
+                                 f"are information)")
+                for w in r.get("warnings") or []:
+                    total["warn"] += 1
+                    lines.append(f"    - ~ {w}")
             else:
                 lines.append(f"- languages[{platform}]: FAIL")
                 for f in r.get("findings") or []:
                     lines.append(f"    - !! {f}")
+                for w in r.get("warnings") or []:
+                    total["warn"] += 1
+                    lines.append(f"    - ~ {w}")
         lines.append("")
     lines.append(f"**{total['ok']} suite(s) passed, {total['fail']} failed, "
-                 f"{total['warn']} warning(s).** Warnings are bench "
-                 f"conditions (sensor plausibility), never failures - see "
-                 f"tools/lab/README.md.")
+                 f"{total['warn']} warning(s).** A warning is something to "
+                 f"know, not something that failed: a sensor reading outside "
+                 f"its plausibility window (bench conditions, calibration) "
+                 f"or a language difference in an artifact that is not a "
+                 f"release candidate - see tools/lab/README.md.")
     return "\n".join(lines) + "\n"
 
 
@@ -322,7 +339,10 @@ def main():
         merged = {"hosts": {}}
         failures = 0
         for fn in sorted(os.listdir(args.merge)):
-            if fn.endswith(".json") and not fn.startswith("experiments-"):
+            # skip the per-device files AND this tool's own output, or a
+            # second merge folds the previous report in as a host
+            if (fn.endswith(".json") and not fn.startswith("experiments-")
+                    and fn != "merged.json"):
                 with open(os.path.join(args.merge, fn)) as f:
                     host = json.load(f)
                 merged["hosts"][fn[:-5]] = host

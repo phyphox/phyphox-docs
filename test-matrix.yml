@@ -276,7 +276,7 @@ tests:
     area: hardware
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Per-device sensor truth on the seven lab phones, manifest-driven
       (tools/lab/devices/): liveness and achieved rate FAIL; the value
@@ -291,7 +291,7 @@ tests:
     area: hardware
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The self-contained audio loopback (fixtures/audio/loopback.phyphox)
       per device: speaker plays 1 kHz while the microphone records, the
@@ -302,7 +302,7 @@ tests:
     area: hardware
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The full shipped experiment matrix on every lab device through
       tools/t1_experiments.py: open via phyphox://asset=, run, stop, all
@@ -313,7 +313,7 @@ tests:
     area: translations
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The release language gate: the BUILT artifact's locale set (aapt
       dump badging / the .lproj set) must equal languages.yml exactly -
