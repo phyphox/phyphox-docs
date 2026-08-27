@@ -48,6 +48,29 @@ sweep Camera; tap them as they come and every later run is dialog-free
 until the app is reinstalled. (Android needs none of this: the driver
 pre-grants via pm grant.)
 
+## The ble suite follows the boards; it does not split
+
+Every other suite is split-host: each machine drives its own phones and the
+merge combines the reports. The ble suite cannot be, because flashing and
+phone-driving are one loop — a board is flashed, then every phone in that
+scenario's scope connects to it before the next flash. The boards are USB
+devices on one machine at a time, so **the boards travel to whichever host
+drives the phones**, and an iOS pass means physically moving the ESP32 and
+the Nano to the MacBook.
+
+What that host then needs, beyond the Xcode tooling the other suites use:
+`arduino-cli` with the `esp32:esp32` and `arduino:mbed_nano` cores,
+`mpremote`, `esptool`, an ESP32 MicroPython image, and `pyserial` plus
+`bleak` in its venv. `board_check.py` additionally needs Bluetooth
+permission for the terminal it runs from on macOS, which the OS asks for
+once.
+
+Baselines do not need re-recording per platform: what they pin is the
+experiment the BOARD serves — its title and buffers — so an iOS pass
+compares against the same `fixtures/ble/baselines/` files recorded on
+Android. A platform that disagrees there is a finding, not a reason for a
+second set of files.
+
 ## One session at a time
 
 The phones and the boards are shared with whoever else is working in this
