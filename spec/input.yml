@@ -1045,10 +1045,22 @@ elements:
           one experiment. It is shown to the user to identify what a
           device is for during scanning - two sensor boxes could be
           labeled "wheel" and "distance" - and for that purpose it
-          is translatable. It also groups entries: phyphox treats
-          devices with the same id as one device, so several
-          bluetooth elements, across input and output blocks alike,
-          can refer to it without asking the user to pick it twice.
+          is translatable. It also groups entries: bluetooth elements
+          sharing an id describe **one physical device**, across input
+          and output blocks alike. The app resolves it once, connects
+          to it once, and every block in the group operates over that
+          single connection - so the user picks the device once, and
+          the experiment holds one link to it rather than one per
+          block.
+
+          A block with no id is its own device, even where it names
+          the same device as another block. Two consequences follow.
+          Devices are counted by distinct id, and a device offered by
+          a scan or delivered over Bluetooth is preselected only when
+          the experiment describes exactly one. And the grouping is
+          what every Arduino and MicroPython configuration relies on:
+          they describe their board with an input block and an output
+          block sharing one id.
         type: string
         translatable: true
         summary: >-

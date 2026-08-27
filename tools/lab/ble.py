@@ -565,27 +565,63 @@ def _screenshot(dev, scenario, args, board=None):
         return None
 
 
+def _start_for_real(dev, args, tries=8, gap=1.0):
+    """Start the experiment and confirm it actually started.
+
+    `/control?cmd=start` answers {"result": true} for a start the app
+    refused - it is documented as "whether the command was accepted" -
+    so the answer that matters is status.measuring in the next /get.
+    """
+    for attempt in range(tries):
+        api(dev.base, "/control?cmd=start")
+        status, body = api(dev.base, "/get?", timeout=20)
+        if status == 200:
+            try:
+                if json.loads(body).get("status", {}).get("measuring"):
+                    if attempt:
+                        print(f"   the start took {attempt + 1} attempt(s) - "
+                              f"the app refuses one until every bluetooth "
+                              f"block of the experiment is connected",
+                              flush=True)
+                    return True
+            except ValueError:
+                pass
+        time.sleep(gap)
+    return False
+
+
 def await_live_link(dev, buffers, args):
     """Start the experiment and wait until the board's data arrives.
     Returns (live, seconds waited).
 
-    Not a workaround - a measurement. How long a board takes to deliver
-    its first value after start is exactly where BLE stacks differ, so it
-    is recorded per phone, and a link that never comes up fails the
-    scenario here rather than as a puzzling zero-rate later.
+    Two things have to be waited for, and only one of them used to be.
 
-    This function briefly carried a retry, for a race that turned out to
-    be the harness racing the connect test rather than anything in the
-    app: with the handover done properly (connect_phone waits for the
-    test's hold, not for the API), a start issued as early as the host
-    legitimately can gives the full rate from the first second - 10, 20,
-    30 values at t+5, +10, +15 s on the Pixel 3 against the MicroPython
-    example. The retry is gone; a workaround for a bug that does not
-    exist is worse than none.
+    A start issued the moment /config answers is REFUSED, and answers
+    {"result": true} while refusing. The remote server comes up when the
+    experiment loads, but every Arduino and MicroPython configuration
+    describes its board with two <bluetooth> blocks, and the app connects
+    them sequentially on a background thread: the second is up about
+    1.6 s later (+1.61, +1.67, +1.69, +1.61 measured by the Android
+    session on 2026-08-27), and startAllIO refuses a start until it is.
+    Starting immediately failed 11 of 12 cycles; starting 2 s later
+    delivered 12/12, 6/6 and 4/4. My earlier "45% of starts fail" report
+    was this, jittering across the window edge because the host's polling
+    is not synchronised to it.
+
+    So the start is confirmed rather than assumed: /get carries
+    status.measuring, which is false after a refused start and true after
+    an accepted one, and the start is repeated until it takes. That is a
+    handshake against a documented field rather than a sleep tuned to one
+    phone.
+
+    The second wait is the board's first value, which is worth keeping
+    separately: how long a link takes to deliver is exactly where BLE
+    stacks differ, so it is recorded per phone.
     """
     q = "&".join(b + "=full" for b in buffers)
     started = time.time()
-    api(dev.base, "/control?cmd=start")
+    if not _start_for_real(dev, args):
+        return False, round(time.time() - started, 1)
     while time.time() - started < args.link_timeout:
         status, body = api(dev.base, "/get?" + q, timeout=20)
         if status == 200:
@@ -622,8 +658,10 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     if kind == "board_serial":
         wanted = scenario["expect"].get("contains_any") or []
         trigger = scenario["expect"].get("trigger")
+        # Confirmed starts here too: a refused one answers {"result":
+        # true} and measures nothing, which reads as a silent board.
         if trigger == "start_stop":
-            api(dev.base, "/control?cmd=start")
+            det["started"] = _start_for_real(dev, args)
             time.sleep(2)
             api(dev.base, "/control?cmd=stop")
         elif isinstance(trigger, dict) and "set" in trigger:
@@ -633,14 +671,16 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
             # moves it: cmd=set is that user, and without it the board
             # prints nothing and the scenario fails against hardware that
             # is working.
-            api(dev.base, "/control?cmd=start")
-            time.sleep(2)
+            det["started"] = _start_for_real(dev, args)
             spec = trigger["set"]
             api(dev.base, f"/control?cmd=set&buffer={spec['buffer']}"
                           f"&value={spec['value']}")
             det["triggered"] = f"{spec['buffer']}={spec['value']}"
         else:
-            api(dev.base, "/control?cmd=start")
+            det["started"] = _start_for_real(dev, args)
+        if det.get("started") is False:
+            return ["the app refused to start the experiment - "
+                    "status.measuring stayed false"], det
         # Generous window, ended as soon as the board says what we are
         # waiting for: the link is not live the moment the API answers
         # (see await_live_link), and here there are no buffers to watch
