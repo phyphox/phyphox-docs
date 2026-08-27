@@ -29,12 +29,18 @@ orchestration (run_suite below) instead of going through run.py's
 per-device dispatch: a flash takes a minute and must be amortised across
 every phone in the scenario's scope, not repeated per phone.
 
-Bring-up status (2026-08-27, Pixel 3 + ESP32-D0WDQ6 + Nano 33 BLE): the
-flashing paths, the MicroPython reflash, the serial reader and the whole
-host-side half are exercised and working. The phone-side connect step is
-blocked on an Android bug - the collection's add-experiment sub-FABs are
-drawn but never made visible, so nothing that reads the accessibility
-tree can find them - and is verified only by driving it manually.
+Status (2026-08-28, Pixel 3 + ESP32-D0WDQ6 + Nano 33 BLE): the whole
+chain runs unattended on Android - flash, scan with a distractor,
+transfer, load, hold, measure, release - and all ten scenarios have been
+measured, the four dual-board ones on both boards. Baselines are recorded
+against 1.2.0.
+
+The iOS half has never touched hardware. Its connect path
+(-phyphoxBleConnect) is implemented in the app and unit-tested there, but
+the branch below that drives it was written blind, exactly as the Android
+branch was before its bring-up found four defects in this file. Expect
+the same. Note also that this suite cannot be split across hosts: the
+boards travel to whichever machine drives the phones (tools/lab/README).
 """
 
 import glob
@@ -135,10 +141,12 @@ def flash(scenario, board, cfg, args):
                 return False, (
                     f"{board} is in its bootloader (usb 2341:005a) and "
                     f"bossac cannot reach it on {live}. UNPLUG IT AND PLUG "
-                    f"IT BACK IN - measured 2026-08-27, that is the only "
-                    f"thing that recovers it: the first upload after a "
-                    f"replug works and the next one leaves it here again. "
-                    f"Reset presses do not help, and neither does waiting")
+                    f"IT BACK IN - measured 2026-08-27/28, that is the only "
+                    f"thing that recovers it: a flash or two works after a "
+                    f"replug and then one leaves it here again. Reset "
+                    f"presses do not help, waiting does not, and neither "
+                    f"does a USB reset - it is the marginal USB path, so "
+                    f"try another cable or a root port first")
             return False, (f"{board} did not enter its bootloader: the port "
                            f"({live}) is there but the 1200 bps touch got no "
                            f"answer, so the sketch on it is not servicing "
