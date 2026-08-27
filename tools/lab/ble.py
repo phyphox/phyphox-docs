@@ -512,13 +512,20 @@ def release_phone(dev, handle, args):
 
 # -------------------------------------------------------------- assertions
 
-def read_serial(port, seconds, baud=115200, until=None):
+def read_serial(port, seconds, baud=115200, until=None, trigger=None):
     """Whatever the board printed in a window - the assertion channel for
     the phone -> board direction, which has no phone-side evidence.
 
     `until` is checked as lines come in and ends the read early, so the
     window can be generous enough to cover a slow link (see
     await_live_link) without every scenario paying for it.
+
+    `trigger` is run once the port is OPEN, and that ordering is the whole
+    point: the event-driven sketches print their burst the instant the
+    experiment starts or stops, so a reader opened afterwards catches the
+    tail of one line and concludes the board said nothing. Opening first
+    means whatever the board says during the trigger is already in the
+    buffer.
     """
     try:
         import serial
@@ -526,6 +533,8 @@ def read_serial(port, seconds, baud=115200, until=None):
         return None, "pyserial is not installed"
     try:
         with serial.Serial(port, baud, timeout=0.5) as s:
+            if trigger is not None:
+                trigger()
             deadline = time.time() + seconds
             out = []
             while time.time() < deadline:
@@ -660,27 +669,20 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
         trigger = scenario["expect"].get("trigger")
         # Confirmed starts here too: a refused one answers {"result":
         # true} and measures nothing, which reads as a silent board.
-        if trigger == "start_stop":
-            det["started"] = _start_for_real(dev, args)
-            time.sleep(2)
-            api(dev.base, "/control?cmd=stop")
-        elif isinstance(trigger, dict) and "set" in trigger:
-            # Some boards only hear from the phone when a view element
-            # changes - an edit or a slider the user would move. Nothing
-            # arrives just because the experiment is running, so the host
-            # moves it: cmd=set is that user, and without it the board
-            # prints nothing and the scenario fails against hardware that
-            # is working.
-            det["started"] = _start_for_real(dev, args)
-            spec = trigger["set"]
-            api(dev.base, f"/control?cmd=set&buffer={spec['buffer']}"
-                          f"&value={spec['value']}")
-            det["triggered"] = f"{spec['buffer']}={spec['value']}"
-        else:
-            det["started"] = _start_for_real(dev, args)
-        if det.get("started") is False:
-            return ["the app refused to start the experiment - "
-                    "status.measuring stayed false"], det
+        def fire():
+            if trigger == "start_stop":
+                det["started"] = _start_for_real(dev, args)
+                time.sleep(2)
+                api(dev.base, "/control?cmd=stop")
+            elif isinstance(trigger, dict) and "set" in trigger:
+                det["started"] = _start_for_real(dev, args)
+                spec = trigger["set"]
+                api(dev.base, f"/control?cmd=set&buffer={spec['buffer']}"
+                              f"&value={spec['value']}")
+                det["triggered"] = f"{spec['buffer']}={spec['value']}"
+            else:
+                det["started"] = _start_for_real(dev, args)
+
         # Generous window, ended as soon as the board says what we are
         # waiting for: the link is not live the moment the API answers
         # (see await_live_link), and here there are no buffers to watch
@@ -688,8 +690,12 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
         lines, err = read_serial(
             board_port, args.serial_window + args.link_timeout,
             until=(lambda ls: any(w in "\n".join(ls) for w in wanted))
-            if wanted else None)
+            if wanted else None,
+            trigger=fire)
         api(dev.base, "/control?cmd=stop")
+        if det.get("started") is False:
+            return ["the app refused to start the experiment - "
+                    "status.measuring stayed false"], det
         if err:
             return [f"could not read the board's serial output: {err}"], det
         det["serial_lines"] = lines[-10:]

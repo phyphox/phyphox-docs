@@ -144,7 +144,12 @@ scenarios:
     expect:
       kind: board_serial
       trigger: start_stop      # the host starts and stops the experiment
-      contains_any: ["event", "Event", "time", "Time"]
+      # getSystemAndEventTime.ino:20-27. The board prints its burst AT the
+      # event, so the suite opens the serial port before triggering - a
+      # reader started afterwards catches the tail of one line and
+      # concludes the board said nothing.
+      contains_any: ["New experiment event received", "Event type",
+                     "Experiment time [ms]", "Unix system time [ms]"]
     why: >-
       Exercises the event characteristic: the board reacts to the
       experiment being started and stopped on the phone. No MicroPython
