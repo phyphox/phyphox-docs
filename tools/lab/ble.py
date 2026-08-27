@@ -539,7 +539,7 @@ def read_serial(port, seconds, baud=115200, until=None):
         return None, f"{type(e).__name__}: {e}"
 
 
-def _screenshot(dev, scenario, args):
+def _screenshot(dev, scenario, args, board=None):
     """Keep the screen when a start produced nothing.
 
     The phone usually knows exactly what went wrong and says so in a
@@ -555,7 +555,8 @@ def _screenshot(dev, scenario, args):
     try:
         os.makedirs(out, exist_ok=True)
         path = os.path.join(
-            out, f"{scenario['library']}-{scenario['example']}-nodata.png")
+            out, f"{scenario['library']}-{scenario['example']}"
+                 + (f"-{board}" if board else "") + "-nodata.png")
         with open(path, "wb") as f:
             r = subprocess.run(dev.adb + ["exec-out", "screencap", "-p"],
                                stdout=f, timeout=30)
@@ -669,7 +670,8 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     live, waited = await_live_link(dev, buffers, args)
     det["time_to_data_s"] = waited
     if not live:
-        shot = _screenshot(dev, scenario, args)
+        shot = _screenshot(dev, scenario, args,
+                           getattr(args, "_board", None))
         if shot:
             det["evidence"] = shot
         return [f"no data arrived from the board within {args.link_timeout:.0f}"
@@ -777,7 +779,7 @@ def spec_findings(path):
             for _fn, where in entries][:5]
 
 
-def capture_xml(dev, scenario):
+def capture_xml(dev, scenario, board=None):
     """Pull the experiment the board just served, for the T0 half.
 
     The libraries generate their XML on the microcontroller, so the only
@@ -815,7 +817,9 @@ def capture_xml(dev, scenario):
     if MACISH.search(xml):
         return None, ("the capture contains something MAC-shaped; sanitize "
                       "it by hand before it goes into the public corpus")
-    stem = f"{scenario['library']}-{scenario['example']}.phyphox"
+    stem = (f"{scenario['library']}-{scenario['example']}"
+            + (f"-{board}" if board and board != scenario["boards"][0] else "")
+            + ".phyphox")
     # Write first, then judge: the spec check needs a file, and where the
     # file belongs depends on what it says.
     os.makedirs(CAPTURE_STAGING, exist_ok=True)
@@ -1052,10 +1056,11 @@ def run_suite(devices, args):
                         "connected": False}
                     continue
                 try:
+                    args._board = board
                     findings, det = assert_scenario(dev, scenario, baseline,
                                                     args, boards[board])
                     if getattr(args, "capture_ble_xml", False):
-                        path, note = capture_xml(dev, scenario)
+                        path, note = capture_xml(dev, scenario, board)
                         det["capture"] = (os.path.relpath(path, ROOT)
                                           + ": " + note if path else note)
                 finally:

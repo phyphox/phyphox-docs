@@ -41,9 +41,6 @@
 			<input axis="x">CH0</input>
 			<input axis="y">CH1</input>
 		</graph>
-		<value label="myLabel" facor="1">
-			<input>CH1</input>
-		</value>
 	</view>
 </views>
 <export>
