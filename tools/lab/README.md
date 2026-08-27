@@ -76,6 +76,23 @@ that file and never open a serial port. It is needed only for the three
 scenarios where the data goes phone -> board and the board's own printout
 is the evidence.
 
+**ModemManager must be kept off the boards.** It probes every new ACM device
+with AT commands, and that leaves the Nano 33 BLE's bootloader unresponsive:
+the port opens, a SAM-BA `V#` returns nothing, and `bossac` reports "No device
+found on ttyACM0" against a bootloader that is demonstrably there. It is a
+race, so uploads work until they suddenly do not. `journalctl -u ModemManager`
+shows the claim - "port ttyACM0 released by device .../3-2.2.2" each time the
+board re-enumerates. Fix it once, as root:
+
+    # /etc/udev/rules.d/99-arduino-no-modemmanager.rules
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ENV{ID_MM_DEVICE_IGNORE}="1"
+    SUBSYSTEM=="tty", ATTRS{idVendor}=="2a03", ENV{ID_MM_DEVICE_IGNORE}="1"
+
+    sudo udevadm control --reload-rules
+
+`sudo systemctl stop ModemManager` works for one session if you would rather
+not add a rule.
+
 `arduino-cli` needs the cores for the bench boards installed once:
 
     arduino-cli core install esp32:esp32
