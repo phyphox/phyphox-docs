@@ -93,6 +93,21 @@ board re-enumerates. Fix it once, as root:
 `sudo systemctl stop ModemManager` works for one session if you would rather
 not add a rule.
 
+**The Nano 33 BLE takes one upload per physical re-plug on this host.** With
+ModemManager excluded and the board in its bootloader, `bossac` still gets no
+answer: a raw SAM-BA `V#` on the port returns nothing. Measured on
+2026-08-27 — the first upload after unplugging and replugging the board works,
+the next one leaves it sitting in the bootloader (`2341:005a`), and from there
+nothing recovers it: not a reset press, not a double-tap, not waiting, not
+running `bossac` by hand. The kernel log shows marginal USB around these
+resets (`device descriptor read/64, error -32`), so a cable or hub is the first
+thing to suspect.
+
+Until that is chased down, plan the Nano's scenarios around one flash per
+session, and note that the driver drops a board after two failed flashes and
+carries on with the other one — a pass without it warns per scenario that the
+scan ran with no distractor.
+
 `arduino-cli` needs the cores for the bench boards installed once:
 
     arduino-cli core install esp32:esp32

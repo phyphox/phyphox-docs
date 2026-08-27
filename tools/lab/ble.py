@@ -126,18 +126,18 @@ def flash(scenario, board, cfg, args):
             # and is exactly what this message did once.
             if _usb_pid(live) == "005a":
                 return False, (
-                    f"{board} is sitting in its bootloader (usb 2341:005a) "
-                    f"and bossac still cannot reach it on {live}. Press "
-                    f"reset ONCE to leave the bootloader and run the sketch "
-                    f"again - the upload does its own 1200 bps reset from "
-                    f"there. If it persists, something on the host is "
-                    f"claiming the port as it appears (ModemManager is the "
-                    f"usual one)")
+                    f"{board} is in its bootloader (usb 2341:005a) and "
+                    f"bossac cannot reach it on {live}. UNPLUG IT AND PLUG "
+                    f"IT BACK IN - measured 2026-08-27, that is the only "
+                    f"thing that recovers it: the first upload after a "
+                    f"replug works and the next one leaves it here again. "
+                    f"Reset presses do not help, and neither does waiting")
             return False, (f"{board} did not enter its bootloader: the port "
                            f"({live}) is there but the 1200 bps touch got no "
-                           f"answer, which means the sketch on it is wedged. "
-                           f"Double-tap the board's reset button and run "
-                           f"again; nothing here can do it remotely")
+                           f"answer, so the sketch on it is not servicing "
+                           f"USB. Unplug and replug the board; a double-tap "
+                           f"on reset frees the sketch but has not been "
+                           f"enough on its own")
         return False, f"upload failed: {out[-300:]}"
 
     # MicroPython: the ESP32 is shared with the Arduino scenarios, whose
