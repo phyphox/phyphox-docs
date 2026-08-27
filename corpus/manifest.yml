@@ -147,6 +147,18 @@
   adds:
     - bluetooth@rate
     - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/arduino-getDataFromSmartphone.phyphox
+  version: "1.15"
+  adds:
+    - bluetooth@subscribeOnStart
+    - edit@decimal
+    - slider@default
+- file: valid/ble-libraries/micropython-getDataFromSmartphone.phyphox
+  version: "1.10"
+  adds:
+    - bluetooth@rate
+    - bluetooth@subscribeOnStart
+    - edit@decimal
 - file: valid/ble-libraries/micropython-randomNumbers.phyphox
   version: "1.10"
   adds:
