@@ -260,7 +260,6 @@ paths:
       tags: [control]
       summary: Start, stop, clear, or write a value
       operationId: control
-      x-phyphox-inconsistency: [control-start-refused]
       description: |
         Sends a command to the running experiment. Always answers with
         `{"result": true}` or `{"result": false}`; the response says whether the
@@ -333,7 +332,6 @@ paths:
       tags: [control]
       summary: Start, stop, clear, or write a value (POST)
       operationId: controlPost
-      x-phyphox-inconsistency: [control-start-refused]
       description: |
         Identical to `GET /control`, with the command and its parameters in the
         request body, e.g. `{"cmd": "set", "buffer": "height", "value": 1.87}`.
