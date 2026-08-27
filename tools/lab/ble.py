@@ -84,11 +84,19 @@ def flash(scenario, board, cfg, args):
         fqbn = lib["flash"]["fqbn"].get(board)
         if not fqbn:
             return False, f"no fqbn for board {board}"
-        r = sh(["arduino-cli", "compile", "--fqbn", fqbn, sketch], timeout=600)
+        # Board configuration, never sketch edits: an example is stimulus
+        # and is flashed as it is. See scenarios.yml for why each of these
+        # exists.
+        props = []
+        for k, v in (scenario.get("build_properties") or {}).get(
+                board, {}).items():
+            props += ["--build-property", f"{k}={v}"]
+        r = sh(["arduino-cli", "compile", "--fqbn", fqbn] + props + [sketch],
+               timeout=600)
         if r.returncode != 0:
             return False, f"compile failed: {(r.stderr or r.stdout)[-300:]}"
-        r = sh(["arduino-cli", "upload", "-p", port, "--fqbn", fqbn, sketch],
-               timeout=300)
+        r = sh(["arduino-cli", "upload", "-p", port, "--fqbn", fqbn] + props
+               + [sketch], timeout=300)
         if r.returncode != 0:
             return False, f"upload failed: {(r.stderr or r.stdout)[-300:]}"
         return True, "flashed"

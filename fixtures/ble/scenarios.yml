@@ -56,7 +56,12 @@ libraries:
     flash:
       tool: arduino-cli
       fqbn:
-        esp32: esp32:esp32:esp32
+        # PartitionScheme=huge_app, not the default 1.2 MB app partition:
+        # three of these examples overflow it ("Textbereich ueberschreitet
+        # den verfuegbaren Platz auf der Platine"). The bench board is a
+        # 4 MB ESP32-D0WDQ6, so 3 MB of app is available; nothing here uses
+        # OTA or a filesystem.
+        esp32: esp32:esp32:esp32:PartitionScheme=huge_app
         nano33ble: arduino:mbed_nano:nano33ble
   micropython:
     repository: ../phyphox-micropython
@@ -153,6 +158,15 @@ scenarios:
     device_name: "phyphox-Arduino"
     boards: [esp32]
     phones: newest
+    build_properties:
+      # The sketch blinks LED_BUILTIN, which the generic esp32 board does
+      # not define (the variants that do, doit-devkit-v1 and nodemcu-32s,
+      # offer no PartitionScheme option, and this sketch needs both). GPIO2
+      # is the DevKit's on-board LED. This is board configuration, not an
+      # edit to the example - the LED is decoration here, the assertion is
+      # the board's serial output.
+      esp32:
+        compiler.cpp.extra_flags: -DLED_BUILTIN=2
     expect:
       kind: board_serial
       contains_any: ["received", "Received", "value"]

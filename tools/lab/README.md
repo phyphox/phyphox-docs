@@ -59,6 +59,24 @@ that file and never open a serial port. It is needed only for the three
 scenarios where the data goes phone -> board and the board's own printout
 is the evidence.
 
+`arduino-cli` needs the cores for the bench boards installed once:
+
+    arduino-cli core install esp32:esp32
+    arduino-cli core install arduino:mbed_nano
+
+Without the second one every `nano33ble` scenario fails at compile with
+"Plattform 'arduino:mbed_nano' nicht gefunden", which is a host that was
+never set up rather than anything about the board.
+
+Two ESP32 build settings are carried in `scenarios.yml` rather than left
+to the default FQBN, both found by compiling every example during bring-up:
+`PartitionScheme=huge_app` (three examples overflow the default 1.2 MB app
+partition) and `-DLED_BUILTIN=2` for `getDataFromSmartphone` (the generic
+esp32 board defines no `LED_BUILTIN`, and the variants that do offer no
+partition option). Both are board configuration. The sketches themselves
+are flashed unmodified and must stay that way — a modified example is no
+longer the thing users have.
+
 One mpremote trap, met during bring-up and worked around in `ble.py`:
 `mpremote fs cp -r <dir> :` recreates the SOURCE PATH on the board, so an
 absolute path puts the library at `/home/.../phyphoxBLE` instead of
