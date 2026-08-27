@@ -765,23 +765,39 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
                             "parameters")
         return findings, det
 
-    # kind == exact
+    # kind == structure: what the reference release produced, in every
+    # respect that a rerun can legitimately reproduce.
+    #
+    # NOT the values. Every scenario in this class emits a stimulus that
+    # cannot repeat: CreateExperiment writes random(0,100) and its square,
+    # multigraph writes millis()-derived sine and cosine, MicroPython's
+    # createExperiment writes random numbers too. Comparing recorded
+    # values against a rerun would fail every time and mean nothing when
+    # it passed. What a release must preserve, and what a rerun can hold
+    # it to, is the shape: the same experiment title, the same buffers,
+    # and data still arriving in the same ones.
     if baseline is None:
         findings.append("no baseline recorded for this scenario - run with "
-                        "--record-ble-baseline against the STORE RELEASE "
+                        "--record-ble-baseline against the reference release "
                         "first, so 'the previous version worked' is a "
                         "measured fact")
         return findings, det
-    for name, expected in (baseline.get("buffers") or {}).items():
-        actual = got.get(name)
-        if actual is None:
-            findings.append(f"buffer {name} is gone")
-        elif actual[:len(expected)] != expected:
-            findings.append(f"buffer {name} differs from the baseline: "
-                            f"{actual[:3]} vs {expected[:3]}")
     if baseline.get("title") and det.get("title") != baseline["title"]:
         findings.append(f"experiment title is {det.get('title')!r}, the "
                         f"baseline recorded {baseline['title']!r}")
+    was, now = set(baseline.get("buffer_names") or []), set(buffers)
+    if was and was != now:
+        gone, new = sorted(was - now), sorted(now - was)
+        findings.append(
+            "the experiment's buffers changed since the baseline"
+            + (f" - gone: {', '.join(gone)}" if gone else "")
+            + (f" - new: {', '.join(new)}" if new else ""))
+    for name, count in (baseline.get("counts") or {}).items():
+        if count and not got.get(name):
+            findings.append(f"buffer {name} carried {count} value(s) on the "
+                            f"reference release and none now")
+    det["baseline"] = {"app": (baseline.get("app") or {}).get("version"),
+                       "recorded": baseline.get("recorded")}
     return findings, det
 
 

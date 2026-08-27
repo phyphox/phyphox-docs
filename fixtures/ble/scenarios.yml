@@ -23,8 +23,17 @@
 #                manufacturer, which is the point of the lab); the rest
 #                only prove they still work, on the newest phone of each
 #                platform
-#   expect.kind  exact | range_rate | connection | board_serial
-#                - exact:        recorded buffer values must match
+#   expect.kind  structure | range_rate | connection | board_serial
+#                - structure:    the experiment must still look like what
+#                                the reference release received - same
+#                                title, same buffers, data still arriving
+#                                in the same ones. NOT the same values:
+#                                every scenario in this class emits random
+#                                or time-derived data, so recorded values
+#                                could never repeat (CreateExperiment
+#                                writes random(0,100) and its square,
+#                                multigraph millis()-derived sine and
+#                                cosine)
 #                - range_rate:   the stimulus is random, so only its
 #                                range and cadence can be asserted
 #                - connection:   negotiated parameters; assert the link
@@ -162,7 +171,7 @@ scenarios:
     boards: [esp32]
     phones: newest
     expect:
-      kind: exact
+      kind: structure
     why: >-
       A full hand-written experiment definition - the widest XML surface
       the library emits.
@@ -199,7 +208,7 @@ scenarios:
     boards: [esp32]
     phones: newest
     expect:
-      kind: exact
+      kind: structure
     why: Several channels at once, which is where channel mapping breaks.
 
   # --- MicroPython, ESP32 only -------------------------------------------
@@ -223,7 +232,7 @@ scenarios:
     boards: [esp32]
     phones: newest
     expect:
-      kind: exact
+      kind: structure
     why: The MicroPython library's own XML generator, end to end.
 
   - example: getDataFromSmartphone

@@ -1,0 +1,45 @@
+{
+  "app": {
+    "build": "1020009",
+    "fileFormat": "1.19",
+    "version": "1.2.0"
+  },
+  "buffer_names": [
+    "CH0",
+    "CB1",
+    "CB2",
+    "CB3",
+    "CB4",
+    "CB5",
+    "CH1",
+    "CH2",
+    "CH3",
+    "CH4",
+    "CH5"
+  ],
+  "buffers": {
+    "CB1": [
+      100.0
+    ],
+    "CB2": [
+      1.0
+    ]
+  },
+  "counts": {
+    "CB1": 1,
+    "CB2": 1,
+    "CB3": 0,
+    "CB4": 0,
+    "CB5": 0,
+    "CH0": 0,
+    "CH1": 0,
+    "CH2": 0,
+    "CH3": 0,
+    "CH4": 0,
+    "CH5": 0
+  },
+  "device": "pixel-9-pro",
+  "recorded": "2026-08-28",
+  "seconds": 10.0,
+  "title": "Set Blink Interval"
+}
