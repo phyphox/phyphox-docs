@@ -1,0 +1,29 @@
+# Staged BLE captures
+
+Experiment XML taken off a phone that received it from a board
+(`tools/lab/run.py --suites ble --capture-ble-xml`), held here because the
+spec check flags it and where it belongs is a decision, not a default.
+
+`corpus/valid/` means two things at once: the file validates against
+`spec/`, and both apps load it. A library capture can fail the first while
+passing the second, and dropping one into `corpus/valid/` anyway would
+break the docs build on the next commit.
+
+What is here now, and why:
+
+- `arduino-getSensorDataFromSmartphone.phyphox`
+- `arduino-getSystemAndEventTime.phyphox`
+
+Both carry `facor="1"` on their `<value>` view elements — a typo for
+`factor`, emitted by the library itself (`phyphox-arduino`
+`src/view_elements/value.cpp:58` and, identically, `phyphox-micropython`
+`phyphoxBLE/experiment.py:575`). It is harmless: the value written is the
+attribute's own default, and both parsers ignore unknown attributes, so
+nothing misbehaves. But it is real output that released apps must keep
+loading, which is precisely what `corpus/invalid/` with `parser: accepts`
+records.
+
+Moving them there is a classification decision and the maintainer's call —
+and it is worth making after the libraries are next touched, since a fixed
+library would make these captures clean and put them in `corpus/valid/`
+instead.

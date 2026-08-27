@@ -41,6 +41,7 @@ import glob
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -102,11 +103,21 @@ def flash(scenario, board, cfg, args):
                timeout=600)
         if r.returncode != 0:
             return False, f"compile failed: {(r.stderr or r.stdout)[-300:]}"
-        r = sh(["arduino-cli", "upload", "-p", port, "--fqbn", fqbn] + props
-               + [sketch], timeout=300)
-        if r.returncode != 0:
-            return False, f"upload failed: {(r.stderr or r.stdout)[-300:]}"
-        return True, "flashed"
+        for attempt in (1, 2):
+            live = resolve_arduino_port(fqbn, port)
+            # No props here: `upload` does not take --build-property and
+            # answers a usage dump if given one. It uploads what `compile`
+            # just built, so the properties are already baked in.
+            r = sh(["arduino-cli", "upload", "-p", live, "--fqbn", fqbn,
+                    sketch], timeout=300)
+            if r.returncode == 0:
+                return True, ("flashed" if live == port
+                              else f"flashed (on {live}, not {port})")
+            # One retry, because the failure to beat is a board caught
+            # mid-re-enumeration: it is absent for a second and then back.
+            if attempt == 1:
+                time.sleep(5)
+        return False, f"upload failed: {(r.stderr or r.stdout)[-300:]}"
 
     # MicroPython: the ESP32 is shared with the Arduino scenarios, whose
     # uploads overwrite the whole flash, so the firmware cannot be a
@@ -134,6 +145,33 @@ def flash(scenario, board, cfg, args):
         return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
     sh(["mpremote", "connect", port, "reset"], timeout=60)
     return True, "copied and reset"
+
+
+def resolve_arduino_port(fqbn, configured):
+    """Where that board actually is right now, not where lab.yml said.
+
+    A Nano 33 BLE re-enumerates on every upload (1200 bps touch into the
+    bootloader and back), and it does not reliably come back on the node
+    it left: a full pass on 2026-08-27 failed EVERY distractor flash with
+    "No device found on ttyACM1" while the board sat there working, and
+    it was on ttyACM1 again by the time the run ended. So ask arduino-cli,
+    which identifies boards by USB id and reports the FQBN per port, and
+    fall back to what was configured when it cannot say (the ESP32's
+    CP2102 is a generic bridge and matches no board).
+    """
+    r = sh(["arduino-cli", "board", "list", "--format", "json"], timeout=60)
+    if r.returncode != 0:
+        return configured
+    try:
+        doc = json.loads(r.stdout or "{}")
+    except ValueError:
+        return configured
+    base = fqbn.split(":")[:3]
+    for entry in doc.get("detected_ports") or []:
+        for board in entry.get("matching_boards") or []:
+            if (board.get("fqbn") or "").split(":")[:3] == base:
+                return (entry.get("port") or {}).get("address") or configured
+    return configured
 
 
 def _esptool():
@@ -213,6 +251,9 @@ def pick_distractor(scenario, cfg, boards_available):
 # ------------------------------------------------------- the phone-side step
 
 RELEASE_PROP = "debug.phyphox.labRelease"
+ANDROID_PACKAGE = "de.rwth_aachen.phyphox"
+# Where Android leaves the experiment a device just sent it.
+TRANSFER_FILE = "files/temp_bt/bt.phyphox"
 
 
 def connect_phone(dev, scenario, args):
@@ -235,12 +276,25 @@ def connect_phone(dev, scenario, args):
     """
     name = scenario.get("device_name") or ""
     if dev.platform == "android":
+        # Start from nothing on the phone. Both of these were learned from
+        # one bad full pass: a previous scenario's app instance survived a
+        # killed instrumentation and kept answering the API, so every
+        # later scenario "connected" to a phone still holding the wrong
+        # experiment - and the leftover transfer file was captured four
+        # times under four different names.
+        sh(dev.adb + ["shell", "am", "force-stop", ANDROID_PACKAGE])
+        sh(dev.adb + ["shell", "run-as", ANDROID_PACKAGE,
+                      "rm", "-f", TRANSFER_FILE])
         sh(dev.adb + ["shell", "setprop", RELEASE_PROP, "0"])
         proc = subprocess.Popen(
             dev.adb + ["shell", "am", "instrument", "-w",
                        "-e", "class",
                        "de.rwth_aachen.phyphox.BleCompatConnectTest",
-                       "-e", "bleDevice", name,
+                       # Quoted: adb joins argv into ONE shell command, so
+                       # a name with a space ("phyphox device", "My
+                       # Device") becomes two arguments and am instrument
+                       # answers with a usage dump instead of running.
+                       "-e", "bleDevice", shlex.quote(name),
                        "-e", "holdForHost", "true",
                        "de.rwth_aachen.phyphox.test/"
                        "androidx.test.runner.AndroidJUnitRunner"],
@@ -249,6 +303,10 @@ def connect_phone(dev, scenario, args):
         # there is no other one while the test is still running.
         if wait_api(dev.base, args.connect_timeout) is None:
             proc.kill()
+            # Killing the local adb does NOT stop the instrumentation on
+            # the phone; without this it keeps the app alive and the next
+            # scenario talks to it.
+            sh(dev.adb + ["shell", "am", "force-stop", ANDROID_PACKAGE])
             out = (proc.communicate()[0] or "")[-300:]
             return False, ("the phone did not reach a loaded experiment "
                            "within the connect timeout: " + out), None
@@ -491,7 +549,46 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
 # ------------------------------------------------------------ XML capture
 
 CAPTURE_DIR = os.path.join(ROOT, "corpus", "valid", "ble-libraries")
+# Where a capture waits when it cannot go straight into corpus/valid.
+CAPTURE_STAGING = os.path.join(ROOT, "fixtures", "ble", "captured")
 MACISH = re.compile(r"\b[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}\b")
+
+
+def spec_findings(path):
+    """What tools/validate_experiments.py says about one file.
+
+    corpus/valid means "validates cleanly AND both apps load it", and a
+    capture cannot be assumed to do the first: the libraries emit
+    `facor="1"` for `factor` on every <value> element (Arduino
+    src/view_elements/value.cpp:58, MicroPython phyphoxBLE/
+    experiment.py:575 - the same typo, copied). The apps ignore unknown
+    attributes and load it fine, so that belongs in corpus/invalid with
+    `parser: accepts`, which is a classification decision and therefore
+    the maintainer's. A flagged capture is staged instead of filed, and
+    the run says so - dropping it into corpus/valid would break the docs
+    build on the next commit.
+    """
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    try:
+        import validate_experiments as ve
+    except ImportError as e:
+        return [f"could not run the spec check: {e}"]
+    import xml.etree.ElementTree as ET
+    spec, common, slots, components = ve.load_spec()
+    rep = ve.Report()
+    name = os.path.basename(path)
+    root = ve.normalize_namespace(ET.parse(path).getroot())
+    for child in root:
+        ve.check_element(child, "phyphox", spec, common, slots, components,
+                         rep, "", name)
+    for attr, value in root.attrib.items():
+        if spec.get((None, "phyphox"), {"attrs": {}})["attrs"].get(attr) is None:
+            rep.add("unknown attribute", name, f'<phyphox>: {attr}="{value}"')
+    ve.check_slots(root, slots, components, rep, name)
+    ve.check_root_once(root, rep, name)
+    return [f"{kind}: {where}"
+            for kind, entries in rep.items.items()
+            for _fn, where in entries][:5]
 
 
 def capture_xml(dev, scenario):
@@ -510,25 +607,50 @@ def capture_xml(dev, scenario):
     """
     if dev.platform != "android":
         return None, "capture runs on Android only (the file is the board's)"
-    r = sh(dev.adb + ["shell", "run-as", "de.rwth_aachen.phyphox",
-                      "cat", "files/temp_bt/bt.phyphox"], timeout=30)
+    r = sh(dev.adb + ["shell", "run-as", ANDROID_PACKAGE,
+                      "cat", TRANSFER_FILE], timeout=30)
     if r.returncode != 0 or not (r.stdout or "").lstrip().startswith("<"):
         return None, ("no transferred experiment on the phone - "
                       f"{(r.stderr or r.stdout or '')[-120:]}")
     xml = r.stdout
+    # Prove it came from THIS board. connect_phone deletes the file first,
+    # so a leftover should be impossible - but a bad full pass on
+    # 2026-08-27 wrote one stale file into the corpus under four different
+    # scenario names, and a fixture that silently describes the wrong
+    # device is worse than no fixture.
+    wanted = scenario.get("device_name")
+    m = re.search(r'<bluetooth\b[^>]*\bname="([^"]*)"', xml)
+    if wanted and m and m.group(1) != wanted:
+        return None, (f"the transferred experiment names {m.group(1)!r}, not "
+                      f"{wanted!r} - this is not that board's file")
     # The corpus is public. Nothing seen so far carries one - the
     # libraries identify their device by name - but a captured file is
     # not hand-written, so check rather than trust.
     if MACISH.search(xml):
         return None, ("the capture contains something MAC-shaped; sanitize "
                       "it by hand before it goes into the public corpus")
+    stem = f"{scenario['library']}-{scenario['example']}.phyphox"
+    # Write first, then judge: the spec check needs a file, and where the
+    # file belongs depends on what it says.
+    os.makedirs(CAPTURE_STAGING, exist_ok=True)
+    staged = os.path.join(CAPTURE_STAGING, stem)
+    with open(staged, "w", encoding="utf-8") as f:
+        f.write(xml)
+    findings = spec_findings(staged)
+    if findings:
+        return staged, ("staged, NOT filed - the spec check flags it ("
+                        + "; ".join(findings) + "). If the apps load it "
+                        "anyway it belongs in corpus/invalid with "
+                        "`parser: accepts`, which is a call to make by "
+                        "hand")
+
     os.makedirs(CAPTURE_DIR, exist_ok=True)
-    path = os.path.join(
-        CAPTURE_DIR, f"{scenario['library']}-{scenario['example']}.phyphox")
+    path = os.path.join(CAPTURE_DIR, stem)
     old = None
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             old = f.read()
+    os.remove(staged)
     if old == xml:
         return path, "unchanged"
     with open(path, "w", encoding="utf-8") as f:

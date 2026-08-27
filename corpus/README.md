@@ -25,6 +25,12 @@ test suite as well is planned.
   emits — the whole point is that they are what a released app must keep
   loading. Note what they legitimately contain: no `xmlns`, a format version
   well behind the apps (MicroPython declares 1.10), and containers sized `0`.
+  A capture the spec check flags does **not** land here: it is staged in
+  `fixtures/ble/captured/` with the finding, because a file that the apps
+  load but the validators reject belongs in `invalid/` with
+  `parser: accepts`, and that classification is a decision rather than
+  something a lab run should make on its own. Two Arduino captures are
+  waiting there now over a `facor="1"` typo in the library.
 - `generated/` — hand-written fixtures for the spec surface that no collected
   file exercises either: the inverse and hyperbolic trigonometry modules,
   `gcd`/`lcm`, `butterworth`, the `events` block of saved states, `appleBan`,
