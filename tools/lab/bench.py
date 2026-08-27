@@ -69,6 +69,19 @@ def acquire(who, force=False):
     return True, "bench locked" + note
 
 
+def owns():
+    """Is the lock still ours?
+
+    Worth asking again mid-run, not just at the start. A run that loses
+    the bench does not fail cleanly - it produces measurements of a phone
+    somebody else is resetting, which look exactly like an intermittent
+    app bug and cost an afternoon to disbelieve. Better to stop and say
+    so.
+    """
+    held = _read()
+    return bool(held and held.get("pid") == str(os.getpid()))
+
+
 def release():
     held = _read()
     if held and held.get("pid") == str(os.getpid()):

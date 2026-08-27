@@ -801,7 +801,21 @@ def run_suite(devices, args):
                 print(f"   !! {dead_boards[board]}", flush=True)
         return ok, msg
 
+    from lab import bench
     for scenario in scenarios:
+        # Checked per scenario, because losing the bench mid-run does not
+        # announce itself: the phone simply starts behaving oddly - props
+        # cleared, forwards removed, the connect test killed - and the
+        # results read as an intermittent BLE fault. Ask, and stop.
+        if not bench.owns():
+            for r in results.values():
+                r["passed"] = False
+                r["findings"].append(
+                    "the bench lock was taken over mid-run, so everything "
+                    "measured from here would be of a phone someone else "
+                    "is using - stopping. Nothing above this point is "
+                    "necessarily trustworthy either")
+            return results
         for board in [b for b in scenario["boards"] if b in boards]:
             label = f"{scenario['library']}/{scenario['example']}@{board}"
             ok, msg = put(scenario, board, "flashing")
