@@ -94,6 +94,23 @@ partition option). Both are board configuration. The sketches themselves
 are flashed unmodified and must stay that way — a modified example is no
 longer the thing users have.
 
+`tools/lab/board_check.py` needs `bleak` in the same venv (again lab-only,
+again not in requirements.txt). It connects to a board from THIS machine's
+Bluetooth adapter, subscribes and counts notifications, several times over.
+Run it before reporting any BLE fault against either app: it is the control
+that says whether the board is doing its job, and it settled today's
+question in five minutes after a lot of peripheral-side guesswork did not.
+An 8/8 there against a phone that fails half its connects puts the fault on
+the phone; a board that starves here was never the app's fault at all.
+
+Do not judge a board by what the Arduino library reports about itself.
+`PhyphoxBLE::isSubscribed` is never cleared on disconnect, `write()`
+notifies without consulting it, and the 0x2902 descriptor keeps its last
+value after every client is gone - the board will happily print
+`connected=0 cccd=0x0100`. Only `getConnectedCount()` and the descriptor
+WRITE CALLBACKS are current; everything else is bookkeeping, and it misled
+this session twice before the maintainer called it.
+
 One mpremote trap, met during bring-up and worked around in `ble.py`:
 `mpremote fs cp -r <dir> :` recreates the SOURCE PATH on the board, so an
 absolute path puts the library at `/home/.../phyphoxBLE` instead of
