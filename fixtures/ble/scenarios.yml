@@ -34,6 +34,16 @@
 #                                assertion channel is the board's own
 #                                serial output
 #
+# MicroPython names come with a caveat found during bring-up: the library
+# puts NO name in the advertising payload (only the service UUID) and
+# carries the device name in the SCAN RESPONSE instead, so what a phone
+# displays depends on whether it reads that response. A Pixel 3 on Android
+# 12 does, and showed exactly the name start() was given ("phyphox",
+# 2026-08-27) - but that is one phone, and the lab exists because BLE
+# behaviour varies by version and manufacturer. If a phone shows something
+# else the connect test should record what it saw rather than assume; that
+# discrepancy is the library's business, not ours to fix.
+#
 # Buffer names and recorded values live in baselines/, captured once from
 # the CURRENT STORE RELEASE so that "the previous version worked" is a
 # measured fact. Re-recording is deliberate and reviewed.
@@ -160,14 +170,15 @@ scenarios:
   # --- MicroPython, ESP32 only -------------------------------------------
   - example: randomNumbers
     library: micropython
-    device_name: null          # recorded at capture time: start() default
+    device_name: "phyphox"     # the library's start() default
     boards: [esp32]
     phones: all
     expect:
       kind: range_rate
       min: 0
       max: 100
-      rate_hz: 10
+      rate_hz: 2           # sleep_ms(500) in the example, not the
+                           # Arduino sketch's 50 ms - measured 2.0 Hz
       rate_tolerance: 0.5
     why: The MicroPython counterpart of the plainest Arduino case.
 
@@ -182,7 +193,7 @@ scenarios:
 
   - example: getDataFromSmartphone
     library: micropython
-    device_name: null
+    device_name: "My Device"
     boards: [esp32]
     phones: all
     expect:

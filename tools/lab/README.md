@@ -48,6 +48,26 @@ sweep Camera; tap them as they come and every later run is dialog-free
 until the app is reinstalled. (Android needs none of this: the driver
 pre-grants via pm grant.)
 
+## Host prerequisites for the ble suite
+
+Only the BLE suite needs more than adb/Xcode: `arduino-cli` and `mpremote`
+on PATH, `esptool` (either the v4 `esptool.py` or the v5 `esptool`), an
+ESP32 MicroPython image passed as `--micropython-firmware`, and the
+`pyserial` module in the venv the driver runs from. pyserial is
+deliberately NOT in requirements.txt: the docs build and app CI install
+that file and never open a serial port. It is needed only for the three
+scenarios where the data goes phone -> board and the board's own printout
+is the evidence.
+
+One mpremote trap, met during bring-up and worked around in `ble.py`:
+`mpremote fs cp -r <dir> :` recreates the SOURCE PATH on the board, so an
+absolute path puts the library at `/home/.../phyphoxBLE` instead of
+`/phyphoxBLE`. The example then boots into an ImportError and the board
+advertises nothing, which looks exactly like a BLE fault from the phone
+side. The driver therefore copies a relative path with `cwd` set to the
+library checkout. If you ever debug a board that flashed cleanly but does
+not appear in the scan, check `mpremote connect <port> fs ls` first.
+
 ## Suites and their matrix rows
 
 - `sensors` (`device-sensors`): per-device manifest driven - liveness,

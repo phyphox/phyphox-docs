@@ -20,19 +20,22 @@ ANDROID_BUNDLE = "de.rwth_aachen.phyphox"
 IOS_BUNDLE = "de.rwth-aachen.physics.phyphox"
 
 
-def sh(cmd, timeout=30):
-    """One visible retry on timeout, then a failed stand-in (the
-    t1_experiments convention - a wedged tool fails one step, not the
-    run)."""
-    for attempt in (1, 2):
+def sh(cmd, timeout=30, retries=1, cwd=None):
+    """One visible retry on timeout by default, then a failed stand-in
+    (the t1_experiments convention - a wedged tool fails one step, not
+    the run). retries=0 for a PROBE, where a timeout is the answer
+    rather than a hiccup: mpremote does not fail fast against a board
+    that is not running MicroPython, so retrying it just doubles a wait
+    whose result we already have."""
+    for attempt in range(1, retries + 2):
         try:
             r = subprocess.run(cmd, capture_output=True, text=True,
-                               timeout=timeout)
-            if attempt == 2:
+                               timeout=timeout, cwd=cwd)
+            if attempt > 1:
                 print(f"   ~ retried after a timeout: {' '.join(cmd[:4])} ...")
             return r
         except subprocess.TimeoutExpired:
-            if attempt == 2:
+            if attempt == retries + 1 and retries:
                 print(f"   ~ command timed out twice: {' '.join(cmd[:4])} ...")
 
     class T:

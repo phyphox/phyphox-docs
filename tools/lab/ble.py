@@ -103,9 +103,14 @@ def flash(scenario, board, cfg, args):
     src = os.path.join(repo, lib["examples"], scenario["example"] + ".py")
     if not os.path.exists(src):
         return False, f"example not found: {src}"
-    pkg = os.path.join(repo, "phyphoxBLE")
-    r = sh(["mpremote", "connect", port, "fs", "cp", "-r", pkg, ":"],
-           timeout=300)
+    # Relative source, run from the library checkout, because mpremote
+    # recreates the SOURCE PATH on the board: an absolute one lands the
+    # package at /home/.../phyphox-micropython/phyphoxBLE, where the
+    # example's `import phyphoxBLE` cannot see it. The board then boots
+    # into an ImportError and advertises nothing, which shows up as a
+    # scan timeout on the phone and looks like a BLE problem.
+    r = sh(["mpremote", "connect", port, "fs", "cp", "-r", "phyphoxBLE", ":"],
+           timeout=300, cwd=repo)
     if r.returncode != 0:
         return False, f"copying the library failed: {(r.stderr or '')[-200:]}"
     r = sh(["mpremote", "connect", port, "fs", "cp", src, ":main.py"],
@@ -129,7 +134,11 @@ def running_micropython(port):
     """Ask the board rather than remembering: a probe survives a killed
     run, a reboot and a previous session, so the firmware is reflashed
     only when it actually has to be."""
-    r = sh(["mpremote", "connect", port, "eval", "1+1"], timeout=30)
+    # short and unretried: mpremote does not fail fast against a board
+    # running something else, it simply waits, so the first attempt IS
+    # the answer (the default retry turned a 30 s probe into 60 s)
+    r = sh(["mpremote", "connect", port, "eval", "1+1"], timeout=8,
+           retries=0)
     return r.returncode == 0 and "2" in (r.stdout or "")
 
 
@@ -273,6 +282,12 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
                 f"phone->board direction did not arrive")
         return findings, det
 
+    # Clear first: `start` resumes rather than restarts, so anything the
+    # experiment collected between loading and here - the app starts BLE
+    # experiments on its own in some paths - is counted into the window
+    # and doubles the measured rate. Costs one request and makes a rerun
+    # against an already-loaded phone mean the same as a fresh one.
+    api(dev.base, "/control?cmd=clear")
     api(dev.base, "/control?cmd=start")
     time.sleep(args.seconds)
     api(dev.base, "/control?cmd=stop")
