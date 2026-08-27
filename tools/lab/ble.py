@@ -113,10 +113,17 @@ def flash(scenario, board, cfg, args):
             if r.returncode == 0:
                 return True, ("flashed" if live == port
                               else f"flashed (on {live}, not {port})")
-            # One retry, because the failure to beat is a board caught
-            # mid-re-enumeration: it is absent for a second and then back.
+            # One retry. Two failures to beat: a board caught
+            # mid-re-enumeration (absent for a second, then back), and a
+            # Nano stuck in an unreachable bootloader, which on this bench
+            # only a re-plug clears. Try the software version of the
+            # re-plug before giving up - it touches this device alone, so
+            # a board sharing the hub is not disturbed.
             if attempt == 1:
                 time.sleep(5)
+                rok, rmsg = usb_reset(live)
+                print(f"   {'reset and retrying' if rok else 'no reset'}: "
+                      f"{rmsg}", flush=True)
         out = (r.stderr or r.stdout) or ""
         if "No device found" in out:
             # Same tool error, two opposite causes, and the difference is
@@ -166,6 +173,70 @@ def flash(scenario, board, cfg, args):
         return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
     sh(["mpremote", "connect", port, "reset"], timeout=60)
     return True, "copied and reset"
+
+
+def usb_reset(port):
+    """Re-enumerate the board behind a serial port, without touching
+    anything else on the bus. Returns (ok, message).
+
+    A Nano 33 BLE on this bench takes exactly one upload per physical
+    re-plug, and there is no software equivalent of pulling the cable:
+    USBDEVFS_RESET makes the kernel reset and re-probe that ONE device -
+    the hub, and the ESP32 sharing it, are untouched - but it does not
+    remove VBUS, so the board's own chip is not power-cycled. Whether
+    that is enough is an empirical question; when it is not, the message
+    still asks for the cable.
+
+    Needs write access to the device node, which is root's by default:
+
+        SUBSYSTEM=="usb", ATTRS{idVendor}=="2341", MODE="0664", GROUP="plugdev"
+    """
+    import fcntl
+    node = _usb_node(port)
+    if node is None:
+        return False, f"no USB device node found behind {port}"
+    try:
+        fd = os.open(node, os.O_WRONLY)
+    except PermissionError:
+        return False, (f"{node} is not writable, so the board cannot be reset "
+                       f"from here - see usb_reset() for the one-line udev "
+                       f"rule that grants it")
+    except OSError as e:
+        return False, f"{node}: {e}"
+    try:
+        fcntl.ioctl(fd, ord("U") << 8 | 20, 0)     # USBDEVFS_RESET
+    except OSError as e:
+        return False, f"reset ioctl on {node} failed: {e}"
+    finally:
+        os.close(fd)
+    time.sleep(3)                                  # let it come back
+    return True, f"reset {node}"
+
+
+def _usb_node(port):
+    """/dev/bus/usb/BBB/DDD for the device behind a tty, via sysfs."""
+    name = os.path.basename(port)
+    try:
+        link = os.path.realpath(f"/sys/class/tty/{name}/device")
+    except OSError:
+        return None
+    # .../usb3/3-2/3-2.2/3-2.2.2/3-2.2.2:1.0/tty/ttyACM0 - walk up to the
+    # first directory that carries busnum/devnum, which is the device
+    # itself rather than one of its interfaces.
+    while link and link != "/":
+        bus = os.path.join(link, "busnum")
+        dev = os.path.join(link, "devnum")
+        if os.path.exists(bus) and os.path.exists(dev):
+            try:
+                with open(bus) as f:
+                    b = int(f.read().strip())
+                with open(dev) as f:
+                    d = int(f.read().strip())
+            except (OSError, ValueError):
+                return None
+            return f"/dev/bus/usb/{b:03d}/{d:03d}"
+        link = os.path.dirname(link)
+    return None
 
 
 def _usb_pid(port):
