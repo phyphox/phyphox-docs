@@ -416,6 +416,31 @@ def read_serial(port, seconds, baud=115200, until=None):
         return None, f"{type(e).__name__}: {e}"
 
 
+def _screenshot(dev, scenario, args):
+    """Keep the screen when a start produced nothing.
+
+    The phone usually knows exactly what went wrong and says so in a
+    dialog - "The Bluetooth device is not connected. Experiment can not
+    be started." - while /control?cmd=start still answers {"result":
+    true}, so the host's own view is only ever "no data". A picture
+    settles in one look what the logs took an afternoon to not settle,
+    and it does not depend on matching a translated string.
+    """
+    if dev.platform != "android":
+        return None
+    out = os.path.join(getattr(args, "out_dir", "lab-results"), "evidence")
+    try:
+        os.makedirs(out, exist_ok=True)
+        path = os.path.join(
+            out, f"{scenario['library']}-{scenario['example']}-nodata.png")
+        with open(path, "wb") as f:
+            r = subprocess.run(dev.adb + ["exec-out", "screencap", "-p"],
+                               stdout=f, timeout=30)
+        return path if r.returncode == 0 and os.path.getsize(path) else None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
 def await_live_link(dev, buffers, args):
     """Start the experiment and wait until the board's data arrives.
     Returns (live, seconds waited).
@@ -521,9 +546,12 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     live, waited = await_live_link(dev, buffers, args)
     det["time_to_data_s"] = waited
     if not live:
+        shot = _screenshot(dev, scenario, args)
+        if shot:
+            det["evidence"] = shot
         return [f"no data arrived from the board within {args.link_timeout:.0f}"
-                f" s of starting - the experiment loaded and the API answers, "
-                f"so this is the BLE link, not the transfer"], det
+                f" s of starting"
+                + (f" - screen at that moment: {shot}" if shot else "")], det
     api(dev.base, "/control?cmd=clear")
     api(dev.base, "/control?cmd=start")
     time.sleep(args.seconds)
