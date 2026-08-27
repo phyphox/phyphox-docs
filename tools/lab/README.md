@@ -93,13 +93,15 @@ board re-enumerates. Fix it once, as root:
 `sudo systemctl stop ModemManager` works for one session if you would rather
 not add a rule.
 
-**The Nano 33 BLE takes one upload per physical re-plug on this host.** With
+**The Nano 33 BLE wedges after a flash or two and only a physical re-plug
+clears it.** With
 ModemManager excluded and the board in its bootloader, `bossac` still gets no
 answer: a raw SAM-BA `V#` on the port returns nothing. Measured on
-2026-08-27 — the first upload after unplugging and replugging the board works,
-the next one leaves it sitting in the bootloader (`2341:005a`), and from there
-nothing recovers it: not a reset press, not a double-tap, not waiting, not
-running `bossac` by hand. The kernel log shows marginal USB around these
+2026-08-27 — after a re-plug one or two uploads succeed, then one leaves it
+sitting in the bootloader (`2341:005a`), and from there nothing recovers it:
+not a reset press, not a double-tap, not waiting, not running `bossac` by hand,
+and **not a USB reset either** (tried: the device re-enumerates and comes back
+just as mute, so removing VBUS is evidently what matters). The kernel log shows marginal USB around these
 resets (`device descriptor read/64, error -32`), so a cable or hub is the first
 thing to suspect.
 
@@ -114,11 +116,12 @@ root's by default:
     # /etc/udev/rules.d/99-arduino-usbreset.rules
     SUBSYSTEM=="usb", ATTRS{idVendor}=="2341", MODE="0664", GROUP="plugdev"
 
-Note what it cannot do: a reset re-enumerates the device but does not remove
-VBUS, so the board's own chip is not power-cycled the way pulling the cable
-does. Whether that is enough to clear this bootloader is an open question —
-if it is not, the message still asks for the cable, and the honest fallback is
-one flash per session.
+It is kept because it costs nothing and does clear a board caught
+mid-re-enumeration — but it has been measured NOT to clear the stuck
+bootloader: the device comes back and is still mute. Removing VBUS is what
+that state needs, which a reset cannot do. A hub with per-port power switching
+would (`uhubctl`), but both boards share one hub here, so cutting power would
+take out whichever board another session is using — not worth it for this.
 
 The driver drops a board after two failed flashes and carries on with the other
 one; a pass without the Nano warns per scenario that the scan ran with no
