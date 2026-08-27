@@ -323,6 +323,12 @@ def main():
                     metavar="BOARD=PORT",
                     help="serial port per lab board for the ble suite, e.g. "
                          "--board-port esp32=/dev/ttyUSB0")
+    ap.add_argument("--micropython-firmware", metavar="BIN",
+                    help="ble suite: the ESP32 MicroPython firmware image. "
+                         "The Arduino scenarios overwrite the whole flash, "
+                         "so the suite reflashes it before the MicroPython "
+                         "ones - only when the board is not already running "
+                         "MicroPython")
     ap.add_argument("--connect-timeout", type=float, default=180.0,
                     help="ble suite: seconds for the phone's scan-and-connect "
                          "test")

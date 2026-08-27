@@ -54,8 +54,18 @@ libraries:
     declares_format_version: "1.10"
     boards: [esp32]        # the library supports the ESP32 only
     flash:
-      tool: mpremote       # firmware flashed once with esptool, then the
-                           # library and the example are copied over
+      tool: mpremote       # the library and the example are copied over
+      firmware: esptool    # ...but the ESP32 is shared with the Arduino
+                           # scenarios, whose uploads overwrite the whole
+                           # flash, so the suite reflashes the MicroPython
+                           # firmware itself before these run. It probes
+                           # the board first (mpremote eval) and only
+                           # flashes when it has to, so a rerun that finds
+                           # MicroPython already there skips a minute of
+                           # erase and write. The image comes from
+                           # --micropython-firmware; the run order puts all
+                           # Arduino scenarios first so the line is crossed
+                           # once.
 
 scenarios:
   # --- Arduino, on every phone -------------------------------------------

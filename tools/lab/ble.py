@@ -93,8 +93,13 @@ def flash(scenario, board, cfg, args):
             return False, f"upload failed: {(r.stderr or r.stdout)[-300:]}"
         return True, "flashed"
 
-    # MicroPython: the firmware is flashed once by hand; the run copies the
-    # library and the example over with mpremote and soft-resets.
+    # MicroPython: the ESP32 is shared with the Arduino scenarios, whose
+    # uploads overwrite the whole flash, so the firmware cannot be a
+    # one-time manual step - the suite puts it back whenever the board is
+    # not currently running MicroPython.
+    ok, msg = ensure_micropython(board, port, args)
+    if not ok:
+        return False, msg
     src = os.path.join(repo, lib["examples"], scenario["example"] + ".py")
     if not os.path.exists(src):
         return False, f"example not found: {src}"
@@ -109,6 +114,60 @@ def flash(scenario, board, cfg, args):
         return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
     sh(["mpremote", "connect", port, "reset"], timeout=60)
     return True, "copied and reset"
+
+
+def _esptool():
+    """esptool ships as `esptool` (v5) or `esptool.py` (v4) - accept both."""
+    import shutil
+    for name in ("esptool", "esptool.py"):
+        if shutil.which(name):
+            return name
+    return None
+
+
+def running_micropython(port):
+    """Ask the board rather than remembering: a probe survives a killed
+    run, a reboot and a previous session, so the firmware is reflashed
+    only when it actually has to be."""
+    r = sh(["mpremote", "connect", port, "eval", "1+1"], timeout=30)
+    return r.returncode == 0 and "2" in (r.stdout or "")
+
+
+def ensure_micropython(board, port, args):
+    """Flash the MicroPython firmware unless the board already runs it."""
+    if running_micropython(port):
+        return True, "already running MicroPython"
+    firmware = args.micropython_firmware
+    if not firmware:
+        return False, ("the board is not running MicroPython and no "
+                       "firmware was given - pass --micropython-firmware "
+                       "<esp32 .bin> (the Arduino scenarios overwrite the "
+                       "whole flash, so it has to be put back here)")
+    if not os.path.exists(firmware):
+        return False, f"MicroPython firmware not found: {firmware}"
+    tool = _esptool()
+    if tool is None:
+        return False, "esptool is not installed"
+    r = sh([tool, "--chip", "esp32", "--port", port, "erase_flash"],
+           timeout=300)
+    if r.returncode != 0:
+        return False, f"erase_flash failed: {(r.stderr or r.stdout)[-200:]}"
+    r = sh([tool, "--chip", "esp32", "--port", port, "--baud", "460800",
+            "write_flash", "-z", "0x1000", firmware], timeout=600)
+    if r.returncode != 0:
+        return False, f"write_flash failed: {(r.stderr or r.stdout)[-200:]}"
+    time.sleep(3)                      # let it boot before mpremote talks
+    if not running_micropython(port):
+        return False, "flashed the firmware but the board does not answer "\
+                      "as MicroPython"
+    return True, f"flashed {os.path.basename(firmware)}"
+
+
+def order_scenarios(scenarios):
+    """Arduino scenarios first, then MicroPython. Each transition between
+    the two costs a full firmware flash on the shared ESP32, so the run
+    crosses that line once instead of ten times."""
+    return sorted(scenarios, key=lambda s: s["library"] != "arduino")
 
 
 def pick_distractor(scenario, cfg, boards_available):
