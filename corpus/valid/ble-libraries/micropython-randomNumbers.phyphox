@@ -1,0 +1,48 @@
+<phyphox version="1.10">
+<title>phyphox-Experiment</title>
+<category>phyphox mpy Experiments</category>
+<description>An experiment created with the phyphox BLE library for mpy-compatible micro controllers</description>
+<data-containers>
+	<container size="0" static="false">CH1</container>
+	<container size="0" static="false">CH2</container>
+	<container size="0" static="false">CH3</container>
+	<container size="0" static="false">CH4</container>
+	<container size="0" static="false">CH5</container>
+	<container size="0" static="false">CH0</container>
+	<container size="0" static="false">CB1</container>
+</data-containers>
+<input>
+	<bluetooth name="phyphox" id="phyphoxBLE" mode="notification" rate="1" subscribeOnStart="false">
+		<config char="cddf1003-30f7-4671-8b43-5e40ba53514a" conversion="hexadecimal">000000</config>
+		<output char="cddf1002-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="0" >CH1</output>
+		<output char="cddf1002-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="4" >CH2</output>
+		<output char="cddf1002-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="8" >CH3</output>
+		<output char="cddf1002-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="12" >CH4</output>
+		<output char="cddf1002-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian" offset="16" >CH5</output>
+		<output char="cddf1002-30f7-4671-8b43-5e40ba53514a" extra="time">CH0</output>
+	</bluetooth>
+</input>
+<output>
+	<bluetooth name="phyphox" id="phyphoxBLE">
+		<input char="cddf1003-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian">CB1</input>
+	</bluetooth>
+</output>
+<analysis sleep="0"  onUserInput="false"></analysis>
+<views>
+	<view label="View">
+		<graph labelZ="">
+			<input axis="x">CH0</input>
+			<input axis="y">CH1</input>
+		</graph>
+	</view>
+</views>
+<export>
+	<set name="mySet">
+		<data name="myData1">CH1</data>
+		<data name="myData2">CH2</data>
+		<data name="myData3">CH3</data>
+		<data name="myData4">CH4</data>
+		<data name="myData5">CH5</data>
+	</set>
+</export>
+</phyphox>

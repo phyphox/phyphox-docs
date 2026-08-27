@@ -147,6 +147,11 @@
   adds:
     - bluetooth@rate
     - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/micropython-randomNumbers.phyphox
+  version: "1.10"
+  adds:
+    - bluetooth@rate
+    - bluetooth@subscribeOnStart
 - file: valid/camera/camera-eaFPSTarget.phyphox
   version: "1.20"
   adds:

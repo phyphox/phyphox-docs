@@ -105,6 +105,22 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   tools/t1_experiments.py per device - open, run, stop, all six export
   formats validated. Bluetooth experiments stay load-phase only (their
   data plane is the phase-6 board lab).
+- `ble` (`ble-compat-arduino`, `ble-compat-micropython`): the board bench,
+  and the one suite that inverts the loop - it flashes a board, then runs
+  every phone in that scenario's scope against it, because a flash costs
+  about a minute and repeating it per phone would waste most of the run.
+  It is therefore not in the default `--suites`, needs `--board-port` per
+  board, and owns its orchestration (`ble.run_suite`) rather than going
+  through the per-device dispatch. A full pass with both boards attached
+  is 21 flashes for the ten scenarios; the idle board is kept advertising
+  a DIFFERENT name throughout so the scan has to discriminate, and a run
+  that ends up without one says so in its warnings.
+
+  Two flags for it: `--ble-scenario [lib/]example` narrows a run to one
+  scenario for bring-up (the report is marked as narrowed, so it cannot
+  be mistaken for a pass), and `--capture-ble-xml` freezes the XML each
+  board serves into `corpus/valid/ble-libraries/` - the T0 half. That one
+  rewrites corpus files, so use it when you mean to and read the diff.
 - `languages` (`device-languages`): runs when the host entry names built
   artifacts - the apk's `aapt dump badging` locales / the ipa's .lproj
   set against languages.yml. This is the release gate that makes a

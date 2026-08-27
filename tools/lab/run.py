@@ -336,7 +336,18 @@ def main():
                     help="ble suite: seconds of board serial output to read "
                          "for the phone-to-board scenarios")
     ap.add_argument("--suites", default="sensors,audio,experiments",
-                    help="languages runs only when the host entry names artifacts")
+                    help="languages runs only when the host entry names "
+                         "artifacts; ble needs --board-port and is not in "
+                         "the default set because it wants the bench")
+    ap.add_argument("--ble-scenario", metavar="[LIB/]EXAMPLE",
+                    help="ble suite: run only this scenario (bring-up and "
+                         "debugging - the report is marked as narrowed)")
+    ap.add_argument("--capture-ble-xml", action="store_true",
+                    help="ble suite: freeze the XML each board serves into "
+                         "corpus/valid/ble-libraries/ (the T0 half). "
+                         "Deliberate and reviewed, like the baselines - it "
+                         "rewrites corpus files, so run it when you mean to "
+                         "and read the diff")
     ap.add_argument("--seconds", type=float, default=10.0)
     ap.add_argument("--api-wait", type=float, default=15.0)
     ap.add_argument("--audio-floor", type=float, default=1.0)
@@ -418,6 +429,20 @@ def main():
                     record_manifest(dev, dev_id, args)
         else:
           for suite in args.suites.split(","):
+            # The ble suite runs the loop the other way round - one flash,
+            # then every phone in that scenario's scope - so it owns its
+            # orchestration and only hands back the per-device results.
+            if suite == "ble":
+                from lab import ble
+                for dev_id, r in ble.run_suite(devices, args).items():
+                    report["devices"][dev_id]["ble"] = r
+                    state = "ok" if r.get("passed") else "FAIL"
+                    print(f"== ble @ {dev_id}: {state}"
+                          + "".join(f"\n      ! {x}"
+                                    for x in r.get("findings", []))
+                          + "".join(f"\n      ~ {x}"
+                                    for x in r.get("warnings", [])))
+                continue
             # Devices are independent - own serial, own forwarded port,
             # own app instance - so a suite can run on all of them at
             # once, which is what matters for `experiments`: four devices

@@ -23,11 +23,18 @@ Shape of a run (fixtures/ble/scenarios.yml holds the data):
             phone -> board
 
 Serial throughout: flashing is the outer loop, and only one board may
-advertise the experiment service at a time.
+advertise the experiment service at a time. That inverts the other
+suites' loop, which is per device, and is why this one owns its own
+orchestration (run_suite below) instead of going through run.py's
+per-device dispatch: a flash takes a minute and must be amortised across
+every phone in the scenario's scope, not repeated per phone.
 
-UNVERIFIED: written without boards attached. Every path that touches
-arduino-cli, mpremote or a serial port is untested until the first real
-run; report what needed fixing rather than working around it.
+Bring-up status (2026-08-27, Pixel 3 + ESP32-D0WDQ6 + Nano 33 BLE): the
+flashing paths, the MicroPython reflash, the serial reader and the whole
+host-side half are exercised and working. The phone-side connect step is
+blocked on an Android bug - the collection's add-experiment sub-FABs are
+drawn but never made visible, so nothing that reads the accessibility
+tree can find them - and is verified only by driving it manually.
 """
 
 import glob
@@ -350,3 +357,219 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
         findings.append(f"experiment title is {det.get('title')!r}, the "
                         f"baseline recorded {baseline['title']!r}")
     return findings, det
+
+
+# ------------------------------------------------------------ XML capture
+
+CAPTURE_DIR = os.path.join(ROOT, "corpus", "valid", "ble-libraries")
+MACISH = re.compile(r"\b[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}\b")
+
+
+def capture_xml(dev, scenario):
+    """Pull the experiment the board just served, for the T0 half.
+
+    The libraries generate their XML on the microcontroller, so the only
+    way to freeze it is to take it off a phone that received it. Android
+    keeps the transfer at files/temp_bt/bt.phyphox and a debug build lets
+    run-as read it; iOS has no equivalent that does not need a developer
+    container dump - which does not matter, because the file comes from
+    the BOARD. One platform capturing it is enough.
+
+    Frozen under corpus/valid/ble-libraries/, so both app test suites
+    parse it on every commit (T0) and a parser regression against
+    library-generated XML is caught without hardware.
+    """
+    if dev.platform != "android":
+        return None, "capture runs on Android only (the file is the board's)"
+    r = sh(dev.adb + ["shell", "run-as", "de.rwth_aachen.phyphox",
+                      "cat", "files/temp_bt/bt.phyphox"], timeout=30)
+    if r.returncode != 0 or not (r.stdout or "").lstrip().startswith("<"):
+        return None, ("no transferred experiment on the phone - "
+                      f"{(r.stderr or r.stdout or '')[-120:]}")
+    xml = r.stdout
+    # The corpus is public. Nothing seen so far carries one - the
+    # libraries identify their device by name - but a captured file is
+    # not hand-written, so check rather than trust.
+    if MACISH.search(xml):
+        return None, ("the capture contains something MAC-shaped; sanitize "
+                      "it by hand before it goes into the public corpus")
+    os.makedirs(CAPTURE_DIR, exist_ok=True)
+    path = os.path.join(
+        CAPTURE_DIR, f"{scenario['library']}-{scenario['example']}.phyphox")
+    old = None
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            old = f.read()
+    if old == xml:
+        return path, "unchanged"
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(xml)
+    return path, ("recorded" if old is None else
+                  "CHANGED - review the diff before committing it")
+
+
+# --------------------------------------------------------- orchestration
+
+def _phones_for(scenario, devices):
+    """`phones: all` is every device; `newest` is the newest per platform.
+
+    Newest means the device marked `newest: true` in lab.yml, and failing
+    that the first of its platform in the host's device list - which is
+    how the lists happen to be written. The distinction exists because
+    Android's BLE behaviour varies by version and manufacturer, so the
+    four scenarios that exercise different parts of the implementation
+    are worth every phone and the rest are not.
+    """
+    if scenario.get("phones") != "newest":
+        return devices
+    picked, seen = [], set()
+    for dev_id, entry, dev in devices:
+        if entry.get("newest"):
+            picked.append((dev_id, entry, dev))
+            seen.add(entry["platform"])
+    for dev_id, entry, dev in devices:
+        if entry["platform"] not in seen:
+            picked.append((dev_id, entry, dev))
+            seen.add(entry["platform"])
+    return picked
+
+
+def run_suite(devices, args):
+    """Every scenario across every phone in its scope. Returns
+    {device id: result} in the shape run.py reports."""
+    cfg = load_scenarios()
+    boards = dict(getattr(args, "board_ports", {}) or {})
+    results = {dev_id: {"passed": True, "findings": [], "warnings": [],
+                        "scenarios": {}}
+               for dev_id, _entry, _dev in devices}
+    if not boards:
+        for r in results.values():
+            r["passed"] = False
+            r["findings"].append(
+                "no --board-port given, so there is no board to talk to")
+        return results
+
+    scenarios = [s for s in order_scenarios(cfg["scenarios"])
+                 if set(s["boards"]) & set(boards)]
+    only = getattr(args, "ble_scenario", None)
+    if only:
+        # Bring-up and debugging: one scenario instead of an hour. A run
+        # narrowed this way says so in every device's warnings, so a
+        # report from one cannot be mistaken for a pass of the suite.
+        scenarios = [s for s in scenarios
+                     if only in (s["example"],
+                                 f"{s['library']}/{s['example']}")]
+        if not scenarios:
+            for r in results.values():
+                r["passed"] = False
+                r["findings"].append(f"--ble-scenario {only!r} matches "
+                                     f"nothing in scenarios.yml")
+            return results
+        for r in results.values():
+            r["warnings"].append(
+                f"narrowed to --ble-scenario {only!r}: this is not a pass "
+                f"of the suite")
+    skipped = [s["example"] for s in cfg["scenarios"]
+               if not set(s["boards"]) & set(boards)]
+    if skipped:
+        # Never silently: a suite that covers less than the file says is
+        # exactly what a green report must not hide.
+        for r in results.values():
+            r["warnings"].append(
+                f"{len(skipped)} scenario(s) skipped, no board attached "
+                f"for them: {', '.join(sorted(set(skipped)))}")
+
+    flashed = {}                      # board -> the name it advertises now
+    holds = {}                        # board -> (library, example) on it
+    flashes = 0
+
+    def put(sc, board, why):
+        """Flash unless that board already holds exactly this example -
+        it does happen, because a distractor is often the next scenario's
+        target."""
+        nonlocal flashes
+        key = (sc["library"], sc["example"])
+        if holds.get(board) == key:
+            return True, "already on the board"
+        print(f"   {why}: {sc['example']} -> {board}", flush=True)
+        ok, msg = flash(sc, board, cfg, args)
+        if ok:
+            flashes += 1
+            holds[board] = key
+            flashed[board] = sc.get("device_name")
+        return ok, msg
+
+    for scenario in scenarios:
+        for board in [b for b in scenario["boards"] if b in boards]:
+            label = f"{scenario['library']}/{scenario['example']}@{board}"
+            ok, msg = put(scenario, board, "flashing")
+            if not ok:
+                for r in results.values():
+                    r["passed"] = False
+                    r["findings"].append(f"{label}: {msg}")
+                continue
+
+            # The idle board keeps advertising under a DIFFERENT name, so
+            # the scan has to discriminate. WHICH example it runs does not
+            # matter - only that the name differs - so whatever it already
+            # holds is kept unless it would collide with the target. Left
+            # to "flash the scenario pick_distractor chose", the two boards
+            # swap roles every scenario and the run spends 22 flashes on
+            # 10 scenarios; a flash is about a minute, so this is most of
+            # an hour.
+            idle = [b for b in boards if b != board]
+            target_name = scenario.get("device_name")
+            for other in idle:
+                if flashed.get(other) and flashed[other] != target_name:
+                    continue
+                distractor = pick_distractor(scenario, cfg, [other])
+                if not distractor:
+                    continue
+                dok, dmsg = put(distractor, other, "distractor")
+                if not dok:
+                    for r in results.values():
+                        r["warnings"].append(
+                            f"{label}: the distractor board could not "
+                            f"be flashed ({dmsg}) - the scan ran "
+                            f"against fewer devices than intended")
+            if not any(flashed.get(b) not in (None, target_name)
+                       for b in idle):
+                # Worth saying out loud: the scan then had nothing to
+                # discriminate against, so a pass proves less than it looks.
+                for r in results.values():
+                    r["warnings"].append(
+                        f"{label}: no second board advertising a name "
+                        f"differing from {target_name!r}, so the scan ran "
+                        f"without a distractor")
+
+            baseline = load_baseline(scenario)
+            for dev_id, entry, dev in _phones_for(scenario, devices):
+                print(f"   {dev_id}: connecting to "
+                      f"{scenario.get('device_name')!r}", flush=True)
+                ok, msg = connect_phone(dev, scenario, args)
+                entry_key = f"{scenario['library']}/{scenario['example']}"
+                if board != scenario["boards"][0]:
+                    entry_key += f"@{board}"
+                if not ok:
+                    results[dev_id]["passed"] = False
+                    results[dev_id]["findings"].append(
+                        f"{entry_key}: the phone did not connect - {msg}")
+                    results[dev_id]["scenarios"][entry_key] = {
+                        "connected": False}
+                    continue
+                findings, det = assert_scenario(dev, scenario, baseline,
+                                                args, boards[board])
+                if getattr(args, "capture_ble_xml", False):
+                    path, note = capture_xml(dev, scenario)
+                    det["capture"] = (os.path.relpath(path, ROOT) + ": " + note
+                                      if path else note)
+                results[dev_id]["scenarios"][entry_key] = det
+                if findings:
+                    results[dev_id]["passed"] = False
+                    results[dev_id]["findings"] += [f"{entry_key}: {f}"
+                                                    for f in findings]
+    print(f"-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)",
+          flush=True)
+    for r in results.values():
+        r["flashes"] = flashes
+    return results

@@ -15,6 +15,16 @@ test suite as well is planned.
   sweeps every `rateStrategy` value across several rates on purpose. Network
   addresses in these files are examples or non-routable; credentials have been
   replaced with placeholders.
+- `valid/ble-libraries/` — the experiment XML the Arduino and MicroPython BLE
+  libraries generate **on the microcontroller**, captured off a phone that
+  received it over BLE (`tools/lab/run.py --suites ble --capture-ble-xml`,
+  which reads Android's `files/temp_bt/bt.phyphox`). This is the T0 half of
+  the BLE compatibility rows: a parser regression against library-generated
+  XML is caught on every commit, with no boards attached. These files are
+  frozen deliberately and re-recorded only when a library changes what it
+  emits — the whole point is that they are what a released app must keep
+  loading. Note what they legitimately contain: no `xmlns`, a format version
+  well behind the apps (MicroPython declares 1.10), and containers sized `0`.
 - `generated/` — hand-written fixtures for the spec surface that no collected
   file exercises either: the inverse and hyperbolic trigonometry modules,
   `gcd`/`lcm`, `butterworth`, the `events` block of saved states, `appleBan`,
