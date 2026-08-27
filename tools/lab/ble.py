@@ -1162,6 +1162,11 @@ def record_baselines(devices, args):
     remote access on, and then does the measuring and the writing itself.
     Ten scenarios is ten pauses; this happens once per reference release,
     not per run.
+
+    The wait is for the REMOTE API, not for a keypress: switching remote
+    access on is the operator's last step and is precisely what makes the
+    phone answer, so the tool needs no terminal of its own and the
+    operator needs no second action to say "done".
     """
     import datetime
     cfg = load_scenarios()
@@ -1198,24 +1203,23 @@ def record_baselines(devices, args):
             print(f"   !! {msg}")
             failed.append(f"{label}: {msg}")
             continue
+        # The operator's own actions ARE the signal, so nothing is read
+        # from stdin: switching remote access on is the last step, and it
+        # is exactly what makes the API answer. Waiting for that instead
+        # of for a keypress means this runs the same way whether a person
+        # is at a terminal or driving it from somewhere else.
         print(f"   On {dev_id}, by hand:\n"
               f"     1. add an experiment for a Bluetooth device and pick "
               f"{name!r}\n"
               f"     2. let it load, then switch remote access on from the "
               f"menu\n"
-              f"   Enter to record, or 's' to skip this scenario: ", end="",
-              flush=True)
-        try:
-            if (input().strip().lower() or "") == "s":
-                failed.append(f"{label}: skipped by the operator")
-                continue
-        except EOFError:
-            print("\n!! not an interactive terminal - this mode needs one")
-            return 1
+              f"   waiting up to {args.record_wait:.0f} s for the phone to "
+              f"start serving...", flush=True)
 
-        if wait_api(dev.base, args.api_wait) is None:
-            print("   !! the phone is not serving the remote API - is remote "
-                  "access on, and on this network?")
+        if wait_api(dev.base, args.record_wait) is None:
+            print("   !! nothing served within the wait - skipping this one. "
+                  "Remote access not switched on, a different network, or "
+                  "the experiment did not load")
             failed.append(f"{label}: no remote API")
             continue
         meta = {}

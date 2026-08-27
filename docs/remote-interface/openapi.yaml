@@ -260,12 +260,19 @@ paths:
       tags: [control]
       summary: Start, stop, clear, or write a value
       operationId: control
+      x-phyphox-inconsistency: [control-start-refused]
       description: |
         Sends a command to the running experiment. Always answers with
         `{"result": true}` or `{"result": false}`; the response says whether the
-        command was accepted, not whether it has finished taking effect.
+        command was accepted, not whether it has finished taking effect — except
+        for `start`, where the result must reflect whether the measurement
+        actually began (see `cmd=start` below).
 
         - `start` — begin measuring, or begin the countdown if timed run is on.
+          An experiment can refuse to start — most commonly because a Bluetooth
+          device it needs is not connected yet — and the result is then `false`.
+          A client that must be certain can also read `status.measuring` from a
+          subsequent `/get`.
         - `stop` — stop measuring.
         - `clear` — discard buffered data, stopping the measurement if it is running.
         - `set` — write a single value into a buffer. This is how the remote
@@ -326,6 +333,7 @@ paths:
       tags: [control]
       summary: Start, stop, clear, or write a value (POST)
       operationId: controlPost
+      x-phyphox-inconsistency: [control-start-refused]
       description: |
         Identical to `GET /control`, with the command and its parameters in the
         request body, e.g. `{"cmd": "set", "buffer": "height", "value": 1.87}`.
@@ -737,7 +745,10 @@ components:
       properties:
         result:
           type: boolean
-          description: Whether the command was accepted.
+          description: |
+            Whether the command was accepted. For `cmd=start` this means the
+            measurement actually began: a start the experiment refuses answers
+            `false`.
 
     SetResult:
       type: object

@@ -89,3 +89,37 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: control-start-refused
+  title: 'A refused start still answers {"result": true}'
+  area: remote-interface
+  status: decided
+  canonical: >-
+    `/control?cmd=start` must answer `{"result": false}` when the experiment
+    was not started. Whether a start succeeds is not something a remote client
+    can otherwise determine: the only other signal is `status.measuring` in a
+    subsequent `/get`, which requires a second request and a race-free moment
+    to make it in.
+  affects:
+    android: >-
+      Answers `{"result": true}` for a start the app refused. Observed on a
+      Pixel 3 with a Bluetooth experiment whose device was not yet fully
+      connected: the app put "The Bluetooth device is not connected. Experiment
+      can not be started." on screen, `status.measuring` stayed false, and
+      `/control?cmd=start` reported success.
+    ios: >-
+      Same shape - the result reports that the command was accepted rather than
+      that the measurement began. Not re-verified on hardware for this entry.
+  verified: >-
+    2026-08-27, Android development build on a Pixel 3 against an ESP32 running
+    the Arduino randomNumbers example (phyphox-docs device lab, ble suite).
+  summary: >-
+    A client that starts an experiment over the remote interface cannot tell
+    from the answer whether it is running. The documented meaning of `result`
+    is "whether the command was accepted", and both apps answer that
+    literally - a start that the app then refuses, because a Bluetooth device
+    is not connected or another precondition fails, is still reported as
+    successful. The maintainer decided (2026-08-28) that the result must
+    reflect whether the measurement actually started. Until both apps are
+    fixed, poll `status.measuring` from `/get` to confirm a start rather than
+    trusting the answer.

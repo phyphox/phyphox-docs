@@ -356,6 +356,11 @@ def main():
                          "automation seam, so a human connects the phone "
                          "and switches remote access on for each scenario. "
                          "Pass one --devices id")
+    ap.add_argument("--record-wait", type=float, default=240.0,
+                    help="--record-ble-baseline: seconds to wait per scenario "
+                         "for the operator to connect the phone and switch "
+                         "remote access on. The API answering IS the signal; "
+                         "nothing is read from stdin")
     ap.add_argument("--ble-scenario", metavar="[LIB/]EXAMPLE",
                     help="ble suite: run only this scenario (bring-up and "
                          "debugging - the report is marked as narrowed)")
