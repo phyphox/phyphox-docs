@@ -175,6 +175,30 @@ def flash(scenario, board, cfg, args):
     return True, "copied and reset"
 
 
+def advertisers(name, timeout=10.0):
+    """Addresses currently advertising exactly `name`, or None if this
+    host cannot scan.
+
+    The suite picks a board BY NAME, so two boards answering to one name
+    makes every result meaningless - the phone may take either, and a
+    scenario that fails proves nothing about the app. It is not a
+    hypothetical: five of the seven Arduino examples advertise the
+    library default, and on 2026-08-27 a stale sketch left "phyphox
+    device" on both bench boards for an afternoon while the suite
+    measured a ~45% failure rate that was never the app's.
+    """
+    try:
+        import asyncio
+        from bleak import BleakScanner
+    except ImportError:
+        return None
+    try:
+        found = asyncio.run(BleakScanner.discover(timeout=timeout))
+    except Exception:
+        return None
+    return [d.address for d in found if (d.name or "") == name]
+
+
 def usb_reset(port):
     """Re-enumerate the board behind a serial port, without touching
     anything else on the bus. Returns (ok, message).
@@ -984,6 +1008,33 @@ def run_suite(devices, args):
                         f"{label}: no second board advertising a name "
                         f"differing from {target_name!r}, so the scan ran "
                         f"without a distractor")
+
+            # Prove the name identifies ONE board before any phone is
+            # asked to pick by it. A duplicate here invalidates the
+            # scenario outright rather than producing a plausible-looking
+            # failure, so it fails loudly and does not measure.
+            seen = advertisers(target_name)
+            if seen is None:
+                for r in results.values():
+                    r["warnings"].append(
+                        f"{label}: could not check for duplicate advertisers "
+                        f"(no bleak on this host), so a same-named board "
+                        f"would go unnoticed")
+            elif len(seen) > 1:
+                for r in results.values():
+                    r["passed"] = False
+                    r["findings"].append(
+                        f"{label}: {len(seen)} boards advertise "
+                        f"{target_name!r} ({', '.join(seen)}) - the phone "
+                        f"picks by name, so nothing measured here would mean "
+                        f"anything. Reflash or unpower the other one")
+                continue
+            elif not seen:
+                for r in results.values():
+                    r["warnings"].append(
+                        f"{label}: this host's scan saw nothing advertising "
+                        f"{target_name!r} just before the phone was asked to "
+                        f"find it")
 
             baseline = load_baseline(scenario)
             for dev_id, entry, dev in _phones_for(scenario, devices):
