@@ -122,6 +122,17 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   board serves into `corpus/valid/ble-libraries/` - the T0 half. That one
   rewrites corpus files, so use it when you mean to and read the diff.
 
+  **The Android connect test is held open while the host measures.**
+  Instrumentation runs in the app's own process, so the app dies the
+  moment `am instrument` returns - on the Pixel 3 the remote API answered
+  at 33 s and was gone at 36 s with the process. The driver therefore
+  starts the run in the background, treats the API coming up as the
+  signal that the experiment loaded, measures, and then sets
+  `debug.phyphox.labRelease` to `1`; the test polls that property and
+  returns, and its own assertions are collected afterwards. iOS needs
+  none of it - `-phyphoxBleConnect` is the app launching itself and it
+  stays up.
+
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
   from that release - which predates everything the driver uses to steer

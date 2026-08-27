@@ -212,29 +212,79 @@ def pick_distractor(scenario, cfg, boards_available):
 
 # ------------------------------------------------------- the phone-side step
 
+RELEASE_PROP = "debug.phyphox.labRelease"
+
+
 def connect_phone(dev, scenario, args):
     """Run the platform's scan-and-connect test on the phone. The UI flow
     (scan, pick the device, accept its experiment) has no remote-API
     equivalent, so it lives as a small instrumented test in the app repo;
-    everything after it is asserted from here."""
+    everything after it is asserted from here.
+
+    On Android the test has to be left RUNNING while the host measures.
+    Instrumentation is hosted in the app's own process, so the app dies
+    the moment `am instrument` returns - measured on the Pixel 3: the
+    remote API answered 200 at 33 s and was gone at 36 s, three seconds
+    later, with the process. So the run is started in the background and
+    released afterwards through debug.phyphox.labRelease, which the test
+    polls (see release_phone). iOS needs none of this: -phyphoxBleConnect
+    is the app launching itself, and it stays up on its own.
+
+    Returns (ok, message, handle) - the handle is passed back to
+    release_phone, and is None where there is nothing to release.
+    """
     name = scenario.get("device_name") or ""
     if dev.platform == "android":
-        r = sh(dev.adb + ["shell", "am", "instrument", "-w",
-                          "-e", "class",
-                          "de.rwth_aachen.phyphox.BleCompatConnectTest",
-                          "-e", "bleDevice", name,
-                          "de.rwth_aachen.phyphox.test/"
-                          "androidx.test.runner.AndroidJUnitRunner"],
-               timeout=args.connect_timeout)
-        ok = r.returncode == 0 and "FAILURES" not in (r.stdout or "")
-        return ok, (r.stdout or r.stderr or "")[-300:]
+        sh(dev.adb + ["shell", "setprop", RELEASE_PROP, "0"])
+        proc = subprocess.Popen(
+            dev.adb + ["shell", "am", "instrument", "-w",
+                       "-e", "class",
+                       "de.rwth_aachen.phyphox.BleCompatConnectTest",
+                       "-e", "bleDevice", name,
+                       "-e", "holdForHost", "true",
+                       "de.rwth_aachen.phyphox.test/"
+                       "androidx.test.runner.AndroidJUnitRunner"],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        # The API coming up IS the signal that the experiment loaded -
+        # there is no other one while the test is still running.
+        if wait_api(dev.base, args.connect_timeout) is None:
+            proc.kill()
+            out = (proc.communicate()[0] or "")[-300:]
+            return False, ("the phone did not reach a loaded experiment "
+                           "within the connect timeout: " + out), None
+        return True, "connected", proc
     r = sh(["xcrun", "devicectl", "device", "process", "launch",
             "--terminate-existing", "--device", dev.udid, "--",
             "de.rwth-aachen.physics.phyphox",
             "-phyphoxBleConnect", name, "-phyphoxRemote",
             "-phyphoxRemotePort", "80", "-phyphoxAutoConfirm"],
            timeout=args.connect_timeout)
-    return r.returncode == 0, (r.stderr or r.stdout or "")[-300:]
+    return r.returncode == 0, (r.stderr or r.stdout or "")[-300:], None
+
+
+def release_phone(dev, handle, args):
+    """Let the held instrumentation run finish, and report what it said.
+
+    The test's assertions - that the experiment parsed, that it was left
+    unstarted - are only reported when it returns, so this is where an
+    Android connect actually passes or fails. A test that hangs past the
+    timeout is killed rather than left holding the phone.
+    """
+    if handle is None:
+        return True, ""
+    sh(dev.adb + ["shell", "setprop", RELEASE_PROP, "1"])
+    try:
+        out = handle.communicate(timeout=args.connect_timeout)[0] or ""
+    except subprocess.TimeoutExpired:
+        handle.kill()
+        out = handle.communicate()[0] or ""
+        return False, ("the connect test did not finish after being "
+                       "released - is it polling " + RELEASE_PROP + "? "
+                       + out[-200:])
+    finally:
+        sh(dev.adb + ["shell", "setprop", RELEASE_PROP, "0"])
+    ok = handle.returncode == 0 and "FAILURES" not in out
+    return ok, out[-300:]
 
 
 # -------------------------------------------------------------- assertions
@@ -549,7 +599,7 @@ def run_suite(devices, args):
             for dev_id, entry, dev in _phones_for(scenario, devices):
                 print(f"   {dev_id}: connecting to "
                       f"{scenario.get('device_name')!r}", flush=True)
-                ok, msg = connect_phone(dev, scenario, args)
+                ok, msg, handle = connect_phone(dev, scenario, args)
                 entry_key = f"{scenario['library']}/{scenario['example']}"
                 if board != scenario["boards"][0]:
                     entry_key += f"@{board}"
@@ -560,12 +610,19 @@ def run_suite(devices, args):
                     results[dev_id]["scenarios"][entry_key] = {
                         "connected": False}
                     continue
-                findings, det = assert_scenario(dev, scenario, baseline,
-                                                args, boards[board])
-                if getattr(args, "capture_ble_xml", False):
-                    path, note = capture_xml(dev, scenario)
-                    det["capture"] = (os.path.relpath(path, ROOT) + ": " + note
-                                      if path else note)
+                try:
+                    findings, det = assert_scenario(dev, scenario, baseline,
+                                                    args, boards[board])
+                    if getattr(args, "capture_ble_xml", False):
+                        path, note = capture_xml(dev, scenario)
+                        det["capture"] = (os.path.relpath(path, ROOT)
+                                          + ": " + note if path else note)
+                finally:
+                    # Always release, including on an exception: a held
+                    # test owns the phone until it is let go.
+                    rok, rmsg = release_phone(dev, handle, args)
+                if not rok:
+                    findings.append(f"the connect test reported: {rmsg}")
                 results[dev_id]["scenarios"][entry_key] = det
                 if findings:
                     results[dev_id]["passed"] = False
