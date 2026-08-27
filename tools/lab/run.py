@@ -332,6 +332,12 @@ def main():
     ap.add_argument("--connect-timeout", type=float, default=180.0,
                     help="ble suite: seconds for the phone's scan-and-connect "
                          "test")
+    ap.add_argument("--link-timeout", type=float, default=45.0,
+                    help="ble suite: seconds to wait for the board's data to "
+                         "start arriving after the experiment loads. The "
+                         "remote API answers before the BLE link is ready to "
+                         "measure, so the suite proves the link instead of "
+                         "trusting it and reports how long it took")
     ap.add_argument("--serial-window", type=float, default=8.0,
                     help="ble suite: seconds of board serial output to read "
                          "for the phone-to-board scenarios")

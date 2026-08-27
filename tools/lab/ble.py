@@ -289,9 +289,14 @@ def release_phone(dev, handle, args):
 
 # -------------------------------------------------------------- assertions
 
-def read_serial(port, seconds, baud=115200):
+def read_serial(port, seconds, baud=115200, until=None):
     """Whatever the board printed in a window - the assertion channel for
-    the phone -> board direction, which has no phone-side evidence."""
+    the phone -> board direction, which has no phone-side evidence.
+
+    `until` is checked as lines come in and ends the read early, so the
+    window can be generous enough to cover a slow link (see
+    await_live_link) without every scenario paying for it.
+    """
     try:
         import serial
     except ImportError:
@@ -304,9 +309,61 @@ def read_serial(port, seconds, baud=115200):
                 line = s.readline()
                 if line:
                     out.append(line.decode("utf-8", "replace").strip())
+                    if until and until(out):
+                        break
         return out, None
     except Exception as e:
         return None, f"{type(e).__name__}: {e}"
+
+
+def await_live_link(dev, buffers, args, first_try=12.0):
+    """Start the experiment and wait until the board's data actually
+    arrives. Returns (live, seconds waited, restarts).
+
+    The remote API answers as soon as the experiment LOADS, which is not
+    the same as being able to measure. Measured on the Pixel 3 on
+    2026-08-27 against an ESP32: a start issued as soon as /config
+    answered returned {"result": true} and collected NOTHING - not
+    slowly, at all, for 45 s - while the same start twelve seconds later
+    collected the full 2 Hz, and a stop/clear/start after a dead one
+    recovered it immediately (0 values, then 19).
+
+    logcat says why: on that first start the app calls
+    setCharacteristicNotification on cddf1002 and only THEN connect(),
+    registerApp() and discoverServices(). The subscription is issued
+    against a link that is still being re-established after the transfer
+    and is never re-applied, so the board notifies nobody.
+
+    That is an app-side race - a user who taps play immediately after the
+    experiment arrives sees an empty graph - and it is reported as a
+    warning rather than worked around silently: one restart, recorded.
+    """
+    q = "&".join(b + "=full" for b in buffers)
+
+    def data_within(seconds):
+        t0 = time.time()
+        while time.time() - t0 < seconds:
+            status, body = api(dev.base, "/get?" + q, timeout=20)
+            if status == 200:
+                try:
+                    data = json.loads(body).get("buffer", {})
+                except ValueError:
+                    data = {}
+                if any(v is not None for b in data.values()
+                       for v in (b.get("buffer") or [])):
+                    return True
+            time.sleep(1)
+        return False
+
+    started = time.time()
+    api(dev.base, "/control?cmd=start")
+    if data_within(first_try):
+        return True, round(time.time() - started, 1), 0
+    api(dev.base, "/control?cmd=stop")
+    api(dev.base, "/control?cmd=clear")
+    api(dev.base, "/control?cmd=start")
+    live = data_within(max(0.0, args.link_timeout - first_try))
+    return live, round(time.time() - started, 1), 1
 
 
 def assert_scenario(dev, scenario, baseline, args, board_port):
@@ -329,18 +386,25 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     det["title"] = config.get("title")
 
     if kind == "board_serial":
+        wanted = scenario["expect"].get("contains_any") or []
         if scenario["expect"].get("trigger") == "start_stop":
             api(dev.base, "/control?cmd=start")
             time.sleep(2)
             api(dev.base, "/control?cmd=stop")
         else:
             api(dev.base, "/control?cmd=start")
-        lines, err = read_serial(board_port, args.serial_window)
+        # Generous window, ended as soon as the board says what we are
+        # waiting for: the link is not live the moment the API answers
+        # (see await_live_link), and here there are no buffers to watch
+        # for that - the evidence IS the board's output.
+        lines, err = read_serial(
+            board_port, args.serial_window + args.link_timeout,
+            until=(lambda ls: any(w in ln for ln in ls for w in wanted))
+            if wanted else None)
         api(dev.base, "/control?cmd=stop")
         if err:
             return [f"could not read the board's serial output: {err}"], det
         det["serial_lines"] = lines[-10:]
-        wanted = scenario["expect"].get("contains_any") or []
         if wanted and not any(w in ln for ln in lines for w in wanted):
             findings.append(
                 f"nothing matching {wanted} in the board's output - the "
@@ -355,6 +419,18 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     # button and cmd=start), so this is about repeat runs, not about a
     # phone that was already measuring. One request, and a rerun against
     # an already-loaded phone then means the same as a fresh one.
+    live, waited, restarts = await_live_link(dev, buffers, args)
+    det["time_to_data_s"] = waited
+    det["restarts"] = restarts
+    if not live:
+        return [f"no data arrived from the board within {args.link_timeout:.0f}"
+                f" s of starting - the experiment loaded and the API answers, "
+                f"so this is the BLE link, not the transfer"], det
+    if restarts:
+        det["warnings"] = det.get("warnings", []) + [
+            "the first start collected nothing and the measurement had to "
+            "be restarted - the subscribe-before-connect race (see "
+            "await_live_link)"]
     api(dev.base, "/control?cmd=clear")
     api(dev.base, "/control?cmd=start")
     time.sleep(args.seconds)
@@ -624,6 +700,12 @@ def run_suite(devices, args):
                 if not rok:
                     findings.append(f"the connect test reported: {rmsg}")
                 results[dev_id]["scenarios"][entry_key] = det
+                # A scenario that only passed after a restart is a pass
+                # with something to say; it goes in the report where the
+                # per-phone pattern is visible, which is what makes a BLE
+                # race worth reporting at all.
+                results[dev_id]["warnings"] += [f"{entry_key}: {w}"
+                                                for w in det.get("warnings", [])]
                 if findings:
                     results[dev_id]["passed"] = False
                     results[dev_id]["findings"] += [f"{entry_key}: {f}"
