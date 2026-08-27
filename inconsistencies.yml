@@ -107,19 +107,17 @@
       connected: the app put "The Bluetooth device is not connected. Experiment
       can not be started." on screen, `status.measuring` stayed false, and
       `/control?cmd=start` reported success.
-    ios: >-
-      Same shape - the result reports that the command was accepted rather than
-      that the measurement began. Not re-verified on hardware for this entry.
   verified: >-
     2026-08-27, Android development build on a Pixel 3 against an ESP32 running
     the Arduino randomNumbers example (phyphox-docs device lab, ble suite).
   summary: >-
     A client that starts an experiment over the remote interface cannot tell
     from the answer whether it is running. The documented meaning of `result`
-    is "whether the command was accepted", and both apps answer that
+    is "whether the command was accepted", and Android still answers that
     literally - a start that the app then refuses, because a Bluetooth device
     is not connected or another precondition fails, is still reported as
     successful. The maintainer decided (2026-08-28) that the result must
-    reflect whether the measurement actually started. Until both apps are
-    fixed, poll `status.measuring` from `/get` to confirm a start rather than
-    trusting the answer.
+    reflect whether the measurement actually started; iOS was corrected on its
+    development branch the same day and now answers `false` for a refused
+    start. Until Android follows, poll `status.measuring` from `/get` to
+    confirm a start rather than trusting the answer.
