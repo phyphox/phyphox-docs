@@ -379,6 +379,13 @@ def main():
                          "always serial - the phones share a room). This is "
                          "for the long experiments sweep; N phones at once "
                          "also draw N times the USB power")
+    ap.add_argument("--ble-attempts", type=int, default=2,
+                    help="how many times a ble scenario may be tried on one "
+                         "phone before it counts as failed (default 2). "
+                         "Passing on a later attempt is a pass with a "
+                         "warning naming what failed first, and the attempt "
+                         "count is in the report; flash failures, duplicate "
+                         "advertisers and missing tools are never retried")
     ap.add_argument("--out", dest="out_dir", default="lab-results")
     ap.add_argument("--record-manifest", metavar="DEVICE_ID")
     ap.add_argument("--merge", metavar="DIR")

@@ -383,6 +383,25 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   stripped back out of captured XML before it is written as a corpus
   fixture; left in, every run would rewrite those files with a new number.
 
+  **A failed scenario is retried, and the attempt count is reported**
+  (`--ble-attempts`, default 2). Passing on a later attempt is a PASS
+  with a warning naming what failed first; failing every attempt is a
+  finding, as before. The maintainer's call, 2026-08-28, and the same
+  reasoning as the sensors suite's warn-only plausibility windows: a
+  green pass has to be REACHABLE or the gate gets waved through, and a
+  19-connect pass against a 2.6% per-connect transfer flake comes out
+  green about a third of the time.
+
+  It hides nothing. Each scenario carries `attempts` in the report, each
+  device carries `retries`, and the run's last line names the total, so a
+  number that starts climbing is visible long before it becomes a red
+  pass. Watch that number rather than the colour: two retries in a pass
+  is the bench; five is a regression that has not gone red yet.
+
+  What is NOT retried, because none of it is transient: a board that will
+  not flash, a name nothing advertises, two boards under one name, a
+  missing tool, a capture the spec rejects. Those fail the run outright.
+
   **Start a release pass from rebooted phones.** A phone that has been
   driven all day stops completing BLE data connections while still
   completing transfers, which looks exactly like an app regression in the

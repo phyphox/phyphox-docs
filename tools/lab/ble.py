@@ -1230,6 +1230,34 @@ def phone_uptime_h(dev):
         return None
 
 
+def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
+    """One phone's whole turn at one scenario: connect, measure, release.
+
+    Returns (findings, det). An empty findings list is a pass. Split out
+    of the loop so it can be RETRIED - see the retry policy in run_suite.
+    """
+    ok, msg, handle = connect_phone(dev, scenario, args,
+                                    advertised=target_name)
+    if not ok:
+        return [f"the phone did not connect - {msg}"], {"connected": False}
+    try:
+        args._board = board
+        findings, det = assert_scenario(dev, scenario, baseline, args,
+                                        boards[board])
+        if getattr(args, "capture_ble_xml", False):
+            path, note = capture_xml(dev, scenario, board,
+                                     advertised=target_name)
+            det["capture"] = (os.path.relpath(path, ROOT) + ": " + note
+                              if path else note)
+    finally:
+        # Always release, including on an exception: a held test owns the
+        # phone until it is let go.
+        rok, rmsg = release_phone(dev, handle, args)
+    if not rok:
+        findings.append(f"the connect test reported: {rmsg}")
+    return findings, det
+
+
 def missing_tools(scenarios, args):
     """Which command-line tools these scenarios need and this host does
     not have.
@@ -1264,7 +1292,8 @@ def run_suite(devices, args):
     reset_flash_tags()
     boards = dict(getattr(args, "board_ports", {}) or {})
     results = {dev_id: {"passed": True, "findings": [], "warnings": [],
-                        "scenarios": {}, "uptime_h": phone_uptime_h(dev)}
+                        "scenarios": {}, "retries": 0,
+                        "uptime_h": phone_uptime_h(dev)}
                for dev_id, _entry, dev in devices}
     if not boards:
         for r in results.values():
@@ -1478,35 +1507,43 @@ def run_suite(devices, args):
 
             baseline = load_baseline(scenario)
             for dev_id, entry, dev in _phones_for(scenario, devices):
-                print(f"   {dev_id}: connecting to {target_name!r}",
-                      flush=True)
-                ok, msg, handle = connect_phone(dev, scenario, args,
-                                                advertised=target_name)
                 entry_key = f"{scenario['library']}/{scenario['example']}"
                 if board != scenario["boards"][0]:
                     entry_key += f"@{board}"
-                if not ok:
-                    results[dev_id]["passed"] = False
-                    results[dev_id]["findings"].append(
-                        f"{entry_key}: the phone did not connect - {msg}")
-                    results[dev_id]["scenarios"][entry_key] = {
-                        "connected": False}
-                    continue
-                try:
-                    args._board = board
-                    findings, det = assert_scenario(dev, scenario, baseline,
-                                                    args, boards[board])
-                    if getattr(args, "capture_ble_xml", False):
-                        path, note = capture_xml(dev, scenario, board,
-                                                 advertised=target_name)
-                        det["capture"] = (os.path.relpath(path, ROOT)
-                                          + ": " + note if path else note)
-                finally:
-                    # Always release, including on an exception: a held
-                    # test owns the phone until it is let go.
-                    rok, rmsg = release_phone(dev, handle, args)
-                if not rok:
-                    findings.append(f"the connect test reported: {rmsg}")
+                # RETRY POLICY (maintainer, 2026-08-28). A scenario that
+                # fails is tried again, and what happened is recorded
+                # either way: passing on a later attempt is a PASS with a
+                # warning naming what failed first, failing every attempt
+                # is a finding as before.
+                #
+                # The reasoning is the same one behind the sensors
+                # suite's warn-only plausibility windows. A green pass has
+                # to be reachable or the gate gets waved through, and a
+                # 19-connect pass against a 2.6% per-connect transfer
+                # flake is green about a third of the time. Retrying does
+                # not hide it: the attempt count is in the report, so a
+                # number that starts rising is visible before it becomes
+                # a red pass.
+                #
+                # What is NOT retried, because none of it is transient: a
+                # board that will not flash, a name nothing advertises, a
+                # duplicate advertiser, a missing tool, a capture the
+                # spec rejects. Those still fail the run outright.
+                tries = max(1, getattr(args, "ble_attempts", 2))
+                for attempt in range(1, tries + 1):
+                    print(f"   {dev_id}: connecting to {target_name!r}"
+                          + (f" (attempt {attempt} of {tries})"
+                             if attempt > 1 else ""), flush=True)
+                    findings, det = one_attempt(dev, scenario, args, board,
+                                                target_name, baseline, boards)
+                    if not findings:
+                        break
+                    if attempt < tries:
+                        print(f"   ~ {entry_key} on {dev_id} failed, "
+                              f"retrying: {findings[0]}", flush=True)
+                        earlier = findings[0]
+                        time.sleep(3)   # let the board finish advertising again
+                det["attempts"] = attempt
                 results[dev_id]["scenarios"][entry_key] = det
                 # A scenario that only passed after a restart is a pass
                 # with something to say; it goes in the report where the
@@ -1516,10 +1553,20 @@ def run_suite(devices, args):
                                                 for w in det.get("warnings", [])]
                 if findings:
                     results[dev_id]["passed"] = False
-                    results[dev_id]["findings"] += [f"{entry_key}: {f}"
-                                                    for f in findings]
-    print(f"-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)",
-          flush=True)
+                    results[dev_id]["findings"] += [
+                        f"{entry_key}: {f}" + (f" (failed all {tries} "
+                                               f"attempts)" if tries > 1
+                                               else "")
+                        for f in findings]
+                elif attempt > 1:
+                    results[dev_id]["retries"] = (
+                        results[dev_id].get("retries", 0) + attempt - 1)
+                    results[dev_id]["warnings"].append(
+                        f"{entry_key}: passed on attempt {attempt} of "
+                        f"{tries}. The first attempt failed with: {earlier}")
+    retried = sum(r.get("retries", 0) for r in results.values())
+    print(f"-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)"
+          + (f", {retried} retry(s)" if retried else ""), flush=True)
     for r in results.values():
         r["flashes"] = flashes
     return results
