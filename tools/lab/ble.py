@@ -516,6 +516,14 @@ def ensure_micropython(board, port, args):
     """Flash the MicroPython firmware unless the board already runs it."""
     if running_micropython(port):
         return True, "already running MicroPython"
+    # Before anything else, because every tool below reports this as its
+    # own kind of failure: esptool as "the port is busy or doesn't
+    # exist", truncated mid-sentence by the time it reaches the report,
+    # and mpremote as a board that will not answer.
+    if not os.path.exists(port):
+        return False, (f"there is no board at {port} - it is unplugged, or "
+                       f"it re-enumerated somewhere else (ls /dev/tty* or "
+                       f"/dev/cu.* and pass the right --board-port)")
     firmware = args.micropython_firmware
     if not firmware:
         return False, ("the board is not running MicroPython and no "
@@ -524,6 +532,27 @@ def ensure_micropython(board, port, args):
                        "whole flash, so it has to be put back here)")
     if not os.path.exists(firmware):
         return False, f"MicroPython firmware not found: {firmware}"
+    # Checked BEFORE erase_flash, because the failure it catches is one
+    # that leaves the board with no firmware at all: an image for another
+    # chip writes and boots into a reset loop. 0xE9 is the ESP image
+    # magic; the variant is in the filename, which is how micropython.org
+    # ships them.
+    try:
+        with open(firmware, "rb") as f:
+            magic = f.read(1)
+    except OSError as e:
+        return False, f"cannot read the firmware image: {e}"
+    if magic != b"\xe9":
+        return False, (f"{os.path.basename(firmware)} does not start with "
+                       f"the ESP image magic 0xE9 - this is not a firmware "
+                       f"image (an .app-bin or an OTA image looks like this)")
+    variant = os.path.basename(firmware).upper()
+    for other in ("S2", "S3", "C2", "C3", "C6", "H2"):
+        if f"ESP32_{other}" in variant or f"ESP32-{other}" in variant:
+            return False, (f"{os.path.basename(firmware)} is an ESP32-{other} "
+                           f"image and this board is being flashed as a plain "
+                           f"esp32 - it would write cleanly and then boot into "
+                           f"a reset loop")
     tool = _esptool()
     if tool is None:
         return False, "esptool is not installed"
@@ -535,11 +564,30 @@ def ensure_micropython(board, port, args):
             "write_flash", "-z", "0x1000", firmware], timeout=600)
     if r.returncode != 0:
         return False, f"write_flash failed: {(r.stderr or r.stdout)[-200:]}"
-    time.sleep(3)                      # let it boot before mpremote talks
-    if not running_micropython(port):
-        return False, "flashed the firmware but the board does not answer "\
-                      "as MicroPython"
-    return True, f"flashed {os.path.basename(firmware)}"
+    # A fresh image formats its filesystem on the first boot, which is
+    # not instant and is not the same length on every board, so this
+    # waits for the board rather than assuming a fixed pause. The
+    # "already running" probe above stays a single quick question -
+    # nothing has just been written there.
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        time.sleep(2)
+        if running_micropython(port):
+            return True, f"flashed {os.path.basename(firmware)}"
+    # Say what the board is actually doing. "Does not answer as
+    # MicroPython" covers a wrong image for the chip, a board stuck in
+    # its bootloader, a serial port someone else is holding and a boot
+    # loop, and sends the reader to guess between them; the first thing
+    # it prints separates them at once (an ESP32 announces its reset
+    # reason, and a bad image says "invalid header").
+    said, _err = read_serial(port, 5)
+    heard = "; ".join([ln for ln in (said or []) if ln.strip()][:6])
+    return False, ("flashed the firmware but the board does not answer as "
+                   "MicroPython after 30 s"
+                   + (f" - it is saying: {heard}" if heard else
+                      " and it is printing nothing at all, which is a board "
+                      "held in reset, a port another program has open, or a "
+                      "chip that is not what --chip says"))
 
 
 def order_scenarios(scenarios):
