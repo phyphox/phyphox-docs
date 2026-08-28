@@ -708,25 +708,25 @@ def connect_phone(dev, scenario, args, advertised=None):
                            + _instrumentation_cause(dev, scenario, args,
                                                     out)), None
         return True, "connected", proc
-    # The app's log is a stream on iOS, so it has to be caught while it
-    # happens - started here, ended in read_app_log. Best effort: a phone
-    # whose syslog cannot be read still runs the scenario, it just cannot
-    # report the app's own retry counts (which read_app_log reports as
-    # "not said" rather than as zero).
+    # The app's own output is caught by launching it with --console and
+    # reading the stream (device.py: _launch_with_console / app_console).
+    # It is NOT in the device's syslog: NSLog and print both go to the
+    # app's stdout, and pymobiledevice3's syslog stream carries thousands
+    # of lines from the app's process without one of them. Best effort -
+    # a phone whose console cannot be captured still runs the scenario,
+    # it just cannot report the app's own retry counts, which
+    # read_app_log reports as "not said" rather than as zero.
     try:
-        fd, path = tempfile.mkstemp(prefix="phyphox-syslog-", suffix=".log")
+        fd, path = tempfile.mkstemp(prefix="phyphox-console-", suffix=".log")
         os.close(fd)
-        dev._syslog = (subprocess.Popen(
-            [sys.executable, "-m", "pymobiledevice3", "syslog", "live",
-             "--udid", dev.udid],
-            stdout=open(path, "w"), stderr=subprocess.DEVNULL), path)
-    except (OSError, subprocess.SubprocessError):
-        dev._syslog = (None, None)
+    except OSError:
+        path = None
     # device.py's own launcher rather than a second copy of the devicectl
     # line: it adds -phyphoxRemote, the port and -phyphoxAutoConfirm, and
     # it carries the fallback for phones devicectl cannot talk to (iOS 17+
-    # only, and the lab's iPhone 8 tops out at 16).
-    if not dev._launch_args(["-phyphoxBleConnect", name]):
+    # only, and the lab's iPhone 8 tops out at 16) - which is also the
+    # fallback when the console cannot be attached.
+    if not dev._launch_args(["-phyphoxBleConnect", name], console_path=path):
         return False, f"the app did not launch: {dev.last_error}", None
     # A launch that returns 0 says the app STARTED, nothing more. The
     # first iOS attempt reported every scenario as connected and then
@@ -1312,34 +1312,15 @@ def read_app_log(dev):
 
     Android keeps a buffer and connect_phone clears it before each
     attempt, so `logcat -d` IS the attempt's window. iOS has no buffer to
-    ask for, only a stream, so the iOS branch of connect_phone starts a
-    capture before it launches the app and this ends it.
+    ask for, only the stream its launch is attached to, so the iOS branch
+    of connect_phone launches with --console and this ends that capture.
+    Ending it can take the app down with it, so call this after the
+    scenario is done with the phone.
     """
     if dev.platform == "android":
         r = sh(dev.adb + ["logcat", "-d"], timeout=60)
         return r.stdout or ""
-    proc, path = getattr(dev, "_syslog", (None, None))
-    if proc is None:
-        return ""
-    try:
-        proc.terminate()
-        proc.wait(timeout=10)
-    except Exception:
-        try:
-            proc.kill()
-        except Exception:
-            pass
-    dev._syslog = (None, None)
-    try:
-        with open(path, errors="replace") as f:
-            return f.read()
-    except OSError:
-        return ""
-    finally:
-        try:
-            os.remove(path)
-        except OSError:
-            pass
+    return dev.app_console()
 
 
 def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
@@ -1351,7 +1332,14 @@ def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
     ok, msg, handle = connect_phone(dev, scenario, args,
                                     advertised=target_name)
     if not ok:
-        return [f"the phone did not connect - {msg}"], {"connected": False}
+        # The retry counts matter MORE here than on the happy path - this
+        # is a phone that ran out of attempts, and how many it had to
+        # spend is the difference between a board that is getting worse
+        # and one that was never there. Reading them also ends the
+        # capture, which would otherwise be left running.
+        return ([f"the phone did not connect - {msg}"],
+                {"connected": False,
+                 "app_retries": parse_retry_lines(read_app_log(dev))})
     try:
         args._board = board
         findings, det = assert_scenario(dev, scenario, baseline, args,

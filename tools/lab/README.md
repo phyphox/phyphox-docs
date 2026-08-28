@@ -407,15 +407,29 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   counts every attempt INCLUDING the one that worked (so 1 means no
   retry), `result` is `ok` or `failed`; `reason`, `bytes` and `ms` are
   optional. One line per finished operation, not per attempt. On Android
-  any log tag will do since the token is in the message; on iOS a
-  `print()` reaches the syslog.
+  any log tag will do since the token is in the message; on iOS it has to
+  reach the app's stdout — `NSLog` or `print`, either is fine, and
+  **neither reaches the device's syslog**, see below.
 
   A log line rather than a field in the remote API, because the transfer
   happens BEFORE an experiment is loaded - there is no session yet and
   nothing to serve `/get` with. The driver reads Android's buffer with
   `logcat -d` (connect_phone clears it per attempt, so the buffer is
-  exactly this attempt's window) and captures iOS's stream with
-  `pymobiledevice3 syslog live` for the length of the attempt.
+  exactly this attempt's window) and captures iOS's by launching the app
+  with `devicectl ... --console`, whose stream is the app's own stdout.
+
+  **Not the syslog, which was the first version of this and read nothing.**
+  Measured on an iPhone 14 Pro (iOS 26.6, 2026-08-28) while the app was
+  demonstrably printing the line: `pymobiledevice3 syslog live` collected
+  5261 lines from the app's own process, every one of them from a
+  framework it links, and not one line the app itself wrote — NSLog
+  included. A build that reports perfectly would have been recorded as
+  "cannot tell us" forever. `--console` runs for as long as the app does,
+  so the launch is confirmed by devicectl's own acknowledgement rather
+  than by waiting for it to exit, and ending the capture can take the app
+  with it — which is why `read_app_log` is called once the scenario is
+  finished with the phone, including on the path where it never connected
+  (where the counts matter most).
 
   What lands in the report, per scenario and summed per device:
 

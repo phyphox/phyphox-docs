@@ -10,6 +10,7 @@ Linux machine and are UNVERIFIED until the first MacBook run - anything
 that needed fixing there is a finding for the docs session.
 """
 
+import os
 import subprocess
 import sys
 import time
@@ -216,9 +217,11 @@ class IOSDevice:
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
         return self._launch_args(["-phyphoxUrl", url])
 
-    def _launch_args(self, extra):
+    def _launch_args(self, extra, console_path=None):
         args = extra + ["-phyphoxRemote", "-phyphoxRemotePort", "80",
                         "-phyphoxAutoConfirm"]
+        if console_path and self._launch_with_console(args, console_path):
+            return True
         # the "--" keeps devicectl from parsing the app's dash-prefixed
         # arguments as its own options (first hardware attempt failed on
         # every launch; simctl passes trailing args, devicectl does not)
@@ -245,6 +248,81 @@ class IOSDevice:
             self.last_error = (r.stderr or r.stdout or "").strip()[-300:]
             return r.returncode == 0
         return False
+
+    def _launch_with_console(self, args, console_path):
+        """Launch with --console, streaming the app's output to a file.
+
+        The only way to read what the app itself printed. NSLog and print
+        both land on the app's stdout/stderr, and NEITHER reaches
+        pymobiledevice3's syslog stream - measured on an iPhone 14 Pro
+        (iOS 26.6) 2026-08-28: the capture holds 5261 lines from the app's
+        process, every one of them from a framework, and not one line the
+        app wrote. The first version of this read the syslog and would
+        have reported "this build cannot tell us" forever, against a build
+        that was printing the line all along.
+
+        --console runs for as long as the app does, so it cannot be waited
+        on: the launch is confirmed by devicectl's own acknowledgement in
+        the stream. Returns False if that does not arrive, and the caller
+        falls back to the plain launch without a capture.
+        """
+        try:
+            handle = open(console_path, "w")
+        except OSError:
+            return False
+        proc = subprocess.Popen(
+            ["xcrun", "devicectl", "device", "process", "launch",
+             "--terminate-existing", "--console", "--device", self.udid,
+             "--", IOS_BUNDLE] + args,
+            stdout=handle, stderr=subprocess.STDOUT)
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                break
+            try:
+                with open(console_path, errors="replace") as f:
+                    if "Launched application" in f.read():
+                        self._console = (proc, console_path)
+                        return True
+            except OSError:
+                pass
+            time.sleep(0.5)
+        try:
+            proc.kill()
+        except OSError:
+            pass
+        try:
+            with open(console_path, errors="replace") as f:
+                self.last_error = f.read().strip()[-300:]
+        except OSError:
+            pass
+        return False
+
+    def app_console(self):
+        """Whatever the app has printed since its launch, ending the
+        capture. "" if there was none."""
+        proc, path = getattr(self, "_console", (None, None))
+        if proc is None:
+            return ""
+        self._console = (None, None)
+        try:
+            proc.terminate()
+            proc.wait(timeout=10)
+        except Exception:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        try:
+            with open(path, errors="replace") as f:
+                return f.read()
+        except OSError:
+            return ""
+        finally:
+            try:
+                os.remove(path)
+            except OSError:
+                pass
 
     def stop_app(self):
         pass  # --terminate-existing on launch
