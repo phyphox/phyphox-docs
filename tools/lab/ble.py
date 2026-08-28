@@ -759,6 +759,10 @@ def release_phone(dev, handle, args):
     timeout is killed rather than left holding the phone.
     """
     if handle is None:
+        # iOS: nothing is held open, but the app is still running and still
+        # connected to the board. The next phone in this scenario cannot see
+        # a peripheral that another central is connected to.
+        dev.stop_app()
         return True, ""
     sh(dev.adb + ["shell", "setprop", RELEASE_PROP, "1"])
     try:

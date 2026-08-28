@@ -39,6 +39,17 @@ dimmed to its minimum because staying awake means staying lit - the old
 phones already lose against USB power) and both settings are restored
 afterwards; iOS devices stay awake on USB by themselves.
 
+**An iOS phone releases the board only when its app is stopped.** The ble
+suite walks one board past every phone in a scenario's scope, and a
+peripheral serving one central at a time is invisible to the others while
+an app still holds the connection - the second phone then reports "no
+device advertising as ... turned up", which reads as a board fault and is
+the previous phone. Android force-stops before every scenario;
+`release_phone` now does the iOS equivalent when a phone is done, by pid
+through devicectl or `dvt pkill` on a phone devicectl cannot see. Before
+that, a two-phone iOS run could only ever have worked for its first
+phone; the single-phone runs it had always been given hid it.
+
 **A launch argument with a space in it has to be quoted on the legacy
 path.** `pymobiledevice3 developer dvt launch` takes the whole command
 line as one string and `shlex.split`s it, so `-phyphoxBleConnect

@@ -357,7 +357,32 @@ class IOSDevice:
                 pass
 
     def stop_app(self):
-        pass  # --terminate-existing on launch
+        """Take the app down, so this phone stops holding what the next one
+        needs.
+
+        --terminate-existing only clears the way for the SAME phone. The ble
+        suite walks one board past every phone in the scenario's scope, and
+        a peripheral serving one central at a time is invisible to the rest
+        of them while an app somewhere still holds the connection: the
+        second phone of a run then reports "no device advertising as ...
+        turned up", which reads as a board fault. Android has force-stop
+        before every scenario; this is the iOS equivalent, run when a phone
+        is done rather than before, because that is where the connection
+        wants releasing.
+        """
+        r = sh(["xcrun", "devicectl", "device", "info", "processes",
+                "--device", self.udid], timeout=60)
+        for line in (r.stdout or "").splitlines():
+            fields = line.split()
+            if len(fields) >= 2 and fields[0].isdigit() \
+                    and fields[1].endswith("/phyphox.app/phyphox"):
+                sh(["xcrun", "devicectl", "device", "process", "terminate",
+                    "--device", self.udid, "--pid", fields[0]], timeout=60)
+                return
+        # A phone devicectl cannot see at all - the same iOS 16 split as
+        # the launch, and dvt has its own way to do it
+        sh([sys.executable, "-m", "pymobiledevice3", "developer", "dvt",
+            "pkill", "--udid", self.udid, "phyphox"], timeout=60)
 
     def fixture_host(self):
         # an iOS device reaches the host over the LAN; run.py passes the
