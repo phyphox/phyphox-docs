@@ -473,7 +473,25 @@ def main():
             # orchestration and only hands back the per-device results.
             if suite == "ble":
                 from lab import ble
-                for dev_id, r in ble.run_suite(devices, args).items():
+                try:
+                    per_device = ble.run_suite(devices, args)
+                except Exception as e:
+                    # A crashed suite must still produce a report. The
+                    # write happens at the end of this function, so an
+                    # exception used to take the whole run's evidence with
+                    # it: on 2026-08-28 a MacBook pass reached its eighth
+                    # scenario, raised on a missing mpremote, and left
+                    # nothing at all - not even the seven scenarios that
+                    # had already run against the phone, which were the
+                    # ones worth reading.
+                    import traceback
+                    traceback.print_exc()
+                    per_device = {
+                        dev_id: {"passed": False, "warnings": [],
+                                 "findings": [f"the ble suite crashed: "
+                                              f"{type(e).__name__}: {e}"]}
+                        for dev_id, _entry, _dev in devices}
+                for dev_id, r in per_device.items():
                     report["devices"][dev_id]["ble"] = r
                     state = "ok" if r.get("passed") else "FAIL"
                     print(f"== ble @ {dev_id}: {state}"

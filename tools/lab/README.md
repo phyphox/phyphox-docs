@@ -111,8 +111,10 @@ one is missing - a host that was never set up looks nothing like a board
 fault, but discovered per scenario it arrives as two failed flashes and a
 board declared dead. On the MacBook on 2026-08-28 a missing `mpremote`
 was worse still: the run raised on the first MicroPython scenario, and
-the operator watched an idle phone until the run ended before seeing
-why. pyserial is deliberately NOT in requirements.txt: the docs build and app CI install
+the operator watched an idle phone until the run ended before seeing why
+- and because the report is written only at the end, the seven scenarios
+that HAD already run against the phone were lost with it. A crashing
+suite now still produces a report, with the exception as its finding. pyserial is deliberately NOT in requirements.txt: the docs build and app CI install
 that file and never open a serial port. It is needed only for the three
 scenarios where the data goes phone -> board and the board's own printout
 is the evidence.
