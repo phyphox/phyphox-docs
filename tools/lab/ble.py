@@ -579,6 +579,33 @@ ANDROID_PACKAGE = "de.rwth_aachen.phyphox"
 TRANSFER_FILE = "files/temp_bt/bt.phyphox"
 
 
+def _instrumentation_cause(dev, scenario, args, out):
+    """The first exception with the lines under it, plus the whole output
+    kept as evidence. Returns a string to append to a finding.
+
+    Shared by both failure branches on purpose. The hold branch learned
+    this on 2026-08-28 (eight failures reported as JUnit's header line
+    with the cause thrown away) and the API branch did not, so the one
+    remaining failure of that day's last pass came back as
+    "...within the connect timeout: de.rwth_aachen.phyphox.\
+BleCompatConnectTest:" - the same defect, one branch over.
+    """
+    lines = [ln.strip() for ln in (out or "").splitlines() if ln.strip()]
+    at = next((i for i, ln in enumerate(lines)
+               if "Exception" in ln or "Error" in ln), None)
+    said = " | ".join(lines[at:at + 3])[:400] if at is not None else ""
+    try:
+        log = evidence_path(dev, args,
+                            f"{scenario['library']}-{scenario['example']}"
+                            f"-connect-failed.txt")
+        with open(log, "w") as f:
+            f.write(out or "")
+        said += f" [full output: {os.path.relpath(log, ROOT)}]"
+    except OSError:
+        pass
+    return said or (out or "")[-300:]
+
+
 def connect_phone(dev, scenario, args, advertised=None):
     """Run the platform's scan-and-connect test on the phone. The UI flow
     (scan, pick the device, accept its experiment) has no remote-API
@@ -658,39 +685,45 @@ def connect_phone(dev, scenario, args, advertised=None):
             # 2026-08-28 reported eight failures as "Error in
             # theDeviceOffersItsExperimentAndItLoads(...):" and nothing
             # else, which is why the whole output is now kept as well.
-            lines = [ln.strip() for ln in out.splitlines() if ln.strip()]
-            at = next((i for i, ln in enumerate(lines)
-                       if "Exception" in ln or "Error" in ln), None)
-            first = " | ".join(lines[at:at + 3])[:400] if at is not None else ""
-            try:
-                log = evidence_path(
-                    dev, args,
-                    f"{scenario['library']}-{scenario['example']}"
-                    f"-connect-failed.txt")
-                with open(log, "w") as f:
-                    f.write(out)
-                first += f" [full output: {os.path.relpath(log, ROOT)}]"
-            except OSError:
-                pass
             return False, ("the connect test never reached its hold: "
-                           + (first or out[-300:])), None
+                           + _instrumentation_cause(dev, scenario, args,
+                                                    out)), None
         if wait_api(dev.base, args.connect_timeout) is None:
             proc.kill()
             # Killing the local adb does NOT stop the instrumentation on
             # the phone; without this it keeps the app alive and the next
             # scenario talks to it.
             sh(dev.adb + ["shell", "am", "force-stop", ANDROID_PACKAGE])
-            out = (proc.communicate()[0] or "")[-300:]
+            out = proc.communicate()[0] or ""
             return False, ("the phone did not reach a loaded experiment "
-                           "within the connect timeout: " + out), None
+                           "within the connect timeout: "
+                           + _instrumentation_cause(dev, scenario, args,
+                                                    out)), None
         return True, "connected", proc
-    r = sh(["xcrun", "devicectl", "device", "process", "launch",
-            "--terminate-existing", "--device", dev.udid, "--",
-            "de.rwth-aachen.physics.phyphox",
-            "-phyphoxBleConnect", name, "-phyphoxRemote",
-            "-phyphoxRemotePort", "80", "-phyphoxAutoConfirm"],
-           timeout=args.connect_timeout)
-    return r.returncode == 0, (r.stderr or r.stdout or "")[-300:], None
+    # device.py's own launcher rather than a second copy of the devicectl
+    # line: it adds -phyphoxRemote, the port and -phyphoxAutoConfirm, and
+    # it carries the fallback for phones devicectl cannot talk to (iOS 17+
+    # only, and the lab's iPhone 8 tops out at 16).
+    if not dev._launch_args(["-phyphoxBleConnect", name]):
+        return False, f"the app did not launch: {dev.last_error}", None
+    # A launch that returns 0 says the app STARTED, nothing more. The
+    # first iOS attempt reported every scenario as connected and then
+    # failed on "no data", which describes the symptom and hides the
+    # cause. -phyphoxBleConnect opens no dialog by design - the app scans
+    # headlessly and the experiment page appearing is the only visible
+    # sign - so the remote API coming up is what "connected" means here,
+    # exactly as on Android.
+    if wait_api(dev.base, args.connect_timeout) is None:
+        return False, (
+            f"the app launched but no experiment was loaded within "
+            f"{args.connect_timeout:.0f} s, so nothing served the remote "
+            f"API. The app logs '-phyphoxBleConnect: no device advertising "
+            f"as {name} turned up within 60 s' to the device console when "
+            f"its scan finds nothing - check there first, then that "
+            f"Bluetooth is permitted for phyphox in Settings (a system "
+            f"prompt, which -phyphoxAutoConfirm deliberately does not "
+            f"touch) and that this build has the seam at all"), None
+    return True, "connected", None
 
 
 def release_phone(dev, handle, args):
