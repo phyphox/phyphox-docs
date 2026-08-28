@@ -417,10 +417,23 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   exactly this attempt's window) and captures iOS's stream with
   `pymobiledevice3 syslog live` for the length of the attempt.
 
-  What lands in the report: `app_retries` per scenario and summed per
-  device. **`null` is not zero** - it means this build cannot tell us,
-  and it comes with a warning saying so, because a zero standing in for
-  "no idea" is precisely how a rising retry rate would stay quiet.
+  What lands in the report, per scenario and summed per device:
+
+      "app_retries": {"connect":  {"operations": 22, "retries": 3, "failed": 0},
+                      "transfer": {"operations": 9,  "retries": 1, "failed": 0}}
+
+  **Operations, not just retries** (maintainer, 2026-08-28): a retry
+  answers a RANDOM failure rather than a permanent property of a device,
+  so a retry count means nothing without the number of draws that
+  produced it - three retries in five connects and three in forty are
+  opposite findings. The number to watch over time is retries per
+  operation, and `failed`, an operation that spent its whole budget and
+  lost anyway, which is the one that becomes a red pass. The run prints
+  both.
+
+  **`null` is not zero** - it means this build cannot tell us, and it
+  comes with a warning saying so, because a zero standing in for "no
+  idea" is precisely how a rising rate would stay quiet.
 
   **A failed scenario is retried, and the attempt count is reported**
   (`--ble-attempts`, default 2). Passing on a later attempt is a PASS

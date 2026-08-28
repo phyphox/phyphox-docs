@@ -1260,17 +1260,29 @@ RETRY_TOKEN = "phyphox-ble-retries"
 
 
 def parse_retry_lines(text):
-    """{"connect": n, "transfer": m} of RETRIES (attempts - 1) in `text`,
-    or None if the build said nothing at all.
+    """Per event type: how many operations, how many retries they cost,
+    and how many exhausted their budget. None if the build said nothing.
 
-    None and zero are different answers and the report keeps them apart:
-    zero means the app got through first time, None means this build
-    cannot tell us - and a zero standing in for None is exactly how a
-    rising retry rate would stay invisible, which is the whole reason
-    this exists.
+        {"connect":  {"operations": 2, "retries": 3, "failed": 0},
+         "transfer": {"operations": 1, "retries": 1, "failed": 0}}
+
+    OPERATIONS matter as much as retries, and this counted only retries
+    until the maintainer pointed out why (2026-08-28): a retry answers a
+    RANDOM failure, not a permanent property of a device, so what a retry
+    count means depends entirely on how many draws produced it. Three
+    retries in five connects and three in forty are opposite findings,
+    and a bare count reports them identically. What is worth watching
+    over time is retries per operation - and `failed`, an operation that
+    spent its whole budget and still lost, which is the one that becomes
+    a red pass.
+
+    None and zero stay different answers: zero means the app got through
+    first time, None means this build cannot tell us, and a zero standing
+    in for None is exactly how a rising rate would stay invisible.
     """
     seen = False
-    out = {"connect": 0, "transfer": 0}
+    out = {e: {"operations": 0, "retries": 0, "failed": 0}
+           for e in ("connect", "transfer")}
     for line in (text or "").splitlines():
         if RETRY_TOKEN not in line:
             continue
@@ -1287,7 +1299,10 @@ def parse_retry_lines(text):
         except ValueError:
             continue
         seen = True
-        out[event] += max(0, attempts - 1)
+        out[event]["operations"] += 1
+        out[event]["retries"] += max(0, attempts - 1)
+        if fields.get("result") == "failed":
+            out[event]["failed"] += 1
     return out if seen else None
 
 
@@ -1651,10 +1666,13 @@ def run_suite(devices, args):
                 det["attempts"] = attempt
                 app = det.get("app_retries")
                 if app:
-                    tot = results[dev_id].setdefault(
-                        "app_retries", {"connect": 0, "transfer": 0})
-                    for k, v in app.items():
-                        tot[k] = tot.get(k, 0) + v
+                    tot = results[dev_id].setdefault("app_retries", {})
+                    for event, counts in app.items():
+                        into = tot.setdefault(event, {"operations": 0,
+                                                      "retries": 0,
+                                                      "failed": 0})
+                        for k, v in counts.items():
+                            into[k] = into.get(k, 0) + v
                 elif app is None:
                     silent.add(dev_id)
                 results[dev_id]["scenarios"][entry_key] = det
@@ -1687,7 +1705,16 @@ def run_suite(devices, args):
             "\"Retries have to be counted\" in tools/lab/README.md")
     retried = sum(r.get("retries", 0) for r in results.values())
     print(f"-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)"
-          + (f", {retried} retry(s)" if retried else ""), flush=True)
+          + (f", {retried} scenario retry(s)" if retried else ""), flush=True)
+    # The app's own rate, said out loud rather than left in the JSON: it
+    # is the number that moves before a pass goes red.
+    for dev_id, r in results.items():
+        for event, c in (r.get("app_retries") or {}).items():
+            if c["operations"]:
+                print(f"   {dev_id}: {c['retries']} retry(s) over "
+                      f"{c['operations']} {event}(s)"
+                      + (f", {c['failed']} exhausted the budget"
+                         if c["failed"] else ""), flush=True)
     for r in results.values():
         r["flashes"] = flashes
     return results
