@@ -173,11 +173,14 @@ will be wanted, and it degrades to one board correctly. Adding a board
 back is one line under `flash.fqbn` plus the board's name in the
 scenarios that should run on it.
 
-Two things are genuinely lost meanwhile, and both are reported rather
-than papered over. **The scan runs with no distractor**: with one board
-there is nothing else in the air, so finding the right device out of one
-device proves less than it looks, and every run says so once in its
-warnings. And **NRF52 coverage is gone**: the Arduino library emits
+Two things are genuinely lost meanwhile. **The scan runs with no
+distractor**: with one board there is nothing else in the air, so finding
+the right device out of one device proves less than it looks. Runs used
+to say so in their warnings; they no longer do (maintainer, 2026-08-28),
+because a standing property of the bench is not news once a run, let
+alone once per phone, and repeating it buries the warnings that are worth
+reading. It is recorded here instead, where anyone asking what this suite
+covers will look. And **NRF52 coverage is gone**: the Arduino library emits
 different XML per board (`fixtures/ble/captured/README.md`), so the
 ESP32's output is not evidence about anyone's Nano. The two Nano captures
 already in `corpus/valid/ble-libraries/` stay - they are real library
@@ -303,6 +306,17 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   be mistaken for a pass), and `--capture-ble-xml` freezes the XML each
   board serves into `corpus/valid/ble-libraries/` - the T0 half. That one
   rewrites corpus files, so use it when you mean to and read the diff.
+
+  **The experiment is started once, after a pause.** Neither app will
+  start an experiment whose `<bluetooth>` blocks have not connected yet,
+  and since 2026-08-28 both say so rather than answering `{"result":
+  true}`. That is not a defect and never was: the driver loads an
+  experiment and asks for a measurement a fraction of a second later,
+  which no user does. So the suite waits `--start-delay` seconds (3 by
+  default) and then asks once, and a start that still does not take is a
+  finding rather than another attempt. It used to try up to eight times
+  and announce every recovery, which put a line in nearly every scenario
+  of every report for something that was never wrong.
 
   **The Android connect test is held open while the host measures.**
   Instrumentation runs in the app's own process, so the app dies the

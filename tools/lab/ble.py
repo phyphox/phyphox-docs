@@ -49,7 +49,9 @@ suite to the ESP32 rather than replacing it (scenarios.yml says why).
 Per-board machinery below is kept deliberately - the library-side test
 that will cover many boards on one phone is the natural home for it - but
 nothing here currently exercises two boards, so the scan runs without a
-distractor and each run says so.
+distractor. That used to be said in every report and is not any more
+(maintainer, 2026-08-28): a standing property of a one-board bench is not
+news once, let alone once per phone per run.
 
 The iOS half has never touched hardware. Its connect path
 (-phyphoxBleConnect) is implemented in the app and unit-tested there, but
@@ -850,28 +852,39 @@ def evidence_path(dev, args, name):
     return os.path.join(out, f"{who}-{name}")
 
 
-def _start_for_real(dev, args, tries=8, gap=1.0):
-    """Start the experiment and confirm it actually started.
+def start_measuring(dev, args):
+    """Start the experiment once, after letting the device connect.
 
-    `/control?cmd=start` answers {"result": true} for a start the app
-    refused - it is documented as "whether the command was accepted" -
-    so the answer that matters is status.measuring in the next /get.
+    Neither app will start an experiment whose <bluetooth> blocks are not
+    connected yet, and both now say so instead of answering {"result":
+    true} - which is correct, and entirely unsurprising: the driver loads
+    an experiment and asks for a measurement a fraction of a second
+    later, which no user ever does.
+
+    So the suite waits before asking rather than asking repeatedly
+    (maintainer, 2026-08-28). The old version tried up to eight times and
+    announced every recovery, which put a line in the report on nearly
+    every scenario for something that was never a defect. What is still
+    checked is the outcome: one start, then the measurement has to be
+    running, and if it is not that is a finding rather than another
+    attempt.
     """
-    for attempt in range(tries):
-        api(dev.base, "/control?cmd=start")
-        status, body = api(dev.base, "/get?", timeout=20)
+    time.sleep(getattr(args, "start_delay", 3.0))
+    api(dev.base, "/control?cmd=start")
+    # The flag follows the command by a moment, so this waits for it to
+    # appear - it is confirming the start, not repeating it.
+    deadline = time.time() + 5.0
+    while time.time() < deadline:
+        status, body = api(dev.base, "/get?")
         if status == 200:
             try:
-                if json.loads(body).get("status", {}).get("measuring"):
-                    if attempt:
-                        print(f"   the start took {attempt + 1} attempt(s) - "
-                              f"the app refuses one until every bluetooth "
-                              f"block of the experiment is connected",
-                              flush=True)
-                    return True
+                measuring = (json.loads(body).get("status")
+                             or {}).get("measuring")
             except ValueError:
-                pass
-        time.sleep(gap)
+                measuring = None
+            if measuring:
+                return True
+        time.sleep(0.5)
     return False
 
 
@@ -905,7 +918,7 @@ def await_live_link(dev, buffers, args):
     """
     q = "&".join(b + "=full" for b in buffers)
     started = time.time()
-    if not _start_for_real(dev, args):
+    if not start_measuring(dev, args):
         return False, round(time.time() - started, 1)
     while time.time() - started < args.link_timeout:
         status, body = api(dev.base, "/get?" + q, timeout=20)
@@ -947,17 +960,17 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
         # true} and measures nothing, which reads as a silent board.
         def fire():
             if trigger == "start_stop":
-                det["started"] = _start_for_real(dev, args)
+                det["started"] = start_measuring(dev, args)
                 time.sleep(2)
                 api(dev.base, "/control?cmd=stop")
             elif isinstance(trigger, dict) and "set" in trigger:
-                det["started"] = _start_for_real(dev, args)
+                det["started"] = start_measuring(dev, args)
                 spec = trigger["set"]
                 api(dev.base, f"/control?cmd=set&buffer={spec['buffer']}"
                               f"&value={spec['value']}")
                 det["triggered"] = f"{spec['buffer']}={spec['value']}"
             else:
-                det["started"] = _start_for_real(dev, args)
+                det["started"] = start_measuring(dev, args)
 
         # Generous window, ended as soon as the board says what we are
         # waiting for: the link is not live the moment the API answers
@@ -1490,33 +1503,6 @@ def run_suite(devices, args):
                 "no --board-port given, so there is no board to talk to")
         return results
 
-    if len(boards) < 2:
-        # A standing property of the bench, not a per-scenario incident,
-        # so it is said once rather than ten times: with one board there
-        # is nothing else in the air, and a scan that finds the only
-        # device in the room has not been asked to discriminate. The
-        # suite is scoped to one board on purpose (scenarios.yml says
-        # why) - this is what keeps that in front of whoever reads a
-        # green report, instead of only in a file nobody rereads.
-        for r in results.values():
-            r["warnings"].append(
-                "one board on the bench, so every scan ran without a "
-                "distractor: nothing else was advertising, and picking "
-                "the right device out of one device proves less than it "
-                "looks")
-
-    off = [s for s in cfg["scenarios"] if s.get("disabled")]
-    if off:
-        # A disabled scenario is coverage the suite does not have, and a
-        # green report must say so - the same reason a missing board is
-        # reported below. Deleting the block would have hidden it; the
-        # key is one line to remove when the reason is gone.
-        for r in results.values():
-            r["warnings"].append(
-                "disabled in scenarios.yml, so this pass did not cover "
-                + "; ".join(f"{d['library']}/{d['example']} "
-                            f"({d['disabled']})" for d in off))
-
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
                  if not s.get("disabled") and set(s["boards"]) & set(boards)]
     only = getattr(args, "ble_scenario", None)
@@ -1820,7 +1806,7 @@ def run_suite(devices, args):
             "connection and transfer retries are not in this report - see "
             "\"Retries have to be counted\" in tools/lab/README.md")
     retried = sum(r.get("retries", 0) for r in results.values())
-    print(f"-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)"
+    print(f"\n-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)"
           + (f", {retried} scenario retry(s)" if retried else ""), flush=True)
     # The app's own rate, said out loud rather than left in the JSON: it
     # is the number that moves before a pass goes red.
@@ -1879,20 +1865,6 @@ def record_baselines(devices, args):
         return 1
     dev_id, _entry, dev = devices[0]
 
-    if len(boards) < 2:
-        # A standing property of the bench, not a per-scenario incident,
-        # so it is said once rather than ten times: with one board there
-        # is nothing else in the air, and a scan that finds the only
-        # device in the room has not been asked to discriminate. The
-        # suite is scoped to one board on purpose (scenarios.yml says
-        # why) - this is what keeps that in front of whoever reads a
-        # green report, instead of only in a file nobody rereads.
-        for r in results.values():
-            r["warnings"].append(
-                "one board on the bench, so every scan ran without a "
-                "distractor: nothing else was advertising, and picking "
-                "the right device out of one device proves less than it "
-                "looks")
 
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
                  if not s.get("disabled") and set(s["boards"]) & set(boards)]

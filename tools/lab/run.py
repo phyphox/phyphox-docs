@@ -75,6 +75,17 @@ class _QuietFixtureHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+# Colour only when a person is watching: every pass is also run with its
+# output redirected to a file, and escape codes in a report someone reads
+# a day later are worse than no colour at all.
+_TTY = sys.stdout.isatty()
+GREEN, RED, OFF = ("\033[32m", "\033[31m", "\033[0m") if _TTY else ("", "", "")
+
+
+def verdict(passed):
+    return f"{GREEN}ok{OFF}" if passed else f"{RED}FAIL{OFF}"
+
+
 def serve_fixtures(port):
     handler = functools.partial(_QuietFixtureHandler, directory=FIXTURES)
     srv = _FixtureServer(("0.0.0.0", port), handler)
@@ -379,6 +390,10 @@ def main():
                          "always serial - the phones share a room). This is "
                          "for the long experiments sweep; N phones at once "
                          "also draw N times the USB power")
+    ap.add_argument("--start-delay", type=float, default=3.0,
+                    help="seconds to wait after an experiment loads before "
+                         "starting it (default 3). Neither app starts one "
+                         "whose bluetooth blocks have not connected yet")
     ap.add_argument("--ble-attempts", type=int, default=2,
                     help="how many times a ble scenario may be tried on one "
                          "phone before it counts as failed (default 2). "
@@ -500,8 +515,8 @@ def main():
                         for dev_id, _entry, _dev in devices}
                 for dev_id, r in per_device.items():
                     report["devices"][dev_id]["ble"] = r
-                    state = "ok" if r.get("passed") else "FAIL"
-                    print(f"== ble @ {dev_id}: {state}"
+                    state = verdict(r.get("passed"))
+                    print(f"\n== ble @ {dev_id}: {state}"
                           + "".join(f"\n      ! {x}"
                                     for x in r.get("findings", []))
                           + "".join(f"\n      ~ {x}"
@@ -529,8 +544,8 @@ def main():
                 if r is None:
                     continue
                 report["devices"][dev_id][suite] = r
-                state = "ok" if r.get("passed") else "FAIL"
-                print(f"   {state}"
+                state = verdict(r.get("passed"))
+                print(f"\n   {state}"
                       + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
                       + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
                 for line in captured:
@@ -553,8 +568,8 @@ def main():
                 release=spec.get("release", True))
             report.setdefault("languages", {})[platform] = r
             state = ("skipped: " + r["skipped"] if r.get("skipped")
-                     else "ok" if r["passed"] else "FAIL")
-            print(f"   languages[{platform}]: {state}"
+                     else verdict(r["passed"]))
+            print(f"\n   languages[{platform}]: {state}"
                   + ("".join(f"\n      ! {x}" for x in r.get("findings", [])))
                   + ("".join(f"\n      ~ {x}" for x in r.get("warnings", []))))
     finally:
