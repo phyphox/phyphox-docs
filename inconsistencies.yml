@@ -91,9 +91,18 @@
     gives identical results on both.
 
 - id: slider-default-never-reaches-buffer
-  title: A slider's default value never reaches its buffer on Android
+  title: What a slider's default puts in its buffer
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    The format already says it, and the attribute is marked agreed
+    (spec/views.yml, slider/default): "The value with which the associated
+    buffer should start. (Does not work in range slider mode. Use the init
+    property of the data containers instead.)" So a NORMAL slider starts its
+    buffer at default - iOS does this, Android does not - and a RANGE slider
+    writes nothing of its own, its buffers starting from the containers' init
+    or staying empty - Android does this, iOS does not. Each implementation has
+    one half right (maintainer, 2026-08-29).
   affects:
     android: >-
       Never writes it. In ExpView.java the slider's onMayReadFromBuffers
@@ -120,6 +129,7 @@
     slider does that on iOS and not on Android, where the default only positions
     the widget and the buffer stays empty until the slider is moved. An
     experiment whose analysis reads a slider therefore starts from the default on
-    iOS and from NaN on Android. Which is right is a decision about the format
-    rather than about either app: an edit seeds, a slider on one platform does
-    not, and the two ought to agree.
+    iOS and from NaN on Android. The format already answers it: a normal slider's
+    default is the value its buffer starts with, and a range slider's handles
+    take their starting values from the containers' init property rather than
+    from the element - so each implementation has one half right.
