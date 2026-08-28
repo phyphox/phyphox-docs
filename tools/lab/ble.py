@@ -61,6 +61,7 @@ the same. Note also that this suite cannot be split across hosts: the
 boards travel to whichever machine drives the phones (tools/lab/README).
 """
 
+import contextlib
 import glob
 import json
 import os
@@ -252,17 +253,20 @@ def flash(scenario, board, cfg, args, advertised=None):
     # example's `import phyphoxBLE` cannot see it. The board then boots
     # into an ImportError and advertises nothing, which shows up as a
     # scan timeout on the phone and looks like a BLE problem.
-    r = sh(["mpremote", "connect", port, "fs", "cp", "-r", "phyphoxBLE", ":"],
-           timeout=300, cwd=repo)
-    if r.returncode != 0:
-        return False, f"copying the library failed: {(r.stderr or '')[-200:]}"
-    r = sh(["mpremote", "connect", port, "fs", "cp", src, ":main.py"],
-           timeout=120)
-    if work:
-        shutil.rmtree(work, ignore_errors=True)
-    if r.returncode != 0:
-        return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
-    sh(["mpremote", "connect", port, "reset"], timeout=60)
+    with steady_port(port):
+        r = sh(["mpremote", "connect", port, "fs", "cp", "-r", "phyphoxBLE", ":"],
+               timeout=300, cwd=repo)
+        if r.returncode != 0:
+            if work:
+                shutil.rmtree(work, ignore_errors=True)
+            return False, f"copying the library failed: {(r.stderr or '')[-200:]}"
+        r = sh(["mpremote", "connect", port, "fs", "cp", src, ":main.py"],
+               timeout=120)
+        if work:
+            shutil.rmtree(work, ignore_errors=True)
+        if r.returncode != 0:
+            return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
+        sh(["mpremote", "connect", port, "reset"], timeout=60)
     return True, "copied and reset"
 
 
@@ -500,6 +504,50 @@ def _esptool():
     return None
 
 
+@contextlib.contextmanager
+def steady_port(port):
+    """Hold the serial port open while mpremote talks to the board.
+
+    Opening a serial port asserts DTR and RTS, and on an ESP32 those are
+    the reset and boot-mode lines: on macOS the open resets the board.
+    mpremote then sends its ctrl-C/ctrl-A into a boot log, waits for a raw
+    REPL banner that never comes and reports "could not enter raw repl" -
+    against a board that is running MicroPython perfectly and answers a
+    serial console a second later. Every MicroPython scenario failed that
+    way on the MacBook (2026-08-28), flashing cleanly and then never
+    answering, while the same commands work on the Linux bench.
+
+    While somebody already holds the port, the next open changes nothing
+    on those lines, so the board stays up. This opens it, waits out the
+    reset that opening caused, and keeps it open for the caller.
+
+    Without pyserial it does nothing at all, which is the behaviour every
+    host had before - the Linux bench never needed this.
+    """
+    try:
+        import serial
+    except ImportError:
+        yield False
+        return
+    try:
+        held = serial.Serial(port, 115200, timeout=1)
+    except Exception:
+        yield False
+        return
+    try:
+        time.sleep(MPREMOTE_SETTLE)
+        yield True
+    finally:
+        try:
+            held.close()
+        except Exception:
+            pass
+
+
+#How long the board needs after the reset that opening its port causes
+MPREMOTE_SETTLE = 1.5
+
+
 def running_micropython(port):
     """Ask the board rather than remembering: a probe survives a killed
     run, a reboot and a previous session, so the firmware is reflashed
@@ -507,8 +555,9 @@ def running_micropython(port):
     # short and unretried: mpremote does not fail fast against a board
     # running something else, it simply waits, so the first attempt IS
     # the answer (the default retry turned a 30 s probe into 60 s)
-    r = sh(["mpremote", "connect", port, "eval", "1+1"], timeout=8,
-           retries=0)
+    with steady_port(port):
+        r = sh(["mpremote", "connect", port, "eval", "1+1"], timeout=8,
+               retries=0)
     return r.returncode == 0 and "2" in (r.stdout or "")
 
 
@@ -1534,8 +1583,18 @@ def missing_tools(scenarios, args):
             need["esptool"] = ("the ESP32 is reflashed with MicroPython "
                                "whenever an Arduino upload has overwritten it "
                                "(esptool or esptool.py)")
-    return [f"{t} is not on PATH - {why}" for t, why in need.items()
-            if t == "esptool" or not _shutil.which(t)]
+        try:
+            import serial  # noqa: F401 - presence check only
+        except ImportError:
+            need["pyserial"] = (
+                "mpremote cannot reach a board on macOS without it - opening "
+                "the port resets the ESP32 and mpremote talks into the boot "
+                "log, so steady_port() holds the port open around it "
+                "(pip install pyserial for the interpreter running this)")
+    return [(f"{t} is not installed - {why}" if t == "pyserial"
+             else f"{t} is not on PATH - {why}")
+            for t, why in need.items()
+            if t in ("esptool", "pyserial") or not _shutil.which(t)]
 
 
 def run_suite(devices, args):

@@ -141,7 +141,23 @@ file first.
 Only the BLE suite needs more than adb/Xcode: `arduino-cli` and `mpremote`
 on PATH, `esptool` (either the v4 `esptool.py` or the v5 `esptool`), an
 ESP32 MicroPython image passed as `--micropython-firmware`, and the
-`pyserial` module in the venv the driver runs from. **The suite checks
+`pyserial` module in the venv the driver runs from.
+
+**pyserial is not optional for the MicroPython scenarios on macOS.**
+Opening a serial port asserts DTR and RTS, which on an ESP32 are the
+reset and boot-mode lines, so the open reboots the board: mpremote then
+sends its ctrl-C/ctrl-A into a boot log, waits for a raw REPL banner that
+never comes, and reports "could not enter raw repl" against a board that
+is running MicroPython and answers a console a second later. Every
+MicroPython scenario failed that way on the MacBook on 2026-08-28,
+flashing cleanly and then never answering - and the first suspicion was
+esptool, which turned out to be innocent (v5 still accepts the
+underscore command names, and the image verified and booted). While
+something already holds the port, the next open changes nothing on those
+lines, so `steady_port()` holds it open around every mpremote call and
+waits out the reset its own open caused. Without pyserial that does
+nothing, which is what the Linux bench has always done - it does not need
+it. **The suite checks
 for these before it flashes anything** and stops with the tool's name if
 one is missing - a host that was never set up looks nothing like a board
 fault, but discovered per scenario it arrives as two failed flashes and a
