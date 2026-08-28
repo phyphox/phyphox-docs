@@ -332,8 +332,12 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   next, so not an Android version, a library, a scenario or a board.
   `board_check.py` cleared the board half of it (8/8 transfers from a
   neutral central against the same flash, 1.6-4.0 s each, minutes after
-  the app had timed out at 90 s), the Android session took it from there,
-  and it is fixed.
+  the app had timed out at 90 s) and the Android session fixed the app
+  half. **It is better, not gone: 1 of 38 connects after the fix.** A
+  full pass is 19 connects, so about a third of passes come out green at
+  that rate - which is why it went back to them (`Android-TODO.md`)
+  rather than being written off as flake. A gate that is red two runs in
+  three gets ignored.
 
   The other was `micropython/getDataFromSmartphone`, which is now
   **disabled in `scenarios.yml`** on the maintainer's call: the example's
