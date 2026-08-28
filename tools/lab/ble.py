@@ -12,9 +12,9 @@ Shape of a run (fixtures/ble/scenarios.yml holds the data):
 
     for each scenario, for each board it names:
         flash the board with the example, unmodified
-        leave the OTHER board advertising something with a different
-        name, so the scan has to discriminate - a room with exactly one
-        BLE device is not the room these run in
+        if a second board is attached, leave it advertising something
+        with a different name, so the scan has to discriminate - a room
+        with exactly one BLE device is not the room these run in
         for each phone in the scenario's scope:
             run the platform's little scan-and-connect test on the phone
             (the UI flow has no remote-API equivalent), then assert from
@@ -29,11 +29,27 @@ orchestration (run_suite below) instead of going through run.py's
 per-device dispatch: a flash takes a minute and must be amortised across
 every phone in the scenario's scope, not repeated per phone.
 
-Status (2026-08-28, Pixel 3 + ESP32-D0WDQ6 + Nano 33 BLE): the whole
-chain runs unattended on Android - flash, scan with a distractor,
-transfer, load, hold, measure, release - and all ten scenarios have been
-measured, the four dual-board ones on both boards. Baselines are recorded
+Status (2026-08-28, ESP32-D0WDQ6): the whole chain runs unattended on
+Android - flash, transfer, load, hold, measure, release - and all ten
+scenarios have been measured on the Pixel 3. Baselines are recorded
 against 1.2.0.
+
+The two old phones run it too since the Android session fixed the connect
+test below API 28, but the first three-phone pass was NOT green: eight
+scenarios failed at connect across the Nexus 5X and the Galaxy A3 (and
+one on the Pixel 3), and the one case whose log survived was the 90 s
+experiment-transfer timeout the README describes. Whether that is the
+old stacks, the single board serving three centrals in turn, or the app
+is unknown - the reporting that would have said was only fixed
+afterwards. Do not read a green Pixel 3 as a green suite.
+
+The bench is one board as of that date: the Nano 33 BLE stopped accepting
+uploads from anything and was retired, and the maintainer scoped this
+suite to the ESP32 rather than replacing it (scenarios.yml says why).
+Per-board machinery below is kept deliberately - the library-side test
+that will cover many boards on one phone is the natural home for it - but
+nothing here currently exercises two boards, so the scan runs without a
+distractor and each run says so.
 
 The iOS half has never touched hardware. Its connect path
 (-phyphoxBleConnect) is implemented in the app and unit-tested there, but
@@ -211,8 +227,9 @@ def usb_reset(port):
     """Re-enumerate the board behind a serial port, without touching
     anything else on the bus. Returns (ok, message).
 
-    A Nano 33 BLE on this bench takes exactly one upload per physical
-    re-plug, and there is no software equivalent of pulling the cable:
+    Written for the bench Nano 33 BLE (retired 2026-08-28), which took
+    about one upload per physical re-plug, and there is no software
+    equivalent of pulling the cable:
     USBDEVFS_RESET makes the kernel reset and re-probe that ONE device -
     the hub, and the ESP32 sharing it, are untouched - but it does not
     remove VBUS, so the board's own chip is not power-cycled. Whether
@@ -293,9 +310,10 @@ def _usb_pid(port):
 def resolve_arduino_port(fqbn, configured):
     """Where that board actually is right now, not where lab.yml said.
 
-    A Nano 33 BLE re-enumerates on every upload (1200 bps touch into the
-    bootloader and back), and it does not reliably come back on the node
-    it left: a full pass on 2026-08-27 failed EVERY distractor flash with
+    An Arduino board re-enumerates on every upload (1200 bps touch into
+    the bootloader and back), and it does not reliably come back on the
+    node it left: a full pass on 2026-08-27 failed EVERY distractor flash
+    with
     "No device found on ttyACM1" while the board sat there working, and
     it was on ttyACM1 again by the time the run ended. So ask arduino-cli,
     which identifies boards by USB id and reports the FQBN per port, and
@@ -485,14 +503,29 @@ def connect_phone(dev, scenario, args):
                     f"{getattr(dev, 'serial', '<serial>')} ./gradlew "
                     f"installRegularDebug installRegularDebugAndroidTest"
                 ), None
-            # The FIRST exception, not the last 300 characters: an
-            # instrumentation failure prints the cause at the top and
-            # JUnit's summary at the bottom, so a tail shows the summary
-            # and hides what went wrong. A stale APK looked like a launch
-            # failure and an API mismatch looked like " of 'and" before
-            # this.
-            first = next((ln.strip() for ln in out.splitlines()
-                          if "Exception" in ln or "Error" in ln), "")
+            # The FIRST exception WITH THE LINES UNDER IT, not the last
+            # 300 characters and not one line: an instrumentation failure
+            # prints the cause at the top and JUnit's summary at the
+            # bottom, so a tail shows the summary; and JUnit's own header
+            # is "Error in <test>:" with the throwable on the NEXT line,
+            # so one line is just that header. The three-phone run on
+            # 2026-08-28 reported eight failures as "Error in
+            # theDeviceOffersItsExperimentAndItLoads(...):" and nothing
+            # else, which is why the whole output is now kept as well.
+            lines = [ln.strip() for ln in out.splitlines() if ln.strip()]
+            at = next((i for i, ln in enumerate(lines)
+                       if "Exception" in ln or "Error" in ln), None)
+            first = " | ".join(lines[at:at + 3])[:400] if at is not None else ""
+            try:
+                log = evidence_path(
+                    dev, args,
+                    f"{scenario['library']}-{scenario['example']}"
+                    f"-connect-failed.txt")
+                with open(log, "w") as f:
+                    f.write(out)
+                first += f" [full output: {os.path.relpath(log, ROOT)}]"
+            except OSError:
+                pass
             return False, ("the connect test never reached its hold: "
                            + (first or out[-300:])), None
         if wait_api(dev.base, args.connect_timeout) is None:
@@ -589,18 +622,31 @@ def _screenshot(dev, scenario, args, board=None):
     """
     if dev.platform != "android":
         return None
-    out = os.path.join(getattr(args, "out_dir", "lab-results"), "evidence")
     try:
-        os.makedirs(out, exist_ok=True)
-        path = os.path.join(
-            out, f"{scenario['library']}-{scenario['example']}"
-                 + (f"-{board}" if board else "") + "-nodata.png")
+        path = evidence_path(dev, args,
+                             f"{scenario['library']}-{scenario['example']}"
+                             + (f"-{board}" if board else "") + "-nodata.png")
         with open(path, "wb") as f:
             r = subprocess.run(dev.adb + ["exec-out", "screencap", "-p"],
                                stdout=f, timeout=30)
         return path if r.returncode == 0 and os.path.getsize(path) else None
     except (OSError, subprocess.SubprocessError):
         return None
+
+
+def evidence_path(dev, args, name):
+    """lab-results/evidence/<phone>-<name>, created on demand.
+
+    The phone belongs in the name: three phones run the same scenario
+    against the same board, and without it the last one to fail
+    overwrites the evidence of the first - which is what the file
+    lab-results/evidence/ held after the 2026-08-28 three-phone run.
+    """
+    out = os.path.join(getattr(args, "out_dir", "lab-results"), "evidence")
+    os.makedirs(out, exist_ok=True)
+    who = re.sub(r"[^A-Za-z0-9_.-]", "_",
+                 getattr(dev, "serial", None) or getattr(dev, "udid", "phone"))
+    return os.path.join(out, f"{who}-{name}")
 
 
 def _start_for_real(dev, args, tries=8, gap=1.0):
@@ -986,6 +1032,21 @@ def run_suite(devices, args):
                 "no --board-port given, so there is no board to talk to")
         return results
 
+    if len(boards) < 2:
+        # A standing property of the bench, not a per-scenario incident,
+        # so it is said once rather than ten times: with one board there
+        # is nothing else in the air, and a scan that finds the only
+        # device in the room has not been asked to discriminate. The
+        # suite is scoped to one board on purpose (scenarios.yml says
+        # why) - this is what keeps that in front of whoever reads a
+        # green report, instead of only in a file nobody rereads.
+        for r in results.values():
+            r["warnings"].append(
+                "one board on the bench, so every scan ran without a "
+                "distractor: nothing else was advertising, and picking "
+                "the right device out of one device proves less than it "
+                "looks")
+
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
                  if set(s["boards"]) & set(boards)]
     only = getattr(args, "ble_scenario", None)
@@ -1031,9 +1092,10 @@ def run_suite(devices, args):
         if holds.get(board) == key:
             return True, "already on the board"
         # A board that cannot be flashed twice will not be flashable the
-        # eight other times this pass asks either: a wedged Nano needs a
-        # finger on its reset button. Give up on it once, with one
-        # message, instead of spending 35 s per attempt rediscovering it.
+        # eight other times this pass asks either: a wedged board needs a
+        # finger on its reset button, or its cable pulled. Give up on it
+        # once, with one message, instead of spending 35 s per attempt
+        # rediscovering it.
         if board in dead_boards:
             return False, dead_boards[board]
         print(f"   {why}: {sc['example']} -> {board}", flush=True)
@@ -1099,10 +1161,11 @@ def run_suite(devices, args):
                             f"{label}: the distractor board could not "
                             f"be flashed ({dmsg}) - the scan ran "
                             f"against fewer devices than intended")
-            if not any(flashed.get(b) not in (None, target_name)
-                       for b in idle):
-                # Worth saying out loud: the scan then had nothing to
-                # discriminate against, so a pass proves less than it looks.
+            if idle and not any(flashed.get(b) not in (None, target_name)
+                                for b in idle):
+                # Only when a second board IS attached and could not be
+                # put to work: that is an incident and belongs to the
+                # scenario. A one-board bench is reported once, above.
                 for r in results.values():
                     r["warnings"].append(
                         f"{label}: no second board advertising a name "
@@ -1224,6 +1287,21 @@ def record_baselines(devices, args):
               "phone that runs the reference release")
         return 1
     dev_id, _entry, dev = devices[0]
+
+    if len(boards) < 2:
+        # A standing property of the bench, not a per-scenario incident,
+        # so it is said once rather than ten times: with one board there
+        # is nothing else in the air, and a scan that finds the only
+        # device in the room has not been asked to discriminate. The
+        # suite is scoped to one board on purpose (scenarios.yml says
+        # why) - this is what keeps that in front of whoever reads a
+        # green report, instead of only in a file nobody rereads.
+        for r in results.values():
+            r["warnings"].append(
+                "one board on the bench, so every scan ran without a "
+                "distractor: nothing else was advertising, and picking "
+                "the right device out of one device proves less than it "
+                "looks")
 
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
                  if set(s["boards"]) & set(boards)]

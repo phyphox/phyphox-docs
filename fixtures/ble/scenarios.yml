@@ -12,10 +12,12 @@
 # Per scenario:
 #   example      the example's directory name in the library repository
 #   device_name  what it advertises (from its start() call; the library
-#                default is "phyphox-Arduino"). The suite picks a
-#                DISTRACTOR for the idle board whose name differs from
-#                this, so the scan has to discriminate - a room with one
-#                BLE device in it is not the room these run in.
+#                default is "phyphox-Arduino"). When a second board is on
+#                the bench the suite keeps it advertising a DIFFERENT
+#                name as a DISTRACTOR, so the scan has to discriminate -
+#                a room with one BLE device in it is not the room these
+#                run in. With the single-board bench below that cannot
+#                happen and every run says so in its warnings.
 #   boards       which lab boards it is flashed to
 #   phones       all | newest - the four scenarios that exercise
 #                different parts of the BLE implementation run on every
@@ -61,6 +63,27 @@
 # recording is operator-assisted by necessity, not by choice:
 # `run.py --record-ble-baseline` flashes and measures, a human does the
 # connect and switches remote access on. See tools/lab/README.md.
+#
+# --- Scope: one board, many phones (maintainer, 2026-08-28) -------------
+#
+# Every scenario here runs on the ESP32 alone. The bench Nano 33 BLE
+# stopped accepting uploads entirely that day - not from this driver, not
+# from the Arduino IDE, not from a second PC - and is presumed dead.
+#
+# It is not being replaced, because the split it forced is the right one
+# anyway: a RELEASE test asks "does the app still talk to boards", which
+# one board answers, across every phone in the lab; a LIBRARY test asks
+# "does the library still work on its boards", which needs many boards
+# and only one phone. The second belongs with phyphox-arduino and will be
+# built when that library is next worked on; this file is the first.
+#
+# So the driver keeps its per-board machinery (it is what the library
+# test will need, and it degrades to one board correctly) while the
+# scenarios name one. Two things are genuinely lost meanwhile and are
+# recorded rather than papered over: the scan runs with no distractor,
+# and NRF52 coverage is gone - the library emits different XML per board
+# (fixtures/ble/captured/README.md), so the ESP32's output is not
+# evidence about the Nano's.
 
 libraries:
   arduino:
@@ -76,7 +99,9 @@ libraries:
         # 4 MB ESP32-D0WDQ6, so 3 MB of app is available; nothing here uses
         # OTA or a filesystem.
         esp32: esp32:esp32:esp32:PartitionScheme=huge_app
-        nano33ble: arduino:mbed_nano:nano33ble
+        # A board added here is flashed and driven without further changes
+        # - the fqbn is all the driver needs. `nano33ble:
+        # arduino:mbed_nano:nano33ble` is what the retired Nano used.
   micropython:
     repository: ../phyphox-micropython
     examples: examples
@@ -101,7 +126,7 @@ scenarios:
   - example: randomNumbers
     library: arduino
     device_name: "phyphox device"
-    boards: [esp32, nano33ble]
+    boards: [esp32]
     phones: all
     expect:
       kind: range_rate
@@ -117,7 +142,7 @@ scenarios:
   - example: connectionParameter
     library: arduino
     device_name: "phyphox-Arduino"
-    boards: [esp32, nano33ble]
+    boards: [esp32]
     phones: all
     expect:
       kind: connection
@@ -131,7 +156,7 @@ scenarios:
   - example: getSensorDataFromSmartphone
     library: arduino
     device_name: "phyphox-Arduino"
-    boards: [esp32, nano33ble]
+    boards: [esp32]
     phones: all
     expect:
       kind: board_serial
@@ -148,7 +173,7 @@ scenarios:
   - example: getSystemAndEventTime
     library: arduino
     device_name: "phyphox-Arduino"
-    boards: [esp32, nano33ble]
+    boards: [esp32]
     phones: all
     expect:
       kind: board_serial

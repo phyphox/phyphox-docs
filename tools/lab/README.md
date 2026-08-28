@@ -54,14 +54,13 @@ Every other suite is split-host: each machine drives its own phones and the
 merge combines the reports. The ble suite cannot be, because flashing and
 phone-driving are one loop — a board is flashed, then every phone in that
 scenario's scope connects to it before the next flash. The boards are USB
-devices on one machine at a time, so **the boards travel to whichever host
-drives the phones**, and an iOS pass means physically moving the ESP32 and
-the Nano to the MacBook.
+devices on one machine at a time, so **the board travels to whichever host
+drives the phones**, and an iOS pass means physically moving the ESP32 to
+the MacBook.
 
 What that host then needs, beyond the Xcode tooling the other suites use:
-`arduino-cli` with the `esp32:esp32` and `arduino:mbed_nano` cores,
-`mpremote`, `esptool`, an ESP32 MicroPython image, and `pyserial` plus
-`bleak` in its venv. `board_check.py` additionally needs Bluetooth
+`arduino-cli` with the `esp32:esp32` core, `mpremote`, `esptool`, an ESP32
+MicroPython image, and `pyserial` plus `bleak` in its venv. `board_check.py` additionally needs Bluetooth
 permission for the terminal it runs from on macOS, which the OS asks for
 once.
 
@@ -99,13 +98,17 @@ that file and never open a serial port. It is needed only for the three
 scenarios where the data goes phone -> board and the board's own printout
 is the evidence.
 
-**ModemManager must be kept off the boards.** It probes every new ACM device
-with AT commands, and that leaves the Nano 33 BLE's bootloader unresponsive:
-the port opens, a SAM-BA `V#` returns nothing, and `bossac` reports "No device
-found on ttyACM0" against a bootloader that is demonstrably there. It is a
-race, so uploads work until they suddenly do not. `journalctl -u ModemManager`
-shows the claim - "port ttyACM0 released by device .../3-2.2.2" each time the
-board re-enumerates. Fix it once, as root:
+**ModemManager must be kept off the boards.** The ESP32's CP2102 is not an
+ACM device and is not affected, so this matters only once a board with a
+native USB stack is on the bench again (see the scope note below) - but the
+rule costs nothing and the failure it prevents is unreadable. ModemManager
+probes every new ACM device with AT commands, and that left the Nano 33
+BLE's bootloader unresponsive: the port opens, a SAM-BA `V#` returns
+nothing, and `bossac` reports "No device found on ttyACM0" against a
+bootloader that is demonstrably there. It is a race, so uploads work until
+they suddenly do not. `journalctl -u ModemManager` shows the claim - "port
+ttyACM0 released by device .../3-2.2.2" each time the board re-enumerates.
+Fix it once, as root:
 
     # /etc/udev/rules.d/99-arduino-no-modemmanager.rules
     SUBSYSTEM=="tty", ATTRS{idVendor}=="2341", ENV{ID_MM_DEVICE_IGNORE}="1"
@@ -116,54 +119,66 @@ board re-enumerates. Fix it once, as root:
 `sudo systemctl stop ModemManager` works for one session if you would rather
 not add a rule.
 
-**The Nano 33 BLE wedges every few flashes, and only a physical re-plug
-clears it.** Moving it off the shared 1a86 hub onto a root port helped -
-four consecutive flashes where the hub gave one or two - but did not cure
-it: it wedged again during the next pass, on the root port. The kernel logs
-`device descriptor read/64, error -32` around these resets, so a marginal
-USB path is still the best guess; the cable is the next thing to change.
-Budget for it: plan a pass around a handful of Nano flashes, and expect to
-replug between passes. With
-ModemManager excluded and the board in its bootloader, `bossac` still gets no
-answer: a raw SAM-BA `V#` on the port returns nothing. Measured on
-2026-08-27 — after a re-plug one or two uploads succeed, then one leaves it
-sitting in the bootloader (`2341:005a`), and from there nothing recovers it:
-not a reset press, not a double-tap, not waiting, not running `bossac` by hand,
-and **not a USB reset either** (tried: the device re-enumerates and comes back
-just as mute, so removing VBUS is evidently what matters). The kernel log shows marginal USB around these
-resets (`device descriptor read/64, error -32`), so a cable or hub is the first
-thing to suspect.
+## One board on the bench, and why that is the plan
 
-The driver tries the software equivalent of the re-plug before giving up:
-`usb_reset()` issues `USBDEVFS_RESET` on that board's device node, which makes
-the kernel reset and re-probe **that one device**. Both bench boards hang off
-the same hub (`3-2.2.2` the Nano, `3-2.2.4` the ESP32), so this is deliberately
-device-scoped — nothing hub-wide, because cutting the hub would take a board
-another session may be using. It needs write access to the node, which is
-root's by default:
+`scenarios.yml` names the ESP32 and nothing else. The bench Nano 33 BLE
+stopped accepting uploads on 2026-08-28 - not from this driver, not from
+the Arduino IDE, not from a second PC - and the maintainer retired it
+rather than replacing it, because the split it forced is the right one:
+
+- **this suite is a RELEASE gate**: does the app still talk to boards?
+  One board answers that, across every phone in the lab.
+- **the library gets its own tests**, with many boards and a single
+  phone, living with `phyphox-arduino` and built when that library is
+  next worked on.
+
+The driver keeps its per-board machinery - the library test is where it
+will be wanted, and it degrades to one board correctly. Adding a board
+back is one line under `flash.fqbn` plus the board's name in the
+scenarios that should run on it.
+
+Two things are genuinely lost meanwhile, and both are reported rather
+than papered over. **The scan runs with no distractor**: with one board
+there is nothing else in the air, so finding the right device out of one
+device proves less than it looks, and every run says so once in its
+warnings. And **NRF52 coverage is gone**: the Arduino library emits
+different XML per board (`fixtures/ble/captured/README.md`), so the
+ESP32's output is not evidence about anyone's Nano. The two Nano captures
+already in `corpus/valid/ble-libraries/` stay - they are real library
+output that both parsers must keep loading, and the board they came from
+being off this desk does not change that.
+
+### Retired-board notes, kept for the library test
+
+The Nano was awkward long before it died, and the next USB-native board
+will be too. `usb_reset()` in `ble.py` issues `USBDEVFS_RESET` on one
+board's device node - deliberately device-scoped, never hub-wide, because
+cutting a hub takes out whatever another session is using. It needs write
+access to the node:
 
     # /etc/udev/rules.d/99-arduino-usbreset.rules
     SUBSYSTEM=="usb", ATTRS{idVendor}=="2341", MODE="0664", GROUP="plugdev"
 
-It is kept because it costs nothing and does clear a board caught
-mid-re-enumeration — but it has been measured NOT to clear the stuck
-bootloader: the device comes back and is still mute. Removing VBUS is what
-that state needs, which a reset cannot do. A hub with per-port power switching
-would (`uhubctl`), but both boards share one hub here, so cutting power would
-take out whichever board another session is using — not worth it for this.
+It clears a board caught mid-re-enumeration and was measured NOT to clear
+a stuck bootloader: the device comes back and is still mute, so removing
+VBUS is what that state needs and a reset cannot do it. Measured
+2026-08-27: after a re-plug one or two uploads succeed, then one leaves
+the board in its bootloader (`2341:005a`), and from there nothing
+recovers it - not a reset press, not a double-tap, not waiting, not
+`bossac` by hand, not a USB reset. The kernel logged marginal USB around
+these resets (`device descriptor read/64, error -32`), which is why a
+cable or hub is the first thing to suspect on the next board. A root port
+instead of the shared 1a86 hub helped and did not cure it.
 
-The driver drops a board after two failed flashes and carries on with the other
-one; a pass without the Nano warns per scenario that the scan ran with no
-distractor.
-
-`arduino-cli` needs the cores for the bench boards installed once:
+The driver drops a board after two failed flashes and carries on with any
+others; `arduino-cli` needs each bench board's core installed once, which
+is now just
 
     arduino-cli core install esp32:esp32
-    arduino-cli core install arduino:mbed_nano
 
-Without the second one every `nano33ble` scenario fails at compile with
-"Plattform 'arduino:mbed_nano' nicht gefunden", which is a host that was
-never set up rather than anything about the board.
+A board added without its core fails at compile with "Plattform '...'
+nicht gefunden", which is a host that was never set up rather than
+anything about the board.
 
 Two ESP32 build settings are carried in `scenarios.yml` rather than left
 to the default FQBN, both found by compiling every example during bring-up:
@@ -225,10 +240,11 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   about a minute and repeating it per phone would waste most of the run.
   It is therefore not in the default `--suites`, needs `--board-port` per
   board, and owns its orchestration (`ble.run_suite`) rather than going
-  through the per-device dispatch. A full pass with both boards attached
-  is 21 flashes for the ten scenarios; the idle board is kept advertising
-  a DIFFERENT name throughout so the scan has to discriminate, and a run
-  that ends up without one says so in its warnings.
+  through the per-device dispatch. A full pass is ten flashes for the ten
+  scenarios on the one bench board. Where a second board is attached the
+  idle one is kept advertising a DIFFERENT name so the scan has to
+  discriminate; the single-board bench cannot, and every run says so once
+  in its warnings.
 
   Two flags for it: `--ble-scenario [lib/]example` narrows a run to one
   scenario for bring-up (the report is marked as narrowed, so it cannot
@@ -256,15 +272,21 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   for an afternoon. The handshake is the app's own log line
   (`phyphoxBleCompat: holding the app open`).
 
-  Known flakiness, 2026-08-28: `connectionParameter` on the Nano 33 BLE
-  failed its experiment TRANSFER once in four attempts - the phone found and
-  picked the board, and the 90 s wait for the experiment to arrive expired.
-  Two immediate repeats passed (1002 and 998 values), so it is occasional
-  rather than broken, and it is the one sketch that sets an aggressive
-  connection interval (7.5-30 ms) and a 500 ms supervision timeout, which is
-  where a chunked transfer would be expected to suffer first. Watch it: if it
-  recurs at this rate it is worth a finding of its own, and the number to
-  quote is transfers attempted versus transfers completed, not cycles passed.
+  **The experiment TRANSFER is where this flakes**, twice on 2026-08-28
+  and both times the same shape: the phone found and picked the board,
+  and the test's 90 s wait for the experiment to arrive expired
+  (`AssertionError: the experiment the device offers did not load within
+  90 s`). Once on `arduino/connectionParameter` on the Nano 33 BLE - one
+  in four attempts, two immediate repeats passing with 1002 and 998
+  values - and once on `micropython/getDataFromSmartphone` on the Galaxy
+  A3 against the ESP32. Different board, different library, different
+  phone, so the connectionParameter sketch's aggressive link settings
+  (7.5-30 ms interval, 500 ms supervision timeout) are no longer the
+  obvious explanation they looked like. The number to quote is transfers
+  attempted versus transfers completed, not cycles passed. A connect
+  failure now leaves the whole instrumentation output in
+  `lab-results/evidence/<phone>-<library>-<example>-connect-failed.txt`;
+  read that before theorising.
 
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
