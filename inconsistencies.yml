@@ -90,22 +90,31 @@
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
 
-- id: edit-default-on-hidden-view
-  title: An edit's default value on a view that is not displayed
+- id: input-defaults-on-hidden-view
+  title: Input element defaults on a view that is not displayed
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    Android's. An input element writes its default into its buffer when the
+    experiment loads, whichever view is on screen. What an experiment computes,
+    outputs or sends to a device must not depend on the layout or on which view
+    the user happens to be looking at (maintainer, 2026-08-29).
   affects:
     android: >-
-      Writes the default into the edit's buffer whichever view is on screen. In
-      ExpView.java the edit's setValue() sees a buffer holding NaN - nothing
+      Writes the default into the element's buffer whichever view is on screen.
+      In ExpView.java the edit's setValue() sees a buffer holding NaN - nothing
       entered yet - and substitutes defaultValue, and that path runs for the
       experiment's views rather than only the visible one.
     ios: >-
-      Writes it only while the edit's view is the one being displayed.
+      Writes it only while the element's own view is the one being displayed.
       ExperimentEditView.update() puts the default back when the buffer is
       empty, but it runs from a display link that is only running while the
       module is active, and ExperimentPageViewController marks exactly one view
-      collection active at a time.
+      collection active at a time. ExperimentDropdownView and
+      ExperimentSwitchView seed their buffers from the same gated update(), so
+      this is not specific to edit. The slider is a separate question: it uses
+      its default for display only, and whether it ever seeds its buffer has not
+      been checked on either platform.
   verified: >-
     2026-08-29, on the BLE bench: micropython/createExperiment, whose graphs are
     on the first view and whose edit is on the second. Buffer CB1 held one value
@@ -113,8 +122,8 @@
     and was empty on an iPhone 14 Pro on the development build. Found because
     the suite compared the two.
   summary: >-
-    An edit element writes its default value into its buffer so that analysis and
-    outputs have something to work with before the user types anything. On iOS
+    An input element writes its default value into its buffer so that analysis and
+    outputs have something to work with before the user touches it. On iOS
     that only happens while the edit's own view is on screen, so an experiment
     whose edit sits on a second view starts with an empty buffer there and a
     filled one on Android. It matters wherever something reads that buffer
