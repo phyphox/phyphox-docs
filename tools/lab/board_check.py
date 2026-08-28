@@ -18,23 +18,31 @@ failed with "the experiment the device offers did not load within 90 s",
 and a control that only counted data notifications could not say anything
 about it.
 
-What starts the transfer is NOT the same on both libraries, and getting
-that wrong makes this tool report a perfectly healthy board as 0/8 (it
-did, once, before the mistake was caught):
+A peripheral can be asked for its experiment in either of two ways, and
+assuming one of them makes this tool report a perfectly healthy board as
+0/8 (it did, once, before the mistake was caught):
 
-- Arduino starts it when a central SUBSCRIBES to cddf0002
-  (phyphoxBLE_ESP32.cpp, onSubscribe -> startTask).
-- MicroPython ignores the subscription and waits for a WRITE of 0x01 to
-  the experiment control characteristic cddf0003 (phyphoxBLE.py, the
-  _IRQ_GATTS_WRITE branch).
+- SUBSCRIBING to cddf0002 is the original trigger and still the default.
+- WRITING 0x01 to the experiment control characteristic cddf0003 is a
+  later addition (maintainer, 2026-08-28), for peripherals whose BLE
+  stack offered no callback on subscription.
+
+Which one a device wants is a property of that implementation, not of the
+library it belongs to: inside phyphox-arduino the ESP32 and the NRF52
+transfer on the subscription (phyphoxBLE_ESP32.cpp, onSubscribe ->
+startTask) while the NINA-B31, the Nano 33 IoT and the STM32 carry a
+control characteristic (phyphoxBLE_NanoIOT.cpp,
+controlCharacteristicWritten), and phyphox-micropython waits for the
+write (phyphoxBLE.py, the _IRQ_GATTS_WRITE branch). Expect either from
+anything.
 
 So this does what the app does, which covers both: subscribe, then write
 0x01 to cddf0003 if the device offers it (BluetoothExperimentLoader.kt:
 "If the control characteristic is present, the device expects us to
-initiate the transfer by writing 1"). The board then notifies a 20-byte
-header - b"phyphox", a big-endian length, a big-endian checksum -
-followed by 20-byte chunks of XML, 10 ms apart, so adding up what arrives
-is the rest of it.
+initiate the transfer by writing 1"; BluetoothScan.swift says the same).
+The board then notifies a 20-byte header - b"phyphox", a big-endian
+length, a big-endian checksum - followed by 20-byte chunks of XML, 10 ms
+apart, so adding up what arrives is the rest of it.
 """
 import asyncio, sys, time
 from bleak import BleakScanner, BleakClient

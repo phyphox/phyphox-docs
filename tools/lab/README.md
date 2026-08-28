@@ -194,13 +194,19 @@ again not in requirements.txt). It connects to a board from THIS machine's
 Bluetooth adapter, pulls the experiment and then counts data
 notifications, several times over. It asks for the experiment the way the
 app does - subscribe to `cddf0002`, then write `0x01` to `cddf0003` where
-the device offers it - because **the two libraries do not agree on what
-starts a transfer**: Arduino sends on the subscription
-(`phyphoxBLE_ESP32.cpp`, `onSubscribe` -> `startTask`), MicroPython
-ignores it and waits for the write (`phyphoxBLE.py`, `_IRQ_GATTS_WRITE`).
-Both apps handle both and say so in a comment
-(`BluetoothExperimentLoader.kt`, `BluetoothScan.swift`); nothing in the
-documentation does. Written against the Arduino trigger alone, this tool
+the device offers it - because **a peripheral may want either, and which
+one is a property of that implementation**. Subscribing is the original
+trigger and still the default; the control characteristic came later
+(maintainer, 2026-08-28) for stacks that offered no callback on
+subscription. It does not split by library: inside phyphox-arduino the
+ESP32 and NRF52 transfer on the subscription (`phyphoxBLE_ESP32.cpp`,
+`onSubscribe` -> `startTask`) while the NINA-B31, Nano 33 IoT and STM32
+carry a control characteristic (`phyphoxBLE_NanoIOT.cpp`,
+`controlCharacteristicWritten`), and phyphox-micropython waits for the
+write (`phyphoxBLE.py`, `_IRQ_GATTS_WRITE`). Both apps do both and say so
+in a comment (`BluetoothExperimentLoader.kt`, `BluetoothScan.swift`);
+nothing in the documentation does, which is worth fixing whenever the BLE
+protocol is specified. Written against the subscription alone, this tool
 reported a healthy MicroPython board as 0/8 eight times in a row.
 Run it before reporting any BLE fault against either app: it is the control
 that says whether the board is doing its job, and it settled today's
