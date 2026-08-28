@@ -406,7 +406,18 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   spaces inside a value. `event` is `connect` or `transfer`, `attempts`
   counts every attempt INCLUDING the one that worked (so 1 means no
   retry), `result` is `ok` or `failed`; `reason`, `bytes` and `ms` are
-  optional. One line per finished operation, not per attempt. On Android
+  optional. One line per finished operation, not per attempt.
+
+  Three details both apps settled on 2026-08-28, worth keeping in step:
+  `ms` times the DATA phase - first payload byte to last - so it is
+  comparable with `board_check.py`'s figure for the same board; timing
+  from the connection folds in service discovery and makes the app look
+  twice as slow as a neutral central. A connection that never came up
+  reports a failed `connect` and NO transfer line, so one failure is not
+  counted as two operations. And `reason` is a short token from a shared
+  vocabulary - `timeout`, `crc`, `header`, `discovery` - plus what each
+  platform can tell apart: `gatt_133` on Android, `refused_<code>` from
+  CoreBluetooth on iOS. On Android
   any log tag will do since the token is in the message; on iOS it has to
   reach the app's stdout — `NSLog` or `print`, either is fine, and
   **neither reaches the device's syslog**, see below.
