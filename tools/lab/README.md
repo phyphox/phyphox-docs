@@ -39,6 +39,16 @@ dimmed to its minimum because staying awake means staying lit - the old
 phones already lose against USB power) and both settings are restored
 afterwards; iOS devices stay awake on USB by themselves.
 
+**A launch argument with a space in it has to be quoted on the legacy
+path.** `pymobiledevice3 developer dvt launch` takes the whole command
+line as one string and `shlex.split`s it, so `-phyphoxBleConnect
+"phyphox device M1"` joined raw reaches the app as `-phyphoxBleConnect
+phyphox`: it then scans for a device advertising exactly `phyphox`, finds
+the board's real name does not match, and times out - reported as "no
+experiment was loaded within 180 s", which reads like a BLE fault and is
+a quoting bug. Only the iPhone 8 takes that path; devicectl gets a real
+argv. Cost an evening on 2026-08-28.
+
 iOS hardware additionally needs its system permission prompts confirmed
 BY HAND once per app install - there is no simctl privacy on a real
 device, devicectl offers nothing, and -phyphoxAutoConfirm deliberately
@@ -471,6 +481,10 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   `logcat -d` (connect_phone clears it per attempt, so the buffer is
   exactly this attempt's window) and captures iOS's by launching the app
   with `devicectl ... --console`, whose stream is the app's own stdout.
+  On a phone too old for devicectl the legacy launch does the same with
+  `pymobiledevice3 developer dvt launch --stream`, run with `python -u`
+  because that tool block-buffers its own acknowledgement when its stdout
+  is a file, and the launch is confirmed by that line.
 
   **Not the syslog, which was the first version of this and read nothing.**
   Measured on an iPhone 14 Pro (iOS 26.6, 2026-08-28) while the app was

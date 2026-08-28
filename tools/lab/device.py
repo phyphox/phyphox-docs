@@ -11,6 +11,7 @@ that needed fixing there is a finding for the docs session.
 """
 
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -242,14 +243,45 @@ class IOSDevice:
             # NB: the developer/dvt subcommands select the device with
             # --udid, unlike usbmux's --serial (the captured error listed
             # the valid options)
+            # QUOTED, because this tool takes the whole command line as ONE
+            # string and shlex.splits it: joined raw, -phyphoxBleConnect
+            # "phyphox device M1" reaches the app as -phyphoxBleConnect
+            # phyphox, and the app then hunts for a device advertising
+            # exactly "phyphox" while the board says "phyphox device M1".
+            # That is a 60 s scan timeout reported as "no experiment was
+            # loaded", on the one phone that takes this path - the lab
+            # spent an evening on it 2026-08-28. devicectl takes a real
+            # argv and never had the problem, which is why only the
+            # iPhone 8 failed.
+            line = " ".join(shlex.quote(a) for a in [IOS_BUNDLE] + args)
+            # --stream keeps the app's own output, the way --console does on
+            # the modern path: it is the only way the retry counts reach the
+            # report from this phone. The launch is acknowledged before the
+            # streaming starts, so it can still be confirmed.
+            # -u, or the acknowledgement never arrives: python block-buffers
+            # stdout when it is a file rather than a terminal, so the tool's
+            # "Process launched with pid" sat in its buffer while its log
+            # lines (stderr, unbuffered) streamed past. The wait then times
+            # out on a launch that worked.
+            if console_path and self._launch_capturing(
+                    [sys.executable, "-u", "-m", "pymobiledevice3", "developer",
+                     "dvt", "launch", "--stream", "--udid", self.udid, line],
+                    console_path, "Process launched with pid"):
+                return True
             r = sh([sys.executable, "-m", "pymobiledevice3", "developer",
-                    "dvt", "launch", "--udid", self.udid,
-                    " ".join([IOS_BUNDLE] + args)], timeout=90)
+                    "dvt", "launch", "--udid", self.udid, line], timeout=90)
             self.last_error = (r.stderr or r.stdout or "").strip()[-300:]
             return r.returncode == 0
         return False
 
     def _launch_with_console(self, args, console_path):
+        return self._launch_capturing(
+            ["xcrun", "devicectl", "device", "process", "launch",
+             "--terminate-existing", "--console", "--device", self.udid,
+             "--", IOS_BUNDLE] + args,
+            console_path, "Launched application")
+
+    def _launch_capturing(self, cmd, console_path, token):
         """Launch with --console, streaming the app's output to a file.
 
         The only way to read what the app itself printed. NSLog and print
@@ -270,18 +302,14 @@ class IOSDevice:
             handle = open(console_path, "w")
         except OSError:
             return False
-        proc = subprocess.Popen(
-            ["xcrun", "devicectl", "device", "process", "launch",
-             "--terminate-existing", "--console", "--device", self.udid,
-             "--", IOS_BUNDLE] + args,
-            stdout=handle, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(cmd, stdout=handle, stderr=subprocess.STDOUT)
         deadline = time.time() + 60
         while time.time() < deadline:
             if proc.poll() is not None:
                 break
             try:
                 with open(console_path, errors="replace") as f:
-                    if "Launched application" in f.read():
+                    if token in f.read():
                         self._console = (proc, console_path)
                         return True
             except OSError:
@@ -294,6 +322,10 @@ class IOSDevice:
         try:
             with open(console_path, errors="replace") as f:
                 self.last_error = f.read().strip()[-300:]
+        except OSError:
+            pass
+        try:
+            os.remove(console_path)      # nobody will read it now
         except OSError:
             pass
         return False
