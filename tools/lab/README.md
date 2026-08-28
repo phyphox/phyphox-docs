@@ -383,6 +383,45 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   stripped back out of captured XML before it is written as a corpus
   fixture; left in, every run would rewrite those files with a new number.
 
+  **Retries have to be counted, or the gate goes blind.** Since
+  2026-08-28 both apps retry internally, at two layers: a refused
+  connection (Android six attempts on a time budget, iOS three) and a
+  lost transfer (iOS three whole transfers; Android retries the
+  connection inside one). That is right for the field - there will be
+  boards with the Arduino library's fixed high-rate transfer in the world
+  for years, and phyphox has to cope with third-party hardware rather
+  than complain at the user. But it means a scenario passes identically
+  whether the app got through first time or clawed its way there on the
+  sixth attempt, and a degrading board, a worsening library or a
+  regression in either app stays invisible until it finally exhausts a
+  budget and goes red.
+
+  So both apps print one line per finished connection and per finished
+  transfer, and the suite reads it back:
+
+      phyphox-ble-retries event=connect attempts=4 result=ok
+      phyphox-ble-retries event=transfer attempts=2 result=ok bytes=2779 ms=1600
+
+  The token `phyphox-ble-retries` then space-separated `key=value`, no
+  spaces inside a value. `event` is `connect` or `transfer`, `attempts`
+  counts every attempt INCLUDING the one that worked (so 1 means no
+  retry), `result` is `ok` or `failed`; `reason`, `bytes` and `ms` are
+  optional. One line per finished operation, not per attempt. On Android
+  any log tag will do since the token is in the message; on iOS a
+  `print()` reaches the syslog.
+
+  A log line rather than a field in the remote API, because the transfer
+  happens BEFORE an experiment is loaded - there is no session yet and
+  nothing to serve `/get` with. The driver reads Android's buffer with
+  `logcat -d` (connect_phone clears it per attempt, so the buffer is
+  exactly this attempt's window) and captures iOS's stream with
+  `pymobiledevice3 syslog live` for the length of the attempt.
+
+  What lands in the report: `app_retries` per scenario and summed per
+  device. **`null` is not zero** - it means this build cannot tell us,
+  and it comes with a warning saying so, because a zero standing in for
+  "no idea" is precisely how a rising retry rate would stay quiet.
+
   **A failed scenario is retried, and the attempt count is reported**
   (`--ble-attempts`, default 2). Passing on a later attempt is a PASS
   with a warning naming what failed first; failing every attempt is a

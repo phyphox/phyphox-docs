@@ -708,6 +708,20 @@ def connect_phone(dev, scenario, args, advertised=None):
                            + _instrumentation_cause(dev, scenario, args,
                                                     out)), None
         return True, "connected", proc
+    # The app's log is a stream on iOS, so it has to be caught while it
+    # happens - started here, ended in read_app_log. Best effort: a phone
+    # whose syslog cannot be read still runs the scenario, it just cannot
+    # report the app's own retry counts (which read_app_log reports as
+    # "not said" rather than as zero).
+    try:
+        fd, path = tempfile.mkstemp(prefix="phyphox-syslog-", suffix=".log")
+        os.close(fd)
+        dev._syslog = (subprocess.Popen(
+            [sys.executable, "-m", "pymobiledevice3", "syslog", "live",
+             "--udid", dev.udid],
+            stdout=open(path, "w"), stderr=subprocess.DEVNULL), path)
+    except (OSError, subprocess.SubprocessError):
+        dev._syslog = (None, None)
     # device.py's own launcher rather than a second copy of the devicectl
     # line: it adds -phyphoxRemote, the port and -phyphoxAutoConfirm, and
     # it carries the fallback for phones devicectl cannot talk to (iOS 17+
@@ -1238,6 +1252,81 @@ def phone_uptime_h(dev):
         return None
 
 
+# What both apps print when a BLE connection or an experiment transfer
+# finishes, retries included. See "Retries have to be counted" in
+# tools/lab/README.md for the contract and why it is a log line rather
+# than a field in the remote API.
+RETRY_TOKEN = "phyphox-ble-retries"
+
+
+def parse_retry_lines(text):
+    """{"connect": n, "transfer": m} of RETRIES (attempts - 1) in `text`,
+    or None if the build said nothing at all.
+
+    None and zero are different answers and the report keeps them apart:
+    zero means the app got through first time, None means this build
+    cannot tell us - and a zero standing in for None is exactly how a
+    rising retry rate would stay invisible, which is the whole reason
+    this exists.
+    """
+    seen = False
+    out = {"connect": 0, "transfer": 0}
+    for line in (text or "").splitlines():
+        if RETRY_TOKEN not in line:
+            continue
+        fields = {}
+        for token in line.split(RETRY_TOKEN, 1)[1].split():
+            if "=" in token:
+                k, v = token.split("=", 1)
+                fields[k] = v
+        event = fields.get("event")
+        if event not in out:
+            continue
+        try:
+            attempts = int(fields.get("attempts", "1"))
+        except ValueError:
+            continue
+        seen = True
+        out[event] += max(0, attempts - 1)
+    return out if seen else None
+
+
+def read_app_log(dev):
+    """Everything the app said during this attempt, or "" if it cannot be
+    read.
+
+    Android keeps a buffer and connect_phone clears it before each
+    attempt, so `logcat -d` IS the attempt's window. iOS has no buffer to
+    ask for, only a stream, so the iOS branch of connect_phone starts a
+    capture before it launches the app and this ends it.
+    """
+    if dev.platform == "android":
+        r = sh(dev.adb + ["logcat", "-d"], timeout=60)
+        return r.stdout or ""
+    proc, path = getattr(dev, "_syslog", (None, None))
+    if proc is None:
+        return ""
+    try:
+        proc.terminate()
+        proc.wait(timeout=10)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+    dev._syslog = (None, None)
+    try:
+        with open(path, errors="replace") as f:
+            return f.read()
+    except OSError:
+        return ""
+    finally:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
 def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
     """One phone's whole turn at one scenario: connect, measure, release.
 
@@ -1263,6 +1352,13 @@ def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
         rok, rmsg = release_phone(dev, handle, args)
     if not rok:
         findings.append(f"the connect test reported: {rmsg}")
+    # What the APP retried internally, which the suite cannot see from
+    # the outside: a scenario passes on the first attempt whether the app
+    # got through cleanly or clawed its way there on the sixth try, and
+    # after 2026-08-28 both platforms retry both the connection and the
+    # transfer. Without this number a rising failure rate stays invisible
+    # until it finally exhausts a budget and goes red.
+    det["app_retries"] = parse_retry_lines(read_app_log(dev))
     return findings, det
 
 
@@ -1381,6 +1477,7 @@ def run_suite(devices, args):
                 f"{len(skipped)} scenario(s) skipped, no board attached "
                 f"for them: {', '.join(sorted(set(skipped)))}")
 
+    silent = set()                    # phones whose build reports no retries
     flashed = {}                      # board -> the name it advertises now
     holds = {}                        # board -> (library, example) on it
     failures = {}                     # board -> consecutive flash failures
@@ -1552,6 +1649,14 @@ def run_suite(devices, args):
                         earlier = findings[0]
                         time.sleep(3)   # let the board finish advertising again
                 det["attempts"] = attempt
+                app = det.get("app_retries")
+                if app:
+                    tot = results[dev_id].setdefault(
+                        "app_retries", {"connect": 0, "transfer": 0})
+                    for k, v in app.items():
+                        tot[k] = tot.get(k, 0) + v
+                elif app is None:
+                    silent.add(dev_id)
                 results[dev_id]["scenarios"][entry_key] = det
                 # A scenario that only passed after a restart is a pass
                 # with something to say; it goes in the report where the
@@ -1572,6 +1677,14 @@ def run_suite(devices, args):
                     results[dev_id]["warnings"].append(
                         f"{entry_key}: passed on attempt {attempt} of "
                         f"{tries}. The first attempt failed with: {earlier}")
+    for dev_id in silent:
+        # Never a silent zero: a build that cannot report its retries
+        # must not look like one that retried nothing, or the number
+        # this exists to watch is quietly always fine.
+        results[dev_id]["warnings"].append(
+            "this build does not report BLE retry counts, so the app's own "
+            "connection and transfer retries are not in this report - see "
+            "\"Retries have to be counted\" in tools/lab/README.md")
     retried = sum(r.get("retries", 0) for r in results.values())
     print(f"-- ble: {flashes} flash(es) for {len(scenarios)} scenario(s)"
           + (f", {retried} retry(s)" if retried else ""), flush=True)
