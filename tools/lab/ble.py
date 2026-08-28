@@ -471,9 +471,30 @@ def connect_phone(dev, scenario, args):
         if not _await_hold(dev, args.connect_timeout):
             proc.kill()
             sh(dev.adb + ["shell", "am", "force-stop", ANDROID_PACKAGE])
-            out = (proc.communicate()[0] or "")[-300:]
-            return False, ("the connect test never reached its hold: " + out
-                           ), None
+            out = proc.communicate()[0] or ""
+            if "ClassNotFoundException" in out:
+                # Not a launch failure, however much it looks like one:
+                # the app never starts because the instrumentation cannot
+                # find the test class. The phone simply has an older
+                # androidTest APK - the app APK and the test APK are
+                # installed separately and a device that missed the last
+                # `installRegularDebugAndroidTest` fails exactly here.
+                return False, (
+                    f"the androidTest APK on this device is stale - it has "
+                    f"no BleCompatConnectTest. Install it: ANDROID_SERIAL="
+                    f"{getattr(dev, 'serial', '<serial>')} ./gradlew "
+                    f"installRegularDebug installRegularDebugAndroidTest"
+                ), None
+            # The FIRST exception, not the last 300 characters: an
+            # instrumentation failure prints the cause at the top and
+            # JUnit's summary at the bottom, so a tail shows the summary
+            # and hides what went wrong. A stale APK looked like a launch
+            # failure and an API mismatch looked like " of 'and" before
+            # this.
+            first = next((ln.strip() for ln in out.splitlines()
+                          if "Exception" in ln or "Error" in ln), "")
+            return False, ("the connect test never reached its hold: "
+                           + (first or out[-300:])), None
         if wait_api(dev.base, args.connect_timeout) is None:
             proc.kill()
             # Killing the local adb does NOT stop the instrumentation on
