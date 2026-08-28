@@ -74,10 +74,23 @@ second set of files.
 
 The phones and the boards are shared with whoever else is working in this
 folder, and a run takes an advisory lock before touching them:
-`.bench-lock` in the working root, naming who holds it, since when and
-with which pid. A second run refuses to start and says who has it;
-`--force-bench` overrides, and a lock whose process is gone is taken over
-automatically.
+`.bench-lock-<hostname>` in the working root, naming who holds it, since
+when and with which pid. A second run on that machine refuses to start
+and says who has it; `--force-bench` overrides, and a lock whose process
+is gone is taken over automatically.
+
+**Per host, not one shared file.** The working root syncs between the
+Linux machine and the MacBook, and the two benches are different phones
+and different boards, so neither should ever wait for the other - and
+with the bench tags on advertised names they are meant to run at the same
+time. The first version knew that when reading a lock but not when
+writing one: both hosts wrote a single `.bench-lock`, so the second run
+to start overwrote the first one's entry, and the first then found a lock
+that was not its own and stopped itself mid-pass believing someone had
+taken its phones. That is exactly what happened on 2026-08-28, two
+scenarios into a full pass, when the MacBook began a run. One file each
+also means the two machines never write the same file, which matters when
+what is between them is a sync client.
 
 This is not bureaucracy. On 2026-08-27 a full ble pass and an Android
 session ran at once: the pass held a connection to each board in turn (a
@@ -92,8 +105,14 @@ file first.
 Only the BLE suite needs more than adb/Xcode: `arduino-cli` and `mpremote`
 on PATH, `esptool` (either the v4 `esptool.py` or the v5 `esptool`), an
 ESP32 MicroPython image passed as `--micropython-firmware`, and the
-`pyserial` module in the venv the driver runs from. pyserial is
-deliberately NOT in requirements.txt: the docs build and app CI install
+`pyserial` module in the venv the driver runs from. **The suite checks
+for these before it flashes anything** and stops with the tool's name if
+one is missing - a host that was never set up looks nothing like a board
+fault, but discovered per scenario it arrives as two failed flashes and a
+board declared dead. On the MacBook on 2026-08-28 a missing `mpremote`
+was worse still: the run raised on the first MicroPython scenario, and
+the operator watched an idle phone until the run ended before seeing
+why. pyserial is deliberately NOT in requirements.txt: the docs build and app CI install
 that file and never open a serial port. It is needed only for the three
 scenarios where the data goes phone -> board and the board's own printout
 is the evidence.
@@ -315,6 +334,50 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   Read that first: before it existed, failures were reported as JUnit's
   header line with the exception thrown away, which is how "the old
   phones are broken" survived a whole morning as a theory.
+
+  **Every flash gets a bench tag.** The board advertises its scenario's
+  name with a short host letter and this run's flash number appended -
+  `phyphox device L1`, `My Device M11` - written into a copy of the
+  example before it is built (`rename_source`; the library checkouts are
+  never touched). The count restarts every run, so `L1` always means the
+  first flash of the pass in front of you.
+
+  Three reasons, all the maintainer's (2026-08-28): a run's progress is
+  readable from across the room, since the name in a scan list says which
+  flash is on the board; a board still advertising an earlier scenario
+  cannot be mistaken for the current one, which is what the
+  duplicate-advertiser check exists to catch; and the Linux machine and
+  the MacBook can run the suite at the same time with an ESP32 each,
+  because `L` and `M` never collide. The name is the one part of a sketch that identifies a
+  device rather than exercising the app, so tagging it cannot hide an app
+  defect. The real risk is a name too long for an advertising payload, so
+  the tag is short and `rename_source` refuses to flash past 26
+  characters.
+
+  Two things it is checked against rather than trusted with: there must
+  be exactly one `start()` call to rewrite, and where an example names
+  itself that name must match `scenarios.yml` - a silent miss would flash
+  an untagged board and leave the phone hunting for a name nothing is
+  advertising, which reads exactly like a BLE fault. The tag is also
+  stripped back out of captured XML before it is written as a corpus
+  fixture; left in, every run would rewrite those files with a new number.
+
+  **Start a release pass from rebooted phones.** A phone that has been
+  driven all day stops completing BLE data connections while still
+  completing transfers, which looks exactly like an app regression in the
+  code that runs between the two. On 2026-08-28 the Nexus 5X failed all
+  five of its scenarios that way - experiment loads, then "Es besteht
+  keine Verbindung zu dem Bluetooth Gerät" - hours after a build touching
+  that very path had landed. It failed again on a narrowed re-run, and
+  passed after a reboot; its whole scope then passed. The other two
+  phones were green throughout the same pass, so it was neither the board
+  nor the build.
+
+  The driver does NOT reboot for you. It would add minutes per phone to
+  every run, and it would have hidden this instead of teaching it. What
+  it does is record `uptime_h` per phone in the ble result, so the number
+  that explains a failure like this is already in the report when someone
+  reads it.
 
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come

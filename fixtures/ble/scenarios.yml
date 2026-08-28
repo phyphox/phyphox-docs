@@ -3,16 +3,36 @@
 #
 # What is under test is the PHYPHOX APP, not the libraries: a release must
 # not break Arduino or MicroPython projects that worked with the previous
-# release. The sketches are stimulus and are flashed UNMODIFIED - a
-# modified sketch would no longer represent a real project - so anything
+# release. The sketches are stimulus and are flashed as they are - a
+# rewritten sketch would no longer represent a real project - so anything
 # odd about what they emit (the library sends XML with no xmlns and
 # declares format 1.15) is the compatibility surface to preserve, not a
 # defect to report.
 #
+# ONE edit is made, on the maintainer's instruction (2026-08-28): the
+# start() call is rewritten so the board advertises a BENCH TAG after its
+# name - "phyphox device L3", where L is the host and 3 is the flash
+# number within the current run (it restarts at 1 every run).
+# It buys three things: progress readable from across the room, a board
+# left over from an earlier run that can no longer be mistaken for this
+# one, and the two hosts running the suite at the same time with an ESP32
+# each. The name is the one thing about a sketch that identifies a
+# device rather than exercising the app, so changing it cannot hide an
+# app defect; the one real risk is an over-long name, which is why the
+# tag is short and why rename_source() refuses anything past 26
+# characters. The edit is made on a COPY - the library checkouts are
+# never touched - and the tag is stripped back out of captured XML
+# before it becomes a corpus fixture.
+#
 # Per scenario:
 #   example      the example's directory name in the library repository
-#   device_name  what it advertises (from its start() call; the library
-#                default is "phyphox-Arduino"). When a second board is on
+#   device_name  what it advertises BEFORE the bench tag is appended
+#                (from its start() call; the library default is
+#                "phyphox-Arduino"). Where an example names itself, this
+#                must match the literal in its source - the renamer
+#                refuses to flash a board when the two disagree, because
+#                nothing measured against either would mean anything.
+#                When a second board is on
 #                the bench the suite keeps it advertising a DIFFERENT
 #                name as a DISTRACTOR, so the scan has to discriminate -
 #                a room with one BLE device in it is not the room these

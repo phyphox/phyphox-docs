@@ -14,22 +14,33 @@ So a run takes a lock first. It is advisory and deliberately simple: a
 file in the working root, holding who has it, on which host, since when
 and with which pid. Whoever wants the bench looks there. A lock whose
 process is gone is stale and taken over with a notice, because a killed
-run must not park the bench for the next person - and a lock from the
-OTHER machine is ignored outright, since the working root syncs and the
-two benches are different phones and different boards.
+run must not park the bench for the next person.
+
+The file is PER HOST - .bench-lock-<hostname>. The working root syncs
+between the Linux machine and the MacBook, and the two benches are
+different phones and different boards, so a lock from the other machine
+means nothing here. The first version knew that when READING (it ignored
+foreign locks) but not when WRITING: both hosts wrote one shared
+.bench-lock, so whichever ran second overwrote the other's entry, and the
+first run then found a lock that was not its own and stopped itself
+mid-pass on the assumption that someone had taken its phones. That is
+what happened on 2026-08-28 at 14:49, two scenarios into a full pass,
+when the MacBook started a run of its own. One file each also means the
+two machines never write the same file, which matters when the folder
+between them is a sync client.
 """
 
 import os
 import socket
 import time
 
-LOCK = os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..",
-    ".bench-lock"))
-
-
 def _host():
     return socket.gethostname()
+
+
+LOCK = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..",
+    ".bench-lock-" + _host()))
 
 
 def _read():
@@ -60,17 +71,16 @@ def acquire(who, force=False):
     """(ok, message). Does not block: a busy bench is a thing to report,
     not to queue behind - the other session may be mid-flash.
 
-    The lock sits in the working root, which SYNCS between the Linux
-    machine and the MacBook, so it carries the host that wrote it: a pid
-    from the other machine means nothing here, and without the host a
-    MacBook run would read a live Linux lock as stale and take it over
-    (or worse, believe one whose number happens to exist locally).
-    Locks from another host are ignored - the two benches are different
-    phones and different boards.
+    The lock file is per host and still carries the host that wrote it,
+    so a file that arrives from the other machine by some other route
+    (a rename, a restored backup, a sync client putting one where it
+    does not belong) is ignored rather than believed: a pid from the
+    other machine means nothing here, and reading one as ours would
+    either park this bench forever or hand it away.
     """
     held = _read()
     if held and held.get("host", _host()) != _host():
-        held = None
+        held = None                    # not ours to honour; not ours to write
     if held and held.get("pid") and _alive(held["pid"]) and not force:
         return False, (f"the bench is held by {held.get('who', '?')} "
                        f"(pid {held['pid']}, since {held.get('since', '?')}). "

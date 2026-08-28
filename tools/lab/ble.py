@@ -64,8 +64,10 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -98,8 +100,100 @@ def load_baseline(scenario):
 
 # ------------------------------------------------------------------ flashing
 
-def flash(scenario, board, cfg, args):
-    """Flash one example onto one board. Returns (ok, message)."""
+# A complete local name has to fit an advertising payload: 31 bytes, less
+# 3 for the flags structure and 2 for the name's own length and type.
+# Nothing here comes close (the longest is "create experiment" plus a
+# four-character tag), but a name silently truncated by the stack is a
+# scan that never matches, and that is a bad afternoon.
+NAME_LIMIT = 26
+
+# `PhyphoxBLE::start("...")`, `PhyphoxBLE::start()`, `p.start("...")`.
+NAME_CALL = re.compile(r'(?P<head>(?:PhyphoxBLE::|\.)start\s*\(\s*)'
+                       r'(?P<arg>"[^"]*")?(?P<tail>\s*\))')
+
+
+_flash_seq = 0
+
+
+def reset_flash_tags():
+    """Back to 1. Called once at the top of a run, so a tag reads as
+    "step N of this pass" rather than as a number nobody can place."""
+    global _flash_seq
+    _flash_seq = 0
+
+
+def next_flash_tag(args):
+    """The next bench tag for a flash: a host letter and this run's flash
+    number, L1, L2, L3...
+
+    Asked for by the maintainer (2026-08-28) and it buys three things.
+    Progress is visible from across the room - the name in a phone's scan
+    list says which flash of this run is on the board. A board still
+    advertising from an earlier scenario cannot be mistaken for the
+    current one, which is what the duplicate-advertiser check exists to
+    catch. And the two hosts can run the ble suite at the same time with
+    an ESP32 each, since L and M never collide.
+
+    The count restarts every run, by the maintainer's decision: L1 always
+    means the first flash of the pass you are watching. An earlier
+    version kept counting across runs in a file, on the theory that a
+    board left powered from a previous run could otherwise reappear under
+    a name this run is about to use - a small risk on a bench whose one
+    board is reflashed for every scenario, and not worth a number that
+    means nothing to whoever is looking at the phone.
+    """
+    global _flash_seq
+    letter = ((getattr(args, "host", "") or "X")[:1] or "X").upper()
+    if not letter.isalpha():
+        letter = "X"
+    _flash_seq += 1
+    return f"{letter}{_flash_seq}"
+
+
+def advertised_name(scenario, tag):
+    return f"{scenario.get('device_name') or ''} {tag}".strip()
+
+
+def rename_source(text, scenario, advertised):
+    """(patched source, error): rewrite the example's start() call so the
+    board advertises the tagged name.
+
+    This is the one edit the suite makes to an example, and it is
+    deliberate - see scenarios.yml. It is also checked rather than
+    trusted: exactly one start() call must be there to rewrite, and where
+    the example names itself, that name must be the one scenarios.yml
+    says. A silent miss would flash an untagged board and leave the phone
+    hunting for a name nothing is advertising, which reads as a BLE fault
+    and is not one.
+    """
+    hits = list(NAME_CALL.finditer(text))
+    if len(hits) != 1:
+        return None, (f"expected exactly one start() call to rename, "
+                      f"found {len(hits)} - rename_source needs updating "
+                      f"for this example")
+    m = hits[0]
+    base = scenario.get("device_name")
+    if m.group("arg") is not None and m.group("arg")[1:-1] != base:
+        return None, (f"the example advertises {m.group('arg')[1:-1]!r} but "
+                      f"scenarios.yml says {base!r} - one of them is wrong, "
+                      f"and nothing measured against either would mean "
+                      f"anything")
+    if len(advertised) > NAME_LIMIT:
+        return None, (f"{advertised!r} is {len(advertised)} characters, over "
+                      f"the {NAME_LIMIT} that fit an advertising payload")
+    return (text[:m.start()] + m.group("head") + f'"{advertised}"'
+            + m.group("tail") + text[m.end():]), None
+
+
+def flash(scenario, board, cfg, args, advertised=None):
+    """Flash one example onto one board. Returns (ok, message).
+
+    `advertised` is the name the board should announce itself under -
+    the scenario's name plus this run's bench tag. The example is copied
+    aside and its start() call rewritten to it; the checkout is never
+    touched, so the library repositories stay clean and a flash can never
+    leave an edit behind.
+    """
     lib = cfg["libraries"][scenario["library"]]
     repo = os.path.normpath(os.path.join(ROOT, "..",
                                          os.path.basename(lib["repository"])))
@@ -114,6 +208,86 @@ def flash(scenario, board, cfg, args):
         fqbn = lib["flash"]["fqbn"].get(board)
         if not fqbn:
             return False, f"no fqbn for board {board}"
+        work = tempfile.mkdtemp(prefix="phyphox-ble-")
+        try:
+            return _flash_arduino(scenario, board, lib, fqbn, sketch, work,
+                                  port, advertised, args)
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+
+    # MicroPython: the ESP32 is shared with the Arduino scenarios, whose
+    # uploads overwrite the whole flash, so the firmware cannot be a
+    # one-time manual step - the suite puts it back whenever the board is
+    # not currently running MicroPython.
+    ok, msg = ensure_micropython(board, port, args)
+    if not ok:
+        return False, msg
+    src = os.path.join(repo, lib["examples"], scenario["example"] + ".py")
+    if not os.path.exists(src):
+        return False, f"example not found: {src}"
+    work = None
+    if advertised:
+        # Same as the Arduino side: rename a copy, never the checkout.
+        try:
+            with open(src, encoding="utf-8") as f:
+                text = f.read()
+        except OSError as e:
+            return False, f"could not read the example: {e}"
+        patched, err = rename_source(text, scenario, advertised)
+        if err:
+            return False, err
+        work = tempfile.mkdtemp(prefix="phyphox-ble-")
+        src = os.path.join(work, "main.py")
+        try:
+            with open(src, "w", encoding="utf-8") as f:
+                f.write(patched)
+        except OSError as e:
+            shutil.rmtree(work, ignore_errors=True)
+            return False, f"could not write the renamed example: {e}"
+    # Relative source, run from the library checkout, because mpremote
+    # recreates the SOURCE PATH on the board: an absolute one lands the
+    # package at /home/.../phyphox-micropython/phyphoxBLE, where the
+    # example's `import phyphoxBLE` cannot see it. The board then boots
+    # into an ImportError and advertises nothing, which shows up as a
+    # scan timeout on the phone and looks like a BLE problem.
+    r = sh(["mpremote", "connect", port, "fs", "cp", "-r", "phyphoxBLE", ":"],
+           timeout=300, cwd=repo)
+    if r.returncode != 0:
+        return False, f"copying the library failed: {(r.stderr or '')[-200:]}"
+    r = sh(["mpremote", "connect", port, "fs", "cp", src, ":main.py"],
+           timeout=120)
+    if work:
+        shutil.rmtree(work, ignore_errors=True)
+    if r.returncode != 0:
+        return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
+    sh(["mpremote", "connect", port, "reset"], timeout=60)
+    return True, "copied and reset"
+
+
+def _flash_arduino(scenario, board, lib, fqbn, sketch, work, port,
+                   advertised, args):
+    """The Arduino half of flash(), from a COPY of the example: the
+    sketch is renamed to the tagged device name before it is built."""
+    if advertised:
+        # arduino-cli wants the .ino to carry its directory's name, so
+        # the copy keeps the example's own name.
+        dst = os.path.join(work, scenario["example"])
+        try:
+            shutil.copytree(sketch, dst)
+            ino = os.path.join(dst, scenario["example"] + ".ino")
+            with open(ino, encoding="utf-8") as f:
+                text = f.read()
+        except OSError as e:
+            return False, f"could not copy the example aside: {e}"
+        patched, err = rename_source(text, scenario, advertised)
+        if err:
+            return False, err
+        try:
+            with open(ino, "w", encoding="utf-8") as f:
+                f.write(patched)
+        except OSError as e:
+            return False, f"could not write the renamed example: {e}"
+        sketch = dst
         # Board configuration, never sketch edits: an example is stimulus
         # and is flashed as it is. See scenarios.yml for why each of these
         # exists.
@@ -170,34 +344,6 @@ def flash(scenario, board, cfg, args):
                            f"on reset frees the sketch but has not been "
                            f"enough on its own")
         return False, f"upload failed: {out[-300:]}"
-
-    # MicroPython: the ESP32 is shared with the Arduino scenarios, whose
-    # uploads overwrite the whole flash, so the firmware cannot be a
-    # one-time manual step - the suite puts it back whenever the board is
-    # not currently running MicroPython.
-    ok, msg = ensure_micropython(board, port, args)
-    if not ok:
-        return False, msg
-    src = os.path.join(repo, lib["examples"], scenario["example"] + ".py")
-    if not os.path.exists(src):
-        return False, f"example not found: {src}"
-    # Relative source, run from the library checkout, because mpremote
-    # recreates the SOURCE PATH on the board: an absolute one lands the
-    # package at /home/.../phyphox-micropython/phyphoxBLE, where the
-    # example's `import phyphoxBLE` cannot see it. The board then boots
-    # into an ImportError and advertises nothing, which shows up as a
-    # scan timeout on the phone and looks like a BLE problem.
-    r = sh(["mpremote", "connect", port, "fs", "cp", "-r", "phyphoxBLE", ":"],
-           timeout=300, cwd=repo)
-    if r.returncode != 0:
-        return False, f"copying the library failed: {(r.stderr or '')[-200:]}"
-    r = sh(["mpremote", "connect", port, "fs", "cp", src, ":main.py"],
-           timeout=120)
-    if r.returncode != 0:
-        return False, f"copying the example failed: {(r.stderr or '')[-200:]}"
-    sh(["mpremote", "connect", port, "reset"], timeout=60)
-    return True, "copied and reset"
-
 
 def advertisers(name, timeout=10.0):
     """Addresses currently advertising exactly `name`, or None if this
@@ -433,7 +579,7 @@ ANDROID_PACKAGE = "de.rwth_aachen.phyphox"
 TRANSFER_FILE = "files/temp_bt/bt.phyphox"
 
 
-def connect_phone(dev, scenario, args):
+def connect_phone(dev, scenario, args, advertised=None):
     """Run the platform's scan-and-connect test on the phone. The UI flow
     (scan, pick the device, accept its experiment) has no remote-API
     equivalent, so it lives as a small instrumented test in the app repo;
@@ -451,7 +597,7 @@ def connect_phone(dev, scenario, args):
     Returns (ok, message, handle) - the handle is passed back to
     release_phone, and is None where there is nothing to release.
     """
-    name = scenario.get("device_name") or ""
+    name = advertised or scenario.get("device_name") or ""
     if dev.platform == "android":
         # Start from nothing on the phone. Both of these were learned from
         # one bad full pass: a previous scenario's app instance survived a
@@ -921,7 +1067,7 @@ def spec_findings(path):
             for _fn, where in entries][:5]
 
 
-def capture_xml(dev, scenario, board=None):
+def capture_xml(dev, scenario, board=None, advertised=None):
     """Pull the experiment the board just served, for the T0 half.
 
     The libraries generate their XML on the microcontroller, so the only
@@ -948,11 +1094,19 @@ def capture_xml(dev, scenario, board=None):
     # 2026-08-27 wrote one stale file into the corpus under four different
     # scenario names, and a fixture that silently describes the wrong
     # device is worse than no fixture.
-    wanted = scenario.get("device_name")
+    base = scenario.get("device_name")
+    wanted = advertised or base
     m = re.search(r'<bluetooth\b[^>]*\bname="([^"]*)"', xml)
     if wanted and m and m.group(1) != wanted:
         return None, (f"the transferred experiment names {m.group(1)!r}, not "
                       f"{wanted!r} - this is not that board's file")
+    # The bench tag comes back out before this becomes a fixture. It says
+    # which flash on which host produced the file, which is exactly what
+    # a corpus fixture must not depend on - left in, every run would
+    # rewrite these files with a new number and the diff would say
+    # nothing.
+    if advertised and base and advertised != base:
+        xml = xml.replace(advertised, base)
     # The corpus is public. Nothing seen so far carries one - the
     # libraries identify their device by name - but a captured file is
     # not hand-written, so check rather than trust.
@@ -1017,14 +1171,68 @@ def _phones_for(scenario, devices):
     return picked
 
 
+def phone_uptime_h(dev):
+    """Hours since this phone last booted, or None.
+
+    Recorded in every ble result because it is the variable that made a
+    bench artefact look like a regression. On 2026-08-28 the Nexus 5X
+    failed all five of its scenarios in the data phase - transfer fine,
+    then "no connection to the bluetooth device" - hours after a build
+    that had just touched exactly that code landed. The same scenario
+    failed again on a re-run and PASSED after a reboot. Nothing in the
+    report said the phone had been scanning, connecting and being
+    force-stopped all day; this puts that number where whoever reads the
+    failure will see it, instead of leaving them to guess at it.
+
+    Not a threshold and not an automatic reboot: rebooting every phone at
+    the start of a pass would cost minutes per phone and would have
+    hidden this outright.
+    """
+    if dev.platform != "android":
+        return None                    # devicectl offers no equivalent
+    r = sh(dev.adb + ["shell", "cat", "/proc/uptime"], timeout=15)
+    try:
+        return round(float((r.stdout or "").split()[0]) / 3600.0, 1)
+    except (ValueError, IndexError):
+        return None
+
+
+def missing_tools(scenarios, args):
+    """Which command-line tools these scenarios need and this host does
+    not have.
+
+    Checked BEFORE anything is flashed. A missing tool is a host that was
+    never set up, and it looks nothing like a board fault - but without
+    this it arrives as two failed flashes, a board declared dead, and
+    every scenario failing for a reason that names the board. On the
+    MacBook on 2026-08-28 it was worse than that: no mpremote meant the
+    run raised on the first MicroPython scenario, and the operator
+    watched an idle phone until the run ended before seeing why.
+    """
+    import shutil as _shutil
+    need = {}
+    libs = {s["library"] for s in scenarios}
+    if "arduino" in libs:
+        need["arduino-cli"] = "the Arduino scenarios compile and upload with it"
+    if "micropython" in libs:
+        need["mpremote"] = "the MicroPython scenarios copy the library with it"
+        if not _esptool():
+            need["esptool"] = ("the ESP32 is reflashed with MicroPython "
+                               "whenever an Arduino upload has overwritten it "
+                               "(esptool or esptool.py)")
+    return [f"{t} is not on PATH - {why}" for t, why in need.items()
+            if t == "esptool" or not _shutil.which(t)]
+
+
 def run_suite(devices, args):
     """Every scenario across every phone in its scope. Returns
     {device id: result} in the shape run.py reports."""
     cfg = load_scenarios()
+    reset_flash_tags()
     boards = dict(getattr(args, "board_ports", {}) or {})
     results = {dev_id: {"passed": True, "findings": [], "warnings": [],
-                        "scenarios": {}}
-               for dev_id, _entry, _dev in devices}
+                        "scenarios": {}, "uptime_h": phone_uptime_h(dev)}
+               for dev_id, _entry, dev in devices}
     if not boards:
         for r in results.values():
             r["passed"] = False
@@ -1079,6 +1287,19 @@ def run_suite(devices, args):
             r["warnings"].append(
                 f"narrowed to --ble-scenario {only!r}: this is not a pass "
                 f"of the suite")
+
+    gone = missing_tools(scenarios, args)
+    if gone:
+        # Before the first flash, not after the second failure: nothing
+        # here can work, and a phone should not sit idle for a pass while
+        # the run rediscovers that per scenario.
+        for r in results.values():
+            r["passed"] = False
+            r["findings"].append("this host cannot run the ble suite: "
+                                 + "; ".join(gone))
+        for line in gone:
+            print(f"   !! {line}", flush=True)
+        return results
     skipped = [s["example"] for s in cfg["scenarios"]
                if not s.get("disabled")
                and not set(s["boards"]) & set(boards)]
@@ -1111,14 +1332,24 @@ def run_suite(devices, args):
         # rediscovering it.
         if board in dead_boards:
             return False, dead_boards[board]
-        print(f"   {why}: {sc['example']} -> {board}", flush=True)
-        ok, msg = flash(sc, board, cfg, args)
+        # A fresh tag per flash: the name on the board says which flash
+        # it is, so progress is readable from across the room and a board
+        # left advertising from an earlier run cannot be mistaken for
+        # this one.
+        name = advertised_name(sc, next_flash_tag(args))
+        print(f"   {why}: {sc['example']} -> {board} as {name!r}", flush=True)
+        ok, msg = flash(sc, board, cfg, args, advertised=name)
         if ok:
             flashes += 1
             holds[board] = key
-            flashed[board] = sc.get("device_name")
+            flashed[board] = name
             failures.pop(board, None)     # consecutive, not cumulative
         else:
+            # Said out loud immediately. The second failure prints the
+            # give-up line below, but the FIRST one used to be silent,
+            # and it is the one that carries the reason.
+            print(f"   !! {sc['example']} -> {board} failed: {msg}",
+                  flush=True)
             failures[board] = failures.get(board, 0) + 1
             if failures[board] >= 2:
                 dead_boards[board] = (
@@ -1160,7 +1391,7 @@ def run_suite(devices, args):
             # 10 scenarios; a flash is about a minute, so this is most of
             # an hour.
             idle = [b for b in boards if b != board]
-            target_name = scenario.get("device_name")
+            target_name = flashed[board]      # tagged, not the bare name
             for other in idle:
                 if flashed.get(other) and flashed[other] != target_name:
                     continue
@@ -1214,9 +1445,10 @@ def run_suite(devices, args):
 
             baseline = load_baseline(scenario)
             for dev_id, entry, dev in _phones_for(scenario, devices):
-                print(f"   {dev_id}: connecting to "
-                      f"{scenario.get('device_name')!r}", flush=True)
-                ok, msg, handle = connect_phone(dev, scenario, args)
+                print(f"   {dev_id}: connecting to {target_name!r}",
+                      flush=True)
+                ok, msg, handle = connect_phone(dev, scenario, args,
+                                                advertised=target_name)
                 entry_key = f"{scenario['library']}/{scenario['example']}"
                 if board != scenario["boards"][0]:
                     entry_key += f"@{board}"
@@ -1232,7 +1464,8 @@ def run_suite(devices, args):
                     findings, det = assert_scenario(dev, scenario, baseline,
                                                     args, boards[board])
                     if getattr(args, "capture_ble_xml", False):
-                        path, note = capture_xml(dev, scenario, board)
+                        path, note = capture_xml(dev, scenario, board,
+                                                 advertised=target_name)
                         det["capture"] = (os.path.relpath(path, ROOT)
                                           + ": " + note if path else note)
                 finally:
@@ -1291,6 +1524,7 @@ def record_baselines(devices, args):
     """
     import datetime
     cfg = load_scenarios()
+    reset_flash_tags()
     boards = dict(getattr(args, "board_ports", {}) or {})
     if not boards:
         print("!! no --board-port given, so there is no board to record from")
@@ -1331,10 +1565,10 @@ def record_baselines(devices, args):
     written, failed = [], []
     for scenario in scenarios:
         board = next(b for b in scenario["boards"] if b in boards)
-        name = scenario.get("device_name")
+        name = advertised_name(scenario, next_flash_tag(args))
         label = f"{scenario['library']}/{scenario['example']}"
         print(f"\n== {label} on {board}", flush=True)
-        ok, msg = flash(scenario, board, cfg, args)
+        ok, msg = flash(scenario, board, cfg, args, advertised=name)
         if not ok:
             print(f"   !! {msg}")
             failed.append(f"{label}: {msg}")

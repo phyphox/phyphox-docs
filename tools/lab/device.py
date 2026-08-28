@@ -34,6 +34,18 @@ def sh(cmd, timeout=30, retries=1, cwd=None):
             if attempt > 1:
                 print(f"   ~ retried after a timeout: {' '.join(cmd[:4])} ...")
             return r
+        except FileNotFoundError:
+            # A tool that is not installed is a fact about this host, not
+            # a crash: it must land in the report as a finding like any
+            # other failure. Raising instead took down a whole MacBook ble
+            # run on 2026-08-28 (no mpremote), and the reason only
+            # surfaced at the end, after the phone had sat idle for the
+            # length of a pass.
+            class Missing:
+                returncode, stdout = -1, ""
+                stderr = (f"{cmd[0]}: not found on this host - see "
+                          f"tools/lab/README.md for what the suites need")
+            return Missing()
         except subprocess.TimeoutExpired:
             if attempt == retries + 1 and retries:
                 print(f"   ~ command timed out twice: {' '.join(cmd[:4])} ...")
