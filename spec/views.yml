@@ -903,6 +903,14 @@ elements:
           The default value of the edit box. The experiment will
           start with this value.
         type: float
+        remark: >-
+          Applied whenever the buffer is EMPTY, not only once at load: when the
+          experiment is opened, after the data is cleared, and at the start of
+          each analysis cycle. A value the user has entered is never
+          overwritten. Without the last two an experiment loses the setting the
+          moment anything empties the buffer - a clear, or an analysis input
+          without keep - and only gets it back if that element's own view
+          happens to be on screen.
         default: 0.0
         summary: Value the field starts with.
         agreement: agreed
@@ -1004,6 +1012,14 @@ elements:
         description: >-
           The value with which the associated buffer should start.
         type: float
+        remark: >-
+          Applied whenever the buffer is EMPTY, not only once at load: when the
+          experiment is opened, after the data is cleared, and at the start of
+          each analysis cycle. A value the user has entered is never
+          overwritten. Without the last two an experiment loses the setting the
+          moment anything empties the buffer - a clear, or an analysis input
+          without keep - and only gets it back if that element's own view
+          happens to be on screen.
         default: 0.0
         summary: State the switch starts in.
         agreement: agreed
@@ -1119,6 +1135,14 @@ elements:
         description: >-
           The value with which the associated buffer should start.
         type: float
+        remark: >-
+          Applied whenever the buffer is EMPTY, not only once at load: when the
+          experiment is opened, after the data is cleared, and at the start of
+          each analysis cycle. A value the user has entered is never
+          overwritten. Without the last two an experiment loses the setting the
+          moment anything empties the buffer - a clear, or an analysis input
+          without keep - and only gets it back if that element's own view
+          happens to be on screen.
         default: 0.0
         summary: Value selected initially.
         agreement: agreed
