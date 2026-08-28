@@ -1047,8 +1047,20 @@ def run_suite(devices, args):
                 "the right device out of one device proves less than it "
                 "looks")
 
+    off = [s for s in cfg["scenarios"] if s.get("disabled")]
+    if off:
+        # A disabled scenario is coverage the suite does not have, and a
+        # green report must say so - the same reason a missing board is
+        # reported below. Deleting the block would have hidden it; the
+        # key is one line to remove when the reason is gone.
+        for r in results.values():
+            r["warnings"].append(
+                "disabled in scenarios.yml, so this pass did not cover "
+                + "; ".join(f"{d['library']}/{d['example']} "
+                            f"({d['disabled']})" for d in off))
+
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
-                 if set(s["boards"]) & set(boards)]
+                 if not s.get("disabled") and set(s["boards"]) & set(boards)]
     only = getattr(args, "ble_scenario", None)
     if only:
         # Bring-up and debugging: one scenario instead of an hour. A run
@@ -1068,7 +1080,8 @@ def run_suite(devices, args):
                 f"narrowed to --ble-scenario {only!r}: this is not a pass "
                 f"of the suite")
     skipped = [s["example"] for s in cfg["scenarios"]
-               if not set(s["boards"]) & set(boards)]
+               if not s.get("disabled")
+               and not set(s["boards"]) & set(boards)]
     if skipped:
         # Never silently: a suite that covers less than the file says is
         # exactly what a green report must not hide.
@@ -1304,7 +1317,7 @@ def record_baselines(devices, args):
                 "looks")
 
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
-                 if set(s["boards"]) & set(boards)]
+                 if not s.get("disabled") and set(s["boards"]) & set(boards)]
     only = getattr(args, "ble_scenario", None)
     if only:
         scenarios = [s for s in scenarios

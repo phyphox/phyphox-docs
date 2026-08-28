@@ -265,6 +265,25 @@ scenarios:
     device_name: "My Device"
     boards: [esp32]
     phones: all
+    # Disabled 2026-08-28 by the maintainer. The example's own main loop
+    # is `while True:` with no sleep (getDataFromSmartphone.py:40-45), so
+    # it never yields to the MicroPython scheduler and BLE degrades until
+    # the older phones cannot connect at all - proven on the bench, where
+    # mpremote cannot even reach the REPL of a board running it until a
+    # sleep_ms(10) is added, and where the same phone drove the Arduino
+    # board perfectly in the same pass. That is the example being broken
+    # rather than the app, and it is not worth working around from the
+    # phyphox side; it is fixed in phyphox-micropython (see
+    # MicroPython-TODO.md in the working root) and this key comes out
+    # again then.
+    #
+    # Two traps if you go near it: print() yields to the scheduler, so
+    # instrumenting the loop hides the very bug you are looking for; and
+    # `mpremote ... eval` soft-resets the board, so probing it mid-test
+    # changes what you are measuring.
+    disabled: >-
+      the example never yields to the MicroPython scheduler, which
+      degrades BLE until old phones cannot connect
     expect:
       kind: board_serial
       trigger:

@@ -288,28 +288,33 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   for an afternoon. The handshake is the app's own log line
   (`phyphoxBleCompat: holding the app open`).
 
-  **The experiment TRANSFER fails about one connect in four, and it is
-  not the board.** 12 of 44 connect attempts across two full passes on
-  2026-08-28 - three phones, both libraries - ended in the connect test's
-  `AssertionError: the experiment the device offers did not load within
-  90 s`. The distribution moved between the two passes (the Nexus 5X
-  failed 4 of 6 in the first and 0 of 6 in the second; the Pixel 3 went
-  the other way), so it is not an Android version, a library, a scenario
-  or a board.
+  **Two findings came out of the first three-phone passes on
+  2026-08-28**, and neither was where it first looked.
 
-  `board_check.py` settles the board half: against the same flash,
-  minutes after the app timed out on it, a BlueZ central that is not
-  phyphox pulled the experiment 8/8 on the MicroPython board (2061 bytes,
-  4.0 s each) and 8/8 on the Arduino one (2779 bytes, 1.6 s, plus 20 Hz
-  of data). Handed to the Android session in `Android-TODO.md`; the
-  number to quote is transfers attempted versus completed, not cycles
-  passed.
+  The experiment transfer failed about one connect in four - 12 of 44
+  attempts across two passes, moving between phones from one pass to the
+  next, so not an Android version, a library, a scenario or a board.
+  `board_check.py` cleared the board half of it (8/8 transfers from a
+  neutral central against the same flash, 1.6-4.0 s each, minutes after
+  the app had timed out at 90 s), the Android session took it from there,
+  and it is fixed.
 
-  A connect failure now leaves the whole instrumentation output in
+  The other was `micropython/getDataFromSmartphone`, which is now
+  **disabled in `scenarios.yml`** on the maintainer's call: the example's
+  own main loop never yields to the MicroPython scheduler, which degrades
+  BLE until the older phones cannot connect. `MicroPython-TODO.md` in the
+  working root has the write-up, including two traps that hide it -
+  `print()` yields, so instrumenting the loop fixes the bug while you
+  look at it, and `mpremote eval` soft-resets the board. A disabled
+  scenario is warned about once per run rather than removed, because
+  missing coverage that a green report does not mention is the thing this
+  lab exists to prevent; re-enabling is deleting the `disabled:` key.
+
+  A connect failure leaves the whole instrumentation output in
   `lab-results/evidence/<phone>-<library>-<example>-connect-failed.txt`.
-  Read that first: the failures before it existed were all reported as
-  JUnit's header line with the exception thrown away, which is how "the
-  old phones are broken" survived a whole morning as a theory.
+  Read that first: before it existed, failures were reported as JUnit's
+  header line with the exception thrown away, which is how "the old
+  phones are broken" survived a whole morning as a theory.
 
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
