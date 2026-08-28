@@ -580,6 +580,19 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   that explains a failure like this is already in the report when someone
   reads it.
 
+  **A baseline holds a stream to account, not a single value.** The
+  `structure` comparison fails a buffer that carried data on the
+  reference release and carries none now - but only where the baseline
+  saw more than one value. A buffer holding exactly one is a view
+  element's initial value rather than anything the board sent (`CB1` in
+  `micropython/createExperiment` is an edit's `0.0`), and whether it is
+  in the buffer when `/get` is asked depends on when the app wrote it
+  against when the host cleared and started. That is a race, and testing
+  it failed an otherwise green iOS pass on 2026-08-29. Every recorded
+  baseline agrees: the only single-value buffers in any of them are the
+  `CB*` ones the view elements own, and every buffer a board fills
+  carries many.
+
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
   from that release - which predates everything the driver uses to steer

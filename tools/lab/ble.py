@@ -1182,8 +1182,19 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
             "the experiment's buffers changed since the baseline"
             + (f" - gone: {', '.join(gone)}" if gone else "")
             + (f" - new: {', '.join(new)}" if new else ""))
+    # Only buffers that were carrying a STREAM. A buffer holding exactly
+    # one value on the reference release is a view element's initial
+    # value, not data from the board - CB1 in micropython/createExperiment
+    # is an edit's 0.0 - and whether it is in the buffer at the moment
+    # /get is asked depends on when the app wrote it against when the
+    # host cleared and started. Comparing it tests the race, not the
+    # release: it failed an otherwise green iOS pass on 2026-08-29, and
+    # the maintainer's reading is the right one. Every baseline bears
+    # this out - the only single-value buffers in any of them are the
+    # CB* ones the view elements own, and every buffer the board fills
+    # carries many.
     for name, count in (baseline.get("counts") or {}).items():
-        if count and not got.get(name):
+        if count > 1 and not got.get(name):
             findings.append(f"buffer {name} carried {count} value(s) on the "
                             f"reference release and none now")
     det["baseline"] = {"app": (baseline.get("app") or {}).get("version"),
@@ -1815,14 +1826,14 @@ def run_suite(devices, args):
             # asked to pick by it. A duplicate here invalidates the
             # scenario outright rather than producing a plausible-looking
             # failure, so it fails loudly and does not measure.
+            # None means this host cannot scan (no bleak). That used to
+            # be said in the report and is not any more (maintainer,
+            # 2026-08-29): it is a property of the host, repeated per
+            # scenario, and since every flash carries its own bench tag a
+            # same-named board is now a narrow case - a leftover from an
+            # earlier run of the same host that reached the same tag.
             seen = advertisers(target_name)
-            if seen is None:
-                for r in results.values():
-                    r["warnings"].append(
-                        f"{label}: could not check for duplicate advertisers "
-                        f"(no bleak on this host), so a same-named board "
-                        f"would go unnoticed")
-            elif len(seen) > 1:
+            if seen is not None and len(seen) > 1:
                 for r in results.values():
                     r["passed"] = False
                     r["findings"].append(
@@ -1831,7 +1842,7 @@ def run_suite(devices, args):
                         f"picks by name, so nothing measured here would mean "
                         f"anything. Reflash or unpower the other one")
                 continue
-            elif not seen:
+            elif seen == []:      # scanned, and nothing was there
                 for r in results.values():
                     r["warnings"].append(
                         f"{label}: this host's scan saw nothing advertising "
