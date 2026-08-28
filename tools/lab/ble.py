@@ -211,7 +211,7 @@ def flash(scenario, board, cfg, args, advertised=None):
         work = tempfile.mkdtemp(prefix="phyphox-ble-")
         try:
             return _flash_arduino(scenario, board, lib, fqbn, sketch, work,
-                                  port, advertised, args)
+                                  port, advertised, args, repo)
         finally:
             shutil.rmtree(work, ignore_errors=True)
 
@@ -265,7 +265,7 @@ def flash(scenario, board, cfg, args, advertised=None):
 
 
 def _flash_arduino(scenario, board, lib, fqbn, sketch, work, port,
-                   advertised, args):
+                   advertised, args, repo):
     """The Arduino half of flash(), from a COPY of the example: the
     sketch is renamed to the tagged device name before it is built."""
     if advertised:
@@ -295,7 +295,15 @@ def _flash_arduino(scenario, board, lib, fqbn, sketch, work, port,
         for k, v in (scenario.get("build_properties") or {}).get(
                 board, {}).items():
             props += ["--build-property", f"{k}={v}"]
-        r = sh(["arduino-cli", "compile", "--fqbn", fqbn] + props + [sketch],
+        # --library, or arduino-cli builds whatever copy of the library the
+        # host happens to have in its sketchbook. On the MacBook that was
+        # phyphox_BLE 1.2.5 from November while the checkout said 1.3.1, so
+        # the gate was answering "does the app still talk to boards" about a
+        # library nobody had touched in months. Discovered 2026-08-28 while
+        # instrumenting the transfer: arduino-cli's own "Multiple libraries
+        # were found" line is the only place it ever said so.
+        r = sh(["arduino-cli", "compile", "--fqbn", fqbn,
+                "--library", repo] + props + [sketch],
                timeout=600)
         if r.returncode != 0:
             return False, f"compile failed: {(r.stderr or r.stdout)[-300:]}"
