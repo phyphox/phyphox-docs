@@ -110,11 +110,11 @@
       ExperimentEditView.update() puts the default back when the buffer is
       empty, but it runs from a display link that is only running while the
       module is active, and ExperimentPageViewController marks exactly one view
-      collection active at a time. ExperimentDropdownView and
-      ExperimentSwitchView seed their buffers from the same gated update(), so
-      this is not specific to edit. The slider is a separate question: it uses
-      its default for display only, and whether it ever seeds its buffer has not
-      been checked on either platform.
+      collection active at a time. ExperimentDropdownView,
+      ExperimentSwitchView and ExperimentSliderView seed their buffers from the
+      same gated update(), so this is not specific to edit. Whether the slider
+      should seed at all is a separate divergence - see
+      slider-default-never-reaches-buffer.
   verified: >-
     2026-08-29, on the BLE bench: micropython/createExperiment, whose graphs are
     on the first view and whose edit is on the second. Buffer CB1 held one value
@@ -132,3 +132,35 @@
     bluetooth output that configures the connected device - so the device is
     told nothing until somebody opens the second view. The iOS code intends the
     Android behaviour (its comment says as much); what differs is when it runs.
+
+- id: slider-default-never-reaches-buffer
+  title: A slider's default value never reaches its buffer on Android
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Never writes it. In ExpView.java the slider's onMayReadFromBuffers
+      substitutes defaultValue - minValue for the lower end of a range slider -
+      when the buffer holds NaN, but only to position the widget;
+      onMayWriteToBuffers returns immediately unless `triggered`, which is set
+      only by the slider's own user-interaction listeners. The buffer therefore
+      stays empty until somebody moves the slider.
+    ios: >-
+      Writes it. ExperimentSliderView.update() puts defaultValue into an empty
+      buffer, and for a range slider minValue and maxValue into the lower and
+      upper buffers. (It does so only while the slider's view is displayed,
+      which is the separate divergence input-defaults-on-hidden-view.)
+  verified: >-
+    2026-08-29, read from both sources rather than measured on a device. Found
+    while checking whether the slider shared the edit element's behaviour after
+    the maintainer decided input-defaults-on-hidden-view; it does not, and it
+    diverges the other way round.
+  summary: >-
+    Every other input element writes its default into its buffer so that
+    analysis has something to work with before the user touches anything. The
+    slider does that on iOS and not on Android, where the default only positions
+    the widget and the buffer stays empty until the slider is moved. An
+    experiment whose analysis reads a slider therefore starts from the default on
+    iOS and from NaN on Android. Which is right is a decision about the format
+    rather than about either app: an edit seeds, a slider on one platform does
+    not, and the two ought to agree.
