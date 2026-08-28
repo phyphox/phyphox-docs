@@ -191,7 +191,17 @@ longer the thing users have.
 
 `tools/lab/board_check.py` needs `bleak` in the same venv (again lab-only,
 again not in requirements.txt). It connects to a board from THIS machine's
-Bluetooth adapter, subscribes and counts notifications, several times over.
+Bluetooth adapter, pulls the experiment and then counts data
+notifications, several times over. It asks for the experiment the way the
+app does - subscribe to `cddf0002`, then write `0x01` to `cddf0003` where
+the device offers it - because **the two libraries do not agree on what
+starts a transfer**: Arduino sends on the subscription
+(`phyphoxBLE_ESP32.cpp`, `onSubscribe` -> `startTask`), MicroPython
+ignores it and waits for the write (`phyphoxBLE.py`, `_IRQ_GATTS_WRITE`).
+Both apps handle both and say so in a comment
+(`BluetoothExperimentLoader.kt`, `BluetoothScan.swift`); nothing in the
+documentation does. Written against the Arduino trigger alone, this tool
+reported a healthy MicroPython board as 0/8 eight times in a row.
 Run it before reporting any BLE fault against either app: it is the control
 that says whether the board is doing its job, and it settled today's
 question in five minutes after a lot of peripheral-side guesswork did not.
@@ -272,21 +282,28 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   for an afternoon. The handshake is the app's own log line
   (`phyphoxBleCompat: holding the app open`).
 
-  **The experiment TRANSFER is where this flakes**, twice on 2026-08-28
-  and both times the same shape: the phone found and picked the board,
-  and the test's 90 s wait for the experiment to arrive expired
-  (`AssertionError: the experiment the device offers did not load within
-  90 s`). Once on `arduino/connectionParameter` on the Nano 33 BLE - one
-  in four attempts, two immediate repeats passing with 1002 and 998
-  values - and once on `micropython/getDataFromSmartphone` on the Galaxy
-  A3 against the ESP32. Different board, different library, different
-  phone, so the connectionParameter sketch's aggressive link settings
-  (7.5-30 ms interval, 500 ms supervision timeout) are no longer the
-  obvious explanation they looked like. The number to quote is transfers
-  attempted versus transfers completed, not cycles passed. A connect
-  failure now leaves the whole instrumentation output in
-  `lab-results/evidence/<phone>-<library>-<example>-connect-failed.txt`;
-  read that before theorising.
+  **The experiment TRANSFER fails about one connect in four, and it is
+  not the board.** 12 of 44 connect attempts across two full passes on
+  2026-08-28 - three phones, both libraries - ended in the connect test's
+  `AssertionError: the experiment the device offers did not load within
+  90 s`. The distribution moved between the two passes (the Nexus 5X
+  failed 4 of 6 in the first and 0 of 6 in the second; the Pixel 3 went
+  the other way), so it is not an Android version, a library, a scenario
+  or a board.
+
+  `board_check.py` settles the board half: against the same flash,
+  minutes after the app timed out on it, a BlueZ central that is not
+  phyphox pulled the experiment 8/8 on the MicroPython board (2061 bytes,
+  4.0 s each) and 8/8 on the Arduino one (2779 bytes, 1.6 s, plus 20 Hz
+  of data). Handed to the Android session in `Android-TODO.md`; the
+  number to quote is transfers attempted versus completed, not cycles
+  passed.
+
+  A connect failure now leaves the whole instrumentation output in
+  `lab-results/evidence/<phone>-<library>-<example>-connect-failed.txt`.
+  Read that first: the failures before it existed were all reported as
+  JUnit's header line with the exception thrown away, which is how "the
+  old phones are broken" survived a whole morning as a theory.
 
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
