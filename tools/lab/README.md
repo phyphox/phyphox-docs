@@ -70,6 +70,21 @@ compares against the same `fixtures/ble/baselines/` files recorded on
 Android. A platform that disagrees there is a finding, not a reason for a
 second set of files.
 
+**The first iOS pass ran 2026-08-28**, and that held: iPhone 14 Pro on
+iOS 26.6 against the ESP32, `--ble-scenario arduino/randomNumbers`, the
+board tagged `phyphox device M1`. The experiment the board serves
+transferred, loaded and ran at 19.9 Hz on both channels, agreeing with
+the Android-recorded baseline down to the title and the buffer names —
+one set of files, as this section claims. Getting there took an app fix
+rather than a driver fix: `-phyphoxBleConnect` matched the requested name
+against `peripheral.name`, CoreBluetooth's cached name for the device,
+because the scan never handed the advertised one to the delegate — which
+the per-flash bench tags make stale by construction, so the seam had
+never once taken a board (phyphox-ios `b43ae390`). Worth knowing the next
+time a phone scans past a board that is plainly on the air: on iOS, check
+the device log for `-phyphoxBleConnect: skipping a device advertising as
+…`, which names all three names it compared.
+
 ## One session at a time
 
 The phones and the boards are shared with whoever else is working in this
@@ -429,8 +444,12 @@ precisely because their sensor sets differ.
 ## Honesty notes
 
 - The iOS device paths (devicectl launch, pymobiledevice3 forward) were
-  written on the Linux machine and are UNVERIFIED until the first
-  MacBook run; whatever needed fixing is a finding for the docs session.
+  written on the Linux machine and were unverified until 2026-08-28, when
+  the first MacBook run drove a phone (iPhone 14 Pro, iOS 26.6, the ble
+  suite): both worked as written and the driver needed no fixing — what
+  was broken was on the app side, see the ble section. The other iOS
+  suites — sensors, audio, experiments — still have not run on hardware
+  here, so treat their iOS paths as unverified.
 - The suites carry the phyphox-test tags in suites.py - one driver
   serves both platforms, so the matrix checker accepts tags from this
   repository for the T2 rows.
