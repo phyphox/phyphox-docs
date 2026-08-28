@@ -6,8 +6,10 @@
 Run this BEFORE reporting a BLE fault against either app.
 
 Repeats the same shape the app does - discover, connect, pull the
-experiment over cddf0002, subscribe to the data characteristic, receive -
-from this machine's own BlueZ adapter. If a neutral central gets through
+experiment over cddf0002 and CHECK it (its declared length, the CRC32 in
+its header, and that the stream is one clean run of 20-byte packets),
+subscribe to the data characteristic, receive - from this machine's own
+BlueZ adapter. If a neutral central gets through
 every cycle where the app gets through half, the board is doing its job
 and the fault is in the phone. If this starves too, the board is the
 problem and our Bluetooth code is owed an apology.
@@ -44,7 +46,7 @@ The board then notifies a 20-byte header - b"phyphox", a big-endian
 length, a big-endian checksum - followed by 20-byte chunks of XML, 10 ms
 apart, so adding up what arrives is the rest of it.
 """
-import asyncio, sys, time
+import asyncio, sys, time, zlib
 from bleak import BleakScanner, BleakClient
 
 import argparse
@@ -71,7 +73,7 @@ async def experiment(client, timeout):
     the board sends, which is the transfer the phones time out on."""
     chunks = []
     done = asyncio.Event()
-    state = {"declared": None}
+    state = {"declared": None, "crc": None, "oddities": []}
 
     def on_chunk(_c, data):
         if state["declared"] is None:
@@ -81,7 +83,20 @@ async def experiment(client, timeout):
                 chunks.append(bytes(data))
                 return
             state["declared"] = int.from_bytes(data[7:11], "big")
+            state["crc"] = int.from_bytes(data[11:15], "big")
             return
+        # What the app instruments for as well (BluetoothScan.swift): a
+        # stream that is not one clean run of 20-byte packets. A second
+        # header means the board started the transfer over mid-stream, a
+        # short packet anywhere but at the end means one went missing or
+        # was split. Both leave the byte count looking right while the
+        # payload is wrong, which is why counting bytes is not enough.
+        at = sum(len(c) for c in chunks)
+        if len(data) == 20 and data[:7] == MAGIC:
+            state["oddities"].append(f"a second header at byte {at}")
+        elif (len(data) != 20 and state["declared"] > 0
+                and at + len(data) < state["declared"]):
+            state["oddities"].append(f"a {len(data)}-byte packet at byte {at}")
         chunks.append(bytes(data))
         if state["declared"] > 0 and sum(len(c) for c in chunks) >= state["declared"]:
             done.set()
@@ -119,9 +134,20 @@ async def experiment(client, timeout):
     body = b"".join(chunks)
     if got < state["declared"]:
         return state["declared"], got, "INCOMPLETE"
-    if b"<phyphox" not in body:
-        return state["declared"], got, "complete, but no <phyphox> in it"
-    return state["declared"], got, "ok"
+    # The CRC32 from the header, checked the way both apps check it.
+    # Without this a corrupted stream still counts up to the declared
+    # length and this tool calls it ok - useless as the control for the
+    # stream problem iOS is chasing.
+    payload = body[:state["declared"]]
+    crc = zlib.crc32(payload) & 0xFFFFFFFF
+    note = []
+    if crc != state["crc"]:
+        note.append(f"CRC MISMATCH (header {state['crc']:#010x}, "
+                    f"payload {crc:#010x})")
+    if b"<phyphox" not in payload:
+        note.append("no <phyphox> in it")
+    note += state["oddities"]
+    return state["declared"], got, "; ".join(note) if note else "ok"
 
 
 async def one(cycle):
