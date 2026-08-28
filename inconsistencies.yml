@@ -89,3 +89,37 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: edit-default-on-hidden-view
+  title: An edit's default value on a view that is not displayed
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Writes the default into the edit's buffer whichever view is on screen. In
+      ExpView.java the edit's setValue() sees a buffer holding NaN - nothing
+      entered yet - and substitutes defaultValue, and that path runs for the
+      experiment's views rather than only the visible one.
+    ios: >-
+      Writes it only while the edit's view is the one being displayed.
+      ExperimentEditView.update() puts the default back when the buffer is
+      empty, but it runs from a display link that is only running while the
+      module is active, and ExperimentPageViewController marks exactly one view
+      collection active at a time.
+  verified: >-
+    2026-08-29, on the BLE bench: micropython/createExperiment, whose graphs are
+    on the first view and whose edit is on the second. Buffer CB1 held one value
+    (0.0) throughout a ten-second measurement on a Pixel 9 Pro running 1.2.0,
+    and was empty on an iPhone 14 Pro on the development build. Found because
+    the suite compared the two.
+  summary: >-
+    An edit element writes its default value into its buffer so that analysis and
+    outputs have something to work with before the user types anything. On iOS
+    that only happens while the edit's own view is on screen, so an experiment
+    whose edit sits on a second view starts with an empty buffer there and a
+    filled one on Android. It matters wherever something reads that buffer
+    without waiting for the user: an analysis input sees NaN instead of the
+    default, and in the experiment this was found with, the value feeds a
+    bluetooth output that configures the connected device - so the device is
+    told nothing until somebody opens the second view. The iOS code intends the
+    Android behaviour (its comment says as much); what differs is when it runs.

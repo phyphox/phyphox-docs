@@ -584,14 +584,25 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   `structure` comparison fails a buffer that carried data on the
   reference release and carries none now - but only where the baseline
   saw more than one value. A buffer holding exactly one is a view
-  element's initial value rather than anything the board sent (`CB1` in
-  `micropython/createExperiment` is an edit's `0.0`), and whether it is
-  in the buffer when `/get` is asked depends on when the app wrote it
-  against when the host cleared and started. That is a race, and testing
-  it failed an otherwise green iOS pass on 2026-08-29. Every recorded
-  baseline agrees: the only single-value buffers in any of them are the
-  `CB*` ones the view elements own, and every buffer a board fills
-  carries many.
+  element's own value rather than anything the board sent: `CB1` in
+  `micropython/createExperiment` is an edit's `0.0`, and every recorded
+  baseline agrees - the only single-value buffers in any of them belong
+  to view elements, and every buffer a board fills carries many.
+
+  Worth reading the finding that produced this rule, because it was not
+  what it first looked like. The maintainer asked how a value written
+  once could be missing ten seconds into a measurement, and the answer
+  was that it is not a race at all: an edit writes its default into its
+  buffer whichever view is displayed on Android, and only while its own
+  view is displayed on iOS. That experiment puts its graphs on the first
+  view and its edit on the second, so the buffer is filled on one
+  platform and empty on the other for as long as nobody opens that view.
+  It is recorded as `edit-default-on-hidden-view` in
+  `inconsistencies.yml` and it is not a lab artefact - in that same
+  experiment the buffer feeds a bluetooth output that configures the
+  board. The suite's own rule stands regardless: a single value is a
+  setting, not a stream, and this class of scenario is about whether data
+  still flows.
 
   **Baselines are recorded by hand, and cannot be otherwise.** The point
   of a baseline is that the PREVIOUS release worked, so it has to come
