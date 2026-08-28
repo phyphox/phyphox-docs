@@ -383,6 +383,35 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   stripped back out of captured XML before it is written as a corpus
   fixture; left in, every run would rewrite those files with a new number.
 
+  **What is installed is checked, never changed.** Before a board is
+  touched, each phone is asked which build it carries: the app must be
+  installed, and on Android the instrumentation APK
+  (`de.rwth_aachen.phyphox.test`) must be there too, or the run stops
+  with the gradle line that installs both. That second one is not a
+  hypothetical - a device that got only the app APK fails deep inside the
+  run with a ClassNotFoundException, and on 2026-08-28 that cost a
+  morning looking at a phone that "would not launch the app".
+
+  The build's age is compared with the newest commit in the app
+  repository and a build older than it is WARNED about, not failed: an
+  older build is often exactly what is wanted - a release candidate, or
+  the store release a baseline is recorded against. Read that warning
+  with care, because a build made shortly before its own commit looks
+  identical from here, and building then committing is the normal way to
+  work. Check the behaviour, not the clock. (An embedded git revision in
+  the build would make this exact; there is none today.)
+
+  Ages, not timestamps: each side is measured against its own clock - the
+  phone's install time against the phone's `date`, the commit against the
+  host's - so a phone in another timezone cannot produce a false answer.
+
+  **It deliberately installs nothing** (maintainer, 2026-08-28). Building
+  and installing from the working tree would change what the suite
+  measures, from a build somebody chose to whatever happens to be checked
+  out, and it would quietly wreck a baseline recording, which has to run
+  against the store release. iOS is not covered at all yet; that report
+  says so rather than staying quiet.
+
   **Retries have to be counted, or the gate goes blind.** Since
   2026-08-28 both apps retry internally, at two layers: a refused
   connection (Android six attempts on a time budget, iOS three) and a

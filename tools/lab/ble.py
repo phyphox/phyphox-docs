@@ -1306,6 +1306,87 @@ def parse_retry_lines(text):
     return out if seen else None
 
 
+ANDROID_TEST_PACKAGE = ANDROID_PACKAGE + ".test"
+
+
+def _age_seconds(dev, stamp):
+    """How long ago `stamp` (the device's own local "Y-m-d H:M:S") was,
+    by the DEVICE's clock.
+
+    An age rather than a time, because the phone's timezone is not the
+    host's and a lab phone that has travelled has neither. Comparing two
+    ages needs no timezone from either end.
+    """
+    # Quoted: adb joins argv into ONE shell command, so an unquoted
+    # format string with a space in it reaches date as two arguments and
+    # comes back as something unparseable.
+    r = sh(dev.adb + ["shell", "date",
+                      shlex.quote("+%Y-%m-%d %H:%M:%S")], timeout=15)
+    import datetime
+    try:
+        fmt = "%Y-%m-%d %H:%M:%S"
+        now = datetime.datetime.strptime((r.stdout or "").strip(), fmt)
+        then = datetime.datetime.strptime(stamp.strip(), fmt)
+    except ValueError:
+        return None
+    return (now - then).total_seconds()
+
+
+def installed_build(dev):
+    """What is on this phone: version, how long ago it was installed, and
+    (Android) whether the instrumentation APK is there too. None where it
+    cannot be read.
+
+    Checked before anything is flashed, because both halves of this cost
+    an hour each on 2026-08-28. A stale androidTest APK made the app look
+    like it would not launch at all - the app APK and the test APK are
+    installed separately, and a device that got only the first fails deep
+    inside the run with a ClassNotFoundException. And a fix committed at
+    12:07 was measured against phones carrying an 11:37 build, which is
+    the kind of green nobody should trust.
+
+    Deliberately does NOT install anything (maintainer, 2026-08-28):
+    building and installing from the working tree would change what the
+    suite measures, from a build somebody chose to whatever happens to be
+    checked out - and it would quietly wreck a baseline recording, which
+    has to run against the store release.
+    """
+    if dev.platform != "android":
+        # devicectl can list apps, but nothing here has been verified
+        # against an iPhone and a guess is worse than an honest gap.
+        return None
+    out = sh(dev.adb + ["shell", "dumpsys", "package", ANDROID_PACKAGE],
+             timeout=30).stdout or ""
+    if "versionName" not in out:
+        return {"installed": False}
+    def field(name):
+        m = re.search(name + r"=([^\s]+)", out)
+        return m.group(1) if m else None
+    stamp = re.search(r"lastUpdateTime=(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)", out)
+    pkgs = sh(dev.adb + ["shell", "pm", "list", "packages",
+                         ANDROID_TEST_PACKAGE], timeout=30).stdout or ""
+    return {"installed": True,
+            "version": field("versionName"),
+            "code": field("versionCode"),
+            "age_s": _age_seconds(dev, stamp.group(1)) if stamp else None,
+            "test_apk": ANDROID_TEST_PACKAGE in pkgs}
+
+
+def repo_head_age(platform):
+    """Seconds since the newest commit in that app's repository, by THIS
+    host's clock, or None if the checkout is not here."""
+    repo = os.path.normpath(os.path.join(
+        ROOT, "..", "phyphox-android" if platform == "android"
+        else "phyphox-ios"))
+    if not os.path.isdir(os.path.join(repo, ".git")):
+        return None
+    r = sh(["git", "-C", repo, "log", "-1", "--format=%ct"], timeout=30)
+    try:
+        return time.time() - int((r.stdout or "").strip())
+    except ValueError:
+        return None
+
+
 def read_app_log(dev):
     """Everything the app said during this attempt, or "" if it cannot be
     read.
@@ -1456,6 +1537,53 @@ def run_suite(devices, args):
             r["warnings"].append(
                 f"narrowed to --ble-scenario {only!r}: this is not a pass "
                 f"of the suite")
+
+    # What each phone is actually carrying, before a board is touched.
+    for dev_id, entry, dev in devices:
+        build = installed_build(dev)
+        results[dev_id]["build"] = build
+        if build is None:
+            results[dev_id]["warnings"].append(
+                "build verification is not implemented for this platform, "
+                "so this report does not say which build it tested"
+                if dev.platform != "android" else
+                "could not read which build is installed, so this report "
+                "cannot say what it tested")
+            continue
+        if not build.get("installed"):
+            results[dev_id]["passed"] = False
+            results[dev_id]["findings"].append(
+                f"{ANDROID_PACKAGE} is not installed on this phone")
+            continue
+        if dev.platform == "android" and not build.get("test_apk"):
+            # The failure this prevents does not look like a missing APK:
+            # the app never starts, the instrumentation dies with a
+            # ClassNotFoundException, and the run reports a phone that
+            # will not launch the app.
+            results[dev_id]["passed"] = False
+            results[dev_id]["findings"].append(
+                f"the instrumentation APK ({ANDROID_TEST_PACKAGE}) is not "
+                f"installed - the connect test cannot run. Install both: "
+                f"ANDROID_SERIAL={getattr(dev, 'serial', '<serial>')} "
+                f"./gradlew installRegularDebug installRegularDebugAndroidTest")
+            continue
+        head = repo_head_age(dev.platform)
+        if head is not None and build.get("age_s") is not None \
+                and build["age_s"] > head:
+            # A warning, not a failure: an older build can be exactly
+            # what is wanted (a release candidate, or the store release a
+            # baseline is recorded against). But it must never be a
+            # surprise, and on 2026-08-28 a fix committed at 12:07 was
+            # measured against phones carrying an 11:37 build.
+            results[dev_id]["warnings"].append(
+                f"the installed build ({build.get('version')}, "
+                f"{build['age_s'] / 3600:.1f} h old) is older than the "
+                f"newest commit in the app repository "
+                f"({head / 3600:.1f} h old), so it may not contain it. "
+                f"Note a build made shortly BEFORE its own commit looks "
+                f"exactly like this - which is the normal way to work, so "
+                f"check the behaviour rather than the clock before "
+                f"reinstalling")
 
     gone = missing_tools(scenarios, args)
     if gone:
