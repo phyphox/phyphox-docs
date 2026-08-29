@@ -906,11 +906,15 @@ elements:
         remark: >-
           Applied whenever the buffer is EMPTY, not only once at load: when the
           experiment is opened, after the data is cleared, and at the start of
-          each analysis cycle. A value the user has entered is never
-          overwritten. Without the last two an experiment loses the setting the
-          moment anything empties the buffer - a clear, or an analysis input
-          without keep - and only gets it back if that element's own view
-          happens to be on screen.
+          each analysis cycle. Without the last two an experiment loses the
+          setting the moment anything empties the buffer - a clear, or an
+          analysis input without keep - and only gets it back if that element's
+          own view happens to be on screen. A value the user has set is not
+          overwritten while it is in the buffer; CLEARING IT RESTORES THE
+          DEFAULT, even though the control was showing something else, because
+          clearing is how a user deliberately returns an experiment to its
+          starting state. An author who wants a setting to survive that says so
+          with clearGroup on the data container, which is what it is for.
         default: 0.0
         summary: Value the field starts with.
         agreement: agreed
@@ -1015,11 +1019,15 @@ elements:
         remark: >-
           Applied whenever the buffer is EMPTY, not only once at load: when the
           experiment is opened, after the data is cleared, and at the start of
-          each analysis cycle. A value the user has entered is never
-          overwritten. Without the last two an experiment loses the setting the
-          moment anything empties the buffer - a clear, or an analysis input
-          without keep - and only gets it back if that element's own view
-          happens to be on screen.
+          each analysis cycle. Without the last two an experiment loses the
+          setting the moment anything empties the buffer - a clear, or an
+          analysis input without keep - and only gets it back if that element's
+          own view happens to be on screen. A value the user has set is not
+          overwritten while it is in the buffer; CLEARING IT RESTORES THE
+          DEFAULT, even though the control was showing something else, because
+          clearing is how a user deliberately returns an experiment to its
+          starting state. An author who wants a setting to survive that says so
+          with clearGroup on the data container, which is what it is for.
         default: 0.0
         summary: State the switch starts in.
         agreement: agreed
@@ -1145,11 +1153,15 @@ elements:
         remark: >-
           Applied whenever the buffer is EMPTY, not only once at load: when the
           experiment is opened, after the data is cleared, and at the start of
-          each analysis cycle. A value the user has entered is never
-          overwritten. Without the last two an experiment loses the setting the
-          moment anything empties the buffer - a clear, or an analysis input
-          without keep - and only gets it back if that element's own view
-          happens to be on screen.
+          each analysis cycle. Without the last two an experiment loses the
+          setting the moment anything empties the buffer - a clear, or an
+          analysis input without keep - and only gets it back if that element's
+          own view happens to be on screen. A value the user has set is not
+          overwritten while it is in the buffer; CLEARING IT RESTORES THE
+          DEFAULT, even though the control was showing something else, because
+          clearing is how a user deliberately returns an experiment to its
+          starting state. An author who wants a setting to survive that says so
+          with clearGroup on the data container, which is what it is for.
         default: 0.0
         summary: Value selected initially.
         agreement: agreed
