@@ -360,7 +360,7 @@ tests:
     area: hardware
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       A release must not break Arduino projects that worked with the
       previous one. Seven library examples, flashed UNMODIFIED as
@@ -378,7 +378,7 @@ tests:
     area: hardware
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The same guarantee for MicroPython projects, on the ESP32 (the
       only board that library supports): all three of its examples, with
