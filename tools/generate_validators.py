@@ -650,6 +650,105 @@ def schematron(els, common):
                 f"/{ln('receive')}")
     assert_(r, buffer_ok, ref_text)
 
+    # --- what the spec marks required, non-empty or unique ---------------
+    # Element-level rules the grammar cannot carry, because the root's
+    # children are folded into one repeated choice (see the note under
+    # root-metadata-once) - so "a title must be present" has to be an
+    # assertion rather than a content model. All three are read straight
+    # off the spec, so modelling a rule there is all it takes.
+    #
+    # Grouped by CONTEXT on purpose: within a Schematron pattern only the
+    # first rule whose context matches a node fires, so two rules on
+    # /phyphox would silently mean one. Every assertion for one context
+    # goes into one rule.
+    def context_of(parent):
+        return f"/{ln('phyphox')}" if parent == "phyphox" else f"//{ln(parent)}"
+
+    by_context = {}
+    for (block, parent, name), el in sorted(els.items(),
+                                            key=lambda kv: str(kv[0])):
+        if el.get("required") and parent:
+            if el["required"] == "base-locale":
+                # Needed for the BASE language, and a translation block for
+                # that language may supply it instead: light.phyphox in the
+                # shipped collection carries no root <title> and takes it
+                # from <translation locale="en"> with no root locale set,
+                # which defaults the base language to English. A file whose
+                # only title sits in a translation for ANOTHER language has
+                # none for its own, which is what both parsers reject.
+                base = (f"{ln('translations')}/{ln('translation')}"
+                        f"[@locale = string(/*/@locale)]/{ln(name)}")
+                en = (f"{ln('translations')}/{ln('translation')}"
+                      f"[@locale = 'en']/{ln(name)}")
+                test = (f"count({ln(name)}) >= 1 or {base} or "
+                        f"(string(/*/@locale) = '' and {en})")
+                text = (f"A <{parent}> needs a <{name}> for its base "
+                        f"language, either directly or from the translation "
+                        f"block for that language.")
+            else:
+                test = f"count({ln(name)}) >= 1"
+                text = f"A <{parent}> needs a <{name}>."
+            by_context.setdefault(context_of(parent), []).append((test, text))
+    req = pattern("required-children")
+    for context, checks in sorted(by_context.items()):
+        r = rule(req, context)
+        for test, text in checks:
+            assert_(r, test, text)
+
+    by_context = {}
+    for (block, parent, name), el in sorted(els.items(),
+                                            key=lambda kv: str(kv[0])):
+        # One rule per ELEMENT, never per constraint: two rules whose
+        # contexts can match the same node ( /phyphox/link and
+        # /phyphox/link[@label] ) mean the second never fires. Anything
+        # that would have been a context predicate becomes part of the
+        # test instead.
+        ctx = f"{context_of(parent)}/{ln(name)}" if parent else f"//{ln(name)}"
+        checks = by_context.setdefault(ctx, [])
+        # Scoped to the parent the spec marked, not to every element of
+        # that name anywhere: a <link> inside a translation may carry no
+        # URL, because it inherits the one from the root link it replaces.
+        if el.get("content_required"):
+            checks.append(("normalize-space(.) != ''",
+                           f"A <{name}> needs a value; this one is empty."))
+        for a in el.get("attributes") or []:
+            if a.get("unique_among_siblings"):
+                an = a["name"]
+                checks.append(
+                    (f"not(@{an}) or "
+                     f"count(../{ln(name)}[@{an} = current()/@{an}]) = 1",
+                     f"Two <{name}> elements share the same {an}; it "
+                     f"identifies the element, so it must be unique among "
+                     f"its siblings."))
+            if "exclusive_minimum" in a:
+                an, lo = a["name"], a["exclusive_minimum"]
+                checks.append(
+                    (f"not(@{an}) or number(@{an}) > {lo}",
+                     f"{name}/@{an} must be greater than {lo}."))
+        if not checks:
+            by_context.pop(ctx, None)
+    p_el = pattern("element-constraints")
+    for context, checks in sorted(by_context.items()):
+        r = rule(p_el, context)
+        for test, text in checks:
+            assert_(r, test, text)
+
+    # --- a translated link with no URL must match one at the root --------
+    # spec/root.yml, <link parent="translation">: "Matched by label against
+    # the links declared at the root. A link whose label equals a base
+    # link's label replaces it in its original position". Empty content is
+    # therefore legal there and only there - it inherits the URL of the
+    # link it replaces - so an empty translated link that matches nothing
+    # points nowhere, which is why the root link carries
+    # content_required and this one does not.
+    p_tl = pattern("translated-link-matches")
+    r = rule(p_tl, f"/{ln('phyphox')}/{ln('translations')}/{ln('translation')}"
+                   f"/{ln('link')}")
+    assert_(r, "normalize-space(.) != '' or "
+               f"/{ln('phyphox')}/{ln('link')}[@label = current()/@label]",
+            "A translated link with no URL of its own must carry the label "
+            "of a link declared at the root, whose URL it then inherits.")
+
     # --- container names are unique --------------------------------------
     p = pattern("container-uniqueness")
     r = rule(p, f"/{ln('phyphox')}/{ln('data-containers')}/{ln('container')}")

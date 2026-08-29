@@ -181,36 +181,55 @@ reason it *cannot* exist on the other side.
 
 Measured 2026-08-29 by running the published RELAX NG and Schematron over the 34 fixtures in
 `phyphox-ios/phyphoxTests/incorrect-files/`, which both parsers reject (Android's verdict was
-measured too: it rejects 33 of the 34). **The validators catch 22.** The twelve they miss are
-listed here because each one is a small, concrete piece of work, and because the fixture that
-proves it already exists.
+measured too: it rejects 33 of the 34). The validators caught 22; **seven of the twelve misses
+were modelled the same day** and the artifacts now catch 29.
 
-Most are not generator bugs but **gaps in this spec** - the generator can only emit what is
-modelled, so recording the rule here fixes the published artifacts for free.
+What was added, and how - each is read off the spec, so the rule lives here and the generator
+follows:
 
-| fixture | the rule | what it needs |
+| field | on | catches |
 |---|---|---|
-| `experiment1` | a root `<title>` is mandatory | the spec does not mark it required |
-| `experiment2` | a root `<category>` is mandatory | as above |
-| `experiment8` | a graph needs its axis inputs | required slots are modelled but not enforced by the grammar |
-| `missing-required-slot` | a module needs its required input | as above |
-| `value-not-allowed-for-slot` | a slot that takes a buffer rejects `type="value"` | slot component types are modelled but not enforced |
-| `gausssmooth-zero-sigma` | `sigma` must be greater than zero | no minimum is modelled; add one and Schematron can assert it |
-| `link-empty-url-at-root` | a `<link>` needs a non-empty URL | content is unconstrained |
-| `link-duplicate-label` | link labels are unique | a Schematron uniqueness assert, not modelled |
-| `translated-link-duplicate-label` | as above, within a translation | as above |
-| `translated-link-unmatched-without-url` | a translated link without a matching root link needs its own URL | cross-element, Schematron-expressible |
+| `required: base-locale` | `title`, `category` | an experiment with no name for its own language |
+| `content_required: true` | root `link` | a link that points nowhere |
+| `unique_among_siblings: true` | `link/@label`, both at the root and in a translation | two links sharing the key they are matched on |
+| `exclusive_minimum: 0` | `gausssmooth/@sigma` | a zero-width gaussian |
 
-Two are not gaps:
+`required: base-locale` is not `required: true`, and the difference was found the way these things
+should be: the strict version failed the build against `light.phyphox` in the shipped collection,
+which carries no root `<title>` at all and takes it from `<translation locale="en">` with no root
+locale set. The rule is therefore "present for the base language, directly or from the translation
+block for that language" - which still rejects the fixture whose only title sits in a `de`
+translation while its base language is English.
 
-- `bluetooth-address-android-only` is a recorded platform difference - Android accepts it, and it
-  is the one fixture of the 34 that does.
-- `experiment11` omits the root `locale`, which this spec documents as OPTIONAL ("without it they
-  are assumed to be English") and both parsers reject. That is a disagreement between the
-  documentation and the implementations rather than a missing rule, and it wants a decision before
-  anything is generated from it: either the attribute is required and the spec is wrong, or the
-  parsers are stricter than the format and the fixture is testing something that should load.
+One Schematron rule is not derived from a field, because it is about a relationship rather than an
+element: a translated `<link>` with no URL of its own must carry the label of a root link, whose
+URL it then inherits. That is why the root link is `content_required` and the translated one is not.
 
-None of this blocks moving those fixtures into `corpus/invalid` - a file can go in with an empty
-`findings` list and gain one when the validator learns the rule. What the list is for is that the
-validators are published, and something using them today would accept all twelve.
+### Still missed - the slot rules
+
+Three fixtures remain, and all three need the same thing: resolving which slot an `<input>` feeds,
+which depends on the `as` attribute and, where that is absent, on document order.
+
+| fixture | the rule |
+|---|---|
+| `missing-required-slot`, `experiment8` | a module needs one input per slot whose `min` is 1 - `subtract` has two, the fixture supplies one |
+| `value-not-allowed-for-slot` | a slot with `allows_value: false` rejects `type="value"` |
+
+The spec models all of it already (`min`, `max`, `allows_value`, `as_required` per slot), and the
+grammar approximates it: `slot_children` requires one `<input>` when any slot demands one, but
+cannot count per slot, which is the documented approximation in `generate_validators.py`. A
+Schematron rule could assert the cheap half without slot resolution - `count(input) >= <sum of
+minimums>` for the module, and `not(input[@type='value'])` where no slot allows a value - and that
+would catch all three. It has not been written yet.
+
+### Two that are not gaps
+
+Confirmed by the maintainer, 2026-08-29: both files SHOULD load, and the validators are right to
+pass them.
+
+- `bluetooth-address-android-only` is the recorded platform difference, and the one fixture of the
+  34 that Android accepts.
+- `experiment11` omits the root `locale`, which this spec documents as optional. Both parsers
+  reject it, so that is the implementations being stricter than the format - a divergence from the
+  documented behaviour rather than a missing rule, and one for the apps to fix rather than the
+  validators to copy.

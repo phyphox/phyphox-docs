@@ -927,6 +927,7 @@ elements:
           Width of the Gaussian distribution used to smooth the
           data, in terms of value indices.
         default: 3.0
+        exclusive_minimum: 0    # a zero-width gaussian is not a smoothing
         type: float
         summary: >-
           See the module description. A present value of zero or less rejects

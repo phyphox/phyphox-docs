@@ -82,6 +82,7 @@ elements:
 
   - name: title
     parent: phyphox
+    required: base-locale
     since: "1.0"
     summary: Title of the experiment, in the base language.
     text: The title. Keep it short.
@@ -98,6 +99,7 @@ elements:
 
   - name: category
     parent: phyphox
+    required: base-locale
     since: "1.0"
     summary: >-
       Category the experiment is grouped under. Should be translated, since the
@@ -145,6 +147,7 @@ elements:
 
   - name: link
     parent: phyphox
+    content_required: true   # a link with no URL points nowhere
     since: "1.0"
     summary: >-
       A link shown as a button under the description. Several may be given.
@@ -156,6 +159,7 @@ elements:
     attributes:
       - name: label
         required: true
+        unique_among_siblings: true   # the label identifies the link
         description: >-
           The text on the button offered under the experiment description.
           The label also identifies the link: a link element inside the
@@ -260,6 +264,7 @@ elements:
       - name: label
         required: true
         type: string
+        unique_among_siblings: true   # it is the key the link is matched on
         summary: The label of the base link to replace or remove, or a new label.
         description: >-
           The key this link is matched on - an exact, case-sensitive
