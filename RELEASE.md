@@ -36,12 +36,37 @@ T3, which need hardware and a person.
 
 ## T2 — the device lab
 
-One command per host. Boards and firmware come from `lab.yml`, so this is the whole invocation:
+**Empty the results directory first.** The merge folds in every `<host>.json` it finds there, and
+it has no way to tell one release's results from the last one's — a stale `macbook.json` is merged
+in silence and reported as part of this run. That is the worst failure mode this report has: green,
+and partly about a build that is no longer the candidate.
+
+```bash
+rm -rf lab-results        # or use a fresh directory per release
+```
+
+Then one command per host. Boards and firmware come from `lab.yml`, so this is the whole
+invocation:
 
 ```bash
 python3 tools/lab/run.py --config lab.yml --host linuxbox --release --out lab-results
 python3 tools/lab/run.py --config lab.yml --host macbook  --release --out lab-results
 ```
+
+### Narrowing a run
+
+Both flags take effect on top of `--release`, and both mark nothing in the report — a narrowed run
+looks like a complete one, so use them while working, not for the release itself:
+
+- `--platform ios` (or `android`) runs only that platform's devices on a host that has both. The
+  MacBook can drive iPhones and Android phones, so this is how its two halves are split — or how
+  you re-run just the iOS side after a fix.
+- `--devices iphone-14-pro,ipad-pro` names devices explicitly. Without it, a run takes every device
+  `lab.yml` assigns to the host, which is what a release wants.
+
+The exception is the BLE suite, which is deliberately not per-device: it flashes a board and then
+walks it past every phone in each scenario's scope, so narrowing by platform narrows which phones
+it visits, not what it flashes.
 
 Each host runs every suite it has the hardware for — sensors, audio, experiments, the BLE bench
 where a board is configured, and the languages gate where the host names a release artifact — and
