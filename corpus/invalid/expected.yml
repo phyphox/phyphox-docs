@@ -168,3 +168,78 @@ ble-lib-micropython-createExperiment.phyphox:
   parser: accepts
   findings:
     - "<views>/<view>/<value>: facor=\"1\""
+
+# Folded in from phyphox-ios phyphoxTests/incorrect-files/ (2026-08-29): fixtures only
+# the iOS suite ran, so no rule below was ever asserted on Android. Every one is
+# rejected by both parsers; `rejects` is measured, not assumed - the docs session ran
+# Android's CorpusInvalidRejectTest over the whole legacy set and iOS's runner covers
+# them here. The rest of that set could not follow: see the report with this change.
+
+container-init-empty-entry.phyphox:   # an empty entry in an init list
+  parser: rejects
+  findings:
+    - "<data-containers>/<container> init=\"1,,2\" is not a comma-separated list of numbers"
+container-init-inf-entry.phyphox:   # inf is not a number a container can hold
+  parser: rejects
+  findings:
+    - "<data-containers>/<container> init=\"inf\" is not a comma-separated list of numbers"
+container-init-invalid-entry.phyphox:   # a word in a numeric init list
+  parser: rejects
+  findings:
+    - "<data-containers>/<container> init=\"1, two, 3\" is not a comma-separated list of numbers"
+graph-shadowed-x-input.phyphox:   # two x inputs, one y - the first x is used by nothing
+  parser: rejects
+  findings:
+    - "<views>/<view>/<graph>: x input 1 of 2 is used by no y input (1 y inputs)"
+graph-trailing-x-input.phyphox:   # two x inputs, one y - the second x is used by nothing
+  parser: rejects
+  findings:
+    - "<views>/<view>/<graph>: x input 2 of 2 is used by no y input (1 y inputs)"
+invalid-boolean-value.phyphox:   # yes is not a boolean
+  parser: rejects
+  findings:
+    - "<input>/<sensor> average=\"yes\""
+invalid-enum-value.phyphox:   # a value outside the enumerated set
+  parser: rejects
+  findings:
+    - "<input>/<sensor> rateStrategy=\"bogus\" not in ['auto', 'request', 'generate', 'limit']"
+link-missing-label.phyphox:   # <link> without its required label
+  parser: rejects
+  findings:
+    - "<link>: label"
+link-translation-attribute-at-root.phyphox:   # translation= belongs on a translated link
+  parser: rejects
+  findings:
+    - "<link>: translation=\"Wiki (de)\""
+number-attribute-inf.phyphox:   # inf where a float is required
+  parser: rejects
+  findings:
+    - "<views>/<view>/<value> factor=\"inf\" is not a valid float"
+sensor-missing-type.phyphox:   # <sensor> without its type
+  parser: rejects
+  findings:
+    - "<input>/<sensor>: type"
+slider-invalid-type.phyphox:   # a value outside the enumerated set
+  parser: rejects
+  findings:
+    - "<views>/<view>/<slider> type=\"bogus\" not in ['normal', 'range']"
+translation-missing-locale.phyphox:   # <translation> without its locale
+  parser: rejects
+  findings:
+    - "<translations>/<translation>: locale"
+unknown-container-type.phyphox:   # a value outside the enumerated set
+  parser: rejects
+  findings:
+    - "<data-containers>/<container> type=\"bogus\" not in ['buffer']"
+unknown-output-component.phyphox:   # a component the sensor does not have
+  parser: rejects
+  findings:
+    - "<sensor>/<output component=\"acc\"> not a component of this input (['abs', 'accuracy', 't', 'x', 'y', 'z'])"
+unknown-slot-name.phyphox:   # as= naming a slot the module does not have
+  parser: rejects
+  findings:
+    - "<add>/<input as=\"bogus\"> not a slot of this module (['summand'])"
+unnamed-sensor-output.phyphox:   # <output> without the component it writes
+  parser: rejects
+  findings:
+    - "<sensor>/<output> has no component attribute (one of ['abs', 'accuracy', 't', 'x', 'y', 'z'])"
