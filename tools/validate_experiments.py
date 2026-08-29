@@ -79,6 +79,9 @@ NUMBER_LEX = {
 }
 
 
+COLOR_NAMES = []
+
+
 def load_spec():
     elements, common, slots, components = {}, {}, {}, {}
     for fn in sorted(os.listdir(SPEC)):
@@ -94,6 +97,8 @@ def load_spec():
                 common.setdefault(key, {})
                 for i in items or []:
                     common[key][i["name"]] = i
+        if doc.get("colors"):
+            COLOR_NAMES.extend(c["name"] for c in doc["colors"].get("names") or [])
         for el in doc.get("elements") or []:
             key = (el.get("parent"), el["name"])
             entry = elements.setdefault(key, {"attrs": {}, "children": set(),
@@ -237,6 +242,13 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
         if spec_a is None:
             rep.add("unknown attribute", fname, f"{path}<{node.tag}>: {attr}=\"{value}\"")
             continue
+        if spec_a.get("type") == "color" and value:
+            named = {c.lower() for c in COLOR_NAMES}
+            if not (re.fullmatch(r"#?[0-9a-fA-F]{6}", value)
+                    or value.lower() in named):
+                rep.add("bad color value", fname,
+                        f"{path}<{node.tag}>: {attr}=\"{value}\" is neither "
+                        f"a six-digit hex colour nor a name the spec lists")
         allowed = spec_a.get("values")
         if allowed and value.lower() not in {str(v).lower() for v in allowed}:
             rep.add("bad enum value", fname,
@@ -314,6 +326,65 @@ ROOT_ONCE = ("title", "state-title", "category", "icon", "color",
              "description")
 
 
+def check_file(root, spec, common, slots, components, rep, fname):
+    """Every check, over one parsed file.
+
+    One entry point because there were two call sites - the CLI and the
+    BLE lab's capture check - each with its own copy of the sequence, and
+    a check added to one silently did not exist in the other.
+    """
+    for child in root:
+        check_element(child, "phyphox", spec, common, slots, components,
+                      rep, "", fname)
+    entry = spec.get((None, "phyphox")) or {"attrs": {}}
+    for attr, value in root.attrib.items():
+        if entry["attrs"].get(attr) is None:
+            rep.add("unknown attribute", fname,
+                    f'<phyphox>: {attr}="{value}"')
+    check_slots(root, slots, components, rep, fname)
+    check_root_once(root, rep, fname)
+    check_required_children(root, "phyphox", spec, rep, "", fname)
+    check_unique_children(root, spec, rep, "", fname)
+    check_root_attributes(root, spec, rep, fname)
+    check_translated_links(root, rep, fname)
+
+
+def check_root_attributes(root, spec, rep, fname):
+    """The root's own attributes, which the child walk never sees.
+
+    check_element starts at the root's CHILDREN, so <phyphox> itself was
+    checked for unknown attributes and never for missing required ones -
+    a file with no version attribute passed here while the RELAX NG
+    refused it.
+    """
+    entry = spec.get((None, "phyphox")) or {"attrs": {}}
+    for name, a in (entry.get("attrs") or {}).items():
+        if a.get("required") and root.get(name) is None:
+            rep.add("missing required attribute", fname,
+                    f"<phyphox>: no {name} attribute")
+
+
+def check_translated_links(root, rep, fname):
+    """A translated link with no URL of its own must name a root link.
+
+    spec/root.yml, <link parent="translation">: it is matched by label
+    against the links declared at the root and inherits that link's URL,
+    so an empty one that matches nothing points nowhere. The only rule
+    here that is about a relationship rather than an element, which is
+    why it is written out rather than derived from a field.
+    """
+    labels = {l.get("label") for l in root.findall("link")}
+    for t in root.findall("translations/translation"):
+        for l in t.findall("link"):
+            if (l.text or "").strip():
+                continue
+            if l.get("label") not in labels:
+                rep.add("unmatched translated link", fname,
+                        f"<translation locale=\"{t.get('locale')}\">/<link "
+                        f"label=\"{l.get('label')}\">: no URL of its own and "
+                        f"no link with that label at the root")
+
+
 def check_root_once(root, rep, fname):
     """The root's metadata children may appear at most once (rule
     duplicate-metadata-last-wins in spec/rules.yml): apps tolerate a legacy
@@ -352,6 +423,25 @@ def check_slots(node, slots, components, rep, fname):
                             rep.add("missing required as", fname,
                                     f"<{parent.tag}>/<{kind}> has no as attribute; "
                                     f"every slot requires one ({sorted(bydef)})")
+                        # An unnamed tag cannot be attributed to a slot
+                        # without redoing the apps' positional matching,
+                        # which is why the checks below are keyed on `as`.
+                        # These two do not need to know WHICH slot: if no
+                        # slot of the module takes a literal, no input may
+                        # carry one whichever slot it feeds.
+                        t = child.get("type")
+                        if t == "value" and not any(
+                                d.get("allows_value") for d in defs):
+                            rep.add("type not allowed", fname,
+                                    f"<{parent.tag}>/<{kind} type=\"value\"> "
+                                    f"but no slot of this module allows a "
+                                    f"literal value")
+                        if t == "empty" and not any(
+                                d.get("allows_empty") for d in defs):
+                            rep.add("type not allowed", fname,
+                                    f"<{parent.tag}>/<{kind} type=\"empty\"> "
+                                    f"but no slot of this module allows an "
+                                    f"empty buffer")
                         continue
                     d = bydef.get(as_name)
                     if d is None:
@@ -375,6 +465,20 @@ def check_slots(node, slots, components, rep, fname):
                         rep.add("too many", fname,
                                 f"<{parent.tag}>/<{kind} as=\"{name}\"> appears {seen[name]} "
                                 f"times, maximum {mx}")
+                # Per-slot minimums need to know which slot an unnamed tag
+                # feeds, and that is the apps' positional matching. The
+                # TOTAL does not: a module whose slots demand three tags
+                # between them cannot be satisfied by two, whatever order
+                # they are read in. That is the half worth checking, and it
+                # is what catches a module given one input where two slots
+                # each require one.
+                need = sum(d.get("min") or 0 for d in defs)
+                have = sum(1 for c in parent if c.tag == kind)
+                if have < need:
+                    rep.add("too few", fname,
+                            f"<{parent.tag}> has {have} <{kind}> tag(s), and "
+                            f"its slots require {need} between them "
+                            f"({sorted(bydef)})")
 
         # input module output components
         if skey in components:
@@ -433,17 +537,7 @@ def main():
                     unparsed.append((n, str(e)))
                     continue
                 files += 1
-                for child in root:
-                    check_element(child, "phyphox", spec, common, slots, components,
-                                  rep, "", n)
-                for attr, value in root.attrib.items():
-                    a = spec.get((None, "phyphox"), {"attrs": {}})["attrs"].get(attr)
-                    if a is None:
-                        rep.add("unknown attribute", n, f"<phyphox>: {attr}=\"{value}\"")
-                check_slots(root, slots, components, rep, n)
-                check_root_once(root, rep, n)
-                check_required_children(root, "phyphox", spec, rep, "", n)
-                check_unique_children(root, spec, rep, "", n)
+                check_file(root, spec, common, slots, components, rep, n)
 
     print(f"{files} experiment file(s) validated"
           + (f", {len(unparsed)} unparsable" if unparsed else ""))

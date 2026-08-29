@@ -1246,16 +1246,10 @@ def spec_findings(path):
     rep = ve.Report()
     name = os.path.basename(path)
     root = ve.normalize_namespace(ET.parse(path).getroot())
-    for child in root:
-        ve.check_element(child, "phyphox", spec, common, slots, components,
-                         rep, "", name)
-    for attr, value in root.attrib.items():
-        if spec.get((None, "phyphox"), {"attrs": {}})["attrs"].get(attr) is None:
-            rep.add("unknown attribute", name, f'<phyphox>: {attr}="{value}"')
-    ve.check_slots(root, slots, components, rep, name)
-    ve.check_root_once(root, rep, name)
-    ve.check_required_children(root, "phyphox", spec, rep, "", name)
-    ve.check_unique_children(root, spec, rep, "", name)
+    # One call, so this cannot drift from what the CLI checks - it did
+    # once, and a capture looked clean because this copy of the sequence
+    # was missing two of the checks.
+    ve.check_file(root, spec, common, slots, components, rep, name)
     return [f"{kind}: {where}"
             for kind, entries in rep.items.items()
             for _fn, where in entries][:5]
