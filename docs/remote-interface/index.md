@@ -99,7 +99,7 @@ Array entries are numbers, `null` (writes NaN — the same representation /get u
 
 When requesting "export", you are effectively triggering the export function of phyphox to retrieve all recorded data in a single file. You can specify the format of this file using the index of the available formats. For example /export?format=0 will give an Excel file and /export?format=2 will give a CSV file (at the time of this writing).
 
-A CSV format does not give you a bare `.csv`. This endpoint runs the experiment's own export, which puts [one file per export set](../file-format/index.md#export) into a ZIP (`application/zip`); the Excel format puts one worksheet per set into the `.xlsx`. The single bare CSV some users will have seen comes from the export button of an individual graph, inside the app, and has no equivalent here.
+A CSV format does not give you a bare `.csv`. This endpoint runs the experiment's own export, which puts [one file per export set](../file-format/index.md#block-export) into a ZIP (`application/zip`); the Excel format puts one worksheet per set into the `.xlsx`. The single bare CSV some users will have seen comes from the export button of an individual graph, inside the app, and has no equivalent here.
 
 ### /config
 
