@@ -20,7 +20,15 @@ T3, which need hardware and a person.
   The lab checks what it found and says so in the report, but it will not install anything: a
   suite that quietly built its own subject would not be testing the release.
 - `lab.yml` present on each host (copy `tools/lab/lab.yml.example`), naming that host's devices,
-  its boards, and the release artifacts for the languages check.
+  **its boards and the MicroPython firmware**, and the release artifacts for the languages check.
+  An older `lab.yml` predating the `boards:` entry is the common case, and a release run without it
+  silently has no BLE suite — so the run says so rather than leaving you to notice:
+
+      boards:
+        esp32: /dev/ttyUSB0
+      micropython_firmware: /path/to/ESP32_GENERIC-<version>.bin
+
+  `--board-port esp32=… --micropython-firmware …` still override, for a board that has moved.
 - Phones in developer mode and unlocked. On iOS, the system permission prompts have to be accepted
   by hand once per install — no automation can dismiss them.
 - The bench free: the lab takes an advisory lock (`.bench-lock-<hostname>` in the working root) and

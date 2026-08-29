@@ -499,13 +499,35 @@ def main():
         # is actually configured, languages only when artifacts are named
         # (it skips itself otherwise) - a release run should not fail for
         # want of something this host was never meant to cover.
-        suites = ["sensors", "audio", "experiments"]
+        # NOT `suites`: that name is the imported module, and shadowing it
+        # here made the languages gate call a list.
+        wanted_suites = ["sensors", "audio", "experiments"]
         if args.board_ports:
-            suites.append("ble")
-        args.suites = ",".join(suites)
+            wanted_suites.append("ble")
+        args.suites = ",".join(wanted_suites)
         print(f"== release run on {args.host}: {args.suites}"
               + (" (+ languages)" if host_cfg.get("artifacts") else ""),
               flush=True)
+        # A release run that quietly leaves out a whole suite is the thing
+        # a release run must not do. Both of these are legitimate for a
+        # host that was never meant to cover them - and both are far more
+        # often a lab.yml that predates the entry.
+        if not args.board_ports:
+            print("   !! no boards for this host, so the ble suite is NOT "
+                  "part of this run. Add them to lab.yml:\n"
+                  "        boards:\n"
+                  "          esp32: /dev/ttyUSB0\n"
+                  "        micropython_firmware: /path/to/ESP32_GENERIC-<v>.bin\n"
+                  "      (or pass --board-port, and see tools/lab/lab.yml.example)",
+                  flush=True)
+        elif not args.micropython_firmware:
+            print("   !! a board is configured but no MicroPython firmware, so "
+                  "the MicroPython scenarios will fail as soon as an Arduino "
+                  "upload has overwritten it. Add micropython_firmware to "
+                  "lab.yml.", flush=True)
+        if not host_cfg.get("artifacts"):
+            print("   !! no artifacts for this host, so the languages gate is "
+                  "NOT part of this run - see lab.yml.example.", flush=True)
     os.makedirs(args.out_dir, exist_ok=True)
     wanted = {d for d in args.devices.split(",") if d}
 
@@ -524,10 +546,7 @@ def main():
         return 1
 
     srv = serve_fixtures(args.fixture_port)
-    # The platforms this host actually drove, so a merged report can print
-    # the checklist for what was tested rather than for everything.
-    report = {"host": args.host, "devices": {},
-              "platforms": sorted({e["platform"] for _i, e, _d in devices})}
+    report = {"host": args.host, "devices": {}}
     baseline_rc = 0
     # SUITE-MAJOR order: every device runs the sensors suite before any
     # device starts the next suite, so the first-run dialogs of a suite
@@ -644,6 +663,9 @@ def main():
             dev.cleanup()
         srv.shutdown()
         bench.release()
+    # The platforms this host actually drove, so a merged report can print
+    # the T3 checklist for what was tested rather than for everything.
+    report["platforms"] = sorted({e["platform"] for _i, e, _d in devices})
 
     if args.record_ble_baseline:
         # same reasoning as the manifest below: recording is not a run
