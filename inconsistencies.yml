@@ -91,45 +91,40 @@
     gives identical results on both.
 
 - id: slider-default-never-reaches-buffer
-  title: What a slider's default puts in its buffer
+  title: A slider's starting value never reaches its buffer on Android
   area: file-format
   status: decided
   canonical: >-
-    The format already says it, and the attribute is marked agreed
-    (spec/views.yml, slider/default): "The value with which the associated
-    buffer should start. (Does not work in range slider mode. Use the init
-    property of the data containers instead.)" So a NORMAL slider starts its
-    buffer at default - iOS does this, Android does not - and a RANGE slider
-    writes nothing of its own, its buffers starting from the containers' init
-    or staying empty - Android does this, iOS does not. Each implementation has
-    one half right (maintainer, 2026-08-29).
+    iOS's. What a slider SHOWS is what its buffers hold: a normal slider starts
+    its buffer at default - which the spec states outright and marks agreed
+    (spec/views.yml, slider/default) - and a range slider, whose default
+    attribute has no effect, starts its two buffers at minValue and maxValue
+    unless the containers carry an init. The alternative leaves the handles
+    sitting at a range the experiment does not actually have: the user sees
+    min..max and any analysis reading those buffers gets NaN. A range slider
+    needs some position to show, so min and max are the only sensible answer,
+    and the buffers should say the same thing (maintainer, 2026-08-29).
   affects:
     android: >-
-      Never writes it. In ExpView.java the slider's onMayReadFromBuffers
-      substitutes defaultValue - minValue for the lower end of a range slider -
-      when the buffer holds NaN, but only to position the widget;
-      onMayWriteToBuffers returns immediately unless `triggered`, which is set
-      only by the slider's own user-interaction listeners. The buffer therefore
-      stays empty until somebody moves the slider.
+      Shows the values without writing them. In ExpView.java the slider's
+      onMayReadFromBuffers substitutes defaultValue, or minValue and maxValue in
+      range mode, when the buffers hold NaN - but only to position the widget.
+      onMayWriteToBuffers returns immediately unless `triggered`, and both change
+      listeners set that only `if (fromUser)`, so the fallback the user is
+      looking at never reaches the buffer.
     ios: >-
-      Writes it. ExperimentSliderView.update() puts defaultValue into an empty
-      buffer, and for a range slider minValue and maxValue into the lower and
-      upper buffers. (It does so only while the slider's view is displayed -
-      the other input elements are seeded by the experiment itself, whichever
-      view is on screen, and the slider was deliberately left out of that.)
+      Writes what it shows. ExperimentSliderView.update() puts defaultValue into
+      an empty buffer, and minValue and maxValue into the lower and upper buffers
+      of a range slider.
   verified: >-
     2026-08-29, read from both sources rather than measured on a device. Found
     while checking whether the slider shared the edit element's behaviour after
     the maintainer decided that an input element's default must reach its buffer
-    whichever view is displayed; it does not, and it diverges the other way
-    round.
+    whichever view is displayed.
   summary: >-
-    Every other input element writes its default into its buffer so that
-    analysis has something to work with before the user touches anything. The
-    slider does that on iOS and not on Android, where the default only positions
-    the widget and the buffer stays empty until the slider is moved. An
-    experiment whose analysis reads a slider therefore starts from the default on
-    iOS and from NaN on Android. The format already answers it: a normal slider's
-    default is the value its buffer starts with, and a range slider's handles
-    take their starting values from the containers' init property rather than
-    from the element - so each implementation has one half right.
+    Every other input element writes its default into its buffer so that analysis
+    has something to work with before the user touches anything. A slider does
+    that on iOS and not on Android, where the value only positions the widget. An
+    experiment whose analysis reads a slider therefore starts from the shown value
+    on iOS and from NaN on Android - while both phones display the same thing, so
+    nothing on screen gives the difference away.

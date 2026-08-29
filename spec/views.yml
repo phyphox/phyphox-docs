@@ -1069,6 +1069,13 @@ elements:
           of the data containers instead.)
         type: float
         default: 0.0
+        remark: >-
+          Applied whenever the buffer is empty, as for the other input
+          elements. In RANGE mode this attribute has no effect and the two
+          buffers start from the containers' init property; where that is not
+          given they start at the slider's own min and max, which is what the
+          handles show - a slider displaying a range its buffers do not contain
+          would leave any analysis reading them with no values at all.
         summary: Value the slider starts at.
         agreement: agreed
       - name: precision
