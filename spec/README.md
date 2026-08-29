@@ -176,3 +176,41 @@ divergence.
 `platform` must not become a dumping ground for divergences nobody wants to think about.
 An attribute one parser silently ignores is `divergent`, not `platform`, unless there is a
 reason it *cannot* exist on the other side.
+
+## What the generated validators do not catch yet
+
+Measured 2026-08-29 by running the published RELAX NG and Schematron over the 34 fixtures in
+`phyphox-ios/phyphoxTests/incorrect-files/`, which both parsers reject (Android's verdict was
+measured too: it rejects 33 of the 34). **The validators catch 22.** The twelve they miss are
+listed here because each one is a small, concrete piece of work, and because the fixture that
+proves it already exists.
+
+Most are not generator bugs but **gaps in this spec** - the generator can only emit what is
+modelled, so recording the rule here fixes the published artifacts for free.
+
+| fixture | the rule | what it needs |
+|---|---|---|
+| `experiment1` | a root `<title>` is mandatory | the spec does not mark it required |
+| `experiment2` | a root `<category>` is mandatory | as above |
+| `experiment8` | a graph needs its axis inputs | required slots are modelled but not enforced by the grammar |
+| `missing-required-slot` | a module needs its required input | as above |
+| `value-not-allowed-for-slot` | a slot that takes a buffer rejects `type="value"` | slot component types are modelled but not enforced |
+| `gausssmooth-zero-sigma` | `sigma` must be greater than zero | no minimum is modelled; add one and Schematron can assert it |
+| `link-empty-url-at-root` | a `<link>` needs a non-empty URL | content is unconstrained |
+| `link-duplicate-label` | link labels are unique | a Schematron uniqueness assert, not modelled |
+| `translated-link-duplicate-label` | as above, within a translation | as above |
+| `translated-link-unmatched-without-url` | a translated link without a matching root link needs its own URL | cross-element, Schematron-expressible |
+
+Two are not gaps:
+
+- `bluetooth-address-android-only` is a recorded platform difference - Android accepts it, and it
+  is the one fixture of the 34 that does.
+- `experiment11` omits the root `locale`, which this spec documents as OPTIONAL ("without it they
+  are assumed to be English") and both parsers reject. That is a disagreement between the
+  documentation and the implementations rather than a missing rule, and it wants a decision before
+  anything is generated from it: either the attribute is required and the spec is wrong, or the
+  parsers are stricter than the format and the fixture is testing something that should load.
+
+None of this blocks moving those fixtures into `corpus/invalid` - a file can go in with an empty
+`findings` list and gain one when the validator learns the rule. What the list is for is that the
+validators are published, and something using them today would accept all twelve.
