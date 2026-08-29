@@ -177,65 +177,41 @@ divergence.
 An attribute one parser silently ignores is `divergent`, not `platform`, unless there is a
 reason it *cannot* exist on the other side.
 
-## What the generated validators do not catch yet
+## What the generated validators do not catch, and why
 
-Measured 2026-08-29 by running the published RELAX NG and Schematron over the 34 fixtures in
-`phyphox-ios/phyphoxTests/incorrect-files/`, which both parsers reject (Android's verdict was
-measured too: it rejects 33 of the 34). The validators caught 22; **eight of the twelve misses were modelled the same day** and the
-artifacts now catch 30.
+The iOS test suite used to carry 34 invalid fixtures that only it ran. They are in the shared
+corpus now (2026-08-29), so both apps assert every rule they pin; what follows is the account of
+what the published RELAX NG and Schematron could and could not be taught along the way.
 
-What was added, and how - each is read off the spec, so the rule lives here and the generator
-follows:
+**They cover 56 of the 59 files in `corpus/invalid`.** Eight rules were modelled during the move,
+each read off the spec so the generator follows automatically:
 
 | field | on | catches |
 |---|---|---|
 | `required: base-locale` | `title`, `category` | an experiment with no name for its own language |
 | `content_required: true` | root `link` | a link that points nowhere |
-| `unique_among_siblings: true` | `link/@label`, both at the root and in a translation | two links sharing the key they are matched on |
-| `exclusive_minimum: 0` | `gausssmooth/@sigma`, `audio/@rate` (both the output's and the recording one) | a zero-width gaussian, a negative sample rate |
+| `unique_among_siblings: true` | `link/@label`, root and translation | two links sharing the key they are matched on |
+| `exclusive_minimum: 0` | `gausssmooth/@sigma`, both `audio/@rate`s | a zero-width gaussian, a negative sample rate |
 
-`required: base-locale` is not `required: true`, and the difference was found the way these things
-should be: the strict version failed the build against `light.phyphox` in the shipped collection,
-which carries no root `<title>` at all and takes it from `<translation locale="en">` with no root
-locale set. The rule is therefore "present for the base language, directly or from the translation
-block for that language" - which still rejects the fixture whose only title sits in a `de`
-translation while its base language is English.
+plus one relationship rule written out rather than derived: a translated `<link>` with no URL must
+carry the label of a root link, whose URL it inherits.
 
-One Schematron rule is not derived from a field, because it is about a relationship rather than an
-element: a translated `<link>` with no URL of its own must carry the label of a root link, whose
-URL it then inherits. That is why the root link is `content_required` and the translated one is not.
+`required: base-locale` is not `required: true`, and the build is what said so. The strict version
+failed against `light.phyphox` in the shipped collection, which has no root `<title>` at all and
+takes it from `<translation locale="en">` with no root locale set.
 
-### Still missed - the slot rules
+### The three the grammar cannot reach
 
-Three fixtures remain, and all three need the same thing: resolving which slot an `<input>` feeds,
-which depends on the `as` attribute and, where that is absent, on document order.
+`missing-required-slot`, `subtract-one-input-of-two` and `value-not-allowed-for-slot` are in
+`VALIDATOR_BLIND` - the first entries it has ever had, and exactly the case it was written for. An
+`<input>` without an `as` attribute belongs to whichever slot the apps' positional matching gives
+it, and no grammar can redo that. `validate_experiments.py` catches them by asking the two
+questions that do not need to know which slot: if no slot of the module takes a literal then no
+input may carry one, and slots demanding three tags between them cannot be satisfied by two.
 
-| fixture | the rule |
-|---|---|
-| `missing-required-slot`, `experiment8` | a module needs one input per slot whose `min` is 1 - `subtract` has two, the fixture supplies one |
-| `value-not-allowed-for-slot` | a slot with `allows_value: false` rejects `type="value"` |
+### Where the checks live
 
-The spec models all of it already (`min`, `max`, `allows_value`, `as_required` per slot), and the
-grammar approximates it: `slot_children` requires one `<input>` when any slot demands one, but
-cannot count per slot, which is the documented approximation in `generate_validators.py`. A
-Schematron rule could assert the cheap half without slot resolution - `count(input) >= <sum of
-minimums>` for the module, and `not(input[@type='value'])` where no slot allows a value - and that
-would catch all three. It has not been written yet.
-
-### One that is not a gap
-
-`bluetooth-address-android-only` is the recorded platform difference, and the one fixture of the 34
-that Android accepts. It stays out of the shared corpus, or moves with a row that names one
-platform.
-
-`experiment11` was in this section and should not have been. It omits the root `locale`, which this
-spec documents as optional, and that is what a diff against its neighbour showed - but the file also
-carries `<audio rate="-1">`, and THAT is what both parsers reject. The lesson is the cheap one: a
-diff shows what differs, not what matters. It is now caught by the same `exclusive_minimum` field as
-sigma, and nothing about locale needs changing in either app.
-
-### Note on bounding a rate
-
-`exclusive_minimum` went onto the two AUDIO rates only. The sensor `rate` in `spec/input.yml` looks
-identical and must not be bounded: `0.0` there means "as fast as possible", which is a documented
-value and appears in real experiments.
+Three callers run the spec over a file - the CLI, the docs build, and the BLE lab's capture check -
+and each once carried its own copy of the sequence. A check added to one silently did not exist in
+the others, twice in one afternoon. They all call `validate_experiments.check_file()` now. If a
+fourth appears, it calls that too.
