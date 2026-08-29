@@ -1254,6 +1254,8 @@ def spec_findings(path):
             rep.add("unknown attribute", name, f'<phyphox>: {attr}="{value}"')
     ve.check_slots(root, slots, components, rep, name)
     ve.check_root_once(root, rep, name)
+    ve.check_required_children(root, "phyphox", spec, rep, "", name)
+    ve.check_unique_children(root, spec, rep, "", name)
     return [f"{kind}: {where}"
             for kind, entries in rep.items.items()
             for _fn, where in entries][:5]

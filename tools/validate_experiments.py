@@ -106,6 +106,21 @@ def load_spec():
                 else:
                     entry["attrs"][a["name"]] = a
             entry["children"] |= set(el.get("children") or [])
+            # The element-level constraints the published validators are
+            # generated from. They were read by generate_validators only,
+            # so a file whose sole defect was one of these validated
+            # cleanly here while the RELAX NG and Schematron rejected it -
+            # two consumers of one spec disagreeing, which is the thing
+            # this spec exists to prevent. Found 2026-08-29, when 13
+            # corpus candidates could not be filed because of it.
+            for field in ("required", "content_required"):
+                if el.get(field):
+                    entry[field] = el[field]
+            entry["unique_attrs"] = [a["name"] for a in el.get("attributes") or []
+                                     if a.get("unique_among_siblings")]
+            entry["bounds"] = {a["name"]: a["exclusive_minimum"]
+                               for a in el.get("attributes") or []
+                               if "exclusive_minimum" in a}
             o = el.get("outputs")
             if isinstance(o, dict):
                 entry["children"].add("output")
@@ -125,6 +140,51 @@ class Report:
 
     def add(self, kind, path, detail):
         self.items[kind].append((path, detail))
+
+
+def check_required_children(node, parent_name, spec, rep, path, fname):
+    """What the spec says a parent cannot be without.
+
+    `required: base-locale` is the softer form: the element must exist for
+    the experiment's base language, which a translation block for that
+    language may supply instead - light.phyphox in the shipped collection
+    has no root <title> and takes it from <translation locale="en">.
+    """
+    for (parent, name), entry in spec.items():
+        if parent != parent_name or not entry.get("required"):
+            continue
+        if node.find(name) is not None:
+            continue
+        if entry["required"] == "base-locale":
+            base = node.get("locale") or "en"
+            if any(t.get("locale") == base and t.find(name) is not None
+                   for t in node.findall("translations/translation")):
+                continue
+            rep.add("missing required element", fname,
+                    f"{path}<{parent_name}>: no <{name}> for the base "
+                    f"language ({base})")
+        else:
+            rep.add("missing required element", fname,
+                    f"{path}<{parent_name}>: no <{name}>")
+
+
+def check_unique_children(node, spec, rep, path, fname):
+    """Attributes the spec marks unique among siblings - a link label is
+    the key its translation is matched on, so two links cannot share one.
+    Checked from the parent because ElementTree nodes cannot see upwards.
+    """
+    for child in node:
+        entry = spec.get((node.tag, child.tag))
+        for an in (entry or {}).get("unique_attrs") or []:
+            mine = child.get(an)
+            if mine is None:
+                continue
+            same = [c for c in node
+                    if c.tag == child.tag and c.get(an) == mine]
+            if len(same) > 1 and same[0] is child:
+                rep.add("duplicate attribute value", fname,
+                        f"{path}<{node.tag}>/<{child.tag}>: {an}=\"{mine}\" "
+                        f"appears {len(same)} times among its siblings")
 
 
 def check_element(node, parent_name, spec, common, slots, components, rep, path, fname):
@@ -153,6 +213,21 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
         c = components[ckey]
         if c.get("attribute"):
             known.setdefault(c["attribute"], {"name": c["attribute"]})
+
+    if entry.get("content_required") and not (node.text or "").strip():
+        rep.add("empty element", fname,
+                f"{path}<{node.tag}>: needs a value, and is empty")
+    for an, lo in (entry.get("bounds") or {}).items():
+        raw = node.get(an)
+        if raw is None:
+            continue
+        try:
+            if float(raw) <= lo:
+                rep.add("value out of range", fname,
+                        f"{path}<{node.tag}>: {an}=\"{raw}\" must be "
+                        f"greater than {lo}")
+        except ValueError:
+            pass          # a non-numeric value is the numeric check's business
 
     for attr, value in node.attrib.items():
         spec_a = known.get(attr)
@@ -229,6 +304,7 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
                                 f"{path}<graph>: x input {xpos} of {nx} is "
                                 f"used by no y input ({ny} y inputs)")
 
+    check_unique_children(node, spec, rep, path, fname)
     for child in node:
         check_element(child, node.tag, spec, common, slots, components, rep,
                       f"{path}<{node.tag}>/", fname)
@@ -366,6 +442,8 @@ def main():
                         rep.add("unknown attribute", n, f"<phyphox>: {attr}=\"{value}\"")
                 check_slots(root, slots, components, rep, n)
                 check_root_once(root, rep, n)
+                check_required_children(root, "phyphox", spec, rep, "", n)
+                check_unique_children(root, spec, rep, "", n)
 
     print(f"{files} experiment file(s) validated"
           + (f", {len(unparsed)} unparsable" if unparsed else ""))
