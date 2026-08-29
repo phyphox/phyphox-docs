@@ -471,10 +471,16 @@ paths:
               schema:
                 type: string
                 format: binary
-            text/csv:
+            application/zip:
               schema:
                 type: string
                 format: binary
+              # Formats 1-5 are a zip with one .csv per export set, never a
+              # bare .csv: this endpoint runs the experiment's full export
+              # (Android DataExport.getType(false) -> application/zip, iOS
+              # runExport(singleSet: false)). The bare text/csv form is the
+              # graph view's own export inside the app, which has no
+              # remote-interface path.
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"

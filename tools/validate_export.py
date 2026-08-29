@@ -11,11 +11,13 @@ Formats, by the remote API's fixed index (docs/remote-interface/
 openapi.yaml, /export):
 
     0  Excel .xlsx           one worksheet per set
-    1  CSV comma, point      one .csv per set, zipped when the experiment
-    2  CSV tab, point        has more than one set (a single set may come
-    3  CSV semicolon, point  as a bare .csv)
-    4  CSV tab, comma
-    5  CSV semicolon, comma
+    1  CSV comma, point      a zip with one .csv per set, always - this
+    2  CSV tab, point        endpoint runs the experiment's full export
+    3  CSV semicolon, point  (Android getType(false), iOS singleSet:
+    4  CSV tab, comma        false) and answers application/zip. A BARE
+    5  CSV semicolon, comma  .csv is what the graph view's own export
+                             produces, and it does not come through
+                             /export at all (maintainer, 2026-08-30).
 
 Usage:
     validate_export.py exported.file --phyphox experiment.phyphox \\
@@ -101,7 +103,15 @@ def _xlsx_tables(data):
 
 
 def _csv_tables(data, sep, single_set_name=None):
-    """{name: (headers, row count)} from a zip of CSVs or one bare CSV."""
+    """{name: (headers, row count)} from the zip of CSVs /export returns.
+
+    A bare .csv raises rather than being accepted: /export never produces
+    one, so receiving it means the response came from somewhere else or a
+    single-set export stopped zipping. Taking it silently - which this did
+    until 2026-08-30, on an assumption nobody had measured - validated
+    that one file against the single set it was told to expect and
+    reported a clean export.
+    """
     if data[:4] == b"PK\x03\x04":
         z = zipfile.ZipFile(io.BytesIO(data))
         out = {}
@@ -117,7 +127,10 @@ def _csv_tables(data, sep, single_set_name=None):
             name = name[:-4] if name.lower().endswith(".csv") else name
             out[name] = _one_csv(z.read(entry), sep)
         return out
-    return {single_set_name or "": _one_csv(data, sep)}
+    raise ValueError(
+        "a bare .csv, where this endpoint always returns a zip with one "
+        "file per export set - a bare file is what the graph view's own "
+        "export produces")
 
 
 def _one_csv(data, sep):
