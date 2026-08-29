@@ -651,13 +651,30 @@ precisely because their sensor sets differ.
 
 ## Honesty notes
 
-- The iOS device paths (devicectl launch, pymobiledevice3 forward) were
-  written on the Linux machine and were unverified until 2026-08-28, when
-  the first MacBook run drove a phone (iPhone 14 Pro, iOS 26.6, the ble
-  suite): both worked as written and the driver needed no fixing — what
-  was broken was on the app side, see the ble section. The other iOS
-  suites — sensors, audio, experiments — still have not run on hardware
-  here, so treat their iOS paths as unverified.
+- The iOS device paths were written on the Linux machine and first drove
+  a phone on 2026-08-28 (iPhone 14 Pro, iOS 26.6, the ble suite). The
+  launch and the port forward worked as written; everything around them
+  did not, and the honest count from that bring-up is four driver defects
+  to one app defect:
+
+  - a launch that returned 0 was reported as a connect, so a phone that
+    never loaded an experiment failed later as "no data" (`68b40d1`);
+  - the retry counts were read from the device syslog, which carries
+    nothing the app writes - not even NSLog - so a build reporting
+    perfectly would have read as one that could not (`a85b19c`);
+  - `stop_app` was a no-op, so one phone still held the board while the
+    next scanned for it (`9b76af5`);
+  - the legacy launch path joined its arguments into one string, so a
+    device name with a space arrived as three (`8970afe`).
+
+  Add the macOS-only one behind every MicroPython scenario failing there:
+  opening a serial port asserts DTR and RTS, which on an ESP32 are reset
+  and boot-mode, so mpremote's own open rebooted the board it was talking
+  to (`091316f`).
+
+  The other iOS suites — sensors, audio, experiments — still have not run
+  on hardware here, so treat their iOS paths as unverified, and expect
+  the same ratio.
 - The suites carry the phyphox-test tags in suites.py - one driver
   serves both platforms, so the matrix checker accepts tags from this
   repository for the T2 rows.

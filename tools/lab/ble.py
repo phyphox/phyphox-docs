@@ -29,19 +29,24 @@ orchestration (run_suite below) instead of going through run.py's
 per-device dispatch: a flash takes a minute and must be amortised across
 every phone in the scenario's scope, not repeated per phone.
 
-Status (2026-08-28, ESP32-D0WDQ6): the whole chain runs unattended on
-Android - flash, transfer, load, hold, measure, release - and all ten
-scenarios have been measured on the Pixel 3. Baselines are recorded
-against 1.2.0.
+Status (2026-08-29): the whole chain runs unattended on both platforms -
+flash, transfer, load, hold, measure, release - across three Android
+phones on one ESP32 and three iOS devices on another, the two hosts at
+the same time. Baselines are recorded against 1.2.0.
 
-The two old phones run it too since the Android session fixed the connect
-test below API 28, but the first three-phone pass was NOT green: eight
-scenarios failed at connect across the Nexus 5X and the Galaxy A3 (and
-one on the Pixel 3), and the one case whose log survived was the 90 s
-experiment-transfer timeout the README describes. Whether that is the
-old stacks, the single board serving three centrals in turn, or the app
-is unknown - the reporting that would have said was only fixed
-afterwards. Do not read a green Pixel 3 as a green suite.
+What it is worth knowing about a run: most of what this suite reported
+over its first two days was not the app. A phone that had been driven all
+day and stopped completing BLE connections until it was rebooted. A board
+that died. A MicroPython example that starves its own scheduler (disabled,
+see scenarios.yml). A comparison that tested a race rather than a release.
+And defects in this file outnumbering the ones in either app, on both
+bring-ups. Two findings were real and are fixed: an experiment transfer
+discarded after arriving in full, and connections refused often enough to
+matter.
+
+So read a red run as a question rather than a verdict, and on a green one
+read the retry counts - the apps retry internally now, and that is where a
+board, a library or an app getting worse shows up first.
 
 The bench is one board as of that date: the Nano 33 BLE stopped accepting
 uploads from anything and was retired, and the maintainer scoped this
@@ -53,12 +58,19 @@ distractor. That used to be said in every report and is not any more
 (maintainer, 2026-08-28): a standing property of a one-board bench is not
 news once, let alone once per phone per run.
 
-The iOS half has never touched hardware. Its connect path
-(-phyphoxBleConnect) is implemented in the app and unit-tested there, but
-the branch below that drives it was written blind, exactly as the Android
-branch was before its bring-up found four defects in this file. Expect
-the same. Note also that this suite cannot be split across hosts: the
-boards travel to whichever machine drives the phones (tools/lab/README).
+The iOS half was brought up on 2026-08-28/29 against an iPhone 14 Pro, an
+iPhone 8 and an iPad Pro on a second ESP32, and it cost what the Android
+bring-up cost: four defects in this file (a launch reported as a connect,
+a duplicated devicectl call missing the fallback for phones devicectl
+cannot reach, a syslog capture that read nothing, and a legacy launch
+path whose arguments were not quoted), against one in the app. That ratio
+is the thing to expect from the next platform, not a number to be proud
+of.
+
+Note this suite cannot be split across hosts: the boards travel to
+whichever machine drives the phones (tools/lab/README), so running both
+platforms at once needs a board on each - which is what the bench tags on
+advertised names are for.
 """
 
 import contextlib
