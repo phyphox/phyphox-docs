@@ -157,6 +157,10 @@
     - bluetooth@subscribeOnStart
     - edit@decimal
     - slider@default
+- file: valid/ble-libraries/arduino-getSystemAndEventTime-nano33ble.phyphox
+  version: "1.15"
+  adds:
+    - bluetooth@subscribeOnStart
 - file: valid/ble-libraries/micropython-getDataFromSmartphone.phyphox
   version: "1.10"
   adds:

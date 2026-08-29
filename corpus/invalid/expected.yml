@@ -119,3 +119,52 @@ graph-unused-x.phyphox:              # x inputs no y input uses (decided 2026-08
   findings:
     - '<graph>: x input 2 of 2 is used by no y input'
     - '<graph>: x input 1 of 2 is used by no y input'
+
+# Captured from the phyphox-arduino and phyphox-micropython libraries by the
+# BLE lab (tools/lab/ble.py --capture-ble-xml), byte for byte as a board
+# served them. They are here rather than in valid/ because the libraries
+# emit three attribute names the format does not have - facor for factor,
+# setColor for color, linewidth for lineWidth - so the apps drop them
+# silently and a sketch asking for a colour or a line width gets neither.
+#
+# They stay here until long AFTER the current libraries are replaced
+# (maintainer, 2026-08-29): boards running this code will be in the field
+# for years, the apps have to keep loading what they serve, and these files
+# are how we find out if that ever stops being true. Do not re-capture them
+# against a fixed library - capture the fixed output as new fixtures in
+# valid/ and leave these where they are.
+
+ble-lib-arduino-CreateExperiment.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<separator>: setColor=\"404040\""
+    - "<views>/<view>/<value>: facor=\"1\""
+ble-lib-arduino-connectionParameter.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<value>: facor=\"1\""
+ble-lib-arduino-getSensorDataFromSmartphone-nano33ble.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<value>: facor=\"1\""
+ble-lib-arduino-getSensorDataFromSmartphone.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<value>: facor=\"1\""
+ble-lib-arduino-getSystemAndEventTime.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<value>: facor=\"1\""
+ble-lib-arduino-multigraph.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<graph>/<input>: linewidth=\"2.00\""
+    - "<views>/<view>/<graph>/<input>: linewidth=\"1.00\""
+ble-lib-arduino-randomNumbers.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<value>: facor=\"1\""
+ble-lib-micropython-createExperiment.phyphox:
+  parser: accepts
+  findings:
+    - "<views>/<view>/<value>: facor=\"1\""
