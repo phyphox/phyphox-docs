@@ -243,3 +243,79 @@ unnamed-sensor-output.phyphox:   # <output> without the component it writes
   parser: rejects
   findings:
     - "<sensor>/<output> has no component attribute (one of ['abs', 'accuracy', 't', 'x', 'y', 'z'])"
+
+# The rest of the phyphox-ios incorrect-files set (2026-08-29), filable once
+# validate_experiments learned the four spec fields the published validators were
+# already generated from, plus four checks neither had. The numbered files are one
+# family: each carries the defect it was written for AND the template's own <subtract>
+# with a single input, which is why several share that finding.
+
+audio-input-negative-rate.phyphox:   # audio input rate=-1
+  parser: rejects
+  findings:
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+    - "<input>/<audio>: rate=\"-1\" must be greater than 0"
+buffer-name-mismatch.phyphox:   # container named buf, everything reads buffer
+  parser: rejects
+  findings:
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+buffer-referenced-but-not-declared.phyphox:   # <data-containers> empty, buffer referenced
+  parser: rejects
+  findings:
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+category-missing-for-base-locale.phyphox:   # no <category>, and a negative audio output rate
+  parser: rejects
+  findings:
+    - "<phyphox>: no <category> for the base language (en)"
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+    - "<output>/<audio>: rate=\"-1\" must be greater than 0"
+data-containers-missing.phyphox:   # no <data-containers> at all
+  parser: rejects
+  findings:
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+gausssmooth-zero-sigma.phyphox:   # sigma=0
+  parser: rejects
+  findings:
+    - "<analysis>/<gausssmooth>: sigma=\"0\" must be greater than 0"
+invalid-color-value.phyphox:   # a colour that is neither hex nor a named one
+  parser: rejects
+  findings:
+    - "<views>/<view>/<value>: color=\"bogus\" is neither a six-digit hex colour nor a name the spec lists"
+link-duplicate-label.phyphox:   # two root links with one label
+  parser: rejects
+  findings:
+    - "<phyphox>/<link>: label=\"Wiki\" appears 2 times among its siblings"
+link-empty-url-at-root.phyphox:   # <link> with no URL
+  parser: rejects
+  findings:
+    - "<link>: needs a value, and is empty"
+missing-required-slot.phyphox:   # <subtract> given one input where two are required
+  parser: rejects
+  findings:
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+root-version-missing.phyphox:   # <phyphox> without version
+  parser: rejects
+  findings:
+    - "<phyphox>: no version attribute"
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+subtract-one-input-of-two.phyphox:   # the family's template defect alone - same rule as missing-required-slot, from a fuller file
+  parser: rejects
+  findings:
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+title-missing-for-base-locale.phyphox:   # no <title> for the base language
+  parser: rejects
+  findings:
+    - "<phyphox>: no <title> for the base language (en)"
+    - "<subtract> has 1 <input> tag(s), and its slots require 2 between them (['minuend', 'subtrahend'])"
+translated-link-duplicate-label.phyphox:   # two translated links with one label
+  parser: rejects
+  findings:
+    - "<translations>/<translation>/<link>: label=\"Wiki\" appears 2 times among its siblings"
+translated-link-unmatched-without-url.phyphox:   # a translated link with no URL naming no root link
+  parser: rejects
+  findings:
+    - "<translation locale=\"de\">/<link label=\"Wkii\">: no URL of its own and no link with that label at the root"
+value-not-allowed-for-slot.phyphox:   # type="value" where no slot of the module takes a literal
+  parser: rejects
+  findings:
+    - "<average>/<input type=\"value\"> but no slot of this module allows a literal value"

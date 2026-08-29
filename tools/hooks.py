@@ -487,15 +487,14 @@ def _check_corpus():
         root = ve.normalize_namespace(
             ET.parse(os.path.join(invalid, n)).getroot())
         rep = ve.Report()
-        for child in root:
-            ve.check_element(child, "phyphox", spec, common, slots, components,
-                             rep, "phyphox", n)
-        # the slot/component pass is separate from the element walk in
-        # validate_experiments.main - without it, an expected finding like an
-        # unknown camera component can never be matched here (gap found
-        # 2026-08-24 when exactly that expectation failed)
-        ve.check_slots(root, slots, components, rep, n)
-        ve.check_root_once(root, rep, n)
+        # THE entry point, not a third copy of the sequence. This was the copy
+        # that motivated check_file and then did not use it: the checks added
+        # on 2026-08-29 (root attributes, translated links, unique children)
+        # existed for the CLI and the lab and not for this build, so two
+        # fixtures whose only defect those checks see - link-duplicate-label
+        # and translated-link-unmatched-without-url - still looked clean here
+        # and could not enter the corpus.
+        ve.check_file(root, spec, common, slots, components, rep, n)
         details = [f"{kind}: {d}" for kind, lst in rep.items.items()
                    for _, d in lst]
         if not details:
@@ -511,10 +510,21 @@ def _check_corpus():
                          + "\n".join(f"  {p}" for p in problems))
 
 
-# Invalid fixtures whose defect only validate_experiments can see (none at
-# the moment). A file listed here is excused from the "every invalid fixture
-# must fail the published validators" assertion below.
-VALIDATOR_BLIND = set()
+# Invalid fixtures whose defect only validate_experiments can see. A file
+# listed here is excused from the "every invalid fixture must fail the
+# published validators" assertion below.
+#
+# All three are the same rule from two angles: how many <input> tags an
+# analysis module needs between its slots, and whether any of them may carry
+# a literal. generate_validators leaves per-slot minimums "to the apps and
+# validate_experiments" - a grammar cannot attribute an unnamed tag to a
+# slot without redoing the apps' positional matching - so the published
+# RELAX NG and Schematron pass these files and validate_experiments does not.
+VALIDATOR_BLIND = {
+    "missing-required-slot.phyphox",
+    "subtract-one-input-of-two.phyphox",
+    "value-not-allowed-for-slot.phyphox",
+}
 
 
 def _check_validators():
