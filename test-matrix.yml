@@ -384,3 +384,102 @@ tests:
       only board that library supports): all three of its examples, with
       randomNumbers and getDataFromSmartphone on every phone and
       createExperiment on the newest of each platform.
+
+  # ---------------------------------------------------------------- T3 --
+  # The human checklist, run once per platform at release. These rows carry
+  # `manual: true`: there is no code to tag, so the checker never asks for
+  # one, and tools/lab/run.py --merge appends them to the release report as
+  # a checklist. They are here rather than in a document of their own for
+  # the same reason everything else is: one list, checked mechanically, so
+  # a step cannot quietly disappear.
+  #
+  # The budget is 30 minutes per platform. Anything that grows past that
+  # belongs in T2 as automation, not here as more reading.
+
+  - id: gps-real-fix
+    area: sensors
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      Outdoors, with a real satellite fix: the GPS experiment shows a
+      position, an accuracy and a satellite count that settle within a
+      minute or two, and the map view follows a short walk. T2 covers only
+      the indoor no-fix path, which is a different code path and proves
+      nothing about a working fix.
+
+  - id: qr-scan-printed
+    area: transfer
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      Scan an experiment from a QR code on paper and on a second screen,
+      using the app's own scanner. Covers the camera path, the partial-zip
+      decoding and the size limits that a URL opened from the shell does
+      not. One compressed experiment and one link is enough.
+
+  - id: audio-call-interruption
+    area: audio
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      Start an audio experiment, take an incoming call, end it: the app
+      neither crashes nor keeps a dead audio session, and the experiment
+      resumes or stops cleanly with a message. The interruption is a system
+      event no simulator reproduces faithfully.
+
+  - id: ble-third-party-device
+    area: hardware
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      Connect to a Bluetooth device nobody wrote for this test - a heart
+      rate strap, a thermometer, whatever is in the room - and confirm the
+      scan lists it, an experiment for it loads, and disconnecting is
+      graceful. The lab's boards all speak the phyphox protocol correctly
+      by construction; this is the only step where the app meets hardware
+      that does not.
+
+  - id: accessibility-spot-check
+    area: ui
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      With TalkBack or VoiceOver on, reach an experiment from the
+      collection, start and stop it, and read one value. Not an audit - a
+      spot check that the main path is operable, which is how the invisible
+      add-experiment menu was found in 2026-08.
+
+  - id: store-screenshots
+    area: release
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      Look at the screenshots the fastlane lanes produced before they go to
+      the store: right locale, right device frame, no debug build, nothing
+      cut off. The lanes are release tooling rather than tests and stay
+      outside the suite; what is checked here is their output.
+
+  - id: permissions-fresh-os
+    area: ui
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    description: >-
+      On a factory-fresh install, walk the permission dialogs - location,
+      microphone, camera, Bluetooth - and confirm each is asked for at the
+      right moment with a comprehensible reason, and that declining leaves
+      the app usable. Once per major OS release rather than every release:
+      the wording and the timing are the OS's, and they change with it.

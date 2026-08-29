@@ -85,6 +85,13 @@ def load_matrix():
                             f"{sorted(STATUSES)}")
         if "host_driven" in row and not isinstance(row["host_driven"], bool):
             problems.append(f"{where}: host_driven must be true or false")
+        if "manual" in row and not isinstance(row["manual"], bool):
+            problems.append(f"{where}: manual must be true or false")
+        if row.get("manual") and row.get("tier") != "T3":
+            # The point of the flag is the release checklist, and the point
+            # of a tier is what runs when. A manual row outside T3 would be
+            # a test nobody runs and nobody is reminded to run.
+            problems.append(f"{where}: manual rows belong in T3")
         for field in ("area", "description"):
             if not row.get(field):
                 problems.append(f"{where}: missing {field}")
@@ -123,6 +130,11 @@ def check(verbose=True):
             continue
         found[platform] = scan_tags(repo)
     host_driven = {r.get("id") for r in rows if r.get("host_driven")}
+    # A manual row has nothing to tag: it is a step a person carries out at
+    # release. It is in this file so that it is listed, versioned and
+    # reviewed like every other test, and so the release report can print
+    # it - not so the checker can look for code that does not exist.
+    manual = {r.get("id") for r in rows if r.get("manual")}
     if found and os.path.isdir(SHARED_TOOLS):
         shared = scan_tags(SHARED_TOOLS)
         for platform in found:
@@ -142,6 +154,8 @@ def check(verbose=True):
     ready = []
     for row in rows:
         rid = row.get("id")
+        if rid in manual:
+            continue          # nothing to tag; see the note above
         for platform in row.get("platforms") or []:
             if platform not in found:
                 continue  # checkout absent - skipped silently

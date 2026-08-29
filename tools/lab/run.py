@@ -106,6 +106,42 @@ def _resolve_artifact(path, config_path):
     return os.path.normpath(os.path.join(bases[0], path))
 
 
+def _t3_checklist(platforms):
+    """The human checklist, generated from test-matrix.yml rather than
+    written out here.
+
+    The automated tiers stop at what a machine can reach: no runner takes
+    a phone outdoors for a satellite fix, holds a printed QR code in front
+    of a camera, or rings it mid-experiment. Those steps are rows like any
+    other - listed, versioned and reviewed - and this puts them at the end
+    of the report a person is already reading to decide whether to ship,
+    which is the only moment they will be done.
+    """
+    matrix = os.path.normpath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "..",
+        "test-matrix.yml"))
+    try:
+        import yaml
+        with open(matrix, encoding="utf-8") as f:
+            rows = (yaml.safe_load(f) or {}).get("tests") or []
+    except Exception as e:
+        return [f"_(could not read the T3 checklist from test-matrix.yml: "
+                f"{e})_"]
+    todo = [r for r in rows
+            if r.get("manual") and r.get("status") == "active"
+            and (not platforms or set(r.get("platforms") or []) & platforms)]
+    if not todo:
+        return []
+    out = ["", "## T3 - by hand, once per platform", "",
+           "Budget 30 minutes each. Nothing below is covered by anything "
+           "above it.", ""]
+    for row in todo:
+        who = "/".join(sorted(row.get("platforms") or []))
+        text = " ".join((row.get("description") or "").split())
+        out.append(f"- [ ] **{row['id']}** ({who}) - {text}")
+    return out
+
+
 def _summarize(merged):
     """The merged run as something a human reads: one line per device and
     suite, findings and warnings underneath, the language gate last. The
@@ -173,6 +209,9 @@ def _summarize(merged):
                  f"its plausibility window (bench conditions, calibration) "
                  f"or a language difference in an artifact that is not a "
                  f"release candidate - see tools/lab/README.md.")
+    seen = {p for data in (merged.get("hosts") or {}).values()
+            for p in (data.get("platforms") or [])}
+    lines += _t3_checklist(seen)
     return "\n".join(lines) + "\n"
 
 
@@ -402,6 +441,11 @@ def main():
                          "count is in the report; flash failures, duplicate "
                          "advertisers and missing tools are never retried")
     ap.add_argument("--out", dest="out_dir", default="lab-results")
+    ap.add_argument("--release", action="store_true",
+                    help="run everything this host can: every suite it has "
+                         "the hardware for, boards and firmware taken from "
+                         "lab.yml. What is left afterwards - the other host, "
+                         "the merge, the T3 checklist - is printed at the end")
     ap.add_argument("--record-manifest", metavar="DEVICE_ID")
     ap.add_argument("--merge", metavar="DIR")
     args = ap.parse_args()
@@ -442,6 +486,26 @@ def main():
     if not args.host or args.host not in (cfg.get("hosts") or {}):
         sys.exit("give --host, one of: " + ", ".join(cfg.get("hosts") or {}))
     host_cfg = cfg["hosts"][args.host]
+    # Boards belong in lab.yml with the rest of the host's hardware. They
+    # were command-line only, which meant a release run had to remember a
+    # serial port and a firmware path - exactly the kind of thing that is
+    # got wrong at the end of a long day.
+    for key, dest in (("boards", "board_ports"),
+                      ("micropython_firmware", "micropython_firmware")):
+        if host_cfg.get(key) and not getattr(args, dest):
+            setattr(args, dest, host_cfg[key])
+    if args.release:
+        # Everything the host has the hardware for. ble only when a board
+        # is actually configured, languages only when artifacts are named
+        # (it skips itself otherwise) - a release run should not fail for
+        # want of something this host was never meant to cover.
+        suites = ["sensors", "audio", "experiments"]
+        if args.board_ports:
+            suites.append("ble")
+        args.suites = ",".join(suites)
+        print(f"== release run on {args.host}: {args.suites}"
+              + (" (+ languages)" if host_cfg.get("artifacts") else ""),
+              flush=True)
     os.makedirs(args.out_dir, exist_ok=True)
     wanted = {d for d in args.devices.split(",") if d}
 
@@ -460,7 +524,10 @@ def main():
         return 1
 
     srv = serve_fixtures(args.fixture_port)
-    report = {"host": args.host, "devices": {}}
+    # The platforms this host actually drove, so a merged report can print
+    # the checklist for what was tested rather than for everything.
+    report = {"host": args.host, "devices": {},
+              "platforms": sorted({e["platform"] for _i, e, _d in devices})}
     baseline_rc = 0
     # SUITE-MAJOR order: every device runs the sensors suite before any
     # device starts the next suite, so the first-run dialogs of a suite
@@ -605,6 +672,19 @@ def main():
               f" - check --suites")
         bad += len(empty)
     print(f"\n{bad} failing suite(s) -> {out}")
+    if args.release:
+        # A release is not finished when this host is: the other host has
+        # to run, the reports have to be merged, and the merge is what
+        # prints the checklist a person still has to work through. Said
+        # here because this is where somebody stops reading.
+        others = [h for h in (cfg.get("hosts") or {}) if h != args.host]
+        print("\nStill to do for this release:")
+        if others:
+            print(f"  - the same on {', '.join(sorted(others))}, writing "
+                  f"into the same --out directory")
+        print(f"  - python3 tools/lab/run.py --merge {args.out_dir}"
+              f"   (merged.md carries the T3 checklist)")
+        print("  - the T3 steps by hand, once per platform")
     return 1 if bad else 0
 
 

@@ -36,6 +36,16 @@ hosts:
   linuxbox:           # the split: Android (+ boards, phase 6) here,
     artifacts:        # iOS stays with the MacBook
       android: /path/to/phyphox-release.apk   # the SDK lives here
+    # The bench boards, for the ble suite. Given here rather than on the
+    # command line so that `run.py --host linuxbox --release` needs
+    # nothing else: a release run should not depend on remembering a
+    # serial port. --board-port still overrides, for a board that has
+    # moved.
+    boards:
+      esp32: /dev/ttyUSB0
+    # Put back whenever an Arduino upload has overwritten MicroPython on
+    # the shared board; the suite reflashes only when it has to.
+    micropython_firmware: /path/to/ESP32_GENERIC-<version>.bin
     devices:
       pixel-9-pro:   {platform: android, serial: "SERIAL", port: 8091, newest: true}
       pixel-3:       {platform: android, serial: "SERIAL", port: 8092}

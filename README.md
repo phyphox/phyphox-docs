@@ -10,6 +10,13 @@ static HTML.
 It replaces the technical parts of the MediaWiki at phyphox.org/wiki. The wiki
 remains in use for community content — see [Scope](#scope).
 
+## Testing a release
+
+[`RELEASE.md`](RELEASE.md) is the procedure: which tier runs when, the one command per host that
+runs the device lab, how to read the report, and the by-hand checklist that ends it.
+[`test-matrix.yml`](test-matrix.yml) is the list of tests it runs — one row per test, tagged in
+both app repositories and checked mechanically, so the two platforms cannot drift apart quietly.
+
 ## Building locally
 
 ```bash
