@@ -181,8 +181,8 @@ reason it *cannot* exist on the other side.
 
 Measured 2026-08-29 by running the published RELAX NG and Schematron over the 34 fixtures in
 `phyphox-ios/phyphoxTests/incorrect-files/`, which both parsers reject (Android's verdict was
-measured too: it rejects 33 of the 34). The validators caught 22; **seven of the twelve misses
-were modelled the same day** and the artifacts now catch 29.
+measured too: it rejects 33 of the 34). The validators caught 22; **eight of the twelve misses were modelled the same day** and the
+artifacts now catch 30.
 
 What was added, and how - each is read off the spec, so the rule lives here and the generator
 follows:
@@ -192,7 +192,7 @@ follows:
 | `required: base-locale` | `title`, `category` | an experiment with no name for its own language |
 | `content_required: true` | root `link` | a link that points nowhere |
 | `unique_among_siblings: true` | `link/@label`, both at the root and in a translation | two links sharing the key they are matched on |
-| `exclusive_minimum: 0` | `gausssmooth/@sigma` | a zero-width gaussian |
+| `exclusive_minimum: 0` | `gausssmooth/@sigma`, `audio/@rate` (both the output's and the recording one) | a zero-width gaussian, a negative sample rate |
 
 `required: base-locale` is not `required: true`, and the difference was found the way these things
 should be: the strict version failed the build against `light.phyphox` in the shipped collection,
@@ -222,14 +222,20 @@ Schematron rule could assert the cheap half without slot resolution - `count(inp
 minimums>` for the module, and `not(input[@type='value'])` where no slot allows a value - and that
 would catch all three. It has not been written yet.
 
-### Two that are not gaps
+### One that is not a gap
 
-Confirmed by the maintainer, 2026-08-29: both files SHOULD load, and the validators are right to
-pass them.
+`bluetooth-address-android-only` is the recorded platform difference, and the one fixture of the 34
+that Android accepts. It stays out of the shared corpus, or moves with a row that names one
+platform.
 
-- `bluetooth-address-android-only` is the recorded platform difference, and the one fixture of the
-  34 that Android accepts.
-- `experiment11` omits the root `locale`, which this spec documents as optional. Both parsers
-  reject it, so that is the implementations being stricter than the format - a divergence from the
-  documented behaviour rather than a missing rule, and one for the apps to fix rather than the
-  validators to copy.
+`experiment11` was in this section and should not have been. It omits the root `locale`, which this
+spec documents as optional, and that is what a diff against its neighbour showed - but the file also
+carries `<audio rate="-1">`, and THAT is what both parsers reject. The lesson is the cheap one: a
+diff shows what differs, not what matters. It is now caught by the same `exclusive_minimum` field as
+sigma, and nothing about locale needs changing in either app.
+
+### Note on bounding a rate
+
+`exclusive_minimum` went onto the two AUDIO rates only. The sensor `rate` in `spec/input.yml` looks
+identical and must not be bounded: `0.0` there means "as fast as possible", which is a documented
+value and appears in real experiments.

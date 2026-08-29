@@ -41,6 +41,7 @@ elements:
       - name: rate
         type: integer
         default: 48000
+        exclusive_minimum: 0    # a sample rate of zero or less is not a rate
         unit: Hz
         summary: Sample rate of the generated signal.
         agreement: agreed

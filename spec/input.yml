@@ -399,6 +399,7 @@ elements:
           to be clear about the platform behavior.
         type: integer
         default: 48000
+        exclusive_minimum: 0    # a recording rate of zero or less is not a rate
         unit: Hz
         summary: Sampling rate.
         agreement: agreed
