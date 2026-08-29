@@ -391,7 +391,7 @@ def main():
     ap.add_argument("--serial-window", type=float, default=8.0,
                     help="ble suite: seconds of board serial output to read "
                          "for the phone-to-board scenarios")
-    ap.add_argument("--suites", default="sensors,audio,experiments",
+    ap.add_argument("--suites", default=None,
                     help="languages runs only when the host entry names "
                          "artifacts; ble needs --board-port and is not in "
                          "the default set because it wants the bench")
@@ -462,7 +462,36 @@ def main():
                     and fn != "merged.json"):
                 with open(os.path.join(args.merge, fn)) as f:
                     host = json.load(f)
-                merged["hosts"][fn[:-5]] = host
+                # Keyed on the host the file RECORDS, not on its name: one
+                # host may write several files (a release build for most
+                # suites, a debug build for ble), and they belong in one
+                # section. Older files named <host>.json merge the same
+                # way.
+                name = host.get("host") or fn[:-5]
+                into = merged["hosts"].setdefault(
+                    name, {"host": name, "devices": {}})
+                for key, value in host.items():
+                    if key in ("host", "devices"):
+                        continue
+                    if key == "languages":
+                        into.setdefault("languages", {}).update(value or {})
+                    elif key == "platforms":
+                        into["platforms"] = sorted(
+                            set(into.get("platforms") or []) | set(value or []))
+                    else:
+                        into[key] = value
+                for dev_id, suites_ran in (host.get("devices") or {}).items():
+                    target = into["devices"].setdefault(dev_id, {})
+                    for suite, result in (suites_ran or {}).items():
+                        if suite in target:
+                            # Two files claiming the same suite on the same
+                            # device: say so rather than silently keeping
+                            # one, because which is current cannot be known
+                            # from here.
+                            print(f"!! {name}/{dev_id}: {suite} appears in "
+                                  f"more than one report; keeping the later "
+                                  f"file ({fn})")
+                        target[suite] = result
                 for dev in host.get("devices", {}).values():
                     if not dev:
                         failures += 1      # recorded nothing: not a pass
@@ -494,7 +523,15 @@ def main():
                       ("micropython_firmware", "micropython_firmware")):
         if host_cfg.get(key) and not getattr(args, dest):
             setattr(args, dest, host_cfg[key])
-    if args.release:
+    if args.release and args.suites:
+        # An explicit list wins: the flag exists to save typing the usual
+        # set and to print what is still outstanding, not to overrule a
+        # deliberate choice. Running the release build without ble - it
+        # needs the instrumentation APK, which a store-signed build cannot
+        # host - is exactly that choice.
+        print(f"== release run on {args.host}: {args.suites} (as given)",
+              flush=True)
+    elif args.release:
         # Everything the host has the hardware for. ble only when a board
         # is actually configured, languages only when artifacts are named
         # (it skips itself otherwise) - a release run should not fail for
@@ -528,6 +565,8 @@ def main():
         if not host_cfg.get("artifacts"):
             print("   !! no artifacts for this host, so the languages gate is "
                   "NOT part of this run - see lab.yml.example.", flush=True)
+    if args.suites is None:
+        args.suites = "sensors,audio,experiments"
     os.makedirs(args.out_dir, exist_ok=True)
     wanted = {d for d in args.devices.split(",") if d}
 
@@ -676,7 +715,15 @@ def main():
         # of empty device entries only invites reading it as a green run
         print("manifest recorded; no run report written")
         return 0
-    out = os.path.join(args.out_dir, f"{args.host}.json")
+    # The suites are in the NAME so that two runs of one host do not
+    # overwrite each other - the release build cannot carry the ble suite
+    # (it needs the instrumentation APK, which a store-signed build cannot
+    # host), so running that suite separately against a debug build is a
+    # normal thing to do rather than a special case. The merge keys on the
+    # host recorded INSIDE the file, so the two land in one section.
+    out = os.path.join(
+        args.out_dir,
+        f"{args.host}-{'+'.join(s for s in args.suites.split(',') if s)}.json")
     with open(out, "w") as f:
         json.dump(report, f, indent=1)
     bad = sum(1 for d in report["devices"].values()

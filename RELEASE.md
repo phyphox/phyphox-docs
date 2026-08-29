@@ -36,14 +36,18 @@ T3, which need hardware and a person.
 
 ## T2 — the device lab
 
-**Empty the results directory first.** The merge folds in every `<host>.json` it finds there, and
-it has no way to tell one release's results from the last one's — a stale `macbook.json` is merged
-in silence and reported as part of this run. That is the worst failure mode this report has: green,
-and partly about a build that is no longer the candidate.
+**Empty the results directory first.** The merge folds in every report it finds there, and it has
+no way to tell one release's results from the last one's — a stale file is merged in silence and
+reported as part of this run. That is the worst failure mode this report has: green, and partly
+about a build that is no longer the candidate.
 
 ```bash
 rm -rf lab-results        # or use a fresh directory per release
 ```
+
+A report is named `<host>-<suites>.json`, and the merge keys on the host recorded inside it, so
+several runs of one host land in one section rather than overwriting each other. If two of them
+claim the same suite on the same device, the merge says so instead of quietly picking one.
 
 Then one command per host. Boards and firmware come from `lab.yml`, so this is the whole
 invocation:
@@ -52,6 +56,28 @@ invocation:
 python3 tools/lab/run.py --config lab.yml --host linuxbox --release --out lab-results
 python3 tools/lab/run.py --config lab.yml --host macbook  --release --out lab-results
 ```
+
+### Running the BLE suite separately
+
+The BLE suite needs the instrumentation APK, which a store-signed build cannot host, so a release
+candidate usually runs everything else and takes BLE separately against a build you signed
+yourself. Give the suites explicitly and they win — `--release` only fills the list in when you did
+not:
+
+```bash
+# the release candidate, everything except BLE (the languages gate still runs:
+# it is driven by the host's artifacts entry, not by --suites)
+python3 tools/lab/run.py --config lab.yml --host linuxbox \
+    --suites sensors,audio,experiments --release --out lab-results
+
+# then, with the debug build and its androidTest APK installed
+python3 tools/lab/run.py --config lab.yml --host linuxbox \
+    --suites ble --release --out lab-results
+```
+
+Both write into the same directory — `linuxbox-sensors+audio+experiments.json` and
+`linuxbox-ble.json` — and the merge combines them into one `linuxbox` section. Note the report
+records what was installed at the time, so the two halves honestly show the two builds.
 
 ### Narrowing a run
 
