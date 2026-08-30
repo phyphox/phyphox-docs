@@ -84,7 +84,7 @@ Currently, there are four commands available:
 
 ### /set
 
-**Not yet in a released app version (added to the development branches 2026-08).**
+**Available since [version 1.2.1](../reference/version-history/1.2.1.md)**
 
 "set" is the bulk counterpart of /control?cmd=set: it writes whole arrays into one or more buffers in a single request. Unlike the other documents it takes only a POST with a JSON body — the payload is structured, so the usual flat parameter convention does not apply:
 
