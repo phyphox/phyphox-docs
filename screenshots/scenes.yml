@@ -1,0 +1,97 @@
+# The store screenshot scenes - the six pictures both stores show, described once.
+#
+# Why here and not in an app repo: both platforms must show the same six things
+# from the same data, and a scene that quietly exists on one platform only is the
+# drift this repository exists to prevent - the same reason test-matrix.yml lives
+# here. The platform halves (booting emulators, setting the language, capturing)
+# stay in the app repos; this file and screenshots/data/ are the shared part.
+#
+# See ../STORE-RELEASE-PLAN.md in the working root for the whole system.
+#
+# Fields:
+#   id           the scene's name, and the screenshot's filename stem
+#   kind         "collection" for the experiment list, "experiment" otherwise
+#   experiment   path within the shipped collection, i.e. what
+#                phyphox://asset= would name
+#   view         the LABEL of the view to show, as written in the file's root
+#                locale. tools/screenshots/compose.py resolves it to the index
+#                the app's -phyphoxView / debug.phyphox.view seam takes, and
+#                fails loudly if no view carries that label - which is what
+#                turns a renamed view into a build error rather than a wrong
+#                screenshot.
+#   data         a recording in screenshots/data/, in /get's own shape, written
+#                into the named containers as init values
+#   init         literal values for containers that hold settings rather than
+#                measurements - no recording needed
+#   note         why this scene is in the set
+
+scenes:
+
+  - id: main
+    kind: collection
+    note: >-
+      The experiment collection. Needs no data, but does need every entry to
+      look available: on an emulator almost no sensor exists and half the list
+      would be greyed out, which is what -phyphoxAssumeSensors /
+      debug.phyphox.assumeSensors is for.
+
+  - id: accelerometer
+    kind: experiment
+    experiment: accelerometer.phyphox
+    view: Graph
+    data: accelerometer.json
+    note: >-
+      The plainest thing phyphox does, and the safest scene to inject into:
+      the file has no <analysis> block at all, so the graphs read the sensor
+      buffers directly and nothing can recompute over the injected values.
+
+  - id: camera-luminance
+    kind: experiment
+    experiment: camera-luminance.phyphox
+    view: Luminance
+    data: camera-luminance.json
+    composite: camera
+    note: >-
+      The camera experiment. Its camera-gui preview cannot render on a
+      simulator or emulator, so the preview rectangle is composited afterwards
+      (plan section 6.1). Everything else on the screen is the real app.
+
+  - id: audio-spectrum
+    kind: experiment
+    experiment: audio_spectrum.phyphox
+    view: History
+    data: audio-spectrum.json
+    note: >-
+      The history map plot, which is the most distinctive view phyphox has.
+      Its <analysis requireFill="recording"> will not run while `recording` is
+      empty, so injected map data is safe from being recomputed away.
+
+  - id: strobe
+    kind: experiment
+    experiment: strobe.phyphox
+    view: Strobe
+    init:
+      frequency: [12]
+      dutycycle: [0.35]
+      intensity: [1]
+    note: >-
+      An output experiment rather than a measurement. period, on, off and the
+      preview graph are analysis outputs derived from these three, so only the
+      settings are set here - the app computes the rest, which is also what
+      makes this scene a check that analysis runs at all on a stopped
+      experiment (spike S1).
+
+  - id: tone-generator
+    kind: experiment
+    experiment: tone_generator.phyphox
+    view: Controls
+    init:
+      channels: [2]
+      advanced: [1]
+      f1: [440]
+      f2: [660]
+    note: >-
+      Two channels with the advanced controls shown, on the first tab. c2 and
+      c2advanced are derived (`channels > 1`, and c2 * advanced), so setting
+      the two settings containers is enough and the file's own analysis does
+      the rest.
