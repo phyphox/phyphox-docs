@@ -57,11 +57,19 @@ scenes:
     data: accelerometer.json
     source: >-
       An improvised swing showing a damped oscillation, recorded on a Pixel 9
-      Pro: 13666 samples over 34.3 s at about 400 Hz. Improvised, and it shows
-      - the first few seconds and the last few are the phone being set swinging
-      and caught again, and those transients set the y and z auto-scale, which
-      squashes the oscillation itself. Good enough for now (maintainer,
-      2026-08-31); a cleaner swing would be worth re-recording one day.
+      Pro at about 400 Hz. Good enough for now (maintainer, 2026-08-31); a
+      cleaner swing would be worth re-recording one day.
+
+      Two edits to the raw capture, both the maintainer's call. The tail is cut
+      at 31.5 s, where the phone is caught again - 12527 of 13666 samples
+      remain. The start is NOT cut: this experiment always begins at t=0, and
+      the setup at the beginning is part of what it looks like.
+
+      The times are shifted so the first sample sits at exactly 0 rather than
+      at the 0.019 s when it happened to arrive. That is not cosmetic tidying:
+      GraphView picks its first tic as ceil(min/step)*step (GraphView.java:1185),
+      so an axis starting at 0.019 with a 10 s step puts the first tic at 10 and
+      the "0" label disappears from the axis. Nothing to do with screen size.
     note: >-
       The plainest thing phyphox does, and the safest scene to inject into:
       the file has no <analysis> block at all, so the graphs read the sensor
