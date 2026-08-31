@@ -1,0 +1,890 @@
+<?xml version='1.0' encoding='utf-8'?>
+<phyphox version="1.20" locale="en">
+  <title>Tone Generator</title>
+  <category>Acoustics</category>
+  <icon format="base64">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</icon>
+  <description>
+        Generates a tone of a specific frequency.
+    </description>
+  <link label="Wiki">http://phyphox.org/wiki/index.php?title=Experiment:_Tone_Generator</link>
+  <translations>
+    <translation locale="de">
+      <title>Tongenerator</title>
+      <category>Akustik</category>
+      <description>
+        Generiert einen Ton einer bestimmten Frequenz.
+    </description>
+      <string original="Frequency">Frequenz</string>
+      <string original="Tone generator">Tongenerator</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Obwohl phyphox beliebige Frequenzen erlaubt, können die Ergebnisse aufgrund von Hardware-Einschränkungen unter 100Hz oder über 8000Hz deutlich schlechter werden.</string>
+      <string original="Frequency low">Frequenz niedrig</string>
+      <string original="Frequency high">Frequenz hoch</string>
+      <string original="Time">Zeit</string>
+      <string original="Frequency 1">Frequenz 1</string>
+      <string original="Frequency 2">Frequenz 2</string>
+      <string original="Controls">Steuerung</string>
+      <string original="Settings">Einstellungen</string>
+      <string original="Channel 1">Kanal 1</string>
+      <string original="Pan left/right">Pan links/rechts</string>
+      <string original="Waveform">Wellenform</string>
+      <string original="Sine">Sinus</string>
+      <string original="Square">Rechteck</string>
+      <string original="Sawtooth">Sägezahn</string>
+      <string original="Channel 2">Kanal 2</string>
+      <string original="Channel 3">Kanal 3</string>
+      <string original="Channels">Kanäle</string>
+      <string original="Advanced">Fortgeschritten</string>
+      <string original="The output amplitude ranges from 0 to 1. If the sum of the amplitudes of multiple channels exceeds 1, you will get distortion. The following setting automatically scales amplitudes proportionally to get a sum of 1.">Die Ausgangsamplitude liegt im Bereich von 0 bis 1. Überschreitet die Summe der Amplituden mehrerer Kanäle den Wert 1, kommt es zu Verzerrungen. Mit der folgenden Einstellung werden die Amplituden automatisch proportional skaliert, sodass ihre Summe 1 beträgt.</string>
+      <string original="Normalize">Normalisieren</string>
+      <string original="Normalization amplitude">Normalisierungsamplitude</string>
+    </translation>
+    <translation locale="cs">
+      <title>Tónový generátor</title>
+      <category>Akustika</category>
+      <description>
+        Vytváří tón o specifické frekvenci.
+    </description>
+      <string original="Tone generator">Tónový generátor</string>
+      <string original="Frequency">Frekvence</string>
+      <string original="Signal">Signál</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Přestože phyphox umožňuje generovat naprosto libovolnou frekvenci, kvůli hardwarovým omezením nedoporučujeme nastavovat hodnoty pod 100Hz nebo nad 8000Hz.</string>
+      <string original="Frequency low">Nízká frekvence</string>
+      <string original="Frequency high">Vysoká frekvence</string>
+      <string original="Time">čas</string>
+      <string original="Amplitude 1">Amplituda 1</string>
+      <string original="Frequency 1">Frekvence 1</string>
+      <string original="Amplitude 2">Amplituda 2</string>
+      <string original="Frequency 2">Frekvence 2</string>
+      <string original="Controls">Ovládání</string>
+      <string original="Amplitude">Amplituda</string>
+      <string original="Settings">Nastavení</string>
+    </translation>
+    <translation locale="pl">
+      <title>Generator dźwięku</title>
+      <category>Akustyka</category>
+      <description>
+        Wygeneruj dźwięku o zadanej częstotliwości.
+    </description>
+      <string original="Tone generator">Generator dźwięku</string>
+      <string original="Frequency">Częstotliwość</string>
+      <string original="Signal">Sygnał</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Ponieważ phyphox umożliwia wybranie dowolnej częstotliwości generowanego dźwięku, ze względu na ograniczenia sprzętowe urządzeń, należy spodziewać się niesatysfakcjonujących rezultatów dla częstotliwości poniżej 100 Hz oraz powyżej 8000 Hz.</string>
+      <string original="Frequency low">Częstotliwość niska</string>
+      <string original="Frequency high">Częstotliwość wysoka</string>
+      <string original="Time">Czas</string>
+      <string original="Controls">Sterowanie</string>
+      <string original="Amplitude">Amplituda</string>
+      <string original="Settings">Ustawienia</string>
+    </translation>
+    <translation locale="nl">
+      <title>Toongenerator</title>
+      <category>Geluid</category>
+      <description>
+        Genereert een toon van een bepaalde frequentie
+    </description>
+      <string original="Tone generator">Toongenerator</string>
+      <string original="Frequency">Frequentie</string>
+      <string original="Signal">Signaal</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Hoewel phyphox het instellen van willekeurige frequenties mogelijk maakt, kunt u slechte resultaten verkrijgen onder 100 Hz of boven 8000 Hz, als gevolg van hardwarebeperkingen.</string>
+      <string original="Status">Stand van zaken</string>
+      <string original="Frequency low">Lage frequentie</string>
+      <string original="Frequency high">Hoge frequentie</string>
+      <string original="Time">Tijd</string>
+      <string original="Controls">Controles</string>
+      <string original="Settings">Instellingen</string>
+    </translation>
+    <translation locale="ru">
+      <title>Генератор тона</title>
+      <category>Акустика</category>
+      <description>
+        Генерирует тон определенной частоты.
+    </description>
+      <string original="Tone generator">Генератор тона</string>
+      <string original="Frequency">Частота</string>
+      <string original="Signal">Сигнал</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Хотя phyphox позволяет устанавливать произвольные частоты, вы можете получить плохие результаты для частот ниже 100 Гц и выше 8000 Гц из-за ограничений оборудования.</string>
+      <string original="Status">Статус</string>
+      <string original="Frequency low">Низкая частота</string>
+      <string original="Frequency high">Высокая частота</string>
+      <string original="OK">ОК</string>
+      <string original="Time">Время</string>
+      <string original="Amplitude 1">Амплитуда 1</string>
+      <string original="Frequency 1">Частота 1</string>
+      <string original="Amplitude 2">Амплитуда 2</string>
+      <string original="Frequency 2">Частота 2</string>
+      <string original="Controls">Управление</string>
+      <string original="Amplitude">Амплитуда</string>
+      <string original="Settings">Настройки</string>
+    </translation>
+    <translation locale="it">
+      <title>Generatore di suoni</title>
+      <category>Acustica</category>
+      <description>
+        Genera un suono di frequenza data.
+    </description>
+      <string original="Tone generator">Generatore di suoni</string>
+      <string original="Frequency">Frequenza</string>
+      <string original="Signal">Segnale</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Phyphox permette di selezionare frequenze arbitrarie, ma considera che sotto i 100Hz o sopra gli 8000 Hz i risultati possono non essere ottimali a causa delle limitazioni dell'hardware.</string>
+      <string original="Status">Stato</string>
+      <string original="Frequency low">Bassa frequenza</string>
+      <string original="Frequency high">Alta frequenza</string>
+      <string original="Time">Tempo</string>
+      <string original="Amplitude 1">Ampiezza 1</string>
+      <string original="Frequency 1">Frequenza 1</string>
+      <string original="Amplitude 2">Ampiezza 2</string>
+      <string original="Frequency 2">Frequenza 2</string>
+      <string original="Controls">Controlli</string>
+      <string original="Amplitude">Ampiezza</string>
+      <string original="Settings">Impostazioni</string>
+    </translation>
+    <translation locale="el">
+      <title>Γεννήτρια συχνοτήτων</title>
+      <category>Ακουστική</category>
+      <description>
+        Δημιουργία τόνου συγκεκριμένης συχνότητας.
+    </description>
+      <string original="Tone generator">Γεννήτρα συχνοτήτων</string>
+      <string original="Frequency">Συχνότητα</string>
+      <string original="Signal">Σήμα</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Αν και το phyphox επιτρέπει τη ρύθμιση οποιασδήποτε συχνότητας, είναι πιθανόν το αποτέλεσμα να μην είναι ικανοποιητικό σε τιμές κάτω από 100Hz καθώς και πάνω από 8000Hz λόγω περιορισμών του hardware.</string>
+      <string original="Status">Κατάσταση</string>
+      <string original="Frequency low">Χαμηλή συχνότητα</string>
+      <string original="Frequency high">Υψηλή συχνότητα</string>
+      <string original="Time">χρόνος</string>
+      <string original="Amplitude 1">Πλάτος 1</string>
+      <string original="Frequency 1">Συχνότητα 1</string>
+      <string original="Amplitude 2">Πλάτος 2</string>
+      <string original="Frequency 2">Συχνότητα 2</string>
+      <string original="Controls">Κουμπιά ελέγχου</string>
+      <string original="Amplitude">Πλάτος</string>
+      <string original="Settings">Ρυθμίσεις</string>
+      <string original="Channel 1">Κανάλι 1</string>
+      <string original="Pan left/right">Μετακίνηση αριστερά/δεξιά</string>
+      <string original="Waveform">Κυματομορφή</string>
+      <string original="Sine">Ημιτονική</string>
+      <string original="Square">Τετράγωνη</string>
+      <string original="Sawtooth">Πριονωτή</string>
+      <string original="Channel 2">Κανάλι 2</string>
+      <string original="Channel 3">Κανάλι 3</string>
+      <string original="Channels">Κανάλια</string>
+      <string original="Advanced">Προηγμένες Ρυθμίσεις</string>
+      <string original="The output amplitude ranges from 0 to 1. If the sum of the amplitudes of multiple channels exceeds 1, you will get distortion. The following setting automatically scales amplitudes proportionally to get a sum of 1.">Το πλάτος εξόδου κυμαίνεται από 0 έως 1. Εάν το άθροισμα των πλατών πολλαπλών καναλιών υπερβαίνει το 1, θα προκύψει παραμόρφωση. Η παρακάτω ρύθμιση προσαρμόζει αυτόματα τα πλάτη αναλογικά, ώστε το άθροισμά τους να ισούται με 1.</string>
+      <string original="Normalize">Κανονικοποίηση</string>
+      <string original="Normalization amplitude">Κανονικοποιημένο πλάτος</string>
+    </translation>
+    <translation locale="ja">
+      <title>音源</title>
+      <category>音響</category>
+      <description>
+        特定の周波数音の発生
+    </description>
+      <string original="Tone generator">特定周波数音発生器</string>
+      <string original="Frequency">周波数</string>
+      <string original="Signal">信号</string>
+      <string original="Time">時間</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">phyphoxでは任意の周波数を設定することが可能ですが，100Hz以下や8000Hz以上ではハードウェアの限界により良い結果が得られないこともあります．</string>
+      <string original="Status">ステータス</string>
+      <string original="Frequency low">低周波数</string>
+      <string original="Frequency high">高周波数</string>
+      <string original="Controls">スコア計測</string>
+      <string original="Amplitude">振幅</string>
+      <string original="Settings">設定</string>
+    </translation>
+    <translation locale="pt">
+      <title>Gerador de tom</title>
+      <category>Acústica</category>
+      <description>
+        Gera um tom em uma frequência específica.
+    </description>
+      <string original="Tone generator">Gerador de tom</string>
+      <string original="Frequency">Frequência</string>
+      <string original="Signal">Sinal</string>
+      <string original="Time">Tempo</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Apesar do phyphox permitir o uso de qualquer frequência, você pode não ter bom resultados abaixo de 100Hz ou acima de 8000Hz devido as limitações do aparelho.</string>
+      <string original="Status">Estado</string>
+      <string original="Frequency low">Frequência baixa</string>
+      <string original="Frequency high">Frequência muito alta</string>
+      <string original="Controls">Controles</string>
+      <string original="Settings">Configurações</string>
+    </translation>
+    <translation locale="tr">
+      <title>Ton üreteci</title>
+      <category>Akustik</category>
+      <description>
+        Belirli bir frekansın tonunu üretir.
+    </description>
+      <string original="Tone generator">Ton üreteci</string>
+      <string original="Frequency">Frekans</string>
+      <string original="Signal">Sinyal</string>
+      <string original="Time">Zaman</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Phyphox, isteğe bağlı frekanslar ayarlamaya izin vermesine rağmen, donanım kısıtlamaları nedeniyle 100Hz'in altında veya 8000Hz'nin üzerinde kötü sonuçlar deneyimleyebilirsiniz.</string>
+      <string original="Status">Durum</string>
+      <string original="Frequency low">Frekans düşük</string>
+      <string original="Frequency high">Frekans yüksek</string>
+      <string original="OK">İYİ</string>
+      <string original="Controls">Kontroller</string>
+      <string original="Amplitude">Genlik</string>
+      <string original="Settings">Ayarlar</string>
+    </translation>
+    <translation locale="zh_Hant">
+      <title>聲調產生器</title>
+      <category>聲學</category>
+      <description>
+        產生一個特定頻率的聲調。
+    </description>
+      <string original="Tone generator">聲調產生器</string>
+      <string original="Frequency">頻率</string>
+      <string original="Signal">訊號</string>
+      <string original="Time">時間</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">雖然phyphox允許任意的頻率，然而在低於100Hz或高於8000Hz的情況下由於硬體的限制，您可能會得到較差的效果。</string>
+      <string original="Status">狀態</string>
+      <string original="Frequency low">低頻</string>
+      <string original="Frequency high">高頻</string>
+      <string original="OK">良好</string>
+      <string original="Amplitude">振幅</string>
+      <string original="Settings">設定</string>
+    </translation>
+    <translation locale="fr">
+      <title>Générateur de son</title>
+      <category>Acoustique</category>
+      <description>
+        Crée un son à une fréquence précise
+    </description>
+      <string original="Tone generator">Générateur de son</string>
+      <string original="Frequency">Fréquence</string>
+      <string original="Time">Durée</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">phyphox offre une grande gamme de fréquences, néanmoins il se peut que vous obteniez de mauvais résultats en dessous de 100 Hz ou au-dessus de 8000 Hz en raison des limites matérielles.</string>
+      <string original="Status">État</string>
+      <string original="Frequency low">Fréquence basse</string>
+      <string original="Frequency high">Fréquence élevée</string>
+      <string original="Frequency 1">Fréquence 1</string>
+      <string original="Frequency 2">Fréquence 2</string>
+      <string original="Controls">Contrôles</string>
+      <string original="Amplitude">Intensité</string>
+      <string original="Settings">Paramètres</string>
+    </translation>
+    <translation locale="vi">
+      <title>Bộ tạo âm</title>
+      <category>Âm học</category>
+      <description>
+        Tạo âm thanh với tần số xác định.
+    </description>
+      <string original="Tone generator">Bộ tạo âm</string>
+      <string original="Frequency">Tần số</string>
+      <string original="Signal">Tín hiệu</string>
+      <string original="Time">Thời gian</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Mặc dù phyphox cho phép đặt tần số tùy ý, bạn có thể gặp kết quả không tốt dưới 100Hz hoặc trên 8000Hz do giới hạn của phần cứng.</string>
+      <string original="Status">Trạng thái</string>
+      <string original="Frequency low">Tần số thấp</string>
+      <string original="Frequency high">Tần số cao</string>
+      <string original="Amplitude 1">Biên độ 1</string>
+      <string original="Frequency 1">Tần số 1</string>
+      <string original="Amplitude 2">Tần số 1</string>
+      <string original="Frequency 2">Tần số 2</string>
+      <string original="Controls">Điều khiển</string>
+      <string original="Amplitude">Biên độ</string>
+      <string original="Settings">Cài đặt</string>
+    </translation>
+    <translation locale="zh_Hans">
+      <title>音频发生器</title>
+      <category>声学</category>
+      <description>
+        产生一个特定频率的音调。
+    </description>
+      <string original="Tone generator">音频发生器</string>
+      <string original="Frequency">频率</string>
+      <string original="Signal">信号</string>
+      <string original="Time">时间</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">虽然phyphox允许设置任意频率，但由于硬件设置，在低于100Hz或高于8000Hz时你可能得到较差的结果。</string>
+      <string original="Status">状态</string>
+      <string original="Frequency low">低频</string>
+      <string original="Frequency high">高频</string>
+      <string original="Controls">控件</string>
+      <string original="Amplitude">振幅</string>
+      <string original="OK">确定</string>
+      <string original="Settings">设置</string>
+      <string original="Channel 1">通道 1</string>
+      <string original="Waveform">波形</string>
+      <string original="Sine">正弦波</string>
+      <string original="Square">方波</string>
+      <string original="Sawtooth">锯齿波</string>
+      <string original="Channel 2">通道 2</string>
+      <string original="Channel 3">通道 3</string>
+      <string original="Channels">通道</string>
+      <string original="Advanced">高级</string>
+      <string original="Normalize">归一化</string>
+      <string original="Normalization amplitude">归一化振幅</string>
+    </translation>
+    <translation locale="sr">
+      <title>Generator tona</title>
+      <category>Akustika</category>
+      <description>
+        Generiše zvuk specifične frekvencije.
+    </description>
+      <string original="Tone generator">Generator tona</string>
+      <string original="Frequency">Frekvencija</string>
+      <string original="Time">Vreme</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Phyphox dozvoljava postavljanje proizvoljnih frekvencija, može se dogoditi da rezultati ispod 100Hz ili iznad 8000Hz budu loši zbog ograničenja hardvera.</string>
+      <string original="Frequency low">Donja frekvencija</string>
+      <string original="Frequency high">Gornja frekvencija</string>
+      <string original="Controls">Kontrole</string>
+      <string original="Amplitude">Amplituda</string>
+      <string original="Settings">Podešavanja</string>
+    </translation>
+    <translation locale="sr_Latn">
+      <title>Generator tona</title>
+      <category>Akustika</category>
+      <description>
+        Generiše zvuk specifične frekvencije.
+    </description>
+      <string original="Tone generator">Generator tona</string>
+      <string original="Frequency">Frekvencija</string>
+      <string original="Time">Vreme</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Phyphox dozvoljava postavljanje proizvoljnih frekvencija, može se dogoditi da rezultati ispod 100Hz ili iznad 8000Hz budu loši zbog ograničenja hardvera.</string>
+      <string original="Frequency low">Donja frekvencija</string>
+      <string original="Frequency high">Gornja frekvencija</string>
+      <string original="Controls">Kontrole</string>
+      <string original="Amplitude">Amplituda</string>
+      <string original="Settings">Podešavanja</string>
+    </translation>
+    <translation locale="es">
+      <title>Generador de tonos</title>
+      <category>Acústica</category>
+      <description>
+        Genera un tono de una frecuencia específica.
+    </description>
+      <string original="Tone generator">Generador de tonos</string>
+      <string original="Frequency">Frecuencia</string>
+      <string original="Signal">Señal</string>
+      <string original="Time">tiempo</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">Si bien phyphox permite establecer frecuencias arbitrarias, puede experimentar malos resultados por debajo de 100 Hz o por encima de 8000 Hz debido a limitaciones de hardware.</string>
+      <string original="Status">Estado</string>
+      <string original="Frequency low">Frecuencia baja</string>
+      <string original="Frequency high">Frecuencia alta</string>
+      <string original="Amplitude 1">Amplitud 1</string>
+      <string original="Frequency 1">Frecuencia 1</string>
+      <string original="Amplitude 2">Amplitud 2</string>
+      <string original="Frequency 2">Frecuencia 2</string>
+      <string original="Controls">Controles</string>
+      <string original="Amplitude">Amplitud</string>
+      <string original="Settings">Ajustes</string>
+    </translation>
+    <translation locale="ka">
+      <title>ტონის გენერატორი</title>
+      <category>აკუსტიკა</category>
+      <description>
+        აგენერირებს სფეციფიური ტონის სიხშირეს.
+    </description>
+      <string original="Frequency">სიხშირე</string>
+      <string original="Signal">სიგნალი</string>
+      <string original="Time">დრო</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">მიუხედავად იმისა რომ ფაიფოქსი ნებას გრთავს აირჩიო სიხსირე, უნდა გაითვალისწინო რომ 100ჰც-ს ქვემოთ და 8000ჰც-ს ზემოთ ვერმიიღებ კარგ შედეგებს მოწყობილობის ლიმიტებიდან გამომდინარე.</string>
+      <string original="Status">სტატუსი</string>
+      <string original="Frequency low">დაბალი სიხშირე</string>
+      <string original="Frequency high">მაღალი სიხშირე</string>
+      <string original="OK">დიახ</string>
+      <string original="Amplitude 1">ამპლიტუდა 1</string>
+      <string original="Frequency 1">სიხშირე 1</string>
+      <string original="Amplitude 2">ამპლიტუდა 2</string>
+      <string original="Frequency 2">სიხშირე 2</string>
+      <string original="Controls">კონტრლები</string>
+      <string original="Amplitude">ამპლიტუდა</string>
+      <string original="Settings">პარამეტრები</string>
+    </translation>
+    <translation locale="hi">
+      <title>स्वर जनित्र</title>
+      <category>ध्वनि विज्ञान</category>
+      <description>
+        एक विशिष्ट आवृत्ति का स्वर उत्पन्न करता है।
+    </description>
+      <string original="Frequency">आवृत्ति</string>
+      <string original="Signal">संकेत (सिग्नल)</string>
+      <string original="Time">समय</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">जबकि फ़ाइफ़ॉक्स स्वैक्षिक आवृत्तियों को नियत (सेट) करने की अनुमति देता है, आप हार्डवेयर सीमाओं के कारण 100 हर्ट्ज से नीचे या 8000 हर्ट्ज से ऊपर के खराब परिणाम का अनुभव कर सकते हैं।</string>
+      <string original="Status">अवस्था</string>
+      <string original="Frequency low">आवृत्ति निम्न (कम)</string>
+      <string original="Frequency high">आवृत्ति उच्च (अधिक)</string>
+      <string original="OK">ठीक है</string>
+      <string original="Amplitude 1">आयाम 1</string>
+      <string original="Frequency 1">आवृत्ति 1</string>
+      <string original="Amplitude 2">आयाम 2</string>
+      <string original="Frequency 2">आवृत्ति 2</string>
+      <string original="Controls">कंट्रोल्स</string>
+      <string original="Amplitude">आयाम</string>
+      <string original="Settings">सेटिंग्स</string>
+    </translation>
+    <translation locale="ta">
+      <title>ஒலி உண்டாக்கி</title>
+      <category>ஒலியியல்</category>
+      <description>
+        ஒரு குறிப்பிட்ட அதிர்வெண் கொண்ட ஒலியை உருவாக்குகிறது.
+    </description>
+      <string original="Frequency">அதிர்வெண்</string>
+      <string original="Signal">சமிக்ஞை</string>
+      <string original="Time">நேரம்</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">phyphox தன்னிச்சையான அதிர்வெண்களை அமைக்க அனுமதிக்கும் அதே வேளையில், வன்பொருள் வரம்புகள் காரணமாக 100Hz க்குக் கீழே அல்லது 8000Hz க்கு மேலான அதிர்வெண்களில் மோசமான முடிவுகளை பெறுவீர்கள்.</string>
+      <string original="Status">நிலை</string>
+      <string original="Frequency low">குறைந்த அதிர்வெண்</string>
+      <string original="Frequency high">அதிகமான அதிர்வெண்</string>
+      <string original="OK">சரி</string>
+      <string original="Amplitude 1">வீச்சு ௧</string>
+      <string original="Frequency 1">அதிர்வெண் க</string>
+      <string original="Amplitude 2">வீச்சு ௨</string>
+      <string original="Frequency 2">அதிர்வெண் ௨</string>
+      <string original="Controls">கட்டுப்பாடுகள்</string>
+      <string original="Amplitude">வீச்சு</string>
+      <string original="Settings">அமைப்புகள்</string>
+      <string original="Channel 1">தடம் 1</string>
+      <string original="Pan left/right">இடது/வலதுபுறம் நகர்த்து</string>
+      <string original="Waveform">அலைவடிவம்</string>
+      <string original="Square">சதுரம்</string>
+      <string original="Sawtooth">அரக்குப்பல்</string>
+      <string original="Channel 2">தடம் 2</string>
+      <string original="Channel 3">தடம் 3</string>
+      <string original="Channels">தடங்கள்</string>
+      <string original="Advanced">மேம்பட்ட</string>
+      <string original="The output amplitude ranges from 0 to 1. If the sum of the amplitudes of multiple channels exceeds 1, you will get distortion. The following setting automatically scales amplitudes proportionally to get a sum of 1.">வெளியீட்டு வீச்சு (amplitude) 0 முதல் 1 வரையிலான வரம்பில் அமைகிறது. பல தடங்களின் வீச்சுகளின் கூடுதல் 1-ஐத் தாண்டினால், சிதைவு (distortion) ஏற்படும். பின்வரும் அமைப்பானது, வீச்சுகளின் கூடுதல் 1-ஆக இருக்கும் வகையில் அவற்றை விகிதாச்சாரப்படி தானாகவே சரிசெய்கிறது.</string>
+      <string original="Normalize">இயல்பாக்கு</string>
+      <string original="Normalization amplitude">இயல்பாக்க வீச்சு</string>
+    </translation>
+    <translation locale="bn">
+      <string original="OK">ঠিক আছে।</string>
+      <string original="Settings">সেটিং</string>
+    </translation>
+    <translation locale="gu">
+      <title>ટોન જનરેટર</title>
+      <category>એકોસ્ટિક</category>
+      <description>
+        ચોક્કસ ફ્રીક્વન્સીનો ટોન ઉત્પન્ન કરે છે.
+    </description>
+      <string original="Controls">નિયંત્રણો</string>
+      <string original="Signal">સિગ્નલ</string>
+      <string original="Time">સમય</string>
+      <string original="Frequency">ફ્રીક્વન્સી</string>
+      <string original="Amplitude">એમ્પ્લીટ્યુડ</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">જોકે phyphox તમને કોઈપણ ફ્રીક્વન્સી સેટ કરવાની મંજૂરી આપે છે, હાર્ડવેર મર્યાદાઓને કારણે તમને 100Hz થી નીચે અથવા 8000Hz થી ઉપર ખરાબ પરિણામો મળી શકે છે.</string>
+      <string original="Status">સ્થિતિ</string>
+      <string original="Frequency low">ફ્રીક્વન્સી નિમ્ન</string>
+      <string original="Frequency high">ફ્રીક્વન્સી ઉચ્ચ</string>
+      <string original="OK">બરાબર</string>
+      <string original="Settings">સેટિંગ્સ</string>
+      <string original="Channel 1">ચેનલ 1</string>
+      <string original="Pan left/right">પેન ડાબું/જમણું</string>
+      <string original="Waveform">વેવફોર્મ</string>
+      <string original="Sine">સાઇન</string>
+      <string original="Square">વર્ગ</string>
+      <string original="Sawtooth">સોટૂથ</string>
+      <string original="Channel 2">ચેનલ 2</string>
+      <string original="Channel 3">ચેનલ 3</string>
+      <string original="Channels">ચેનલ</string>
+      <string original="Advanced">એડવાન્સ્ડ</string>
+      <string original="The output amplitude ranges from 0 to 1. If the sum of the amplitudes of multiple channels exceeds 1, you will get distortion. The following setting automatically scales amplitudes proportionally to get a sum of 1.">આઉટપુટ એમ્પ્લીટ્યુડ 0 થી 1 સુધીનો હોય છે. જો બહુવિધ ચેનલોના એમ્પ્લીટ્યુડનો સરવાળો 1 થી વધી જાય, તો તમને વિકૃતિ મળશે. નીચેના સેટિંગ આપમેળે એમ્પ્લીટ્યુડને પ્રમાણસર સ્કેલ કરે છે જેથી 1 નો સરવાળો મળે.</string>
+      <string original="Normalize">નૉર્મલાઈઝ</string>
+      <string original="Normalization amplitude">નૉર્મલાઇઝેશન એમ્પ્લીટ્યુડ</string>
+    </translation>
+    <translation locale="kn">
+      <string original="OK">ಸರಿ</string>
+    </translation>
+    <translation locale="or"/>
+    <translation locale="ko">
+      <title>주파수 발생기</title>
+      <category>음향학</category>
+      <description>
+        특정 진동수의 음을 발생합니다.
+    </description>
+      <string original="Controls">컨트롤</string>
+      <string original="Signal">신호</string>
+      <string original="Time">시간</string>
+      <string original="Channel 1">채널 1</string>
+      <string original="Frequency">진동수</string>
+      <string original="Amplitude">진폭</string>
+      <string original="Pan left/right">좌/우 이동</string>
+      <string original="Waveform">파형</string>
+      <string original="Sine">사인파</string>
+      <string original="Square">사각파</string>
+      <string original="Sawtooth">톱니파</string>
+      <string original="Channel 2">채널 2</string>
+      <string original="Channel 3">채널 3</string>
+      <string original="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations.">phyphox에서는 임의의 주파수를 설정할 수 있습니다만, 100Hz 이하나 8000Hz 이상에서는 하드웨어의 한계에 의해 좋은 결과를 얻을 수 없는 경우도 있습니다.</string>
+      <string original="Status">상태</string>
+      <string original="Frequency low">낮은 진동수</string>
+      <string original="Frequency high">높은 진동수</string>
+      <string original="OK">확인</string>
+      <string original="Settings">설정</string>
+      <string original="Channels">채널</string>
+      <string original="Advanced">고급 설정</string>
+      <string original="The output amplitude ranges from 0 to 1. If the sum of the amplitudes of multiple channels exceeds 1, you will get distortion. The following setting automatically scales amplitudes proportionally to get a sum of 1.">출력 진폭의 범위는 0에서 1 사이입니다. 여러 채널의 진폭 합이 1을 초과하면 왜곡이 발생합니다. 다음 설정은 진폭의 합이 1이 되도록 비례적으로 자동 조정합니다.</string>
+      <string original="Normalize">정규화</string>
+      <string original="Normalization amplitude">정규화 진폭</string>
+    </translation>
+  </translations>
+  <data-containers>
+    <!-- UI state -->
+    <container init="2">channels</container>
+    <container init="1">single</container>
+    <container init="1">advanced</container>
+    <container init="1">normalize</container>
+    <container init="0.5">target_a</container>
+    <container init="0">c2</container>
+    <container init="0">c2advanced</container>
+    <container init="0">c3</container>
+    <container init="0">c3advanced</container>
+    <container init="1">a1in</container>
+    <container init="1">a2in</container>
+    <container init="1">a3in</container>
+    <container init="1">atotal</container>
+    <container init="0">a1</container>
+    <container init="0">a2</container>
+    <container init="0">a3</container>
+    <container init="0">wf1</container>
+    <container init="0">wf2</container>
+    <container init="0">wf3</container>
+    <container init="440">f1</container>
+    <container init="660">f2</container>
+    <container init="450">f3</container>
+    <container init="0">p1</container>
+    <container init="0">p2</container>
+    <container init="0">p3</container>
+    <container init="0">a1_wf1A</container>
+    <container init="0">a1_wf1B</container>
+    <container init="0">a1_wf1C</container>
+    <container init="0">a2_wf2A</container>
+    <container init="0">a2_wf2B</container>
+    <container init="0">a2_wf2C</container>
+    <container init="0">a3_wf3A</container>
+    <container init="0">a3_wf3B</container>
+    <container init="0">a3_wf3C</container>
+    <container size="4801" static="true">t</container>
+    <container size="4801">signal</container>
+  </data-containers>
+  <output>
+    <audio loop="true">
+      <tone waveform="sine">
+        <input parameter="pan">p1</input>
+        <input parameter="frequency">f1</input>
+        <input parameter="amplitude">a1_wf1A</input>
+      </tone>
+      <tone waveform="square">
+        <input parameter="pan">p1</input>
+        <input parameter="frequency">f1</input>
+        <input parameter="amplitude">a1_wf1B</input>
+      </tone>
+      <tone waveform="sawtooth">
+        <input parameter="pan">p1</input>
+        <input parameter="frequency">f1</input>
+        <input parameter="amplitude">a1_wf1C</input>
+      </tone>
+      <tone waveform="sine">
+        <input parameter="pan">p2</input>
+        <input parameter="frequency">f2</input>
+        <input parameter="amplitude">a2_wf2A</input>
+      </tone>
+      <tone waveform="square">
+        <input parameter="pan">p2</input>
+        <input parameter="frequency">f2</input>
+        <input parameter="amplitude">a2_wf2B</input>
+      </tone>
+      <tone waveform="sawtooth">
+        <input parameter="pan">p2</input>
+        <input parameter="frequency">f2</input>
+        <input parameter="amplitude">a2_wf2C</input>
+      </tone>
+      <tone waveform="sine">
+        <input parameter="pan">p3</input>
+        <input parameter="frequency">f3</input>
+        <input parameter="amplitude">a3_wf3A</input>
+      </tone>
+      <tone waveform="square">
+        <input parameter="pan">p3</input>
+        <input parameter="frequency">f3</input>
+        <input parameter="amplitude">a3_wf3B</input>
+      </tone>
+      <tone waveform="sawtooth">
+        <input parameter="pan">p3</input>
+        <input parameter="frequency">f3</input>
+        <input parameter="amplitude">a3_wf3C</input>
+      </tone>
+    </audio>
+  </output>
+  <views>
+    <view label="Controls">
+      <graph label="Signal" labelX="Time" unitX="[[unit_short_second]]" labelY="[[quantity_short_amplitude]]" unitY="[[unit_short_arbitrary_unit]]">
+        <input axis="x">t</input>
+        <input axis="y">signal</input>
+      </graph>
+      <separator height="1"/>
+      <separator color="white"/>
+      <separator height="1"/>
+      <info label="Channel 1" bold="true" visibility="c2"/>
+      <edit label="Frequency" unit="[[unit_short_hertz]]" default="440" signed="false" min="0" max="24000">
+        <output>f1</output>
+      </edit>
+      <slider label="Frequency" showValue="false" minValue="100" maxValue="8000" precision="0">
+        <output>f1</output>
+      </slider>
+      <edit label="Amplitude" unit="[[unit_short_arbitrary_unit]]" default="1" signed="false" min="0" max="1" visibility="advanced">
+        <output>a1in</output>
+      </edit>
+      <slider label="Amplitude" showValue="false" minValue="0" maxValue="1" precision="2" stepSize="0.01" visibility="advanced">
+        <output>a1in</output>
+      </slider>
+      <edit label="Pan left/right" default="0" signed="true" min="-1" max="1" visibility="advanced">
+        <output>p1</output>
+      </edit>
+      <slider label="Pan left/right" showValue="false" minValue="-1" maxValue="1" precision="2" stepSize="0.01" visibility="advanced">
+        <output>p1</output>
+      </slider>
+      <dropdown label="Waveform" default="0" visibility="advanced">
+        <output>wf1</output>
+        <map value="0">Sine</map>
+        <map value="1">Square</map>
+        <map value="2">Sawtooth</map>
+      </dropdown>
+      <separator height="1" visibility="c2"/>
+      <separator color="white" visibility="c2"/>
+      <separator height="1" visibility="c2"/>
+      <info label="Channel 2" bold="true" visibility="c2"/>
+      <edit label="Frequency" unit="[[unit_short_hertz]]" default="440" signed="false" min="0" max="24000" visibility="c2">
+        <output>f2</output>
+      </edit>
+      <slider label="Frequency" showValue="false" minValue="100" maxValue="8000" precision="0" visibility="c2">
+        <output>f2</output>
+      </slider>
+      <edit label="Amplitude" unit="[[unit_short_arbitrary_unit]]" default="1" signed="false" min="0" max="1" visibility="c2advanced">
+        <output>a2in</output>
+      </edit>
+      <slider label="Amplitude" showValue="false" minValue="0" maxValue="1" precision="2" stepSize="0.01" visibility="c2advanced">
+        <output>a2in</output>
+      </slider>
+      <edit label="Pan left/right" default="0" signed="true" min="-1" max="1" visibility="c2advanced">
+        <output>p2</output>
+      </edit>
+      <slider label="Pan left/right" showValue="false" minValue="-1" maxValue="1" precision="2" stepSize="0.01" visibility="c2advanced">
+        <output>p2</output>
+      </slider>
+      <dropdown label="Waveform" default="0" visibility="c2advanced">
+        <output>wf2</output>
+        <map value="0">Sine</map>
+        <map value="1">Square</map>
+        <map value="2">Sawtooth</map>
+      </dropdown>
+      <separator height="1" visibility="c3"/>
+      <separator color="white" visibility="c3"/>
+      <separator height="1" visibility="c3"/>
+      <info label="Channel 3" bold="true" visibility="c3"/>
+      <edit label="Frequency" unit="[[unit_short_hertz]]" default="440" signed="false" min="0" max="24000" visibility="c3">
+        <output>f3</output>
+      </edit>
+      <slider label="Frequency" showValue="false" minValue="100" maxValue="8000" precision="0" visibility="c3">
+        <output>f3</output>
+      </slider>
+      <edit label="Amplitude" unit="[[unit_short_arbitrary_unit]]" default="1" signed="false" min="0" max="1" visibility="c3advanced">
+        <output>a3in</output>
+      </edit>
+      <slider label="Amplitude" showValue="false" minValue="0" maxValue="1" precision="2" stepSize="0.01" visibility="c3advanced">
+        <output>a3in</output>
+      </slider>
+      <edit label="Pan left/right" default="0" signed="true" min="-1" max="1" visibility="c3advanced">
+        <output>p3</output>
+      </edit>
+      <slider label="Pan left/right" showValue="false" minValue="-1" maxValue="1" precision="2" stepSize="0.01" visibility="c3advanced">
+        <output>p3</output>
+      </slider>
+      <dropdown label="Waveform" default="0" visibility="c3advanced">
+        <output>wf3</output>
+        <map value="0">Sine</map>
+        <map value="1">Square</map>
+        <map value="2">Sawtooth</map>
+      </dropdown>
+      <separator height="1"/>
+      <separator color="white"/>
+      <separator height="1"/>
+      <separator height="1" visibility="single"/>
+      <info label="While phyphox allows setting arbitrary frequencies, you may experience bad results below 100Hz or above 8000Hz due to hardware limitations." visibility="single"/>
+      <separator height="1" visibility="single"/>
+      <value label="Status" visibility="single">
+        <input>f1</input>
+        <map max="100">Frequency low</map>
+        <map min="8000">Frequency high</map>
+        <map>OK</map>
+      </value>
+    </view>
+    <view label="Settings">
+      <dropdown label="Channels" default="1">
+        <output>channels</output>
+        <map value="1">1</map>
+        <map value="2">2</map>
+        <map value="3">3</map>
+      </dropdown>
+      <toggle label="Advanced" default="0">
+        <output>advanced</output>
+      </toggle>
+      <separator height="1"/>
+      <separator color="white"/>
+      <separator height="1"/>
+      <info label="The output amplitude ranges from 0 to 1. If the sum of the amplitudes of multiple channels exceeds 1, you will get distortion. The following setting automatically scales amplitudes proportionally to get a sum of 1."/>
+      <toggle label="Normalize" default="1">
+        <output>normalize</output>
+      </toggle>
+      <edit label="Normalization amplitude" unit="[[unit_short_arbitrary_unit]]" default="0.5" signed="false" min="0" max="1" visibility="normalize">
+        <output>target_a</output>
+      </edit>
+      <slider label="Normalization amplitude" showValue="false" minValue="0" maxValue="1" precision="2" stepSize="0.01" visibility="normalize">
+        <output>target_a</output>
+      </slider>
+    </view>
+  </views>
+  <analysis onUserInput="true">
+    <!-- Apply settings to helper variables and individual channel parameters -->
+    <if equal="true">
+      <input keep="true">channels</input>
+      <input type="value">1</input>
+      <input type="value">1</input>
+      <input type="value">0</input>
+      <output>single</output>
+    </if>
+    <if greater="true">
+      <input keep="true">channels</input>
+      <input type="value">1</input>
+      <input type="value">1</input>
+      <input type="value">0</input>
+      <output>c2</output>
+    </if>
+    <multiply>
+      <input keep="true">c2</input>
+      <input keep="true">advanced</input>
+      <output>c2advanced</output>
+    </multiply>
+    <if greater="true">
+      <input keep="true">channels</input>
+      <input type="value">2</input>
+      <input type="value">1</input>
+      <input type="value">0</input>
+      <output>c3</output>
+    </if>
+    <multiply>
+      <input keep="true">c3</input>
+      <input keep="true">advanced</input>
+      <output>c3advanced</output>
+    </multiply>
+    <formula formula="max([1],1-[6])+[2]*max([3],1-[6])+[4]*max([5],1-[6])">
+      <input keep="true">a1in</input>
+      <input keep="true">c2</input>
+      <input keep="true">a2in</input>
+      <input keep="true">c3</input>
+      <input keep="true">a3in</input>
+      <input keep="true">advanced</input>
+      <output>atotal</output>
+    </formula>
+    <formula formula="[1]*max([2],1-[4])/[3]*[5]+(1-[1])*max([2],1-[4])">
+      <input keep="true">normalize</input>
+      <input keep="true">a1in</input>
+      <input keep="true">atotal</input>
+      <input keep="true">advanced</input>
+      <input keep="true">target_a</input>
+      <output>a1</output>
+    </formula>
+    <formula formula="[4]*([1]*max([2],1-[5])/[3]*[6]+(1-[1])*max([2],1-[5]))">
+      <input keep="true">normalize</input>
+      <input keep="true">a2in</input>
+      <input keep="true">atotal</input>
+      <input keep="true">c2</input>
+      <input keep="true">advanced</input>
+      <input keep="true">target_a</input>
+      <output>a2</output>
+    </formula>
+    <formula formula="[4]*([1]*max([2],1-[5])/[3]*[6]+(1-[1])*max([2],1-[5]))">
+      <input keep="true">normalize</input>
+      <input keep="true">a3in</input>
+      <input keep="true">atotal</input>
+      <input keep="true">c3</input>
+      <input keep="true">advanced</input>
+      <input keep="true">target_a</input>
+      <output>a3</output>
+    </formula>
+    <formula formula="max(heaviside([1]+0.5)*heaviside(0.5-[1]), 1-[2])*[3]">
+      <input keep="true">wf1</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a1</input>
+      <output>a1_wf1A</output>
+    </formula>
+    <formula formula="min(heaviside([1]-0.5)*heaviside(1.5-[1]), [2])*[3]">
+      <input keep="true">wf1</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a1</input>
+      <output>a1_wf1B</output>
+    </formula>
+    <formula formula="min(heaviside([1]-1.5)*heaviside(2.5-[1]), [2])*[3]">
+      <input keep="true">wf1</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a1</input>
+      <output>a1_wf1C</output>
+    </formula>
+    <formula formula="max(heaviside([1]+0.5)*heaviside(0.5-[1]), 1-[2])*[3]">
+      <input keep="true">wf2</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a2</input>
+      <output>a2_wf2A</output>
+    </formula>
+    <formula formula="min(heaviside([1]-0.5)*heaviside(1.5-[1]), [2])*[3]">
+      <input keep="true">wf2</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a2</input>
+      <output>a2_wf2B</output>
+    </formula>
+    <formula formula="min(heaviside([1]-1.5)*heaviside(2.5-[1]), [2])*[3]">
+      <input keep="true">wf2</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a2</input>
+      <output>a2_wf2C</output>
+    </formula>
+    <formula formula="max(heaviside([1]+0.5)*heaviside(0.5-[1]), 1-[2])*[3]">
+      <input keep="true">wf3</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a3</input>
+      <output>a3_wf3A</output>
+    </formula>
+    <formula formula="min(heaviside([1]-0.5)*heaviside(1.5-[1]), [2])*[3]">
+      <input keep="true">wf3</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a3</input>
+      <output>a3_wf3B</output>
+    </formula>
+    <formula formula="min(heaviside([1]-1.5)*heaviside(2.5-[1]), [2])*[3]">
+      <input keep="true">wf3</input>
+      <input keep="true">advanced</input>
+      <input keep="true">a3</input>
+      <output>a3_wf3C</output>
+    </formula>
+    <!-- Calculate wave preview -->
+    <ramp>
+      <input as="start" type="value">0</input>
+      <input as="stop" type="value">0.05</input>
+      <input as="length" type="value">4801</input>
+      <output>t</output>
+    </ramp>
+    <formula formula="[5]*sin(6.283185307*[2]*[1_])+[6]*sign([2]*[1_]-round([2]*[1_]))+[7]*2*([2]*[1_]-round([2]*[1_])) + [8]*sin(6.283185307*[3]*[1_])+[9]*sign([3]*[1_]-round([3]*[1_]))+[10]*2*([3]*[1_]-round([3]*[1_])) + [11]*sin(6.283185307*[4]*[1_])+[12]*sign([4]*[1_]-round([4]*[1_]))+[13]*2*([4]*[1_]-round([4]*[1_]))">
+      <input keep="true">t</input>
+      <input keep="true">f1</input>
+      <input keep="true">f2</input>
+      <input keep="true">f3</input>
+      <input keep="true">a1_wf1A</input>
+      <input keep="true">a1_wf1B</input>
+      <input keep="true">a1_wf1C</input>
+      <input keep="true">a2_wf2A</input>
+      <input keep="true">a2_wf2B</input>
+      <input keep="true">a2_wf2C</input>
+      <input keep="true">a3_wf3A</input>
+      <input keep="true">a3_wf3B</input>
+      <input keep="true">a3_wf3C</input>
+      <output>signal</output>
+    </formula>
+  </analysis>
+  <export>
+    <set name="Signal">
+      <data name="Time (s)">t</data>
+      <data name="Signal sum">signal</data>
+    </set>
+  </export>
+</phyphox>
