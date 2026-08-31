@@ -26,6 +26,9 @@
 #                unreviewable and the init strings enormous.
 #   data         where that recording is kept, in /get's own shape, written
 #                into the named containers as init values
+#   source       what was actually measured. A recording is a picture as much
+#                as a measurement, and the next person to look at a screenshot
+#                and wonder "what am I seeing?" should not have to guess.
 #   init         literal values for containers that hold settings rather than
 #                measurements - no recording needed
 #   note         why this scene is in the set
@@ -57,6 +60,13 @@ scenes:
     view: Luminance
     record: [t, luminance, frameRate]
     data: camera-luminance.json
+    source: >-
+      Nothing special - the phone pointed at various things in turn, on a
+      Pixel 9 Pro. Note the recorded frame rate is 60 Hz, and it will read 60 Hz
+      in the iOS screenshot too even though iPhones reach 240 Hz. That is
+      deliberate: for a promotional picture it does not matter, and this way the
+      listing does not promise a number the device in the reader's hand may not
+      deliver.
     composite: camera
     note: >-
       The camera experiment. Its camera-gui preview cannot render on a
@@ -69,6 +79,11 @@ scenes:
     view: History
     record: [fmap, tmap, fftmap, t, f0]
     data: audio-spectrum.json
+    source: >-
+      C major played across several octaves on the xylophone preset of a
+      digital piano, recorded on a Pixel 9 Pro. The rising staircase in the
+      History plot is the scale; the harmonics of each note are the vertical
+      structure in the map.
     note: >-
       The history map plot, which is the most distinctive view phyphox has.
       Its <analysis requireFill="recording"> will not run while `recording` is
