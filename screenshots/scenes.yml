@@ -19,7 +19,12 @@
 #                fails loudly if no view carries that label - which is what
 #                turns a renamed view into a build error rather than a wrong
 #                screenshot.
-#   data         a recording in screenshots/data/, in /get's own shape, written
+#   record       the containers tools/screenshots/record.py pulls off a phone.
+#                Named explicitly rather than "whatever /get offers": a
+#                screenshot needs the few buffers its view reads, and dragging
+#                a whole experiment's state along would make the fixture
+#                unreviewable and the init strings enormous.
+#   data         where that recording is kept, in /get's own shape, written
 #                into the named containers as init values
 #   init         literal values for containers that hold settings rather than
 #                measurements - no recording needed
@@ -39,6 +44,7 @@ scenes:
     kind: experiment
     experiment: accelerometer.phyphox
     view: Graph
+    record: [acc_time, accX, accY, accZ]
     data: accelerometer.json
     note: >-
       The plainest thing phyphox does, and the safest scene to inject into:
@@ -49,6 +55,7 @@ scenes:
     kind: experiment
     experiment: camera-luminance.phyphox
     view: Luminance
+    record: [t, luminance, frameRate]
     data: camera-luminance.json
     composite: camera
     note: >-
@@ -60,6 +67,7 @@ scenes:
     kind: experiment
     experiment: audio_spectrum.phyphox
     view: History
+    record: [fmap, tmap, fftmap, t, f0]
     data: audio-spectrum.json
     note: >-
       The history map plot, which is the most distinctive view phyphox has.
