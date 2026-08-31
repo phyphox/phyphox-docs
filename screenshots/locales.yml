@@ -4,10 +4,10 @@
 # spelling, and neither supports exactly that set, so the mapping has to be
 # written down once rather than guessed in two scripts.
 #
-#   android:  the directory name under fastlane/metadata/android/. It has to be
-#             a locale Google Play accepts or `supply` refuses the upload.
-#             F-Droid reads the same tree and is the more forgiving of the two,
-#             so Play's spelling wins.
+#   android:  the Play listing locale, and the directory name the capture
+#             writes. A LIST where one app language feeds several listings.
+#             Play's spelling wins over F-Droid's, which is the more forgiving
+#             of the two.
 #   ios:      the App Store Connect localization, or `null` where the App Store
 #             has none - the listing then falls back to English there, which is
 #             not a decision anyone made but a limit of the store.
@@ -17,9 +17,12 @@
 # screenshots is normal - both stores fall back to the default listing's
 # images - and must not be treated as an error.
 #
-# STATUS: first cut, needs the maintainer's review (plan decision D2). The
-# entries marked `verify: true` are the ones nobody has checked against the
-# store's own list of accepted locales.
+# STATUS: checked against the store itself on 2026-09-01 by listing the app's
+# existing Play listings through the API. Every mapping below is confirmed,
+# including the three that had been marked `verify`. Two facts came out of it:
+# Portuguese is two listings (see below), and gu-IN, ko-KR and ta-IN have no
+# listing yet - they are the languages the app gained since the last store
+# update, and creating one needs its text uploaded first.
 
 locales:
   - {app: en,       android: en-US,  ios: en-US}
@@ -28,19 +31,22 @@ locales:
   - {app: el,       android: el-GR,  ios: el}
   - {app: es,       android: es-ES,  ios: es-ES}
   - {app: fr,       android: fr-FR,  ios: fr-FR}
-  - {app: gu,       android: gu-IN,  ios: gu,     verify: true}
+  - {app: gu,       android: gu-IN,  ios: gu}      # no listing on the store yet
   - {app: hi,       android: hi-IN,  ios: hi}
   - {app: it,       android: it-IT,  ios: it}
   - {app: ja,       android: ja-JP,  ios: ja}
   - {app: ka,       android: ka-GE,  ios: null}   # no Georgian on the App Store
-  - {app: ko,       android: ko-KR,  ios: ko}
+  - {app: ko,       android: ko-KR,  ios: ko}      # no listing on the store yet
   - {app: nl,       android: nl-NL,  ios: nl-NL}
   - {app: pl,       android: pl-PL,  ios: pl}
-  - {app: pt,       android: pt-PT,  ios: pt-PT}
+  # The app has one Portuguese; the store has two listings. The pt translation
+  # is knowingly duplicated to both as a compromise (maintainer, 2026-09-01),
+  # so the screenshots are too.
+  - {app: pt,       android: [pt-PT, pt-BR], ios: pt-PT}
   - {app: ru,       android: ru-RU,  ios: ru}
   - {app: sr,       android: sr,     ios: null}   # no Serbian on the App Store
-  - {app: sr-Latn,  android: sr,     ios: null,   verify: true}
-  - {app: ta,       android: ta-IN,  ios: ta,     verify: true}
+  - {app: sr-Latn,  android: sr,     ios: null}
+  - {app: ta,       android: ta-IN,  ios: ta}      # no listing on the store yet
   - {app: tr,       android: tr-TR,  ios: tr}
   - {app: vi,       android: vi,     ios: vi}
   - {app: zh-Hans,  android: zh-CN,  ios: zh-Hans}
