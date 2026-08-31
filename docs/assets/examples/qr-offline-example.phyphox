@@ -1,0 +1,24 @@
+<phyphox version="1.7" locale="en">
+<title>QR example (offline)</title>
+<category>Documentation</category>
+<description>Delivered by the QR code itself, with no server involved. Shake the phone to move the graph.</description>
+<data-containers>
+<container size="600">t</container>
+<container size="600">a</container>
+</data-containers>
+<input>
+<sensor type="accelerometer" rate="50">
+<output component="t">t</output>
+<output component="abs">a</output>
+</sensor>
+</input>
+<views>
+<view label="Acceleration">
+<value label="Absolute acceleration" unit="m/s²" precision="2"><input>a</input></value>
+<graph label="Absolute acceleration" labelX="t (s)" labelY="a (m/s²)">
+<input axis="x">t</input>
+<input axis="y">a</input>
+</graph>
+</view>
+</views>
+</phyphox>

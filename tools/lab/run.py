@@ -112,7 +112,7 @@ def _t3_checklist(platforms):
 
     The automated tiers stop at what a machine can reach: no runner takes
     a phone outdoors for a satellite fix, holds a printed QR code in front
-    of a camera, or rings it mid-experiment. Those steps are rows like any
+    of a camera, or turns VoiceOver on. Those steps are rows like any
     other - listed, versioned and reviewed - and this puts them at the end
     of the report a person is already reading to decide whether to ship,
     which is the only moment they will be done.

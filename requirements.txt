@@ -19,3 +19,8 @@ lxml==6.1.2
 # tools/generate_validators.py is hand-rolled string code, and this is the only
 # thing that would notice it emitting syntactically broken output.
 rnc2rng==2.7.0
+
+# Renders the QR codes on the transfer page (tools/generate_qr.py). Pure
+# Python with no dependencies of its own, and it can encode a raw byte
+# payload as a single byte-mode segment, which the offline codes require.
+segno==1.6.6

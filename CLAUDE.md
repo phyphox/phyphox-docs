@@ -396,6 +396,14 @@ file-format page — the mechanism was there, the markers were never placed by h
   its `VALIDATOR_BLIND` list. The artifacts are documented at `docs/reference/validators.md`.
   libxml2 pathologies the generator works around are recorded in `spec/README.md` — read
   that before restructuring the emitted grammar.
+- `tools/generate_qr.py` renders the QR codes on `docs/transferring-experiments.md`
+  (`docs/assets/qr/`, gitignored and generated on every build, the same arrangement as the
+  validators) from the two `qr-*-example.phyphox` files in `docs/assets/examples`.
+  `_check_qr_codes` in `tools/hooks.py` calls its `verify()` first: the 13-byte header, the
+  CRC32 over the whole payload, the partial zip and its data descriptor, and that every
+  offline code came out as a single **byte-mode** segment — iOS reads the QR bitstream itself
+  and refuses anything else (`ScannerViewController.metadataOutput`). See the module docstring
+  for the encoding; `segno` is what draws them.
 
 ## Roadmap
 

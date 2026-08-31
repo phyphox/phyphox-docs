@@ -395,6 +395,20 @@ tests:
   #
   # The budget is 30 minutes per platform. Anything that grows past that
   # belongs in T2 as automation, not here as more reading.
+  #
+  # Two rows were taken out again on 2026-08-31, and both for the same
+  # reason - a checklist step nobody can actually perform is worse than no
+  # step at all, because the list then reads as if someone were watching:
+  #
+  # * audio-call-interruption (a phone call during an audio experiment).
+  #   Almost none of the lab phones have a mobile subscription, so it would
+  #   be skipped on nearly every run. Audio interruption handling is left to
+  #   user reports and to colleagues testing deliberately on their own
+  #   phones.
+  # * store-screenshots. The fastlane lanes are release tooling and are not
+  #   driven by this suite at all, so reviewing their output does not belong
+  #   in a checklist generated from it. It comes back if the screenshot
+  #   tooling is ever reworked into part of the testing workflow.
 
   - id: gps-real-fix
     area: sensors
@@ -405,9 +419,9 @@ tests:
     description: >-
       Outdoors, with a real satellite fix: the GPS experiment shows a
       position, an accuracy and a satellite count that settle within a
-      minute or two, and the map view follows a short walk. T2 covers only
-      the indoor no-fix path, which is a different code path and proves
-      nothing about a working fix.
+      minute or two, and a short walk moves the coordinates, the speed and
+      the distance travelled. T2 covers only the indoor no-fix path, which
+      is a different code path and proves nothing about a working fix.
 
   - id: qr-scan-printed
     area: transfer
@@ -416,22 +430,19 @@ tests:
     status: active
     manual: true
     description: >-
-      Scan an experiment from a QR code on paper and on a second screen,
-      using the app's own scanner. Covers the camera path, the partial-zip
-      decoding and the size limits that a URL opened from the shell does
-      not. One compressed experiment and one link is enough.
-
-  - id: audio-call-interruption
-    area: audio
-    tier: T3
-    platforms: [android, ios]
-    status: active
-    manual: true
-    description: >-
-      Start an audio experiment, take an incoming call, end it: the app
-      neither crashes nor keeps a dead audio session, and the experiment
-      resumes or stops cleanly with a message. The interruption is a system
-      event no simulator reproduces faithfully.
+      Scan the codes on the transfer page
+      (https://phyphox.org/docs/transferring-experiments/, section "Online
+      QR-Codes" and "Offline QR-Codes"), once from a printout and once from
+      a second screen, using the app's own scanner. Five codes are there and
+      each is a different path: an https link, the same link under the
+      phyphox:// scheme, one code holding a whole experiment, and a two-code
+      set that has to be assembled. Each opens an experiment whose title
+      says which route delivered it, so a wrong result is visible without
+      reading anything. Covers the camera path, the partial-zip decoding and
+      the multi-code assembly, none of which a URL opened from the shell
+      touches. The codes are generated from the example experiments by
+      tools/generate_qr.py and verified on every docs build; the link codes
+      need the site to be published.
 
   - id: ble-third-party-device
     area: hardware
@@ -458,18 +469,6 @@ tests:
       collection, start and stop it, and read one value. Not an audit - a
       spot check that the main path is operable, which is how the invisible
       add-experiment menu was found in 2026-08.
-
-  - id: store-screenshots
-    area: release
-    tier: T3
-    platforms: [android, ios]
-    status: active
-    manual: true
-    description: >-
-      Look at the screenshots the fastlane lanes produced before they go to
-      the store: right locale, right device frame, no debug build, nothing
-      cut off. The lanes are release tooling rather than tests and stay
-      outside the suite; what is checked here is their output.
 
   - id: permissions-fresh-os
     area: ui

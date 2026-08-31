@@ -122,13 +122,26 @@ python3 tools/lab/run.py --merge lab-results
 ## T3 — by hand
 
 The checklist is at the end of `merged.md`, generated from the `manual: true` rows in
-`test-matrix.yml` so it cannot drift from the matrix. Seven steps, once per platform, none of them
-covered by anything above: a real GPS fix outdoors, a QR scan off paper, a phone call during an
-audio experiment, a Bluetooth device nobody wrote for this test, an accessibility spot check, the
-store screenshots, and the permission dialogs on a factory-fresh OS.
+`test-matrix.yml` so it cannot drift from the matrix. Five steps, once per platform, none of them
+covered by anything above: a real GPS fix outdoors, a QR scan off paper and off a screen, a
+Bluetooth device nobody wrote for this test, an accessibility spot check, and the permission
+dialogs on a factory-fresh OS.
 
 They are in the matrix rather than in a document of their own for the same reason as everything
 else: one list, reviewed like code, so a step cannot quietly disappear.
+
+The QR step has its material published with the documentation: the five codes on
+<https://phyphox.org/docs/transferring-experiments/> are generated from two example experiments by
+`tools/generate_qr.py` and verified on every docs build, so the step is "print that page, or put it
+on a second screen, and scan" rather than "make yourself some QR codes first". The two link codes
+resolve against the published site, so a release tested before the site is pushed will find them
+pointing at whatever is live.
+
+A step that cannot actually be carried out does not belong here - it reads as if someone were
+watching when nobody is. That is why a phone call during an audio experiment is not in the list
+(almost none of the lab phones have a mobile subscription; audio interruption relies on user
+reports and on colleagues testing on their own phones), and why the store screenshots are not
+either (the fastlane lanes are release tooling and are not driven by this suite at all).
 
 ## When something fails
 

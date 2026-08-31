@@ -1,0 +1,39 @@
+<phyphox version="1.7" locale="en">
+<title>QR example (online)</title>
+<category>Documentation</category>
+<description>Downloaded from phyphox.org after scanning a link. Shake the phone to move the graph.</description>
+<translations>
+<translation locale="de">
+<title>QR-Beispiel (online)</title>
+<category>Dokumentation</category>
+<description>Nach dem Scannen eines Links von phyphox.org geladen. Schüttle das Telefon, um den Graphen zu bewegen.</description>
+<string original="Acceleration">Beschleunigung</string>
+<string original="Absolute acceleration">Gesamtbeschleunigung</string>
+</translation>
+</translations>
+<data-containers>
+<container size="600">t</container>
+<container size="600">a</container>
+</data-containers>
+<input>
+<sensor type="accelerometer" rate="50">
+<output component="t">t</output>
+<output component="abs">a</output>
+</sensor>
+</input>
+<views>
+<view label="Acceleration">
+<value label="Absolute acceleration" unit="m/s²" precision="2"><input>a</input></value>
+<graph label="Absolute acceleration" labelX="t (s)" labelY="a (m/s²)">
+<input axis="x">t</input>
+<input axis="y">a</input>
+</graph>
+</view>
+</views>
+<export>
+<set name="Acceleration">
+<data name="t (s)">t</data>
+<data name="a (m/s^2)">a</data>
+</set>
+</export>
+</phyphox>

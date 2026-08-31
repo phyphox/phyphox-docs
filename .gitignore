@@ -15,6 +15,10 @@ __pycache__/
 # (see tools/hooks.py, _check_validators). Never edited by hand.
 docs/assets/validators/
 
+# Generated at build time by tools/generate_qr.py from the two example
+# experiments in docs/assets/examples (see tools/hooks.py, _check_qr_codes).
+docs/assets/qr/
+
 # The device lab's own assignment: phone serials and iOS UDIDs, host
 # addresses, local artifact paths. lab.yml.example is the committed one -
 # this file is per-machine and its own header says it is never committed.

@@ -190,6 +190,7 @@ def on_config(config, **kwargs):
     _check_analysis_vectors()
     _check_languages()
     _check_containers()
+    _check_qr_codes()
     return config
 
 
@@ -236,6 +237,28 @@ def _check_containers():
     if problems:
         raise ValueError("container fixtures are out of step:\n"
                          + "\n".join(f"  {p}" for p in problems))
+
+
+def _check_qr_codes():
+    """Regenerate the QR codes on the transfer page and prove their payloads.
+
+    tools/generate_qr.py derives docs/assets/qr/ from the two example
+    experiments on every build (write-if-changed, like the validators). The
+    codes are the page's examples and what the release checklist's scan test
+    is run against, so a silently broken payload would be found by a person
+    holding a phone rather than here. verify() checks the header, the CRC32,
+    the partial zip and the byte-mode encoding iOS insists on.
+    """
+    if not os.path.isdir(os.path.join(ROOT, "docs", "assets", "examples")):
+        return
+    _ensure_path()
+    import generate_qr
+    problems = generate_qr.verify()
+    if problems:
+        raise ValueError("the QR codes on the transfer page do not carry what "
+                         "they claim to:\n"
+                         + "\n".join(f"  {p}" for p in problems))
+    generate_qr.generate()
 
 
 def _check_analysis_vectors():

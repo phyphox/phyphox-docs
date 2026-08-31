@@ -8,6 +8,8 @@
 
 After you have created your custom experiment (either with our editor or "manually" as a text file), you need to transfer it to your phone. The editor can directly generate QR codes, which is usually the recommended and most reliable method. However, if you did not use the editor or if you need other options, here you can learn about all the ways phyphox can receive your custom experiment.
 
+Each of the QR code methods below comes with a working example you can try immediately: open the app's scanner and point it at this page, either on the screen or printed out. They are also the codes we scan ourselves before every release to check that the app still reads them, so they are kept working.
+
 ## File format
 
 The most basic experiment definition is a .phyphox file as described by our [phyphox file format](file-format/index.md). This is just a simple text file, which is simple to handle, but can only hold a single experiment. It has some disadvantages when transferring it directly (see below) or using it as an offline QR code (see below).
@@ -55,9 +57,35 @@ This is meant for links in worksheets, documentation and classroom materials tha
 
 If your audience has internet access, this is the recommended method and the QR code can be created directly from our editor. This method is very similar to the phyphox:// URL, but the URL is encoded into a QR code, which can simply be scanned from the phyphox main menu. If you want to or need to create the QR code yourself, simply create a QR-Code that contains a link starting with phyphox://, <http://> or <https://> and phyphox should simply download the experiment after scanning the QR code.
 
+Both link forms work. These two codes point at the same experiment, one as an ordinary https link and one under the phyphox:// scheme:
+
+<div class="qr-row" markdown>
+<figure markdown>
+![QR code containing an https link to the example experiment](assets/qr/link-https.svg){ .qr }
+<figcaption markdown>`https://phyphox.org/docs/assets/examples/qr-online-example.phyphox`</figcaption>
+</figure>
+<figure markdown>
+![QR code containing a phyphox:// link to the example experiment](assets/qr/link-phyphox.svg){ .qr }
+<figcaption markdown>`phyphox://phyphox.org/docs/assets/examples/qr-online-example.phyphox`</figcaption>
+</figure>
+</div>
+
+Either one loads [QR example (online)](assets/examples/qr-online-example.phyphox), a small accelerometer experiment whose title says which route it arrived by. Both need the phone to be online, since the code holds nothing but the address.
+
 ### Offline QR-Codes
 
 If your audience does not have internet access, the entire experiment configuration can be encoded in one or more QR codes. This can be done directly by our editor, but you should be aware that this produces very large QR codes which can be tough to scan. Also, there are size limitations if you want to avoid creating too many codes, so you should not embed a PNG icon and should remove any translations not necessary for your audience. Also, offline QR-codes should always use a zipped phyphox-file for the same reason.
+
+The code below is one of those. It holds a complete experiment rather than an address, so it works on a phone with no network at all:
+
+<div class="qr-row" markdown>
+<figure markdown>
+![QR code containing a complete phyphox experiment](assets/qr/offline.svg){ .qr }
+<figcaption>The whole experiment in one code</figcaption>
+</figure>
+</div>
+
+It carries [QR example (offline)](assets/examples/qr-offline-example.phyphox), which is deliberately kept small — compare its size on screen with the link codes above, which hold the same experiment's address in a fraction of the area.
 
 If you need to create an offline QR code without our editor, you should create a QR code which starts with 13 specific bytes, starting with seven bytes encoding the letters "phyphox". Following this, you need to put four bytes which are a CRC32 hash (big endian) of the entire experiment file (only the zip, not the first 13 bytes of the header). The remaining two bytes of the 13 byte header describe how many QR codes form the entire experiment and which QR code index is the current one.
 
@@ -85,6 +113,23 @@ followed by the raw data. As the CRC32 is calculated across the entire experimen
 In practice, you should try to fit your experiment into a single QR code, so you should strip unnecessary tags and attributes from your phyphox XML file. Also, you can save a few more bytes if you do not include the entire zip file. If your zip file only contains a single experiment, you can leave out the local file header and the entire local directory. Just include our 13 byte header, followed by the data and add a single data descriptor at the end. Phyphox will add a default local file header and a default local directory to extract and interpret the experiment file inside. Note that the entry has to be *stored* rather than deflated, because the header phyphox adds declares compression method 0.
 
 This shortened form is deliberately limited to the QR-code and Bluetooth routes, which are the low-bandwidth paths that justify it. Do not distribute it as a file: it is not something a recipient can inspect or modify with ordinary tools, and every other route is better served by a plain phyphox-file or an ordinary zip.
+
+#### A set of two codes
+
+If the experiment does not fit, the payload is simply cut into pieces and each piece gets its own 13 byte header. Where the cut is made is up to whoever creates the codes; only the index and the count have to be right, and the CRC32 has to be the one of the whole payload. The two codes below are one experiment split in half:
+
+<div class="qr-row" markdown>
+<figure markdown>
+![First of two QR codes holding one phyphox experiment](assets/qr/offline-split-1.svg){ .qr }
+<figcaption>Code 1 of 2</figcaption>
+</figure>
+<figure markdown>
+![Second of two QR codes holding one phyphox experiment](assets/qr/offline-split-2.svg){ .qr }
+<figcaption>Code 2 of 2</figcaption>
+</figure>
+</div>
+
+Scan them one after the other, in any order — phyphox keeps what it has and tells you how many codes are still missing until the set is complete. This is the same experiment the link codes above point at, so it opens as "QR example (online)" even though nothing was downloaded. Two codes is still easy; a set of five is not, which is why the advice above is to make the experiment fit into one.
 
 ### Bluetooth device
 
