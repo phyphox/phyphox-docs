@@ -26,6 +26,12 @@
 #                unreviewable and the init strings enormous.
 #   data         where that recording is kept, in /get's own shape, written
 #                into the named containers as init values
+#   theme        "light" for the one scene that shows the app's light mode
+#                exists. Everything else uses the app's default, which is
+#                permanent dark regardless of the system setting. The capture
+#                script has to walk the app's own settings UI to change it and
+#                put it back, because the preference is not reachable from the
+#                shell on a production build.
 #   source       what was actually measured. A recording is a picture as much
 #                as a measurement, and the next person to look at a screenshot
 #                and wonder "what am I seeing?" should not have to guess.
@@ -96,18 +102,22 @@ scenes:
     init:
       frequency: [12]
       dutycycle: [0.35]
-      intensity: [1]
+      intensity: [0.9]
     note: >-
       An output experiment rather than a measurement. period, on, off and the
       preview graph are analysis outputs derived from these three, so only the
       settings are set here - the app computes the rest, which is also what
       makes this scene a check that analysis runs at all on a stopped
-      experiment (spike S1).
+      experiment (spike S1). Brightness is 0.9 rather than 1: it puts the
+      slider somewhere more interesting than its end stop, and it lifts the
+      preview's upper plateau off the plot's top edge, where the renderer's
+      one-pixel scissor inset swallows it (S9).
 
   - id: tone-generator
     kind: experiment
     experiment: tone_generator.phyphox
     view: Controls
+    theme: light
     init:
       channels: [2]
       advanced: [1]
@@ -118,3 +128,9 @@ scenes:
       c2advanced are derived (`channels > 1`, and c2 * advanced), so setting
       the two settings containers is enough and the file's own analysis does
       the rest.
+
+      This is the scene shot in LIGHT MODE, so the listing shows that the app
+      has one (maintainer, 2026-08-31). It is deliberately not one of the first
+      screenshots: the audio spectrum has better contrast on a dark background,
+      and the stroboscope is new enough that a reader might take the light
+      theme for something specific to it rather than an app-wide setting.
