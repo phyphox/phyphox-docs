@@ -19,6 +19,11 @@ docs/assets/validators/
 # experiments in docs/assets/examples (see tools/hooks.py, _check_qr_codes).
 docs/assets/qr/
 
+# Scratch space for the screenshot tooling: composed experiment files and the
+# accessibility-tree dumps the capture script reads. All of it is derived from
+# screenshots/ and the shipped collection on every run.
+build/
+
 # The device lab's own assignment: phone serials and iOS UDIDs, host
 # addresses, local artifact paths. lab.yml.example is the committed one -
 # this file is per-machine and its own header says it is never committed.
