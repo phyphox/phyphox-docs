@@ -37,6 +37,13 @@
 #                and wonder "what am I seeing?" should not have to guess.
 #   init         literal values for containers that hold settings rather than
 #                measurements - no recording needed
+#   defaults     starting values for INPUT view elements (dropdown, toggle,
+#                edit, slider), keyed by the container each one writes. Needed
+#                because such an element carries its own `default` and writes
+#                it over the container when the experiment loads, so `init`
+#                alone is silently ignored for anything a control owns. Found
+#                the hard way: the tone generator kept coming out with one
+#                channel and the advanced controls hidden.
 #   note         why this scene is in the set
 
 scenes:
@@ -133,16 +140,21 @@ scenes:
     experiment: tone_generator.phyphox
     view: Controls
     theme: light
+    defaults:
+      channels: 2
+      advanced: 1
     init:
-      channels: [2]
-      advanced: [1]
       f1: [440]
       f2: [660]
     note: >-
-      Two channels with the advanced controls shown, on the first tab. c2 and
-      c2advanced are derived (`channels > 1`, and c2 * advanced), so setting
-      the two settings containers is enough and the file's own analysis does
-      the rest.
+      Two channels with the advanced controls shown, on the first tab. The
+      channel count and the advanced switch are set as element DEFAULTS, not as
+      container init values: both are written by controls in the Settings view
+      (`<dropdown label="Channels" default="1">` and
+      `<toggle label="Advanced" default="0">`), and a control writes its own
+      default over the container when the experiment loads. c2 and c2advanced
+      are then derived by the file's own analysis (`channels > 1`, and
+      c2 * advanced), which is what makes the extra controls visible.
 
       This is the scene shot in LIGHT MODE, so the listing shows that the app
       has one (maintainer, 2026-08-31). It is deliberately not one of the first

@@ -62,6 +62,30 @@ def _containers(tree):
     return out
 
 
+def _inputs_by_output(tree):
+    """Input view elements, keyed by the container they write.
+
+    A dropdown, toggle, edit or slider carries its own `default` and writes it
+    to its output buffer when the experiment loads - straight over whatever
+    `init` said. So a scene that wants a different starting state for one of
+    those has to set the element's default, not the container's init. Keyed by
+    output buffer rather than by label because labels repeat ("Frequency"
+    appears three times in the tone generator) and buffer names do not.
+    """
+    out = {}
+    for el in tree.iter():
+        if not isinstance(el.tag, str):
+            continue
+        if etree.QName(el).localname not in ("dropdown", "toggle", "edit", "slider"):
+            continue
+        for child in el:
+            if isinstance(child.tag, str) and etree.QName(child).localname == "output":
+                name = (child.text or "").strip()
+                if name:
+                    out.setdefault(name, []).append(el)
+    return out
+
+
 def _views(tree):
     """The <view> elements under <views>, in document order."""
     out = []
@@ -148,6 +172,20 @@ def compose(scene, collection, reorder_views=False, data_dir=DATA):
     for name, vals in values.items():
         containers[name].set("init", format_init(vals))
 
+    inputs = _inputs_by_output(root)
+    defaults = scene.get("defaults") or {}
+    for name, value in defaults.items():
+        els = inputs.get(name)
+        if not els:
+            raise ValueError(
+                f"{scene['id']}: no input view element writes {name!r}, so it "
+                f"has no default to set. Use `init:` for a plain container.")
+        if len(els) > 1:
+            raise ValueError(
+                f"{scene['id']}: {len(els)} input elements write {name!r} - "
+                f"ambiguous which default to set.")
+        els[0].set("default", format_init([value]))
+
     if reorder_views and view != 0:
         views = _views(root)
         parent = views[0].getparent()
@@ -157,22 +195,33 @@ def compose(scene, collection, reorder_views=False, data_dir=DATA):
         view = 0
 
     return (etree.tostring(root, encoding="utf-8", xml_declaration=True),
-            view, sorted(values))
+            view, (sorted(values), sorted(defaults)))
 
 
 def check(original_path, composed, touched, reordered):
-    """Fail unless the only differences are the init attributes we set.
+    """Fail unless the only differences are the starting values we set.
 
-    Both trees are normalised by dropping `init` from every container the scene
-    touched (and, when views were reordered, by sorting the views by label)
-    and then compared as canonical XML. What that leaves is a genuine
-    difference in structure, text or any other attribute - i.e. a bug here.
+    That means two things and nothing else: `init` on the containers the scene
+    names, and `default` on the input view elements it names. Both are starting
+    values - the same kind of choice - and between them they are the whole
+    vocabulary a scene has for saying what the app should be showing.
+
+    Both trees are normalised by dropping exactly those attributes (and, when
+    views were reordered, by sorting the views by label) and then compared as
+    canonical XML. What is left is a genuine difference in structure, text or
+    any other attribute - i.e. a bug here.
     """
+    touched_init, touched_defaults = touched
+
     def normalise(tree):
         t = copy.deepcopy(tree)
         for name, el in _containers(t).items():
-            if name in touched and "init" in el.attrib:
+            if name in touched_init and "init" in el.attrib:
                 del el.attrib["init"]
+        for name, els in _inputs_by_output(t).items():
+            if name in touched_defaults:
+                for el in els:
+                    el.attrib.pop("default", None)
         if reordered:
             views = _views(t)
             if views:
@@ -187,8 +236,8 @@ def check(original_path, composed, touched, reordered):
     if before != after:
         raise ValueError(
             "the composed file differs from the shipped one by more than the "
-            "init values this scene sets. That is a bug in compose.py - the "
-            "screenshots are supposed to show the shipped experiment.")
+            "starting values this scene sets. That is a bug in compose.py - "
+            "the screenshots are supposed to show the shipped experiment.")
 
 
 def main():
@@ -220,9 +269,10 @@ def main():
     out = os.path.join(args.out, f"{args.scene}.phyphox")
     with open(out, "wb") as f:
         f.write(composed)
-    print(f"{out}: view {view} ({scene['view']}), "
-          f"{len(touched)} container(s) set"
-          + (f" - {', '.join(touched)}" if touched else ""))
+    inits, defaults = touched
+    print(f"{out}: view {view} ({scene['view']})"
+          + (f", init {', '.join(inits)}" if inits else "")
+          + (f", default {', '.join(defaults)}" if defaults else ""))
 
 
 if __name__ == "__main__":
