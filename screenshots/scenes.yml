@@ -55,6 +55,13 @@ scenes:
     view: Graph
     record: [acc_time, accX, accY, accZ]
     data: accelerometer.json
+    source: >-
+      An improvised swing showing a damped oscillation, recorded on a Pixel 9
+      Pro: 13666 samples over 34.3 s at about 400 Hz. Improvised, and it shows
+      - the first few seconds and the last few are the phone being set swinging
+      and caught again, and those transients set the y and z auto-scale, which
+      squashes the oscillation itself. Good enough for now (maintainer,
+      2026-08-31); a cleaner swing would be worth re-recording one day.
     note: >-
       The plainest thing phyphox does, and the safest scene to inject into:
       the file has no <analysis> block at all, so the graphs read the sensor
