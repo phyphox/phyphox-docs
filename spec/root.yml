@@ -442,7 +442,12 @@ elements:
           loops over all sets, and ExperimentExportSetSelectionView -
           despite its name - contains only formatSwitches. The remote
           interface matches: /export takes only a format parameter.
-        translatable: true
+          Not translatable (was wrongly marked so here until 2026-08-31):
+          Android's exportBlockParser reads the attribute with
+          getAttributeValue, not getTranslatedAttribute, iOS's
+          ExportElementHandler with nonEmptyString, and neither export
+          writer applies a translation later - the name lands in the file
+          verbatim on both platforms.
         required: true
         summary: Name of the set, used as the sheet or file name.
         agreement: agreed
@@ -458,7 +463,10 @@ elements:
           A name describing the data. This is usually the column
           title corresponding to the data in the exported file.
         type: string
-        translatable: true
+        note: >-
+          Not translatable (was wrongly marked so here until 2026-08-31):
+          like set's name, both parsers read it without the translation
+          lookup and both export writers emit it verbatim.
         required: true
         summary: Column title in the exported file.
         agreement: agreed
