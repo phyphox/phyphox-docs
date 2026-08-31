@@ -28,6 +28,13 @@
 # optional host_driven: true for a row implemented entirely in this
 # repository's tools/ - for those, and only those, a tag found there counts
 # as the implementation for every platform the row names.
+#
+# Open question (2026-08-31, from the editor audit): the Blockly editor now
+# also runs the corpus - its AUDIT=true vitest suite round-trips every
+# corpus file against this repo's spec. Whether the editor becomes a third
+# platform here (with the checker grepping phyphox-blockly-editor too, and
+# per-row applicability, since a generator-and-parser covers different rows
+# than a parser) is the maintainer's call; recorded so the idea is not lost.
 
 tests:
 
