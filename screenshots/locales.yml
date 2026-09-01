@@ -10,7 +10,8 @@
 #             of the two.
 #   ios:      the App Store Connect localization, or `null` where the App Store
 #             has none - the listing then falls back to English there, which is
-#             not a decision anyone made but a limit of the store.
+#             not a decision anyone made but a limit of the store. A LIST where
+#             one app language feeds several listings, exactly like `android`.
 #
 # Screenshots are produced for the app languages; store TEXT exists for far
 # more (phyphox-translation/store/ has 40 locales). A locale with text but no
@@ -43,10 +44,12 @@ locales:
   - {app: ko,       android: ko-KR,  ios: ko}      # no listing on the store yet
   - {app: nl,       android: nl-NL,  ios: nl-NL}
   - {app: pl,       android: pl-PL,  ios: pl}
-  # The app has one Portuguese; the store has two listings. The pt translation
-  # is knowingly duplicated to both as a compromise (maintainer, 2026-09-01),
-  # so the screenshots are too.
-  - {app: pt,       android: [pt-PT, pt-BR], ios: pt-PT}
+  # The app has one Portuguese; BOTH stores have two listings. The pt
+  # translation is knowingly duplicated to both as a compromise (maintainer,
+  # 2026-09-01), so the screenshots are too. The App Store's pt-BR was found by
+  # reading the live listing back (2026-09-01): leaving it out would have left
+  # it on the previous release's text while pt-PT moved on.
+  - {app: pt,       android: [pt-PT, pt-BR], ios: [pt-PT, pt-BR]}
   - {app: ru,       android: ru-RU,  ios: ru}
   - {app: sr,       android: sr,     ios: null}   # no Serbian on the App Store
   - {app: sr-Latn,  android: sr,     ios: null}
