@@ -146,13 +146,26 @@ scenes:
     init:
       f1: [440]
       f2: [660]
+      # Deliberately the same two values again, as containers, because the two
+      # apps do not agree on which of the two a control obeys (see
+      # docs/reference/known-inconsistencies.md, `toggle-dropdown-default-
+      # overwrites-init`). The spec's rule - a `default` applies only while the
+      # buffer is EMPTY - is what iOS does, so there `init` alone would be
+      # enough; Android's toggle and dropdown write their `default` over the
+      # container on the first pass after the view is built, so there `default`
+      # alone is what works. Saying both, identically, is the only spelling
+      # that produces this scene on both platforms today and stays correct once
+      # Android is fixed.
+      channels: [2]
+      advanced: [1]
     note: >-
       Two channels with the advanced controls shown, on the first tab. The
-      channel count and the advanced switch are set as element DEFAULTS, not as
-      container init values: both are written by controls in the Settings view
+      channel count and the advanced switch are written both as element
+      DEFAULTS and as container init values, because the two apps disagree
+      about which of those a control obeys at load (see the comment above the
+      values). Both are controls in the Settings view
       (`<dropdown label="Channels" default="1">` and
-      `<toggle label="Advanced" default="0">`), and a control writes its own
-      default over the container when the experiment loads. c2 and c2advanced
+      `<toggle label="Advanced" default="0">`). c2 and c2advanced
       are then derived by the file's own analysis (`channels > 1`, and
       c2 * advanced), which is what makes the extra controls visible.
 
