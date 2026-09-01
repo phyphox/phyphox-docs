@@ -114,8 +114,22 @@ scenes:
       structure in the map.
     note: >-
       The history map plot, which is the most distinctive view phyphox has.
-      Its <analysis requireFill="recording"> will not run while `recording` is
-      empty, so injected map data is safe from being recomputed away.
+
+      Its <analysis requireFill="recording"> does NOT fully protect the
+      injected data, which an earlier version of this note claimed: the first
+      analysis pass after opening is exempt from the gate by ruling
+      (spec/analysis.yml, 2026-08-24), so exactly one pass runs and appends one
+      row to the maps. The experiment guards against that itself - it computes
+      the next row's time as max(t + samples/rate, timer), so the appended row
+      lands just after the injected history and its map quad is a hair high -
+      but the guard needs `rate`, which the audio input only provides while
+      recording on iOS until 2026-09-01. Without it the row lands at t=0 and
+      the map graph stretches its quad across the entire plot (found on the
+      first iOS store capture). Both platforms now seed the rate component
+      early (Android: PhyphoxExperiment.handleDataInput "so it is available
+      early"; iOS: Experiment.seedInputDefaults), so the scene needs nothing
+      special - but if a map scene ever comes out smeared from y=0, this is
+      what it is.
 
   - id: strobe
     kind: experiment
