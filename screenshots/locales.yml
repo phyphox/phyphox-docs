@@ -18,7 +18,7 @@
 # screenshots is normal - both stores fall back to the default listing's
 # images - and must not be treated as an error.
 #
-# STATUS: checked against the store itself on 2026-09-01. The seventeen that
+# STATUS (android): checked against the store itself on 2026-09-01. The seventeen that
 # already have a listing were read back through the API; the three that do not
 # (gu, ko-KR, ta-IN) could not be checked that way and were probed by writing a
 # listing into a throwaway edit. That caught one error: Play wants bare `gu` for
@@ -36,7 +36,8 @@ locales:
   - {app: el,       android: el-GR,  ios: el}
   - {app: es,       android: es-ES,  ios: es-ES}
   - {app: fr,       android: fr-FR,  ios: fr-FR}
-  - {app: gu,       android: gu,     ios: gu}      # no listing yet; Play wants bare `gu`
+  - {app: gu,       android: gu,     ios: gu-IN}   # no listing yet; Play wants bare `gu`,
+                                                  # the App Store wants gu-IN
   - {app: hi,       android: hi-IN,  ios: hi}
   - {app: it,       android: it-IT,  ios: it}
   - {app: ja,       android: ja-JP,  ios: ja}
@@ -53,7 +54,7 @@ locales:
   - {app: ru,       android: ru-RU,  ios: ru}
   - {app: sr,       android: sr,     ios: null}   # no Serbian on the App Store
   - {app: sr-Latn,  android: sr,     ios: null}
-  - {app: ta,       android: ta-IN,  ios: ta}      # no listing on the store yet
+  - {app: ta,       android: ta-IN,  ios: ta-IN}   # no listing on the store yet
   - {app: tr,       android: tr-TR,  ios: tr}
   - {app: vi,       android: vi,     ios: vi}
   - {app: zh-Hans,  android: zh-CN,  ios: zh-Hans}
@@ -64,3 +65,11 @@ locales:
 # last would win, so the capture script must be told which one to use - see
 # `serbian_screenshots` below rather than letting it depend on iteration order.
 serbian_screenshots: sr
+
+# STATUS (ios): the seventeen codes with a live listing were read back from the
+# App Store on 2026-09-01. The three without one were NOT verified then, and two
+# of them were wrong: `gu` and `ta` are Play's spellings, and App Store Connect
+# rejects them - it wants `gu-IN` and `ta-IN`. Caught by deliver's own validation
+# before anything was uploaded, and fixed here on 2026-09-01. Korean is `ko` on
+# both. phyphox-ios/tools/appstore_upload.py now checks every ios code against
+# fastlane's list of App Store localizations, so this cannot silently recur.
