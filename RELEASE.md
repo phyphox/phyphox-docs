@@ -156,8 +156,8 @@ reaches a store.
     cd phyphox-android              # on the Linux machine
     tools/store_release.py
 
-The iOS half is being brought to the same shape and still runs as the separate commands under
-[iOS — the App Store](#ios--the-app-store) below.
+    cd phyphox-ios                  # on the Mac, from the screenshot virtualenv
+    ~/.venvs/phyphox-screenshots/bin/python tools/store_release.py
 
 Budget about three hours: the capture is nearly all of it, and the emulators need the machine to
 themselves. **Uploading is not releasing** — the run stops at "uploaded", and the listing goes live
@@ -233,21 +233,32 @@ account - see `STORE-RELEASE-PLAN.md` §8.1 for the one-time setup.
 
 ### iOS — the App Store
 
-Still the explicit commands; the one-command counterpart is being added.
+The same shape, with the same numbering, so the two runs read alike. `tools/store_release.py`
+runs, in this order:
 
-    cd phyphox-ios
-    tools/store_screenshots.py --form-factor iphone --build
-    tools/store_screenshots.py --form-factor ipad   --app <what --build produced>
-
-    tools/appstore_upload.py --diff              # what would change, against the live listing
-    tools/appstore_upload.py --verify-screenshots
-    tools/appstore_upload.py --upload            # deliver renders a preview and waits for a yes
-
-There is **no server-side rehearsal**: App Store Connect has no draft edit that can be validated
-and discarded, so `--diff` against the live listing is as close as it gets, and all the checking
-happens before the first call. `subtitle` and `keywords` are maintained by hand in App Store
-Connect and the metadata tree deliberately contains no files for them - deliver sets only fields it
-finds a file for, and an empty file would blank them.
+1. **Preflight** — the sibling checkouts (`phyphox-android` among them, for the release notes),
+   the Python modules, `simctl`, a fastlane that knows both screenshot sizes, and the API key in
+   the login keychain — all before an hour or two of capturing rather than after.
+2. **Release notes**, asked for if this version has none, through the shared module in
+   `phyphox-android` — so the iOS run writes into that repository too.
+3. **Screenshots**, both form factors from **one** build: the Release configuration is built once
+   and photographed on the iPhone and the iPad simulator, which the capture creates itself.
+4. **The mechanical check** over every plate, the same `verify.py` as on Android; its pure-black
+   rule is Android-only, because on iOS pure black is ordinary (dark theme, the camera scene).
+5. *(Nothing. The App Store is API-only, so unlike F-Droid nothing of this is committed.)*
+6. **The rehearsal.** There is **no server-side one**: App Store Connect has no draft edit that
+   can be validated and discarded, so this is the live listing downloaded and compared field by
+   field, and the store's screenshots read back against the plates. `subtitle` and `keywords`
+   are maintained by hand in App Store Connect and the metadata tree deliberately contains no
+   files for them — deliver sets only fields it finds a file for, and an empty file would blank
+   them.
+7. **The question.** Yes runs the listing upload and then the release-notes upload for the draft
+   version — two deliver runs, because the release-notes tree holds nothing but
+   `release_notes.txt` so that it cannot drag the listing along. deliver renders an HTML preview
+   of each and waits for a yes of its own, so the answer is given three times in all; that is
+   deliver's review step, not a bug. Uploading is not releasing: both go live when the version is
+   released in App Store Connect, with the build from Xcode.
+8. **What is left**, which is the release notes waiting in `phyphox-android`'s git.
 
 Authentication is an App Store Connect **individual** API key restricted to phyphox (§8.2). Team
 keys cannot be app-restricted.
@@ -269,6 +280,20 @@ rehearsal or a repair uses.
 
 Narrow a re-upload with `--image-types`: uploading a type *replaces* every image of it, so a full
 run would churn images that are already on the store, or mid-review, for nothing.
+
+And on the Mac, likewise:
+
+    tools/store_release.py --skip-capture      # reuse the plates already taken
+    tools/store_release.py --no-upload         # stop after the checks
+    tools/store_release.py --languages en,de --scenes accelerometer,strobe
+
+    tools/store_screenshots.py --form-factor iphone --build
+    tools/store_screenshots.py --form-factor ipad   --app <what --build produced>
+    ../phyphox-docs/tools/screenshots/verify.py ../screenshots/ios --form-factor iphone
+    tools/appstore_upload.py --diff              # what would change, against the live listing
+    tools/appstore_upload.py --verify-screenshots
+    tools/appstore_upload.py --upload            # deliver renders a preview and waits for a yes
+    tools/appstore_upload.py --release-notes --upload   # the draft's notes, nothing else
 
 ## When something fails
 
