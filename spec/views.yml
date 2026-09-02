@@ -915,9 +915,17 @@ elements:
           clearing is how a user deliberately returns an experiment to its
           starting state. An author who wants a setting to survive that says so
           with clearGroup on the data container, which is what it is for.
+          A NaN at the end of the buffer is replaced by the default as well: an
+          input control cannot show NaN and the user could never enter it, so
+          the buffer would hold something the control does not. The default is
+          written as it stands, never clamped to the element's range - a
+          default is deliberate. Replacing a NaN is not user input: it came from
+          an analysis write, and an analysis with onUserInput must not re-run on
+          its own output.
         default: 0.0
         summary: Value the field starts with.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: input-default-does-not-replace-nan
   - name: output
     parent: edit
     since: "1.0"
@@ -1028,9 +1036,17 @@ elements:
           clearing is how a user deliberately returns an experiment to its
           starting state. An author who wants a setting to survive that says so
           with clearGroup on the data container, which is what it is for.
+          A NaN at the end of the buffer is replaced by the default as well: an
+          input control cannot show NaN and the user could never enter it, so
+          the buffer would hold something the control does not. The default is
+          written as it stands, never clamped to the element's range - a
+          default is deliberate. Replacing a NaN is not user input: it came from
+          an analysis write, and an analysis with onUserInput must not re-run on
+          its own output.
         default: 0.0
         summary: State the switch starts in.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: input-default-does-not-replace-nan
 
   - name: output
     parent: toggle
@@ -1079,13 +1095,16 @@ elements:
         default: 0.0
         remark: >-
           Applied whenever the buffer is empty, as for the other input
-          elements. In RANGE mode this attribute has no effect and the two
-          buffers start from the containers' init property; where that is not
-          given they start at the slider's own min and max, which is what the
-          handles show - a slider displaying a range its buffers do not contain
-          would leave any analysis reading them with no values at all.
+          elements, and likewise when the buffer ends in NaN (see the remark on
+          the edit element's default). In RANGE mode this attribute has no
+          effect and the two buffers start from the containers' init property;
+          where that is not given they start at the slider's own min and max,
+          which is what the handles show - a slider displaying a range its
+          buffers do not contain would leave any analysis reading them with no
+          values at all.
         summary: Value the slider starts at.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: input-default-does-not-replace-nan
       - name: precision
         description: >-
           The number of decimal places shown in the field with the
@@ -1162,9 +1181,17 @@ elements:
           clearing is how a user deliberately returns an experiment to its
           starting state. An author who wants a setting to survive that says so
           with clearGroup on the data container, which is what it is for.
+          A NaN at the end of the buffer is replaced by the default as well: an
+          input control cannot show NaN and the user could never enter it, so
+          the buffer would hold something the control does not. The default is
+          written as it stands, never clamped to the element's range - a
+          default is deliberate. Replacing a NaN is not user input: it came from
+          an analysis write, and an analysis with onUserInput must not re-run on
+          its own output.
         default: 0.0
         summary: Value selected initially.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: input-default-does-not-replace-nan
       - name: color
         type: color
         rules: [color-invalid-value]

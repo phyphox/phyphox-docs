@@ -1,0 +1,24 @@
+<phyphox version="1.20">
+    <title>NaN vs default</title>
+    <category>Fixtures</category>
+    <description>Every input control over a container whose init is NaN. A control cannot show NaN and the user could never enter it, so the default replaces it - as written, not clamped to the control's range: the edit's default lies above its max on purpose.</description>
+    <data-containers>
+        <container size="1" init="NaN">toggle_nan</container>
+        <container size="1" init="NaN">dropdown_nan</container>
+        <container size="1" init="NaN">edit_nan</container>
+        <container size="1" init="NaN">slider_nan</container>
+    </data-containers>
+    <views>
+        <view label="NaN is replaced">
+            <toggle label="toggle over NaN" default="1"><output>toggle_nan</output></toggle>
+            <dropdown label="dropdown over NaN" default="2">
+                <map value="0">zero</map>
+                <map value="1">one</map>
+                <map value="2">two</map>
+                <output>dropdown_nan</output>
+            </dropdown>
+            <edit label="edit over NaN" default="12" max="10"><output>edit_nan</output></edit>
+            <slider label="slider over NaN" minValue="0" maxValue="5" stepSize="1" default="3" precision="0"><output>slider_nan</output></slider>
+        </view>
+    </views>
+</phyphox>
