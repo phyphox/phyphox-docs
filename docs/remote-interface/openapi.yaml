@@ -88,6 +88,12 @@ info:
     name: GNU GPL v3
     identifier: GPL-3.0-only
 
+# Swagger UI renders neither of the descriptions below - not the server's and
+# not its variables' - so none of this reaches a reader of the API reference
+# page, and the block itself is hidden there (see the note in
+# ../assets/stylesheets/swagger-ui-overrides.css). Keep it accurate anyway: it
+# is part of the specification, and other consumers do read it. Documentation
+# that readers must see belongs in `info.description` or on the page.
 servers:
   - url: http://{host}:{port}
     description: A phone running phyphox with remote access enabled.

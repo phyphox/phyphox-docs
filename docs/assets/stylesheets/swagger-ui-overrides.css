@@ -40,3 +40,19 @@
 .swagger-ui .renderedMarkdown pre > code {
   padding: 5px 7px;
 }
+
+/* The servers block is a control, not documentation: a dropdown and two text
+   fields whose only effect is to recompute a URL that is then displayed. With
+   no Try it out buttons there is nothing to send it to, so all it does is
+   invite a reader to edit fields that do nothing.
+
+   Nothing readable is lost by hiding it. Swagger UI renders neither a server's
+   `description` nor its variables' - the note on `port` about Android's 8080,
+   iOS's 80, the walk to 8081 and `remoteAccessPort` has never appeared on the
+   page - so the block shows only the URL template and two bare labels. What
+   those descriptions say is in the admonition on api-reference.md and in the
+   introduction. `servers:` itself stays in openapi.yaml, where it is part of
+   the specification whether or not Swagger UI draws it. */
+.swagger-ui .scheme-container {
+  display: none;
+}
