@@ -179,7 +179,7 @@ paths:
         | *(empty)*       | Only the last value. `updateMode` comes back as `single`.       |
         | `full`          | The whole buffer. `updateMode` comes back as `full`.            |
         | *number*        | Every value after the first one exceeding this threshold.       |
-        | *number*`\|`*ref* | As above, but the threshold applies to buffer *ref* instead.   |
+        | *number*&#124;*ref* | As above, but the threshold applies to buffer *ref* instead. |
 
         So `/get?abc&def=full&ghi=42&jkl=23|mno` returns the last value of `abc`,
         all of `def`, everything in `ghi` after the first value above 42, and the
