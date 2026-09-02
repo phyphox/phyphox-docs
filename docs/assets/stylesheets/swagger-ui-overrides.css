@@ -1,0 +1,42 @@
+/* Loaded inside the Swagger UI iframe (see `extra_css` in mkdocs.yml), after
+   the plugin's own swagger-ui.css, which is vendored and must not be edited.
+
+   Do not name this file swagger-ui.css. The plugin copies its vendored
+   stylesheet to assets/stylesheets/swagger-ui.css during the build, after
+   mkdocs has copied docs/assets - so a file of that name here is silently
+   overwritten and the overrides simply vanish from the built site.
+
+   Swagger UI paints inline code in rendered markdown as a chip:
+
+       .swagger-ui .renderedMarkdown code { font-size: 14px; padding: 5px 7px }
+
+   A chip is 26.2px tall, but it is an inline box, and vertical padding on an
+   inline box does not grow the line it sits on - that line is 16.9px, from the
+   inherited `line-height: normal` at 14px. So every chip paints ~4.6px above
+   and below its own line, over the neighbouring ones.
+
+   It only shows once a paragraph wraps, which is why the reference looks fine
+   at full window width and collides inside the docs layout, where the iframe
+   is little more than half as wide. Every inline chip on the page overflows
+   its line; the API description and the /get parameter table are the worst.
+
+   Fixed from both sides: give the prose a line that can hold a chip, and stop
+   the chip from being taller than the text it wraps. */
+
+.swagger-ui .markdown,
+.swagger-ui .renderedMarkdown {
+  line-height: 1.6;
+}
+
+.swagger-ui .markdown code,
+.swagger-ui .renderedMarkdown code {
+  padding: 1px 6px;
+}
+
+/* The rule above is written for inline code. Code *blocks* are a <code> inside
+   a <pre>, where the padding is what separates the text from the block's edge,
+   so they keep the original spacing. */
+.swagger-ui .markdown pre > code,
+.swagger-ui .renderedMarkdown pre > code {
+  padding: 5px 7px;
+}

@@ -105,3 +105,8 @@ plugins:
       # only controls whether the panel starts open. See the warning on
       # docs/remote-interface/api-reference.md.
       supportedSubmitMethods: []
+      # Corrects the vendored Swagger UI's inline-code spacing inside the
+      # iframe; see the file for what it fixes and why it cannot live in
+      # phyphox.css, which only reaches the surrounding docs page.
+      extra_css:
+        - assets/stylesheets/swagger-ui-overrides.css
