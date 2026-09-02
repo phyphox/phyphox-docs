@@ -147,7 +147,36 @@ The two store rows are **optional**, and the checklist prints them in their own 
 five: they are release preparation rather than tests, and most releases do not need them. Leaving
 them unticked is a normal outcome. What they involve is the next section.
 
-## Release notes
+## The store release
+
+Everything a release puts in front of a user that is not the app itself: the screenshots, the store
+texts and the release notes. It is **one command per platform**, and each asks once before anything
+reaches a store.
+
+    cd phyphox-android              # on the Linux machine
+    tools/store_release.py
+
+The iOS half is being brought to the same shape and still runs as the separate commands under
+[iOS — the App Store](#ios--the-app-store) below.
+
+Budget about three hours: the capture is nearly all of it, and the emulators need the machine to
+themselves. **Uploading is not releasing** — the run stops at "uploaded", and the listing goes live
+with the app release, which is a manual act in each console.
+
+Not all of it is needed every time. The screenshots have to be retaken when the app's appearance
+changed enough that they no longer show the current app, or a scene was added or reworked in
+`screenshots/scenes.yml`; the texts when `phyphox-translation` changed or a language gained a
+translation. The run notices plates that are already there and offers to keep them, so a release
+that only needs new release notes is the same command answered differently.
+
+Everything is generated. The screenshots come from the **shipped experiment files**, with starting
+values injected from measurements recorded on a real phone, so they show the real app rather than a
+mock-up; the texts are read on the fly from `phyphox-translation`'s store PO files. **That
+repository is only ever read from, never written to.** And the scenes are composed from the
+experiment collection **in the working tree**, so check the repository out at the revision you are
+shipping before starting; there is deliberately no `--ref`.
+
+### Release notes — one source for all three channels
 
 Both stores and F-Droid show the same release notes, and there is **one copy of them**: F-Droid's
 changelogs in the Android repository,
@@ -156,96 +185,55 @@ changelogs in the Android repository,
 
 That file is version controlled, shows up in a diff and needs no credentials to read, which is why
 it is the reference rather than either console. It also carries the state of the step: **if there
-is no file for the current `versionCode`, the notes for this version have not been written yet.**
+is no file for the current `versionCode`, the notes for this version have not been written yet**,
+and the run asks for them — first thing, while the emulators are still cold, so the rest can run
+unattended.
 
 Only **English and German** are written by hand; every other store language shows the **English**
 text. Release notes change with every release and a translation round would hold the release up for
 weeks — unlike the store description, which goes through Weblate and changes about once a year.
+Notes that already exist are never edited by either script; change those in the files.
 
-Both upload scripts ask for the two texts when they are missing and write them into that tree
-before doing anything else, so the answer is on disk and in the next commit even if what follows
-fails. Neither script ever edits notes that already exist — change those in the files.
-
-    cd phyphox-android
-    tools/play_upload.py --release-notes        # asks if needed, then prints the block to paste
-
-    cd ../phyphox-ios
-    tools/appstore_upload.py --release-notes            # build and check, send nothing
-    tools/appstore_upload.py --release-notes --upload   # into the draft, via deliver
-
-The asymmetry is the stores', not ours. On the App Store the notes belong to the version being
-prepared, and deliver writes them straight into that draft — the tree it is handed contains nothing
-but `release_notes.txt`, so nothing else in the listing is touched. On Play a release is created in
-the console when a bundle is rolled out, which is a different act from updating the store entry, so
-the Android script only prints the `<locale>` block for the console's release-notes field. Paste it
-under Release → Production → Edit release → Release notes.
-
-**The App Store draft has to exist first**, and be the version being released: create it in App
-Store Connect before running this. The script reads the editable version back and stops if it is
-not the one in `MARKETING_VERSION` — deliver's own `--app_version` would otherwise *create* a
-version of that number, or rename the editable one to it, before showing any preview. Notes also go
-only to the locales the draft already has a localization for; a locale that has none is left to the
-listing step, because release notes and nothing else do not make a listing.
-
-Whichever script asks for the texts writes them into `phyphox-android` — including the iOS one, run
+Whichever platform asks for the texts writes them into `phyphox-android` — including the iOS run,
 from the Mac. **Commit and push that**, or F-Droid will build the release without notes.
 
 `phyphox-android/tools/changelog.py` is the one implementation of all of this and the iOS script
 imports it across the working root; nothing about the release notes is written down twice.
 
-## Updating the store listing (optional)
-
-Not part of testing, and not part of every release. Do it when the listing itself has changed:
-
-- the app's appearance changed enough that the screenshots no longer show the current app, or a
-  scene was added or reworked in `screenshots/scenes.yml`;
-- the store texts changed in `phyphox-translation`, or a language gained a translation;
-- a new listing language is being added to a store.
-
-Everything is generated. The screenshots come from the **shipped experiment files**, with starting
-values injected from measurements recorded on a real phone, so they show the real app rather than a
-mock-up; the texts are read on the fly from `phyphox-translation`'s store PO files. **That
-repository is only ever read from, never written to.**
-
-Two rules hold on both platforms. **Uploading is not releasing** - both scripts stop at "uploaded",
-and the listing goes live with the app release, which is a manual act in each console. And the
-scenes are composed from the experiment collection **in the working tree**, so check the repository
-out at the revision you are shipping before capturing; there is deliberately no `--ref`.
-
-### Android - Google Play and F-Droid
+### Android — Google Play and F-Droid
 
 One metadata tree serves both: Play gets it over the API, F-Droid reads it out of the git
-repository.
+repository. `tools/store_release.py` runs, in this order:
 
-    cd phyphox-android
-    tools/store_screenshots.py --avd phyphox-shot-phone  --form-factor phone     --build
-    tools/store_screenshots.py --avd phyphox-shot-7in    --form-factor sevenInch --apk <the apk --build made>
-    tools/store_screenshots.py --avd phyphox-shot-10in   --form-factor tenInch   --apk <the same apk>
+1. **Preflight** — the sibling checkouts, the Python modules, the three AVDs and the Play
+   credentials, all before three hours of capturing rather than after.
+2. **Release notes**, asked for if this `versionCode` has none.
+3. **Screenshots**, all three form factors from **one** build: `regularRelease` is assembled and
+   signed once and photographed three times, so a listing cannot end up showing two builds.
+4. **The mechanical check** over every plate. It catches broken and blank captures, not ugly ones —
+   a plate on the wrong tab or a graph with unfortunate data still needs eyes.
+5. **The six English phone plates into the metadata tree**, which is the F-Droid half. Nothing else
+   is committed: the stores upload over their APIs and never look at git, so the other locales'
+   images would be binary weight for nothing, and F-Droid falls back to English.
+6. **A rehearsal** — text and images into a Play edit, validated server-side, edit thrown away.
+7. **The question.** Everything before it is local or discarded. Yes runs the same upload with
+   `--commit`, which for this app **also submits it for review** — Play refuses
+   `changesNotSentForReview`, so that cannot be deferred. Managed publishing is what keeps the
+   reviewed listing away from users until you release it.
+8. **The release-notes block** for the Play Console, printed last so it is on the screen when you
+   go there. Play has no API path for it here: a release is created in the console when the bundle
+   is rolled out, which is a different act from updating the store entry. Paste it under
+   Release → Production → Edit release → Release notes.
 
-    ../phyphox-docs/tools/screenshots/verify.py --form-factor phone fastlane/metadata/android
-
-`--build` assembles `regularRelease` from the current checkout and signs it for local use; pass the
-resulting APK to the other two form factors so all three photograph one build. Each run takes about
-an hour for all 23 languages. Then, from the same directory:
-
-    tools/play_upload.py --text            # rehearsal: validated server-side, then thrown away
-    tools/play_upload.py --text --commit   # the real thing
-
-**`--commit` sends the listing for review, and that cannot be deferred** - Play rejects
-`changesNotSentForReview` for this app. Managed publishing is what keeps the reviewed listing away
-from users until you release it. Narrow a re-upload with `--image-types`: uploading a type
-*replaces* every image of it, so a full run would churn images that are already on the store, or
-mid-review, for nothing.
-
-F-Droid needs no credentials at all - it reads `fastlane/metadata/android/` from the repository.
-Only `en-US` screenshots are committed there (the other locales' images are uploaded to Play but
-would add a lot of binary weight to a git repository); commit and push that tree. The `changelogs/`
-directories in it are the release notes both stores show - see [Release notes](#release-notes).
+**The run never touches git.** It ends by saying what is waiting there — the changelogs and the
+English plates — and when that is committed and pushed is your call.
 
 Authentication is the maintainer's own Google account through a Desktop OAuth client, not a service
 account - see `STORE-RELEASE-PLAN.md` §8.1 for the one-time setup.
 
-### iOS - the App Store
+### iOS — the App Store
+
+Still the explicit commands; the one-command counterpart is being added.
 
     cd phyphox-ios
     tools/store_screenshots.py --form-factor iphone --build
@@ -263,6 +251,24 @@ finds a file for, and an empty file would blank them.
 
 Authentication is an App Store Connect **individual** API key restricted to phyphox (§8.2). Team
 keys cannot be app-restricted.
+
+### Doing it in pieces
+
+The driver only orders the underlying tools; each keeps its own options, and those are what a
+rehearsal or a repair uses.
+
+    tools/store_release.py --skip-capture      # reuse the plates already taken
+    tools/store_release.py --no-publish        # stop after the rehearsal
+    tools/store_release.py --languages en,de --scenes accelerometer,strobe
+
+    tools/store_screenshots.py --avd phyphox-shot-7in --form-factor sevenInch --apk <apk>
+    ../phyphox-docs/tools/screenshots/verify.py ../screenshots/android --form-factor phone
+    tools/play_upload.py --text                # rehearsal only
+    tools/play_upload.py --image-types phoneScreenshots --commit
+    tools/play_upload.py --release-notes       # just the block to paste
+
+Narrow a re-upload with `--image-types`: uploading a type *replaces* every image of it, so a full
+run would churn images that are already on the store, or mid-review, for nothing.
 
 ## When something fails
 
