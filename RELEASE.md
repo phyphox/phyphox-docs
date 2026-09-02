@@ -125,7 +125,8 @@ The checklist is at the end of `merged.md`, generated from the `manual: true` ro
 `test-matrix.yml` so it cannot drift from the matrix. Five steps, once per platform, none of them
 covered by anything above: a real GPS fix outdoors, a QR scan off paper and off a screen, a
 Bluetooth device nobody wrote for this test, an accessibility spot check, and the permission
-dialogs on a factory-fresh OS.
+dialogs on a factory-fresh OS. Two further rows are marked optional and are listed separately -
+they are the store listing update, not tests.
 
 They are in the matrix rather than in a document of their own for the same reason as everything
 else: one list, reviewed like code, so a step cannot quietly disappear.
@@ -138,10 +139,83 @@ resolve against the published site, so a release tested before the site is pushe
 pointing at whatever is live.
 
 A step that cannot actually be carried out does not belong here - it reads as if someone were
-watching when nobody is. That is why a phone call during an audio experiment is not in the list
-(almost none of the lab phones have a mobile subscription; audio interruption relies on user
-reports and on colleagues testing on their own phones), and why the store screenshots are not
-either (the fastlane lanes are release tooling and are not driven by this suite at all).
+watching when nobody is. That is why a phone call during an audio experiment is not in the list:
+almost none of the lab phones have a mobile subscription, so audio interruption relies on user
+reports and on colleagues testing on their own phones.
+
+The two store rows are **optional**, and the checklist prints them in their own group below the
+five: they are release preparation rather than tests, and most releases do not need them. Leaving
+them unticked is a normal outcome. What they involve is the next section.
+
+## Updating the store listing (optional)
+
+Not part of testing, and not part of every release. Do it when the listing itself has changed:
+
+- the app's appearance changed enough that the screenshots no longer show the current app, or a
+  scene was added or reworked in `screenshots/scenes.yml`;
+- the store texts changed in `phyphox-translation`, or a language gained a translation;
+- a new listing language is being added to a store.
+
+Everything is generated. The screenshots come from the **shipped experiment files**, with starting
+values injected from measurements recorded on a real phone, so they show the real app rather than a
+mock-up; the texts are read on the fly from `phyphox-translation`'s store PO files. **That
+repository is only ever read from, never written to.**
+
+Two rules hold on both platforms. **Uploading is not releasing** - both scripts stop at "uploaded",
+and the listing goes live with the app release, which is a manual act in each console. And the
+scenes are composed from the experiment collection **in the working tree**, so check the repository
+out at the revision you are shipping before capturing; there is deliberately no `--ref`.
+
+### Android - Google Play and F-Droid
+
+One metadata tree serves both: Play gets it over the API, F-Droid reads it out of the git
+repository.
+
+    cd phyphox-android
+    tools/store_screenshots.py --avd phyphox-shot-phone  --form-factor phone     --build
+    tools/store_screenshots.py --avd phyphox-shot-7in    --form-factor sevenInch --apk <the apk --build made>
+    tools/store_screenshots.py --avd phyphox-shot-10in   --form-factor tenInch   --apk <the same apk>
+
+    ../phyphox-docs/tools/screenshots/verify.py --form-factor phone fastlane/metadata/android
+
+`--build` assembles `regularRelease` from the current checkout and signs it for local use; pass the
+resulting APK to the other two form factors so all three photograph one build. Each run takes about
+an hour for all 23 languages. Then, from the same directory:
+
+    tools/play_upload.py --text            # rehearsal: validated server-side, then thrown away
+    tools/play_upload.py --text --commit   # the real thing
+
+**`--commit` sends the listing for review, and that cannot be deferred** - Play rejects
+`changesNotSentForReview` for this app. Managed publishing is what keeps the reviewed listing away
+from users until you release it. Narrow a re-upload with `--image-types`: uploading a type
+*replaces* every image of it, so a full run would churn images that are already on the store, or
+mid-review, for nothing.
+
+F-Droid needs no credentials at all - it reads `fastlane/metadata/android/` from the repository.
+Only `en-US` screenshots are committed there (the other locales' images are uploaded to Play but
+would add a lot of binary weight to a git repository); commit and push that tree.
+
+Authentication is the maintainer's own Google account through a Desktop OAuth client, not a service
+account - see `STORE-RELEASE-PLAN.md` §8.1 for the one-time setup.
+
+### iOS - the App Store
+
+    cd phyphox-ios
+    tools/store_screenshots.py --form-factor iphone --build
+    tools/store_screenshots.py --form-factor ipad   --app <what --build produced>
+
+    tools/appstore_upload.py --diff              # what would change, against the live listing
+    tools/appstore_upload.py --verify-screenshots
+    tools/appstore_upload.py --upload            # deliver renders a preview and waits for a yes
+
+There is **no server-side rehearsal**: App Store Connect has no draft edit that can be validated
+and discarded, so `--diff` against the live listing is as close as it gets, and all the checking
+happens before the first call. `subtitle` and `keywords` are maintained by hand in App Store
+Connect and the metadata tree deliberately contains no files for them - deliver sets only fields it
+finds a file for, and an empty file would blank them.
+
+Authentication is an App Store Connect **individual** API key restricted to phyphox (§8.2). Team
+keys cannot be app-restricted.
 
 ## When something fails
 

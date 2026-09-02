@@ -87,6 +87,13 @@ def load_matrix():
             problems.append(f"{where}: host_driven must be true or false")
         if "manual" in row and not isinstance(row["manual"], bool):
             problems.append(f"{where}: manual must be true or false")
+        if "optional" in row and not isinstance(row["optional"], bool):
+            problems.append(f"{where}: optional must be true or false")
+        if row.get("optional") and not row.get("manual"):
+            # Optional only means "the person running the checklist may
+            # leave this box unticked". An automated row is either run or
+            # not run by the tier it is in, so the flag would say nothing.
+            problems.append(f"{where}: optional rows must be manual")
         if row.get("manual") and row.get("tier") != "T3":
             # The point of the flag is the release checklist, and the point
             # of a tier is what runs when. A manual row outside T3 would be

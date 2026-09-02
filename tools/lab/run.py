@@ -132,13 +132,27 @@ def _t3_checklist(platforms):
             and (not platforms or set(r.get("platforms") or []) & platforms)]
     if not todo:
         return []
+    def item(row):
+        who = "/".join(sorted(row.get("platforms") or []))
+        text = " ".join((row.get("description") or "").split())
+        return f"- [ ] **{row['id']}** ({who}) - {text}"
+
+    required = [r for r in todo if not r.get("optional")]
+    optional = [r for r in todo if r.get("optional")]
+
     out = ["", "## T3 - by hand, once per platform", "",
            "Budget 30 minutes each. Nothing below is covered by anything "
            "above it.", ""]
-    for row in todo:
-        who = "/".join(sorted(row.get("platforms") or []))
-        text = " ".join((row.get("description") or "").split())
-        out.append(f"- [ ] **{row['id']}** ({who}) - {text}")
+    out += [item(r) for r in required]
+    if optional:
+        # Kept apart deliberately: these are release preparation, not tests,
+        # and most releases do not need them. Mixed into the list above they
+        # would read as five steps that were skipped.
+        out += ["", "### Optional - only if the store listing changed", "",
+                "Not tests, and not part of the budget. Leaving these "
+                "unticked is a normal outcome; see \"Updating the store "
+                "listing\" in RELEASE.md.", ""]
+        out += [item(r) for r in optional]
     return out
 
 

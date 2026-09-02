@@ -415,10 +415,14 @@ tests:
   #   be skipped on nearly every run. Audio interruption handling is left to
   #   user reports and to colleagues testing deliberately on their own
   #   phones.
-  # * store-screenshots. The fastlane lanes are release tooling and are not
-  #   driven by this suite at all, so reviewing their output does not belong
-  #   in a checklist generated from it. It comes back if the screenshot
-  #   tooling is ever reworked into part of the testing workflow.
+  #
+  # store-screenshots was taken out with them and came back on 2026-09-02,
+  # together with store-texts, once the fastlane lanes were replaced by
+  # scripts a person runs at the release (tools/store_screenshots.py and the
+  # two uploaders). Both carry `optional: true`: they are release
+  # preparation rather than tests, most releases do not need them, and an
+  # unticked box is a normal outcome. The checklist prints them in their own
+  # group, outside the 30-minute budget, and RELEASE.md has the procedure.
 
   - id: gps-real-fix
     area: sensors
@@ -479,6 +483,37 @@ tests:
       collection, start and stop it, and read one value. Not an audit - a
       spot check that the main path is operable, which is how the invisible
       add-experiment menu was found in 2026-08.
+
+  - id: store-screenshots
+    area: release
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    manual: true
+    optional: true
+    description: >-
+      Only if the app's appearance changed, or a scene was reworked:
+      regenerate the store screenshots for every form factor from the
+      revision being shipped, look at them, and upload them. They are
+      composed from the shipped experiment files, so a changed experiment
+      changes the picture. See "Updating the store listing" in RELEASE.md;
+      uploading is not releasing, and on Play a commit sends the listing
+      for review.
+
+  - id: store-texts
+    area: release
+    tier: T3
+    platforms: [android, ios]
+    status: active
+    optional: true
+    manual: true
+    description: >-
+      Only if the listing text changed in phyphox-translation, or a
+      language gained a translation or a store listing: sync the titles and
+      descriptions from the store PO files, checking that nothing overruns
+      Play's limits (30/80/4000 characters) after translation. That
+      repository is read from and never written to. Apple's subtitle and
+      keywords have no PO source and stay manual.
 
   - id: permissions-fresh-os
     area: ui
