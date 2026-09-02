@@ -97,5 +97,11 @@ plugins:
   - swagger-ui-tag:
       background: transparent
       docExpansion: list
-      tryItOutEnabled: true
       syntaxHighlightTheme: monokai
+      # No "Try it out" buttons. They would send an http:// request to the
+      # phone, and the site is served over https, so the browser blocks every
+      # one of them as mixed content before it leaves the page - the button
+      # just spins. An empty list is what removes the button; tryItOutEnabled
+      # only controls whether the panel starts open. See the warning on
+      # docs/remote-interface/api-reference.md.
+      supportedSubmitMethods: []
