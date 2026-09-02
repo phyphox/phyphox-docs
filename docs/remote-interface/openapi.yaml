@@ -46,7 +46,9 @@ info:
     Every response carries `Access-Control-Allow-Origin: *`, so a page served from
     anywhere may read it — which is what makes a browser-based client possible at
     all. See the inconsistencies noted on this page for where that is not yet
-    true.
+    true. That page must itself be served over plain HTTP, though: the app speaks
+    HTTP only, and a browser blocks an `http://` request made from an `https://`
+    page before CORS is ever consulted.
 
     ### Parameters, and POST bodies
 
