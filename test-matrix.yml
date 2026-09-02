@@ -212,7 +212,10 @@ tests:
       (bounds, signed/decimal, factor), pressing buttons (value writes,
       appends, empty-clear, trigger), toggles, both slider types,
       dropdown selection - each asserted by its buffer effect through
-      the remote API. Espresso / XCUITest.
+      the remote API. Also the starting state, which no interaction
+      touches: a container's init beats a control's default, while a
+      default still fills an empty container, and both survive the
+      views being rebuilt. Espresso / XCUITest.
 
   - id: app-chrome
     area: ui

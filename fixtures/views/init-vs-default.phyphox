@@ -1,0 +1,39 @@
+<phyphox version="1.20">
+    <title>Init vs default</title>
+    <category>Fixtures</category>
+    <description>Every input control twice: once over a container that already holds a value, once over an empty one. The spec says a default fills an EMPTY buffer and never overwrites one, so the first set must keep its init and the second must take the default.</description>
+    <data-containers>
+        <container size="1" init="1">toggle_init</container>
+        <container size="1" init="2">dropdown_init</container>
+        <container size="1" init="42">edit_init</container>
+        <container size="1" init="4">slider_init</container>
+        <container size="1">toggle_default</container>
+        <container size="1">dropdown_default</container>
+        <container size="1">edit_default</container>
+        <container size="1">slider_default</container>
+    </data-containers>
+    <views>
+        <view label="init wins">
+            <toggle label="toggle over init" default="0"><output>toggle_init</output></toggle>
+            <dropdown label="dropdown over init" default="0">
+                <map value="0">zero</map>
+                <map value="1">one</map>
+                <map value="2">two</map>
+                <output>dropdown_init</output>
+            </dropdown>
+            <edit label="edit over init" default="7"><output>edit_init</output></edit>
+            <slider label="slider over init" minValue="0" maxValue="5" stepSize="1" default="1" precision="0"><output>slider_init</output></slider>
+        </view>
+        <view label="default fills">
+            <toggle label="toggle over empty" default="1"><output>toggle_default</output></toggle>
+            <dropdown label="dropdown over empty" default="1">
+                <map value="0">zero</map>
+                <map value="1">one</map>
+                <map value="2">two</map>
+                <output>dropdown_default</output>
+            </dropdown>
+            <edit label="edit over empty" default="7"><output>edit_default</output></edit>
+            <slider label="slider over empty" minValue="0" maxValue="5" stepSize="1" default="3" precision="0"><output>slider_default</output></slider>
+        </view>
+    </views>
+</phyphox>

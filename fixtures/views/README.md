@@ -12,6 +12,14 @@ screen with no sensors and no analysis.
 - `graphs-styles`, `graphs-axes`, `graphs-special` — the OpenGL-rendered
   graphs (row `graph-snapshots`, T1: emulator + PixelCopy on Android,
   GLKView.snapshot in the simulator on iOS).
+- `init-vs-default` — behavior only, no goldens: every input control once
+  over a container that already holds a value and once over an empty one.
+  The spec says a default fills an EMPTY buffer and never overwrites one,
+  and both halves have to be asserted together, because "fixing" the first
+  by not seeding at all would break the second. It asserts again after
+  paging away and back: a load builds each page once, but a rebuilt widget
+  used to hand its own default to the next write pass, which is the form
+  the bug actually took on Android.
 - The same files drive the behavior tests (row `view-behavior`, T1):
   type into the edits, press the buttons, move the sliders, pick from
   the dropdown — and assert the target buffers through the remote API.

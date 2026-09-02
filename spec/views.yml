@@ -917,8 +917,7 @@ elements:
           with clearGroup on the data container, which is what it is for.
         default: 0.0
         summary: Value the field starts with.
-        agreement: divergent
-        inconsistency: toggle-dropdown-default-overwrites-init
+        agreement: agreed
   - name: output
     parent: edit
     since: "1.0"
@@ -1031,8 +1030,7 @@ elements:
           with clearGroup on the data container, which is what it is for.
         default: 0.0
         summary: State the switch starts in.
-        agreement: divergent
-        inconsistency: toggle-dropdown-default-overwrites-init
+        agreement: agreed
 
   - name: output
     parent: toggle
@@ -1166,8 +1164,7 @@ elements:
           with clearGroup on the data container, which is what it is for.
         default: 0.0
         summary: Value selected initially.
-        agreement: divergent
-        inconsistency: toggle-dropdown-default-overwrites-init
+        agreement: agreed
       - name: color
         type: color
         rules: [color-invalid-value]
