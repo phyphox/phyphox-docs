@@ -180,6 +180,13 @@ the console when a bundle is rolled out, which is a different act from updating 
 the Android script only prints the `<locale>` block for the console's release-notes field. Paste it
 under Release → Production → Edit release → Release notes.
 
+**The App Store draft has to exist first**, and be the version being released: create it in App
+Store Connect before running this. The script reads the editable version back and stops if it is
+not the one in `MARKETING_VERSION` — deliver's own `--app_version` would otherwise *create* a
+version of that number, or rename the editable one to it, before showing any preview. Notes also go
+only to the locales the draft already has a localization for; a locale that has none is left to the
+listing step, because release notes and nothing else do not make a listing.
+
 Whichever script asks for the texts writes them into `phyphox-android` — including the iOS one, run
 from the Mac. **Commit and push that**, or F-Droid will build the release without notes.
 
