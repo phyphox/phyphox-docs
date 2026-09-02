@@ -89,31 +89,3 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
-
-- id: input-default-does-not-replace-nan
-  title: A NaN in an input element's buffer
-  area: file-format
-  status: decided
-  canonical: >-
-    The default of an edit, toggle, dropdown or slider replaces a NaN at the
-    end of its buffer, the same way it fills an empty one: an input control
-    cannot show NaN and the user could never enter it, so the buffer must not
-    hold a value the control does not. The default is written as it stands,
-    not clamped to the element's range, and the replacement does not count as
-    user input (maintainer, 2026-09-02).
-  affects:
-    android: >-
-      Replaces the NaN on the next input pass, for every view whether or not
-      its page has been built (ExpView.expViewElement.applyDefault, called
-      from each element's onMayWriteToBuffers). Since 2026-09-02 on
-      development; before that only the edit did, and it clamped the default
-      through its own range and reported the replacement as user input.
-    ios: >-
-      Seeds only an EMPTY buffer (Experiment.seedInputDefaults, and the
-      parser's `if buffer.isEmpty` when the view is read). A buffer whose last
-      value is NaN is left as it is: the edit box shows "nan", the switch
-      shows off, and an analysis reading the buffer gets NaN.
-  summary: >-
-    A NaN in the buffer of an input control is replaced by the control's
-    default on Android but stays in the buffer on iOS, where the control shows
-    something the buffer does not hold.

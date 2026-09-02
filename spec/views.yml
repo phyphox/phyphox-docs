@@ -924,8 +924,7 @@ elements:
           its own output.
         default: 0.0
         summary: Value the field starts with.
-        agreement: divergent
-        inconsistency: input-default-does-not-replace-nan
+        agreement: agreed
   - name: output
     parent: edit
     since: "1.0"
@@ -1045,8 +1044,7 @@ elements:
           its own output.
         default: 0.0
         summary: State the switch starts in.
-        agreement: divergent
-        inconsistency: input-default-does-not-replace-nan
+        agreement: agreed
 
   - name: output
     parent: toggle
@@ -1103,8 +1101,7 @@ elements:
           buffers do not contain would leave any analysis reading them with no
           values at all.
         summary: Value the slider starts at.
-        agreement: divergent
-        inconsistency: input-default-does-not-replace-nan
+        agreement: agreed
       - name: precision
         description: >-
           The number of decimal places shown in the field with the
@@ -1190,8 +1187,7 @@ elements:
           its own output.
         default: 0.0
         summary: Value selected initially.
-        agreement: divergent
-        inconsistency: input-default-does-not-replace-nan
+        agreement: agreed
       - name: color
         type: color
         rules: [color-invalid-value]
