@@ -147,6 +147,45 @@ The two store rows are **optional**, and the checklist prints them in their own 
 five: they are release preparation rather than tests, and most releases do not need them. Leaving
 them unticked is a normal outcome. What they involve is the next section.
 
+## Release notes
+
+Both stores and F-Droid show the same release notes, and there is **one copy of them**: F-Droid's
+changelogs in the Android repository,
+
+    phyphox-android/fastlane/metadata/android/<lang>/changelogs/<versionCode>.txt
+
+That file is version controlled, shows up in a diff and needs no credentials to read, which is why
+it is the reference rather than either console. It also carries the state of the step: **if there
+is no file for the current `versionCode`, the notes for this version have not been written yet.**
+
+Only **English and German** are written by hand; every other store language shows the **English**
+text. Release notes change with every release and a translation round would hold the release up for
+weeks — unlike the store description, which goes through Weblate and changes about once a year.
+
+Both upload scripts ask for the two texts when they are missing and write them into that tree
+before doing anything else, so the answer is on disk and in the next commit even if what follows
+fails. Neither script ever edits notes that already exist — change those in the files.
+
+    cd phyphox-android
+    tools/play_upload.py --release-notes        # asks if needed, then prints the block to paste
+
+    cd ../phyphox-ios
+    tools/appstore_upload.py --release-notes            # build and check, send nothing
+    tools/appstore_upload.py --release-notes --upload   # into the draft, via deliver
+
+The asymmetry is the stores', not ours. On the App Store the notes belong to the version being
+prepared, and deliver writes them straight into that draft — the tree it is handed contains nothing
+but `release_notes.txt`, so nothing else in the listing is touched. On Play a release is created in
+the console when a bundle is rolled out, which is a different act from updating the store entry, so
+the Android script only prints the `<locale>` block for the console's release-notes field. Paste it
+under Release → Production → Edit release → Release notes.
+
+Whichever script asks for the texts writes them into `phyphox-android` — including the iOS one, run
+from the Mac. **Commit and push that**, or F-Droid will build the release without notes.
+
+`phyphox-android/tools/changelog.py` is the one implementation of all of this and the iOS script
+imports it across the working root; nothing about the release notes is written down twice.
+
 ## Updating the store listing (optional)
 
 Not part of testing, and not part of every release. Do it when the listing itself has changed:
@@ -193,7 +232,8 @@ mid-review, for nothing.
 
 F-Droid needs no credentials at all - it reads `fastlane/metadata/android/` from the repository.
 Only `en-US` screenshots are committed there (the other locales' images are uploaded to Play but
-would add a lot of binary weight to a git repository); commit and push that tree.
+would add a lot of binary weight to a git repository); commit and push that tree. The `changelogs/`
+directories in it are the release notes both stores show - see [Release notes](#release-notes).
 
 Authentication is the maintainer's own Google account through a Desktop OAuth client, not a service
 account - see `STORE-RELEASE-PLAN.md` §8.1 for the one-time setup.
