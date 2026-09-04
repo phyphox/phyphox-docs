@@ -212,9 +212,13 @@ repository. `tools/store_release.py` runs, in this order:
    signed once and photographed three times, so a listing cannot end up showing two builds.
 4. **The mechanical check** over every plate. It catches broken and blank captures, not ugly ones —
    a plate on the wrong tab or a graph with unfortunate data still needs eyes.
-5. **The six English phone plates into the metadata tree**, which is the F-Droid half. Nothing else
-   is committed: the stores upload over their APIs and never look at git, so the other locales'
-   images would be binary weight for nothing, and F-Droid falls back to English.
+5. **The F-Droid half into the metadata tree**: the listing text for every language that has a
+   directory there — title, short and full description, prepared exactly as Play gets them, trimmed
+   short description included, so the two stores never say different things — and the six English
+   phone plates. No other images are committed: the stores upload over their APIs and never look at
+   git, so the other locales' plates would be binary weight for nothing, and F-Droid falls back to
+   English. A language with a translation but no directory is reported, not created; adding one to
+   F-Droid is your decision.
 6. **A rehearsal** — text and images into a Play edit, validated server-side, edit thrown away.
 7. **The question.** Everything before it is local or discarded. Yes runs the same upload with
    `--commit`, which for this app **also submits it for review** — Play refuses
@@ -225,8 +229,8 @@ repository. `tools/store_release.py` runs, in this order:
    is rolled out, which is a different act from updating the store entry. Paste it under
    Release → Production → Edit release → Release notes.
 
-**The run never touches git.** It ends by saying what is waiting there — the changelogs and the
-English plates — and when that is committed and pushed is your call.
+**The run never touches git.** It ends by saying what is waiting there — the changelogs, the
+listing text and the English plates — and when that is committed and pushed is your call.
 
 Authentication is the maintainer's own Google account through a Desktop OAuth client, not a service
 account - see `STORE-RELEASE-PLAN.md` §8.1 for the one-time setup.
@@ -274,7 +278,7 @@ rehearsal or a repair uses.
 
     tools/store_screenshots.py --avd phyphox-shot-7in --form-factor sevenInch --apk <apk>
     ../phyphox-docs/tools/screenshots/verify.py ../screenshots/android --form-factor phone
-    tools/play_upload.py --text                # rehearsal only
+    tools/play_upload.py --text                # rehearsal only; also writes the F-Droid text
     tools/play_upload.py --image-types phoneScreenshots --commit
     tools/play_upload.py --release-notes       # just the block to paste
 
