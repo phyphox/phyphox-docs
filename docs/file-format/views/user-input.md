@@ -14,7 +14,7 @@ The edit element displays an edit box, which takes data from the user and writes
 
 The button element displays a simple button, which interacts with the buffers **outside** the analysis cycle. Whenever the user presses the button, the last value from each input (which may be value types or data-containers) is written to each output (the first input is written to the first output, the second to the second and so on). Note that this does not happen at a certain point during analysis, but between analysis cycles, independent of when the user pushes the button.
 
-Since version 1.4 (phyphox 1.0.6) you may define empty inputs (type="empty"), effectively making it possible to clear a buffer when pressing the button.
+Since version 1.4 (phyphox 1.0.6) you may define empty inputs (type="empty"), effectively making it possible to clear a buffer when pressing the button. The buffer is emptied, not reset to its *init* values; only the user's clear-data action restores those.
 
 Since version 1.8 (phyphox 1.1.3), in addition to defining input and output buffers (or, usually, as an alternative), you can set a trigger tag defining an id. This triggers matching processes with the same id, such as a [network connection](../network-connections.md).
 

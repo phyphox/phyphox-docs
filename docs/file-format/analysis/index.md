@@ -47,6 +47,8 @@ The values of the *type* attribute of inputs and outputs ("buffer", "value", "em
 
 Analysis modules never abort the experiment on bad parameters. A present but invalid parameter value — such as NaN or an infinity where a count or width is expected — puts the module into an intermediate error state: it outputs NaN where a single value is expected and nothing where a list is expected, and recovers as soon as valid data arrives. An absent optional input keeps its documented default. Non-finite values that are mathematically meaningful, such as an infinite threshold or bound, participate in comparisons normally and are not errors. Configuration that can never work, on the other hand, is a load error rather than a runtime state and rejects the file.
 
+An analysis input without keep="true" empties its buffer after reading it. This is not the same as the user clearing the data: the buffer's *init* values are **not** restored, the buffer is simply left empty. Only the user's clear-data action (trash button, clear group or the remote interface's clear command) puts the *init* values back.
+
 Buffers bound to interactive view elements (edit, toggle, dropdown, slider) are not exempt from clearing: an analysis input without keep="true" clears them like any other buffer, and the element then re-initializes both the buffer and the displayed value to its default. Use keep="true" on such inputs to preserve the user's setting across analysis cycles.
 
 ## List of analysis modules

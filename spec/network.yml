@@ -270,7 +270,9 @@ elements:
           it to false to clear the container once the data has gone out, which
           is the easy way to stream data without duplicates. Note that the
           default is the opposite of the one in analysis modules, where a value
-          is consumed unless you ask to keep it.
+          is consumed unless you ask to keep it. Clearing here only empties
+          the container; it does not restore the container's init values,
+          which only the user's clear-data action does.
         agreement: agreed
       - name: clear
         type: boolean
@@ -301,9 +303,9 @@ elements:
         summary: Append to the container rather than replacing its contents.
         description: >-
           Whether received data is appended to the data container. Set it to
-          false to have the container cleared before the response is written to
-          it. Note that the default is the opposite of the one in analysis
-          modules.
+          false to have the container emptied before the response is written to
+          it - emptied, not reset to its init values. Note that the default is
+          the opposite of the one in analysis modules.
         agreement: agreed
       - name: clear
         type: boolean

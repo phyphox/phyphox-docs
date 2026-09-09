@@ -162,6 +162,8 @@ Use the string-tag to translate any string shown to the user besides the title, 
 
 In data-containers all buffers are defined. Any input (sensors, microphone) writes to these buffers, any analysis module performs its operations on these buffers, the output modules read from these buffers and the results are shown to the user from these buffers. The buffers connect every module of the experiment.
 
+Two different things are called *clearing* a buffer, and only one of them restores the buffer's *init* values. When the **user clears the data** (the trash button, a *clearGroup* the user selects, or the remote interface's *clear* command), every affected buffer returns to its *init* values, or becomes empty if it has none. Everything else that empties a buffer just discards its contents and leaves it empty: an analysis input without *keep*, an analysis output without *append*, a network *send* or Bluetooth *output* with keep="false", a button writing an *empty* input, or a remote *set* in replace mode. None of these restore the *init* values. An experiment that needs a start value back after a module has consumed a buffer has to write it again itself, for example with the *init* analysis module.
+
 ```xml
 <phyphox version="...">
     ...

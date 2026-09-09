@@ -334,14 +334,23 @@ elements:
       - name: init
         description: >-
           If set, the buffer is initialized with the given value
-          when the experiment is loaded and whenever the data is
-          cleared. If not set, the buffer starts empty. Since file
-          format 1.5 several values may be given, separated by
-          commas, to initialize a buffer with more than one value.
+          when the experiment is loaded and whenever the user clears
+          the data - with the trash button, by selecting a
+          clearGroup, or through the remote interface's clear
+          command. Only that user-initiated clear restores the init
+          values. Everything else that empties a buffer leaves it
+          empty: an analysis input without keep, an analysis output
+          without append, a network send or Bluetooth output with
+          keep="false", a button writing an empty input, or a remote
+          set in replace mode all discard the contents without
+          restoring the init values. If not set, the buffer starts
+          empty. Since file format 1.5 several values may be given,
+          separated by commas, to initialize a buffer with more than
+          one value.
         type: float-list
         summary: >-
           Values the buffer starts with, comma-separated. Also what it returns
-          to when cleared.
+          to when the user clears the data; any other clearing leaves it empty.
         agreement: agreed
         note: >-
           A malformed entry - including an empty one from a stray comma -

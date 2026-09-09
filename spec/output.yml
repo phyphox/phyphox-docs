@@ -327,6 +327,9 @@ elements:
         summary: >-
           Whether the data container keeps its contents after being written.
           False clears it, so each value is sent once.
+        remark: >-
+          Clearing here only empties the container. It does not restore the
+          container's init values; only the user's clear-data action does that.
         agreement: agreed
       - name: triggerId
         type: string

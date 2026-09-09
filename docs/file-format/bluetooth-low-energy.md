@@ -84,7 +84,7 @@ In contrast to using the tag "bluetooth" within an input tag, you cannot specify
 
 {{spec:output/output/bluetooth|wrapped:own}}
 
-Since phyphox file format 1.19 (phyphox version 1.2.0) you can also set the attribute "keep" for each input tag. This works like the keep attribute in analysis modules: If you set keep="false", the data container is cleared after the data has been sent, allowing you to send data only once. The default is keep="true", matching the behavior of older versions, in which the data container is not altered after data has been sent.
+Since phyphox file format 1.19 (phyphox version 1.2.0) you can also set the attribute "keep" for each input tag. This works like the keep attribute in analysis modules: If you set keep="false", the data container is cleared after the data has been sent, allowing you to send data only once. The default is keep="true", matching the behavior of older versions, in which the data container is not altered after data has been sent. Note that this clearing only empties the container: it does not restore the container's *init* values, which only the user's clear-data action does.
 
 Since phyphox file format 1.20 (phyphox version 1.2.1) you can also set the attribute "triggerId" for each input tag. If set, the data associated with this characteristic is only sent at the end of an analysis process if the user has pressed a button view element with a matching trigger tag. Other input tags may continue to send periodically as usual, but this makes it possible to assign certain submissions directly to user input.
 

@@ -93,7 +93,7 @@ POST /set
 {"buffers": {"abc": [1, 2.5, null, "nan"], "t": [0, 1, 2, 3]}, "mode": "replace"}
 ```
 
-Array entries are numbers, `null` (writes NaN — the same representation /get uses for every non-finite value, so /get output can be fed straight back in) or strings in the file format's number lexical space, which is how the distinguishable special values `"nan"`, `"Infinity"` and `"-infinity"` are written. `mode` is `replace` (clear each named buffer first, the default) or `append`. The request is atomic: an unknown buffer name or a malformed entry rejects the whole request with `{"result": false}` and an error message, and nothing is written. See the [API reference](api-reference.md) for the full definition.
+Array entries are numbers, `null` (writes NaN — the same representation /get uses for every non-finite value, so /get output can be fed straight back in) or strings in the file format's number lexical space, which is how the distinguishable special values `"nan"`, `"Infinity"` and `"-infinity"` are written. `mode` is `replace` (empty each named buffer first, without restoring its `init` values; the default) or `append`. The request is atomic: an unknown buffer name or a malformed entry rejects the whole request with `{"result": false}` and an error message, and nothing is written. See the [API reference](api-reference.md) for the full definition.
 
 ### /export
 

@@ -282,6 +282,9 @@ paths:
           subsequent `/get`.
         - `stop` — stop measuring.
         - `clear` — discard buffered data, stopping the measurement if it is running.
+          This is the same clear as the trash button in the app: every affected
+          buffer returns to its `init` values from the experiment file, or
+          becomes empty if it has none.
         - `set` — write a single value into a buffer. This is how the remote
           interface implements edit fields.
         - `trigger` — activate a view element by its index, as if the user had
@@ -380,8 +383,10 @@ paths:
         buffer name must exist and every entry must be well-formed — and on
         any error nothing is written and the response is
         `{"result": false}` with an `error` message. On success the values
-        are appended in array order, after clearing the buffer first unless
-        `mode` is `append`. Normal buffer semantics apply: a buffer keeps its
+        are appended in array order, after emptying the buffer first unless
+        `mode` is `append`. Emptying here does not restore the buffer's `init`
+        values; only `/control?cmd=clear` does that. Normal buffer semantics
+        apply: a buffer keeps its
         newest `size` values, and a static buffer is written like any other —
         a caller names its target buffers deliberately and is expected to
         know the experiment's internals. A successful write marks the
@@ -412,8 +417,9 @@ paths:
                   enum: [replace, append]
                   default: replace
                   description: |
-                    `replace` clears each named buffer before writing its
-                    values; `append` keeps the existing contents.
+                    `replace` empties each named buffer before writing its
+                    values (without restoring its `init` values); `append`
+                    keeps the existing contents.
       responses:
         "200":
           description: |
