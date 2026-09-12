@@ -202,6 +202,25 @@ tests:
       Android: emulator + PixelCopy; iOS: GLKView snapshot in the
       simulator. Goldens live in the app repos.
 
+  - id: graph-interaction
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The maximized graph's tools over fixtures/views/graphs-interaction.phyphox:
+      maximizing and restoring a graph, picking a point (read-out values
+      and the pick outputs written to their containers, asserted through
+      the remote API), dragging for the difference and slope read-out,
+      the linear fit (a = 2, b = 1 on the fixture's line), panning and the
+      zoom reset - and every one of those gestures on a graph over empty
+      containers, which crashed Android 1.2.1 (a null buffer in the pick
+      handler). Android splits the row: the touch geometry (pick, drag,
+      pan, pinch, empty buffers) runs at T0 on Robolectric against
+      GraphView directly, the chrome around it (markers, read-outs, tools
+      menu, outputs) on the emulator. Added 2026-09-12 after the 1.2.1
+      crash review; iOS side pending (iOS-TODO.md).
+
   - id: view-behavior
     area: ui
     tier: T1

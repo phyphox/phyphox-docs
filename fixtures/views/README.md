@@ -1,7 +1,7 @@
 # View fixtures
 
 The fixture set behind the view-element suites (test-matrix rows
-`view-snapshots`, `graph-snapshots`, `view-behavior`): one experiment per
+`view-snapshots`, `graph-snapshots`, `view-behavior`, `graph-interaction`): one experiment per
 element family, every configuration worth a golden, all data fixed by
 container `init` values — loading one of these renders a deterministic
 screen with no sensors and no analysis.
@@ -12,6 +12,13 @@ screen with no sensors and no analysis.
 - `graphs-styles`, `graphs-axes`, `graphs-special` — the OpenGL-rendered
   graphs (row `graph-snapshots`, T1: emulator + PixelCopy on Android,
   GLKView.snapshot in the simulator on iOS).
+- `graphs-interaction` — behavior only, no goldens (row `graph-interaction`,
+  T1): a straight line y = 2x + 1 with pick outputs, so that picking a
+  point, dragging for the difference and slope, the linear fit and
+  pan/zoom all have exact expected values, plus a graph over empty
+  containers that has to survive every one of those gestures (the
+  1.2.1 crash). The touch geometry itself runs at T0 on Android
+  (GraphView is a plain canvas view; only the curve needs GL).
 - `init-vs-default` — behavior only, no goldens: every input control once
   over a container that already holds a value and once over an empty one.
   The spec says a default fills an EMPTY buffer and never overwrites one,
