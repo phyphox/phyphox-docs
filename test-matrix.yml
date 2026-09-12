@@ -206,7 +206,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The maximized graph's tools over fixtures/views/graphs-interaction.phyphox:
       maximizing and restoring a graph, picking a point (read-out values
@@ -218,8 +218,10 @@ tests:
       handler). Android splits the row: the touch geometry (pick, drag,
       pan, pinch, empty buffers) runs at T0 on Robolectric against
       GraphView directly, the chrome around it (markers, read-outs, tools
-      menu, outputs) on the emulator. Added 2026-09-12 after the 1.2.1
-      crash review; iOS side pending (iOS-TODO.md).
+      menu, outputs) on the emulator. iOS runs all of it as XCUITest
+      (GraphInteractionTests) against the simulator, placing taps and
+      drags through the plot's accessibility value, which reports the
+      visible axis ranges. Added 2026-09-12 after the 1.2.1 crash review.
 
   - id: view-behavior
     area: ui
