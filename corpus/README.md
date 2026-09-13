@@ -31,6 +31,14 @@ test suite as well is planned.
   `parser: accepts`, and that classification is a decision rather than
   something a lab run should make on its own. Two Arduino captures are
   waiting there now over a `facor="1"` typo in the library.
+  The `arduino2-*` files are what the **2.0 rewrite** of the Arduino
+  library serves (its `v2` branch, 2026-09-13), captured the same way —
+  off the Pixel's `bt.phyphox` — by the library's own release sweep
+  (`phyphox-arduino/tools/bench/examples.py --capture`). They carry no
+  board suffix because 2.0 has one serializer for every board: the ESP32
+  and Nano 33 IoT captures of every example were byte-identical. They
+  declare format 1.20 and validate cleanly; the 1.x captures stay, since
+  boards running 1.x will be in the field for years.
 - `generated/` — hand-written fixtures for the spec surface that no collected
   file exercises either: the inverse and hyperbolic trigonometry modules,
   `gcd`/`lcm`, `butterworth`, the `events` block of saved states, `appleBan`,

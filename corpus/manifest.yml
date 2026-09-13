@@ -161,6 +161,38 @@
   version: "1.15"
   adds:
     - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/arduino2-CreateExperiment.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
+    - info@color
+- file: valid/ble-libraries/arduino2-buttonsAndCallbacks.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
+    - slider@default
+- file: valid/ble-libraries/arduino2-getDataFromSmartphone.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
+    - edit@decimal
+    - slider@default
+- file: valid/ble-libraries/arduino2-getSensorDataFromSmartphone.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/arduino2-multigraph.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/arduino2-randomNumbers.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
+- file: valid/ble-libraries/arduino2-readoutADC.phyphox
+  version: "1.20"
+  adds:
+    - bluetooth@subscribeOnStart
 - file: valid/ble-libraries/micropython-getDataFromSmartphone.phyphox
   version: "1.10"
   adds:
