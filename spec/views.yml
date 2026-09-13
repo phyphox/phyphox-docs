@@ -491,11 +491,14 @@ elements:
           sense, when the whole graph is replaced on each analysis
           cycle and can be used to compare the previous n results
           within a single graph. **Deprecated since phyphox file
-          format 1.15 (phyphox 1.1.12))**
-        since: "1.15"
+          format 1.15 (phyphox 1.1.12)**
         type: integer
         default: 1
-        summary: Number of past datasets to keep on screen.
+        deprecated: true
+        summary: >-
+          Deprecated in file format 1.15 (phyphox 1.1.12). The number of past
+          datasets kept on screen; do it in analysis instead, by copying the
+          shown data into additional containers on each update.
         agreement: agreed
       - name: lineWidth
         description: >-
