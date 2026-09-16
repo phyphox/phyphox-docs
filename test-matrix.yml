@@ -105,7 +105,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The preferUncalibrated attribute of the sensor element (format 1.21)
       decides which version of a sensor the experiment starts with:

@@ -285,24 +285,31 @@ elements:
           offers in a calibrated and an uncalibrated version.
         agreement: agreed
         remark: >-
-          Which sensor types come in two versions depends on the platform.
-          Both platforms offer the magnetometer in both versions; see the
-          text above the reference for the current state of the other
-          sensor types.
+          Which sensor types come in two versions depends on the platform
+          and the device. The magnetometer and the gyroscope have both
+          versions on Android and on iOS; the accelerometer has both on
+          Android only, where the uncalibrated type exists on most devices
+          from Android 8. Every other sensor type has a single version, and
+          so has any of these types on a device that lacks the uncalibrated
+          counterpart.
         note: >-
-          Specified ahead of implementation (2026-09-17): file format 1.21
-          is the next version, and neither app parses this attribute yet -
-          the Android-TODO.md and iOS-TODO.md handoff files in the parent
-          folder carry the implementation items. "agreed" records that the
-          behaviour is defined by this spec, not that two parsers were
-          compared. Before this attribute, both apps had a hard-wired
-          default of calibrated for the magnetometer, the only sensor with
-          a switch (Android SensorInput.calibrated = true, iOS
-          ExperimentSensorInput.calibrated = true), so the default false
-          preserves shipped behaviour. The implementation sessions are
-          asked to verify that no sensor type currently starts uncalibrated
-          on either platform and to report it as a behaviour change if one
-          does.
+          Specified 2026-09-17 ahead of the implementation and implemented
+          the same day on both development branches (Android 4a18e067,
+          PhyphoxFile.java inputBlockParser + SensorInput.calibrated; iOS
+          076a9255, InputElementHandler.swift SensorInputDescriptor +
+          ExperimentSensorInput.calibrated). Android pairs the three types
+          through SensorInput.uncalibratedVersion() and only switches when
+          getDefaultSensor() returns the uncalibrated type; iOS pairs the
+          magnetometer (CMDeviceMotion vs raw CMMagnetometerData) and the
+          gyroscope (CMDeviceMotion.rotationRate vs raw CMGyroData). iOS
+          reads the raw accelerometer only, and the fused
+          userAcceleration + gravity was judged not to be a calibration, so
+          the attribute is a no-op for the accelerometer there. Before the
+          attribute both apps started every sensor calibrated, so the
+          default preserves shipped behaviour - verified by reading both
+          sources, the Android session also on a device. Pinned by
+          corpus/generated/sensor-prefer-uncalibrated.phyphox and the
+          sensor-prefer-uncalibrated matrix row.
 
       - name: nameFilter
         description: >-
@@ -390,13 +397,22 @@ elements:
           summary: >-
             Device-reported accuracy, where available.
           description: >-
-            Information about the current accuracy. Typically -1 means that
-            the sensor is uncalibrated (which might be an error state), 0
-            means that uncalibrated raw data is presented (but this is
-            expected) and positive values represent accuracy in a way
-            specific to the sensor. This is currently only used by the
-            magnetometer, which encodes its accuracy as 1 low, 2 medium and
-            3 high.
+            The calibration status the system reports with the reading:
+            -1 means the sensor is uncalibrated or unreliable (which might
+            be an error state), 0 means that uncalibrated raw data is
+            presented (which is expected when the uncalibrated version of a
+            sensor has been chosen), and 1 low, 2 medium and 3 high are the
+            calibration accuracy levels. Nothing is written when the system
+            provides no status for the sensor. Both platforms write 0 for
+            the uncalibrated version of a sensor. For the calibrated
+            versions, Android reports the status for every sensor type, as
+            the system attaches one to every sensor event. iOS reports it
+            for the magnetometer and for the attitude sensor, whose
+            heading depends on the magnetic calibration; for its other
+            sensor types Core Motion exposes no calibration status, so
+            nothing is written there. That gap is a platform limitation,
+            not a divergence to be fixed. Up to phyphox 1.2.1 the status
+            was only reported for the magnetometer on both platforms.
       agreement: agreed
       rules: [output-component-validation]
 
