@@ -101,6 +101,18 @@ tests:
       handling, and one declaring the exact supported version loads. Guards
       the version gate that all feature rollout relies on.
 
+  - id: sensor-prefer-uncalibrated
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The preferUncalibrated attribute of the sensor element (format 1.21)
+      decides which version of a sensor the experiment starts with:
+      corpus/generated/sensor-prefer-uncalibrated.phyphox asks for the
+      uncalibrated magnetometer and the default (calibrated) gyroscope, and
+      the loaded sensor inputs must carry exactly that.
+
   - id: remote-contract-t1
     area: remote-interface
     tier: T1
