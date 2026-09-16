@@ -3,6 +3,7 @@ title: Version history
 # order would put 1.1.10 before 1.1.9.
 nav:
   - index.md
+  - next.md
   - 1.2.1.md
   - 1.2.0.md
   - 1.1.16.md

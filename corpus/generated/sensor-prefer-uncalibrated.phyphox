@@ -1,0 +1,43 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <!-- Generated fixture: the preferUncalibrated attribute of the sensor
+         element, introduced with file format 1.21. Starts the magnetometer
+         with its uncalibrated version and leaves the gyroscope on the
+         default (calibrated). No collected file uses the attribute. -->
+    <title>Corpus: preferUncalibrated</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for the preferUncalibrated sensor attribute.</description>
+    <data-containers>
+        <container size="100">magX</container>
+        <container size="100">magT</container>
+        <container size="100">gyrX</container>
+        <container size="100">gyrT</container>
+    </data-containers>
+    <input>
+        <sensor type="magnetic_field" preferUncalibrated="true">
+            <output component="x">magX</output>
+            <output component="t">magT</output>
+        </sensor>
+        <sensor type="gyroscope" preferUncalibrated="false">
+            <output component="x">gyrX</output>
+            <output component="t">gyrT</output>
+        </sensor>
+    </input>
+    <views>
+        <view label="Data">
+            <graph label="Magnetic field x" labelX="t" unitX="s" labelY="B" unitY="µT">
+                <input axis="x">magT</input>
+                <input axis="y">magX</input>
+            </graph>
+            <graph label="Gyroscope x" labelX="t" unitX="s" labelY="w" unitY="rad/s">
+                <input axis="x">gyrT</input>
+                <input axis="y">gyrX</input>
+            </graph>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="t (s)">magT</data>
+            <data name="Bx (µT)">magX</data>
+        </set>
+    </export>
+</phyphox>

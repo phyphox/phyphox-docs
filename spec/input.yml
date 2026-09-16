@@ -264,6 +264,46 @@ elements:
           refusing the file.
         agreement: agreed
 
+      - name: preferUncalibrated
+        description: >-
+          Some sensors exist in two versions on a device: a calibrated one,
+          where the operating system corrects the raw readings for bias
+          (and, on Android, for hard- and soft-iron distortion of the
+          magnetic field), and an uncalibrated one that reports the raw
+          readings. By default phyphox starts with the calibrated version.
+          Set this attribute to true to start with the uncalibrated version
+          instead. Whichever version the experiment starts with, the user
+          can still switch to the other one from the experiment menu while
+          the measurement is stopped. The attribute has no effect on a
+          sensor that only exists in one version on the device, nor on
+          sensor types that never have two versions.
+        since: "1.21"
+        type: boolean
+        default: false
+        summary: >-
+          Start with the uncalibrated version of a sensor that the device
+          offers in a calibrated and an uncalibrated version.
+        agreement: agreed
+        remark: >-
+          Which sensor types come in two versions depends on the platform.
+          Both platforms offer the magnetometer in both versions; see the
+          text above the reference for the current state of the other
+          sensor types.
+        note: >-
+          Specified ahead of implementation (2026-09-17): file format 1.21
+          is the next version, and neither app parses this attribute yet -
+          the Android-TODO.md and iOS-TODO.md handoff files in the parent
+          folder carry the implementation items. "agreed" records that the
+          behaviour is defined by this spec, not that two parsers were
+          compared. Before this attribute, both apps had a hard-wired
+          default of calibrated for the magnetometer, the only sensor with
+          a switch (Android SensorInput.calibrated = true, iOS
+          ExperimentSensorInput.calibrated = true), so the default false
+          preserves shipped behaviour. The implementation sessions are
+          asked to verify that no sensor type currently starts uncalibrated
+          on either platform and to report it as a behaviour change if one
+          does.
+
       - name: nameFilter
         description: >-
           Selects a specific sensor by name where a device exposes
