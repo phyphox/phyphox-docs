@@ -249,8 +249,13 @@ tests:
       on a log axis count as out of range, not invalid). Asserted on the
       graph view's classification with data fed directly, including the
       arrow direction (left of the plot for a zoom past the end of a line,
-      above it for a zoom below the data) and the return to a normal plot
-      once the zoom is reset. Android: Robolectric against GraphView
+      above it for a zoom below the data), that the arrow is actually
+      painted next to the note and nowhere else, and the return to a
+      normal plot once the zoom is reset. Also the related zero-range
+      case: all values on an axis identical (0, negative, on a log or time
+      axis) opens the range around the value with a single tic at it,
+      and an extend axis keeps its data-derived bounds afterwards.
+      Android: Robolectric against GraphView
       (GraphEmptyStateTest). iOS: pending the port (see iOS-TODO.md in
       the working root). Added 2026-09-20.
 
