@@ -10,6 +10,14 @@ The attribute *partialUpdate* is used for performance optimization. *PartialUpda
 
 {{spec:views/graph/input}}
 
+## Axis ranges and empty plots
+
+How the plot area is scaled follows from the *scaleMin*/*scaleMax* attributes of each axis: an end set to *auto* or *extend* follows the data, an end set to *fixed* takes its *min*/*max* attribute. An end that follows the data gets 5 % of the axis range as headroom, so the outermost points do not sit on the plot border; a fixed end is shown exactly at its attribute value, and a range the user has zoomed to, or that the graph follows with *followX*, is shown exactly as set. A graph with *followX* shows the newest data from the first frame on.
+
+When all values on an axis are identical, or a fixed range has min = max, the axis opens a small range around that value - 5 % of its magnitude, one unit around 0, a factor of 1.05 on a logarithmic axis - and shows a single tic at the value. An *extend* axis keeps its data-derived bounds afterwards, so the opened range does not stick once further values arrive.
+
+An empty plot area says why it is empty rather than staying blank: "No data" while the containers hold nothing, "No valid data" when no point has both a finite x and a finite y value (or one axis has no values at all), and "No data in range" with an arrow towards the nearest valid point when the data lies outside the current zoom or a fixed range. Non-positive values on a logarithmic axis count as out of range, not as invalid.
+
 ## Data picker
 
 The graph can always be maximized by tapping it to reveal additional tools like zooming and a data picker. The data picker can be repurposed to allow users to pick and map data to measured data points. This can for example be used to pick a starting point for an automated data analysis or to match points to reference values for a calibration process. You can define how many x, y and z values (in the case of a color map plot) the user can pick, label the purpose of each pick and map it to data containers. Optionally, you can also request a value input from the user to map data points to calibration values. Finally, you can also rename the "pick data" button to reflect the use case for the data picker (see the "pickLabel" attribute of the graph above).

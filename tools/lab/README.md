@@ -386,7 +386,7 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   the app had timed out at 90 s) and the Android session fixed the app
   half. **It is better, not gone: 1 of 38 connects after the fix.** A
   full pass is 19 connects, so about a third of passes come out green at
-  that rate - which is why it went back to them (`Android-TODO.md`)
+  that rate - which is why it went back to the Android session
   rather than being written off as flake. A gate that is red two runs in
   three gets ignored.
 
