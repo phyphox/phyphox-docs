@@ -267,7 +267,7 @@ tests:
     area: ui
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Tic labels of a fixed range whose outer tics sit on the plot border:
       an interior label is centred on its tic, a border label is moved
@@ -277,23 +277,22 @@ tests:
       (GraphTicLabelTest, which also covers the first-frame alignment bug
       it uncovered: x labels drawn left-aligned before the first colour
       map layout). iOS: XCTest against GraphGridView
-      (GraphTicLabelTests). Both tests exist since 2026-09-20; planned
-      until both carry the tag.
+      (GraphTicLabelTests). Added 2026-09-20.
 
   - id: graph-follow-x
     area: ui
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       A graph with followX shows the newest data from the first frame on,
       not the minX..maxX window of the attributes until the first zoom
       gesture (the iOS bug fixed 2026-09-20). The T1 golden of
       fixtures/views/graphs-special/follow-x.phyphox does not guard this
       on its own - the iOS golden had been recorded with the bug - so the
-      initial displayed range is asserted directly. iOS: XCTest
-      (GraphFollowXTests). Android: no counterpart yet; planned until
-      both carry the tag.
+      initial displayed range is asserted directly. Android: Robolectric
+      against GraphView (GraphFollowXTest). iOS: XCTest
+      (GraphFollowXTests). Added 2026-09-20.
 
   - id: view-behavior
     area: ui
