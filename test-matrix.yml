@@ -126,6 +126,36 @@ tests:
       repo's T1 CI workflow, not in app source. Phone-vs-phone two-target
       runs stay the release gate.
 
+  - id: webinterface-graphs-t0
+    area: remote-interface
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The phyphox-webinterface browser suite (test/webinterface.test.js in the
+      submodule, node --test with puppeteer-core driving a headless Chromium)
+      against its mock server: one chart per graph, the embedded graph
+      configuration, partial updates, mouse and touch zoom/pan, follow, the
+      data picker with its outputs written through /set, linear fit, log
+      toggles, color maps, empty-plot hints, time axes, view switching and
+      bright mode. No phone involved. Host-driven per repo: the tag lives in
+      each app repo's T0 CI workflow, which runs the submodule's suite.
+
+  - id: webinterface-served-t1
+    area: remote-interface
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The same webinterface suite (PHYPHOX_URL set) against the interface the
+      platform's emulator/simulator build actually serves, with
+      test/fixtures/webgraphs.phyphox open in the app and remote access
+      enabled through the shell-only switch. Verifies the app's side of the
+      view-layout contract: the graph JSON, the translated strings, the
+      picker writes into real buffers. Tests for graphs the fixture does not
+      contain are skipped. Host-driven per repo: the tag lives in the T1 CI
+      workflow.
+
   - id: network-http
     area: network
     tier: T1
