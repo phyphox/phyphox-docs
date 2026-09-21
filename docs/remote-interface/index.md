@@ -23,7 +23,7 @@ As the interface is designed around a webserver running on the phone, all functi
 
 ### /, /style.css and /logo
 
-These documents are not relevant for controlling phyphox with your own code. They make up the webpage that is the default remote interface. The document root itself serves an HTML file with the Javascript of the interface, while style.css and logo serve the style sheet and an image file of the phyphox logo.
+These documents are not relevant for controlling phyphox with your own code. They make up the webpage that is the default remote interface. The document root itself serves an HTML file with the Javascript of the interface, while style.css and logo serve the style sheet and an image file of the phyphox logo. The HTML comes from the phyphox-webinterface repository, which both apps ship as a submodule; the app only fills in placeholders, most importantly the experiment's view layout, in which each graph element is described by a configuration object that the interface turns into a chart itself. The placeholders and that object are documented in the repository's `readme.md`, together with its browser test suite.
 
 ### /get
 

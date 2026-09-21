@@ -128,7 +128,13 @@ paths:
       description: |
         The remote interface itself: an HTML document with the JavaScript that
         drives every other endpoint on this page. It is generated per experiment,
-        because it embeds the experiment's view layout.
+        because it embeds the experiment's view layout: the app fills a set of
+        placeholders in the shared `index.html`, among them the view layout with
+        one `graph` configuration object per graph element, from which the
+        interface builds its own charts. The placeholders and the graph object are
+        documented in the `readme.md` of the phyphox-webinterface repository (the
+        submodule both apps ship), which is the contract between the apps and the
+        interface.
 
         Not relevant if you are writing your own client.
       responses:

@@ -130,22 +130,27 @@ tests:
     area: remote-interface
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The phyphox-webinterface browser suite (test/webinterface.test.js in the
       submodule, node --test with puppeteer-core driving a headless Chromium)
       against its mock server: one chart per graph, the embedded graph
-      configuration, partial updates, mouse and touch zoom/pan, follow, the
-      data picker with its outputs written through /set, linear fit, log
-      toggles, color maps, empty-plot hints, time axes, view switching and
-      bright mode. No phone involved. Host-driven per repo: the tag lives in
-      each app repo's T0 CI workflow, which runs the submodule's suite.
+      configuration and translated strings, partial updates, mouse (drag pans,
+      shift+drag zooms a box, wheel) and touch (pinch, one-finger pan, tap
+      picks) interaction, follow with and without a configured window and
+      followX from the first frame, the data picker (nearest point on screen,
+      hover preview, two-point span) with its outputs written through /set,
+      log toggles, tap-to-maximize and the phone layout, color maps, the
+      empty-plot hints, clock-labelled time axes, view switching, bright mode
+      and the legacy app-generated element functions. No phone involved.
+      Host-driven per repo: the tag lives in each app repo's T0 CI workflow,
+      which runs the submodule's suite. Added 2026-09-20, active 2026-09-21.
 
   - id: webinterface-served-t1
     area: remote-interface
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The same webinterface suite (PHYPHOX_URL set) against the interface the
       platform's emulator/simulator build actually serves, with
@@ -154,7 +159,7 @@ tests:
       view-layout contract: the graph JSON, the translated strings, the
       picker writes into real buffers. Tests for graphs the fixture does not
       contain are skipped. Host-driven per repo: the tag lives in the T1 CI
-      workflow.
+      workflow. Added 2026-09-20, active 2026-09-21.
 
   - id: network-http
     area: network
