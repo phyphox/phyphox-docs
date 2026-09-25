@@ -18,6 +18,34 @@ When all values on an axis are identical, or a fixed range has min = max, the ax
 
 An empty plot area says why it is empty rather than staying blank: "No data" while the containers hold nothing, "No valid data" when no point has both a finite x and a finite y value (or one axis has no values at all), and "No data in range" with an arrow towards the nearest valid point when the data lies outside the current zoom or a fixed range. Non-positive values on a logarithmic axis count as out of range, not as invalid.
 
+## Fixing the plot area
+
+*Planned for file format 1.21.* The plot area - the rectangle the data is drawn in, without axes,
+tics and labels - is normally laid out automatically around the labels, and moves as tic labels
+grow. The attributes *plotLeft*, *plotTop*, *plotRight* and *plotBottom* fix it instead, as
+fractions of the graph element's own box measured from its left and top edges. This is what
+lets a plot line up with an image below it in a [stack](groups.md#view-element-stack): give the
+image's map or scale the same fractions, and the data lands on it. The labels and tics are then
+drawn in whatever space remains outside the plot area and dropped where they do not fit, so
+leave room for them or do without.
+
+```xml
+<stack>
+    <image src="campus-map.png" />
+    <graph style="map" mapWidth="64" plotLeft="0" plotTop="0" plotRight="1" plotBottom="1"
+           minX="6.05" maxX="6.09" minY="50.77" maxY="50.79" scaleMinX="fixed" scaleMaxX="fixed" scaleMinY="fixed" scaleMaxY="fixed"
+           mapColor1="0000ff00" mapColor2="ff0000c0">
+        <input axis="x">lon</input>
+        <input axis="y">lat</input>
+        <input axis="z">signal</input>
+    </graph>
+</stack>
+```
+
+A signal strength map over a photograph of the campus: the plot area is the whole element, the
+axis ranges are fixed to the map's coordinates, and the colour scale runs from fully transparent
+blue to three-quarter opaque red, so the map stays visible under weak signals.
+
 ## Data picker
 
 The graph can always be maximized by tapping it to reveal additional tools like zooming and a data picker. The data picker can be repurposed to allow users to pick and map data to measured data points. This can for example be used to pick a starting point for an automated data analysis or to match points to reference values for a calibration process. You can define how many x, y and z values (in the case of a color map plot) the user can pick, label the purpose of each pick and map it to data containers. Optionally, you can also request a value input from the user to map data points to calibration values. Finally, you can also rename the "pick data" button to reflect the use case for the data picker (see the "pickLabel" attribute of the graph above).

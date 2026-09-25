@@ -50,6 +50,21 @@ elements:
       - {name: x, summary: ...}
 ```
 
+`parent:` may be a **list** when the same element is legal under several parents
+with the same meaning - the view elements sit under `view` and under every view
+group (`vertical`, `horizontal`, `grid`, `stack`, `transform`). Every loader
+registers the entry once per parent, so `(block, parent, name)` stays the key
+and `{{spec:views/view/graph}}` keeps resolving; the RELAX NG gets one define
+per pair. Recursion (a group under a group) is just another entry in the list.
+
+A container element declares the attributes *all its children* accept with
+`child_attributes: [group, ...]`, naming groups under the block's `common:`.
+`view` and the view groups declare `view_element_attributes` (label,
+visibility); `horizontal` additionally declares `horizontal_child_attributes`
+(weight). The build fails if a named group does not exist. This replaces the
+former hard-coded "every child of `view` accepts label and visibility"; the
+analysis block's `module_attributes` still use the older hard-coded path.
+
 An attribute whose *name* is numbered without bound - the map graph's
 mapColor1, mapColor2, ... - is modelled once, with `name_pattern:` holding a
 regular expression; the validators accept every attribute matching it and the
@@ -77,6 +92,7 @@ plausible:
 | `divergent` | They differ. Requires `inconsistency:` naming an entry in `../inconsistencies.yml`. The spec states the behavior only if that entry has been decided. |
 | `undecided` | They differ and nobody has chosen. Also requires `inconsistency:`. |
 | `platform` | Deliberately one-sided, because the feature only exists on one platform. Requires `platforms:`. |
+| `planned` | Specified ahead of the implementations: the spec *is* the design, and no app reads it yet. Rendered with a "planned, not yet implemented" note. Flip to `agreed` once both apps ship it; a divergence found on the way is recorded like any other. |
 
 Where the entry has been **decided**, the attribute also carries `rules:` naming the
 rule in `rules.yml` that settles it. `rules.yml` holds the questions that turned out not to

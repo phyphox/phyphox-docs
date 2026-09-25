@@ -98,6 +98,53 @@
   version: "1.20"
   adds:
     - link@translation
+- file: generated/view-groups.phyphox
+  version: "1.21"
+  adds:
+    - grid>dropdown
+    - grid>graph
+    - grid>grid
+    - grid>horizontal
+    - grid>info
+    - horizontal>button
+    - horizontal>edit
+    - horizontal>slider
+    - horizontal>vertical
+    - stack>graph
+    - stack>image
+    - stack>transform
+    - stack>value
+    - transform>graph
+    - transform>image
+    - transform>info
+    - transform>input
+    - transform>separator
+    - vertical>stack
+    - vertical>toggle
+    - vertical>value
+    - view>grid
+    - view>horizontal
+    - view>vertical
+    - button@weight
+    - graph@plotBottom
+    - graph@plotLeft
+    - graph@plotRight
+    - graph@plotTop
+    - grid@fillLastRow
+    - grid@maxWidth
+    - grid@visibility
+    - horizontal@label
+    - horizontal@visibility
+    - image@scale
+    - input@clamp
+    - input@mapMax
+    - input@mapMin
+    - input@max
+    - input@min
+    - stack@visibility
+    - transform@originX
+    - transform@originY
+    - transform@visibility
 - file: generated/views-details.phyphox
   version: "1.20"
   adds:

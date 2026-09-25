@@ -1,0 +1,113 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <!-- Generated fixture: view groups (file format 1.21, planned - see
+         docs/file-format/views/groups.md). Every group in every place it may
+         appear, nested; weight on the children of a horizontal; grid with
+         maxWidth and fillLastRow; a stack with transforms binding every
+         property, a constant input, the range map with clamp and the
+         origins; the fixed plot area of a graph; eight-digit colours on a
+         graph, its inputs, a separator, a value and a map colour stop. -->
+    <title>Corpus: view groups</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for view groups, transforms, alpha colours and the fixed plot area.</description>
+    <data-containers>
+        <container size="1" init="1">show</container>
+        <container size="1" init="42">percent</container>
+        <container size="1" init="90">heading</container>
+        <container size="1" init="0.5">fade</container>
+        <container size="1" init="0.25">posX</container>
+        <container size="1" init="0.75">posY</container>
+        <container size="1" init="1">run</container>
+        <container size="1">count</container>
+        <container size="100">t</container>
+        <container size="100">x</container>
+        <container size="100">y</container>
+        <container size="100">mapX</container>
+        <container size="100">mapY</container>
+        <container size="100">mapZ</container>
+        <container size="0">pressed</container>
+    </data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="Groups">
+            <horizontal label="ignored on a group" visibility="show">
+                <button label="Start" weight="2">
+                    <input type="value">1</input>
+                    <output>run</output>
+                </button>
+                <button label="Stop">
+                    <input type="value">0</input>
+                    <output>run</output>
+                </button>
+                <vertical>
+                    <value label="Count" color="ff7e2280"><input>count</input></value>
+                    <toggle label="Run"><output>run</output></toggle>
+                </vertical>
+            </horizontal>
+            <separator height="1" color="39a2ff40" />
+            <grid maxWidth="25" fillLastRow="true" visibility="show">
+                <graph label="x" labelX="t" unitX="s" labelY="x" color="#2bfb4cc0" lineWidth="2">
+                    <input axis="x">t</input>
+                    <input axis="y" color="edf668ff">x</input>
+                </graph>
+                <graph label="y" labelX="t" unitX="s" labelY="y">
+                    <input axis="x">t</input>
+                    <input axis="y">y</input>
+                </graph>
+                <horizontal>
+                    <edit label="Offset"><output>count</output></edit>
+                    <slider label="Level" minValue="0" maxValue="10"><output>count</output></slider>
+                </horizontal>
+                <grid maxWidth="12">
+                    <info label="A grid inside a grid" />
+                    <dropdown label="Choice"><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
+                </grid>
+            </grid>
+        </view>
+        <view label="Stack">
+            <vertical>
+                <stack visibility="show">
+                    <image src="gauge-face.png" />
+                    <transform originX="0.5" originY="0.8" visibility="show">
+                        <input as="rotate" min="0" max="100" mapMin="-2.35" mapMax="2.35" clamp="true">percent</input>
+                        <input as="opacity">fade</input>
+                        <image src="gauge-needle.png" scale="0.5" />
+                    </transform>
+                    <transform>
+                        <input as="translateX">posX</input>
+                        <input as="translateY">posY</input>
+                        <input as="scale" type="value">0.1</input>
+                        <image src="marker.png" />
+                    </transform>
+                    <transform originX="0" originY="0.5">
+                        <input as="scaleX" min="0" max="100">percent</input>
+                        <input as="scaleY" type="value">1</input>
+                        <separator height="2" color="fe005d60" />
+                    </transform>
+                    <transform>
+                        <input as="rotate" min="0" max="360" mapMin="0" mapMax="6.2832">heading</input>
+                        <info label="N" />
+                    </transform>
+                    <value label="" unit="%" size="2"><input>percent</input></value>
+                </stack>
+                <stack>
+                    <image src="campus-map.png" />
+                    <graph label="Signal" style="map" mapWidth="10" plotLeft="0" plotTop="0" plotRight="1" plotBottom="1"
+                           minX="0" maxX="1" minY="0" maxY="1" scaleMinX="fixed" scaleMaxX="fixed" scaleMinY="fixed" scaleMaxY="fixed"
+                           mapColor1="0000ff00" mapColor2="ff0000c0">
+                        <input axis="x">mapX</input>
+                        <input axis="y">mapY</input>
+                        <input axis="z">mapZ</input>
+                    </graph>
+                    <transform>
+                        <input as="opacity" type="value">0.5</input>
+                        <graph label="Overlay" plotLeft="0.1" plotBottom="0.9">
+                            <input axis="x">t</input>
+                            <input axis="y">y</input>
+                        </graph>
+                    </transform>
+                </stack>
+            </vertical>
+        </view>
+    </views>
+</phyphox>

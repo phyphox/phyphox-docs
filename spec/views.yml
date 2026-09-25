@@ -30,6 +30,8 @@ summary: >-
   elements that display or collect data.
 
 common:
+  # Declared by <view> and by every view group through `child_attributes:`
+  # (see README.md), so a group nested in a group gets them too.
   view_element_attributes:
     - name: label
       type: string
@@ -56,7 +58,26 @@ common:
         zero, it is visible. The element observes the container, so the
         state can change while the experiment runs - analysis results or
         user inputs like a toggle can show and hide elements dynamically.
+        On a view group it hides the whole group; a hidden child of a
+        horizontal or grid group gives up its space to its siblings.
       agreement: agreed
+
+  # Declared by <horizontal> only: accepted on each of its direct children.
+  # Elsewhere the attribute is unknown and ignored (unknown-attribute-ignored).
+  horizontal_child_attributes:
+    - name: weight
+      type: float
+      default: 1
+      since: "1.21"
+      summary: >-
+        Share of the row's width this child gets, relative to its siblings.
+      description: >-
+        The children of a horizontal group share the row in proportion to
+        their weights: with weights 3 and 1 the first child gets three
+        quarters of the width. The default 1 on every child gives equal
+        widths. Only read on a direct child of horizontal; anywhere else the
+        attribute is unknown and ignored.
+      agreement: planned
 
 elements:
 
@@ -74,7 +95,9 @@ elements:
     since: "1.0"
     summary: One page of the experiment, listed in the view selector.
     children: [info, separator, value, graph, edit, button, toggle, slider,
-               dropdown, image, camera-gui, depth-gui]
+               dropdown, image, camera-gui, depth-gui,
+               vertical, horizontal, grid, stack]
+    child_attributes: [view_element_attributes]
     attributes:
       - name: label
         description: >-
@@ -94,7 +117,7 @@ elements:
 
   # ------------------------------------------------------------------- info --
   - name: info
-    parent: view
+    parent: [view, vertical, horizontal, grid, stack, transform]
     since: "1.0"
     summary: Static text.
     attributes:
@@ -107,7 +130,8 @@ elements:
         agreement: agreed
       - name: color
         description: >-
-          The text color as six-digit RGB hex value or a named
+          The text color as six-digit RGB hex value (eight digits
+          with an alpha byte, since 1.21) or a named
           choice from the phyphox [Colors](../colors.md)
         since: "1.7"
         type: color
@@ -159,7 +183,7 @@ elements:
 
   # -------------------------------------------------------------- separator --
   - name: separator
-    parent: view
+    parent: [view, vertical, horizontal, grid, stack, transform]
     since: "1.0"
     summary: Blank space, optionally colored, to group elements visually.
     attributes:
@@ -173,7 +197,8 @@ elements:
       - name: color
         description: >-
           The color of the whole (rectangular) element as six-digit
-          RGB hex value or a named choice from the phyphox
+          RGB hex value (eight digits with an alpha byte, since 1.21)
+          or a named choice from the phyphox
           [Colors](../colors.md)
         type: color
         rules: [color-invalid-value]
@@ -182,14 +207,15 @@ elements:
 
   # ------------------------------------------------------------------ value --
   - name: value
-    parent: view
+    parent: [view, vertical, horizontal, grid, stack, transform]
     since: "1.0"
     summary: A single number from a data container, formatted for display.
     children: [input, map]
     attributes:
       - name: color
         description: >-
-          The text color as six-digit RGB hex value or a named
+          The text color as six-digit RGB hex value (eight digits
+          with an alpha byte, since 1.21) or a named
           choice from the phyphox [Colors](../colors.md)
         since: "1.7"
         type: color
@@ -319,7 +345,7 @@ elements:
 
   # ------------------------------------------------------------------ graph --
   - name: graph
-    parent: view
+    parent: [view, vertical, horizontal, grid, stack, transform]
     since: "1.0"
     summary: A plot of one or more data containers.
     children: [input, output]
@@ -509,7 +535,8 @@ elements:
         agreement: agreed
       - name: color
         description: >-
-          Color of the graph line as six-digit RGB hex value or a
+          Color of the graph line as six-digit RGB hex value (eight
+          digits with an alpha byte, since 1.21) or a
           named choice from the phyphox [Colors](../colors.md)
         type: color
         rules: [color-invalid-value]
@@ -706,6 +733,47 @@ elements:
         default: false
         summary: Keep the newest data in view by scrolling the x axis.
         agreement: agreed
+      - name: plotLeft
+        type: float
+        since: "1.21"
+        summary: >-
+          Left edge of the plot area, as a fraction of the graph element's
+          width measured from its left edge.
+        description: >-
+          Fixes the plot area - the rectangle the data is drawn in, without
+          axes, tics and labels - as fractions of the graph element's box:
+          plotLeft and plotRight are measured from the element's left edge,
+          plotTop and plotBottom from its top edge, all between 0 and 1.
+          Without these attributes the plot area is laid out automatically
+          around the labels, and shifts as tic labels grow. Set them to align
+          a plot with an image below it in a stack. Setting any of the four
+          fixes the layout; an unset one defaults to the corresponding edge of
+          the element (0 for plotLeft and plotTop, 1 for plotRight and
+          plotBottom). The labels, tics and the graph's own label are then
+          drawn in whatever space remains outside the plot area, and dropped
+          where they do not fit.
+        agreement: planned
+      - name: plotTop
+        type: float
+        since: "1.21"
+        summary: >-
+          Top edge of the plot area, as a fraction of the graph element's
+          height measured from its top edge. See plotLeft.
+        agreement: planned
+      - name: plotRight
+        type: float
+        since: "1.21"
+        summary: >-
+          Right edge of the plot area, as a fraction of the graph element's
+          width measured from its left edge. See plotLeft.
+        agreement: planned
+      - name: plotBottom
+        type: float
+        since: "1.21"
+        summary: >-
+          Bottom edge of the plot area, as a fraction of the graph element's
+          height measured from its top edge. See plotLeft.
+        agreement: planned
       - name: mapWidth
         description: >-
           Number of data points per line.
@@ -842,7 +910,7 @@ elements:
 
   # ------------------------------------------------------------------- edit --
   - name: edit
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.0"
     summary: A field for the user to type a value into a data container.
     children: [output]
@@ -937,7 +1005,7 @@ elements:
 
   # ----------------------------------------------------------------- button --
   - name: button
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.3"
     summary: A button that copies values or triggers a network connection.
     description: >-
@@ -1017,7 +1085,7 @@ elements:
 
   # ----------------------------------------------------------------- toggle --
   - name: toggle
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.19"
     summary: An on/off switch writing 0 or 1 to a data container.
     children: [output]
@@ -1058,7 +1126,7 @@ elements:
 
   # ----------------------------------------------------------------- slider --
   - name: slider
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.19"
     summary: A slider for choosing a value, or a range with two handles.
     children: [output]
@@ -1160,7 +1228,7 @@ elements:
 
   # --------------------------------------------------------------- dropdown --
   - name: dropdown
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.19"
     summary: A menu of predefined values.
     children: [output, map]
@@ -1224,7 +1292,7 @@ elements:
 
   # ------------------------------------------------------------------ image --
   - name: image
-    parent: view
+    parent: [view, vertical, horizontal, grid, stack, transform]
     since: "1.18"
     summary: A picture shipped with the experiment.
     attributes:
@@ -1280,7 +1348,7 @@ elements:
 
   # ------------------------------------------------------------- camera-gui --
   - name: camera-gui
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.19"
     summary: Live camera preview with the selected region and exposure controls.
     attributes:
@@ -1354,7 +1422,7 @@ elements:
 
   # -------------------------------------------------------------- depth-gui --
   - name: depth-gui
-    parent: view
+    parent: [view, vertical, horizontal, grid]
     since: "1.14"
     summary: Live preview of the depth camera and the selected region.
     attributes:
@@ -1363,3 +1431,230 @@ elements:
         default: 2.5
         summary: Width divided by height.
         agreement: agreed
+
+  # ------------------------------------------------------------ view groups --
+  # Containers that arrange other view elements. File format 1.21, planned:
+  # specified 2026-09-25 ahead of the implementations (agreement: planned on
+  # every attribute; docs/file-format/views/groups.md is the design). The
+  # leaf elements list every group they may sit in under `parent:`; each
+  # group declares what its children accept under `child_attributes:`.
+  #
+  # Nesting: vertical, horizontal and grid nest freely into each other and
+  # into view; stack sits in any of those but takes only leaf elements and
+  # transform; transform exists only directly inside stack.
+
+  - name: vertical
+    parent: [view, vertical, horizontal, grid]
+    since: "1.21"
+    summary: >-
+      Arranges its children top to bottom, each taking the full width - the
+      layout of a view, as an element that can be nested.
+    remark: >-
+      Useful inside a horizontal group to put several elements into one
+      column. label has no effect on a group; visibility hides the whole
+      group.
+    children: [info, separator, value, graph, edit, button, toggle, slider,
+               dropdown, image, camera-gui, depth-gui,
+               vertical, horizontal, grid, stack]
+    child_attributes: [view_element_attributes]
+    attributes: []
+
+  - name: horizontal
+    parent: [view, vertical, horizontal, grid]
+    since: "1.21"
+    summary: >-
+      Arranges its children side by side in one row, sharing the full width.
+    remark: >-
+      The children share the width in proportion to their weight attribute
+      (default 1, so equal widths); a child hidden through visibility takes
+      no space and its siblings share the row. Each child keeps the height
+      it would have on its own at that width; the row is as tall as its
+      tallest child and shorter children are centred vertically. label has
+      no effect on a group; visibility hides the whole group.
+    children: [info, separator, value, graph, edit, button, toggle, slider,
+               dropdown, image, camera-gui, depth-gui,
+               vertical, horizontal, grid, stack]
+    child_attributes: [view_element_attributes, horizontal_child_attributes]
+    attributes: []
+
+  - name: grid
+    parent: [view, vertical, horizontal, grid]
+    since: "1.21"
+    summary: >-
+      Arranges its children in rows of equal-width columns, using as many
+      columns as needed to keep each child at or below maxWidth.
+    remark: >-
+      The number of columns is the smallest count that brings the column
+      width to maxWidth or below: one column while the available width is at
+      most maxWidth, two up to twice maxWidth, and so on - so a phone in
+      portrait shows the usual single column and a tablet or a landscape
+      screen fills the width with several elements instead of stretching
+      each. The children fill the rows in document order; a child hidden
+      through visibility takes no cell. Rows are as tall as their tallest
+      child. label has no effect on a group; visibility hides the whole
+      group.
+    children: [info, separator, value, graph, edit, button, toggle, slider,
+               dropdown, image, camera-gui, depth-gui,
+               vertical, horizontal, grid, stack]
+    child_attributes: [view_element_attributes]
+    attributes:
+      - name: maxWidth
+        type: float
+        required: true
+        summary: >-
+          Largest width a child may get, in text line heights - the unit of
+          the separator's height.
+        description: >-
+          The width above which the group adds a column. Given in text line
+          heights, the unit the separator's height already uses: it follows
+          the screen density and the user's text size on every platform, so
+          one value means the same on Android, iOS and in the web interface,
+          and larger text gives fewer columns.
+        agreement: planned
+      - name: fillLastRow
+        type: boolean
+        default: false
+        summary: >-
+          Whether the children of an incomplete last row stretch to fill the
+          row (true) or keep the column width of the other rows, leaving the
+          rest of the row empty (false).
+        agreement: planned
+
+  - name: stack
+    parent: [view, vertical, horizontal, grid]
+    since: "1.21"
+    summary: >-
+      Draws its children on top of each other in one rectangle, later
+      children above earlier ones.
+    remark: >-
+      All children take the full width. The tallest child sets the height of
+      the stack, and the others are centred vertically in it; for a
+      transform child the untransformed size counts. Later children are
+      drawn over earlier ones, so a background image comes first and the
+      needle, marker or plot drawn on it comes after. Transparent parts of
+      a child show what lies below - images keep their alpha channel, a
+      graph's plot area is transparent, and colours with an alpha byte are
+      blended. A stack is not interactive: its graphs cannot be maximized,
+      zoomed or used for picking, and it takes no user-input, camera or
+      depth elements. label has no effect on a group; visibility hides the
+      whole group.
+    children: [info, separator, value, graph, image, transform]
+    child_attributes: [view_element_attributes]
+    attributes: []
+
+  - name: transform
+    parent: stack
+    since: "1.21"
+    summary: >-
+      Wraps one element of a stack and scales, rotates, moves or fades it
+      under the control of data containers.
+    remark: >-
+      Exactly one view element is wrapped. Each property - scale, scaleX,
+      scaleY, translateX, translateY, rotate and opacity - is bound by an
+      input child naming a data container or a constant; a property without
+      an input keeps its neutral value (1 for the scales, 0 for the shifts
+      and the rotation, 1 for the opacity). The properties compose as scale,
+      then rotation, then translation, all about the origin given by originX
+      and originY. A positive rotation turns clockwise on screen. Lengths are
+      fractions of the wrapped element's own untransformed size, which is
+      also what the stack's layout uses. The wrapped element receives no
+      touches. label has no effect; visibility hides the wrapped element.
+    children: [input, info, separator, value, graph, image]
+    child_attributes: [view_element_attributes]
+    attributes:
+      - name: originX
+        type: float
+        default: 0.5
+        summary: >-
+          Horizontal position of the origin of scaling and rotation, as a
+          fraction of the wrapped element's width (0 is the left edge, 1 the
+          right edge).
+        agreement: planned
+      - name: originY
+        type: float
+        default: 0.5
+        summary: >-
+          Vertical position of the origin of scaling and rotation, as a
+          fraction of the wrapped element's height (0 is the top edge, 1 the
+          bottom edge).
+        agreement: planned
+
+  - name: input
+    parent: transform
+    since: "1.21"
+    summary: >-
+      Binds one transform property to a data container or a constant,
+      optionally through a linear range map.
+    text: >-
+      Name of the data container whose last value drives the property, or
+      the constant itself with type="value".
+    remark: >-
+      The property becomes mapMin + (v - min) * (mapMax - mapMin) / (max - min)
+      for the value v; the defaults make this the identity, so a plain
+      binding passes the value through. With clamp the result is limited to
+      the range between mapMin and mapMax. An empty container, a value that
+      is not finite, or min equal to max leaves the property at its neutral
+      value. Degrees to radians, for example, is min="0" max="360" mapMin="0"
+      mapMax="6.2832".
+    attributes:
+      - name: as
+        type: enum
+        required: true
+        values: [scale, scaleX, scaleY, translateX, translateY, rotate,
+                 opacity]
+        value_notes:
+          scale: >-
+            Uniform scale factor about the origin; 1 is neutral. Multiplies
+            with scaleX and scaleY.
+          scaleX: Horizontal scale factor about the origin; 1 is neutral.
+          scaleY: Vertical scale factor about the origin; 1 is neutral.
+          translateX: >-
+            Horizontal shift as a fraction of the wrapped element's width; 0
+            is neutral, 1 moves it by its full width to the right.
+          translateY: >-
+            Vertical shift as a fraction of the wrapped element's height; 0
+            is neutral, positive values move it down.
+          rotate: >-
+            Rotation about the origin in radians, clockwise on screen; 0 is
+            neutral.
+          opacity: >-
+            Opacity from 0 (invisible) to 1 (neutral); values outside that
+            range are clamped.
+        summary: The property this input drives.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: type
+        type: enum
+        values: [buffer, value]
+        default: buffer
+        summary: Whether the text names a data container or is a constant.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: min
+        type: float
+        default: 0
+        summary: Lower end of the value range that is mapped.
+        agreement: planned
+      - name: max
+        type: float
+        default: 1
+        summary: Upper end of the value range that is mapped.
+        agreement: planned
+      - name: mapMin
+        type: float
+        default: 0
+        summary: Property value at min.
+        agreement: planned
+      - name: mapMax
+        type: float
+        default: 1
+        summary: Property value at max.
+        agreement: planned
+      - name: clamp
+        type: boolean
+        default: false
+        summary: >-
+          Limit the result to the range between mapMin and mapMax, so the
+          property stops at the ends of the map instead of following values
+          outside min and max.
+        agreement: planned

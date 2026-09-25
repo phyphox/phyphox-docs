@@ -654,3 +654,49 @@ tests:
       right moment with a comprehensible reason, and that declining leaves
       the app usable. Once per major OS release rather than every release:
       the wording and the timing are the OS's, and they change with it.
+
+  # --- view groups (file format 1.21, planned 2026-09-25) -----------------
+  # docs/file-format/views/groups.md is the design. Parsing is covered by
+  # corpus-valid-load / corpus-invalid-reject once the apps declare 1.21
+  # (corpus/generated/view-groups.phyphox and the transform-*/stack-*
+  # invalid fixtures); these rows cover the layout and the runtime binding.
+
+  - id: view-groups-layout
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Rendering the "Groups" view of corpus/generated/view-groups.phyphox:
+      the children of a horizontal share the width by weight (2:1:1 in the
+      fixture); a grid shows one column when the available width is at most
+      maxWidth and two columns above twice it, with fillLastRow stretching
+      an odd last child; a hidden child (visibility) gives its space to its
+      siblings; every child keeps its own natural height and a row is as
+      tall as its tallest child.
+
+  - id: view-stack-transform
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Rendering the "Stack" view of corpus/generated/view-groups.phyphox:
+      all children of a stack share one rectangle sized by the tallest
+      child, later children draw over earlier ones, the graph's plot area is
+      transparent and pinned by plotLeft/Top/Right/Bottom; writing a value
+      into a bound container rotates, moves, scales or fades the wrapped
+      element with the linear map and clamp applied, an empty or NaN
+      container leaves the neutral value, and the stack takes no touches
+      (no maximize, zoom or pick).
+
+  - id: colors-alpha
+    area: file-format
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      An eight-digit colour (RRGGBBAA) on a graph line, a graph input, a
+      separator, a value and a map colour stop is blended with what lies
+      below, in dark and in light mode (the light-mode adjustment keeps the
+      alpha), and a six-digit colour stays opaque.

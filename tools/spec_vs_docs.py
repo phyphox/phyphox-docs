@@ -39,7 +39,7 @@ if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
 PAIRS = {
     "input.yml": ["input.md", "bluetooth-low-energy.md"],
     "views.yml": ["views/index.md", "views/basics.md", "views/graph.md",
-                  "views/user-input.md", "views/preview.md"],
+                  "views/user-input.md", "views/preview.md", "views/groups.md"],
     "network.yml": ["network-connections.md"],
     "root.yml": ["index.md"],
     "output.yml": ["output.md", "bluetooth-low-energy.md"],

@@ -701,7 +701,11 @@ def _check_spec(entries):
         # and stopping there is how the graph data picker and the button's
         # trigger tag went missing - the name was written down, the element
         # behind it never was, and nothing complained.
-        modelled = {(e.get("parent"), e["name"]) for e in elements}
+        def _parents(e):
+            p = e.get("parent")
+            return list(p) if isinstance(p, list) else [p]
+
+        modelled = {(p, e["name"]) for e in elements for p in _parents(e)}
         # YAML 1.1 turns bare true/false/yes/no/on/off/null into non-strings.
         # The `if` module has slots literally named "true" and "false", which
         # were silently parsed as booleans until a validator tripped over them.
@@ -754,12 +758,19 @@ def _check_spec(entries):
                     continue
                 problems.append(f"{fn}: {element['name']} declares child "
                                 f"'{child}' but no such element is modelled")
-            parent = element.get("parent")
-            if parent:
+            for parent in _parents(element):
+                if not parent:
+                    continue
                 owner = next((e for e in elements if e["name"] == parent), None)
                 if owner is not None and element["name"] not in (owner.get("children") or []):
                     problems.append(f"{fn}: {parent}/{element['name']} is modelled "
                                     f"but not listed in {parent}'s children")
+            # a container's child_attributes: must name groups of this block
+            for group in element.get("child_attributes") or []:
+                if group not in (doc.get("common") or {}):
+                    problems.append(f"{fn}: {element['name']} declares "
+                                    f"child_attributes group '{group}', which "
+                                    f"is not under common:")
 
         # attributes shared by every module of a block live under `common:`
         for group, items in (doc.get("common") or {}).items():

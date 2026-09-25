@@ -8,6 +8,28 @@ In development. This page collects the format changes of the release that is cur
 - The manual switch between the calibrated and the uncalibrated version, previously offered for the magnetometer only, is available for every sensor type that comes in both versions on the device.
 - The *accuracy* output of sensor inputs is no longer limited to the magnetometer: Android reports the calibration status for every sensor type, iOS for the magnetometer and the attitude sensor, and the uncalibrated version of a sensor writes 0 on both platforms (see [Input module: sensor](../../file-format/input.md#input-module-sensor)). This is a behavior change only in that buffers mapped to *accuracy* of other sensors, which stayed empty before, now receive data.
 
+The following additions are specified (2026-09-25) and documented but not yet implemented in either app; the specification is the design the implementations follow:
+
+- **View groups** - new view elements that contain and arrange other view elements:
+  [vertical](../../file-format/views/groups.md#view-element-vertical),
+  [horizontal](../../file-format/views/groups.md#view-element-horizontal) (children side by side,
+  with a *weight* attribute on each child for the split),
+  [grid](../../file-format/views/groups.md#view-element-grid) (rows of equal columns, as many as
+  the screen width allows under *maxWidth*, with *fillLastRow*) and
+  [stack](../../file-format/views/groups.md#view-element-stack) (children drawn on top of each
+  other). Groups nest to any depth; a stack is not interactive and holds only elements that show
+  data.
+- **transform** - a wrapper inside a stack that scales, rotates, moves or fades its one child
+  under the control of data containers, each property bound by an `input` child with an optional
+  linear range map (*min*, *max*, *mapMin*, *mapMax*, *clamp*) and a fixed origin (*originX*,
+  *originY*). See [View-Element: transform](../../file-format/views/groups.md#view-element-transform).
+  Together with images this gives gauges, compasses and map overlays without app changes.
+- **Colors with an alpha byte:** every color attribute accepts eight hex digits `RRGGBBAA`; six
+  digits stay opaque (see [Colors](../../file-format/colors.md)).
+- **Fixed plot area on graphs:** *plotLeft*, *plotTop*, *plotRight* and *plotBottom* pin the
+  plot rectangle to fractions of the graph element, so a plot can be aligned with an image below
+  it (see [Graph: fixing the plot area](../../file-format/views/graph.md#fixing-the-plot-area)).
+
 ## Changes on Android and iOS
 
 - An empty graph explains itself: "No data" while nothing has been measured, "No valid data" when every point is NaN or one axis has no values, and "No data in range" with an arrow towards the nearest point when the data lies outside the current zoom or a fixed range (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots)).

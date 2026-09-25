@@ -234,6 +234,13 @@ Each view can be built from individual view elements:
 - [depth-gui](views/preview.md#view-element-depth-gui)
 - [image](views/basics.md#view-element-image)
 
+and, planned for file format 1.21, [view groups](views/groups.md) that arrange other view elements:
+
+- [vertical](views/groups.md#view-element-vertical)
+- [horizontal](views/groups.md#view-element-horizontal)
+- [grid](views/groups.md#view-element-grid)
+- [stack](views/groups.md#view-element-stack) with [transform](views/groups.md#view-element-transform)
+
 ## Block: export
 
 The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. All sets are written on every export — the user only chooses the file format. Grouping for example the raw data and the analysis results into separate sets keeps them apart in the exported file.

@@ -105,10 +105,39 @@ def load():
         for group, items in (doc.get("common") or {}).items():
             common.setdefault(block, {})[group] = items or []
         for el in doc.get("elements") or []:
-            els[(block, el.get("parent"), el["name"])] = el
+            # `parent:` may be a list: the view elements sit under <view>
+            # and under every view group. One entry, one key per parent.
+            for parent in parents_of(el):
+                els[(block, parent, el["name"])] = el
         if doc.get("colors"):
             colors = [c["name"] for c in doc["colors"].get("names") or []]
     return els, common, colors
+
+
+def parents_of(el):
+    """The parent names an element is modelled under (`parent:` may be a list)."""
+    p = el.get("parent")
+    return list(p) if isinstance(p, list) else [p]
+
+
+def child_attribute_groups(els, common, block, parent_name):
+    """Attributes every child of <parent_name> accepts.
+
+    A container element declares them as `child_attributes: [group, ...]`,
+    naming groups under the block's `common:`. <view> and the view groups
+    declare view_element_attributes this way (label, visibility), and
+    <horizontal> additionally horizontal_child_attributes (weight).
+    """
+    for (b, _, n), el in els.items():
+        if b == block and n == parent_name:
+            groups = el.get("child_attributes") or []
+            break
+    else:
+        return []
+    out = []
+    for g in groups:
+        out += common.get(block, {}).get(g, [])
+    return out
 
 
 def resolve_child(els, block, parent_name, child):
@@ -163,7 +192,7 @@ def attr_value_pattern(attr, colors):
     if kind == "float-list":
         return P("data", pattern=FLOAT_LIST_LEX)
     if kind == "color":
-        return P("choice", parts=[P("data", pattern="#?[0-9a-fA-F]{6}")]
+        return P("choice", parts=[P("data", pattern="#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?")]
                  + [P("data", pattern=ci_pattern(c)) for c in colors])
     if attr.get("name") == "version":
         return P("data", pattern="[0-9]+\\.[0-9]+")
@@ -209,8 +238,8 @@ def element_pattern(els, common, colors, key):
     extra = []
     if parent == "analysis":
         extra = common.get("analysis", {}).get("module_attributes", [])
-    if parent == "view":
-        extra = common.get("views", {}).get("view_element_attributes", [])
+    # view containers declare what their children accept (child_attributes:)
+    extra = extra + child_attribute_groups(els, common, block, parent)
     # Every io-style <input>/<output> element accepts the shared io
     # attributes (as/type/keep/clear resp. as/append/clear): Android parses
     # them all through the same ioBlockParser, and
@@ -627,7 +656,8 @@ def schematron(els, common):
     r = rule(p, f"/{ln('phyphox')}/{ln('export')}/{ln('set')}/{ln('data')}")
     assert_(r, buffer_ok, ref_text)
 
-    r = rule(p, f"/{ln('phyphox')}/{ln('views')}/{ln('view')}/*/"
+    # view elements may sit inside view groups at any depth, so descend
+    r = rule(p, f"/{ln('phyphox')}/{ln('views')}//"
                 f"*[local-name()='input' or local-name()='output']")
     assert_(r, f"{skip_value} or {buffer_ok}", ref_text)
 
@@ -778,7 +808,7 @@ def schematron(els, common):
     gin = f"{ln('input')}"
     nx = f"count({gin}[{ax('x')}])"
     ny = f"count({gin}[{ax('y')}])"
-    r = rule(p, f"/{ln('phyphox')}/{ln('views')}/{ln('view')}/{ln('graph')}")
+    r = rule(p, f"/{ln('phyphox')}/{ln('views')}//{ln('graph')}")
     assert_(r, f"{nx} <= {ny}",
             "More x inputs than y inputs: some x input is used by no y "
             "input, which is an error.")
@@ -796,15 +826,27 @@ def schematron(els, common):
             "With unequal x and y counts, an x input shadowed by a later x "
             "before any y consumed it is unused - an error.")
 
+    # --- transform: one wrapped element ----------------------------------
+    # A <transform> wraps exactly one view element; its <input> children
+    # bind the properties. The grammar admits any number of children (all
+    # optional children are one repeated choice), so the count lives here.
+    p = pattern("transform-single-child")
+    r = rule(p, f"/{ln('phyphox')}/{ln('views')}//{ln('transform')}")
+    assert_(r, f"count(*[local-name() != 'input']) = 1",
+            "A <transform> wraps exactly one view element (its <input> "
+            "children bind the properties).")
+
     # --- mapColor[N]: the wildcard the grammar admits, pinned down -------
     graph = [v for k, v in els.items() if k == ("views", "view", "graph")][0]
     known = [a["name"] for a in graph.get("attributes") or []
              if not a.get("name_pattern")]
-    known += [a["name"] for a in
-              common.get("views", {}).get("view_element_attributes", [])]
+    # plus whatever any view container lets its children carry (label,
+    # visibility, weight inside <horizontal>) - a graph may sit in any of them
+    for group in common.get("views", {}).values():
+        known += [a["name"] for a in group]
     known_str = "|" + "|".join(known) + "|"
     p = pattern("mapcolor-names")
-    r = rule(p, f"/{ln('phyphox')}/{ln('views')}/{ln('view')}/{ln('graph')}")
+    r = rule(p, f"/{ln('phyphox')}/{ln('views')}//{ln('graph')}")
     bad = (f"@*[namespace-uri() = '' and "
            f"not(contains('{known_str}', concat('|', name(), '|'))) and "
            "not(starts-with(name(), 'mapColor') and "
@@ -833,11 +875,9 @@ def schematron(els, common):
             for a in common.get("analysis", {}).get("module_attributes", []):
                 if a.get("since") and str(a["since"]) != "1.0":
                     gates.append((a["name"], a["since"]))
-        if parent == "view":
-            for a in common.get("views", {}).get("view_element_attributes",
-                                                 []):
-                if a.get("since") and str(a["since"]) != "1.0":
-                    gates.append((a["name"], a["since"]))
+        for a in child_attribute_groups(els, common, block, parent):
+            if a.get("since") and str(a["since"]) != "1.0":
+                gates.append((a["name"], a["since"]))
         if not gates:
             continue
         r = rule(p, ctx)
@@ -851,6 +891,23 @@ def schematron(els, common):
                         f"The {attr} attribute of <{name}> needs file format "
                         f"{since} or later; this file declares an older "
                         "version.", warning=True)
+
+    # An eight-digit colour (RRGGBBAA) is a value-syntax change of file
+    # format 1.21, not an attribute, so the gate is written out: any
+    # attribute holding exactly eight hex digits (optional '#') warns in
+    # an older file. A non-colour string of that shape is conceivable but
+    # rare, and this is a warning. Its own pattern: within one pattern a
+    # node fires only the first rule that matches it, and most elements
+    # already have a version-gate rule above.
+    p = pattern("alpha-colour-gate")
+    hexval = "translate(normalize-space(.), '#', '')"
+    eight = (f"@*[string-length({hexval}) = 8 and translate({hexval}, "
+             "'0123456789abcdefABCDEF', '') = '']")
+    r = rule(p, f"//*[{eight}]")
+    assert_(r, version_ok("1.21"),
+            "A colour with an alpha channel (eight hex digits) needs file "
+            "format 1.21 or later; this file declares an older version.",
+            warning=True)
 
     import xml.etree.ElementTree as ET2
     ET2.indent(root)

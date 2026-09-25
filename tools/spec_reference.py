@@ -102,7 +102,7 @@ LIST_PAGE = "reference/known-inconsistencies.md"
 # {{spec:BLOCK/PARENT/NAME}}, or {{spec:BLOCK/NAME}} for a root element, which
 # has no parent - <phyphox> is the only one.
 MARKER = re.compile(r"\{\{spec:([a-zA-Z0-9_\-]+)/(?:([a-zA-Z0-9_\-]+)/)?"
-                    r"([a-zA-Z0-9_\-]+)(?:\|([a-z]+)(?::([a-z]+))?)?\}\}")
+                    r"([a-zA-Z0-9_\-]+)(?:\|([a-z]+)(?::([a-z_]+))?)?\}\}")
 
 # Placeholder shown for an attribute value in a generated skeleton.
 PLACEHOLDER = {
@@ -134,10 +134,13 @@ class Spec:
             self.blocks[block] = doc
             self.common[block] = doc.get("common") or {}
             for el in doc.get("elements") or []:
-                key = (block, el.get("parent"), el["name"])
-                if key in self.elements:
-                    raise ValueError(f"spec: {key} is modelled twice")
-                self.elements[key] = el
+                # `parent:` may be a list (a view element under <view> and
+                # under every view group): one entry, one key per parent
+                for parent in parents_of(el):
+                    key = (block, parent, el["name"])
+                    if key in self.elements:
+                        raise ValueError(f"spec: {key} is modelled twice")
+                    self.elements[key] = el
 
     def get(self, block, parent, name):
         try:
@@ -164,6 +167,12 @@ class Spec:
             if child == "output" and "output" in group:
                 return items or []
         return []
+
+
+def parents_of(el):
+    """The parent names an element is modelled under (`parent:` may be a list)."""
+    p = el.get("parent")
+    return list(p) if isinstance(p, list) else [p]
 
 
 def _releases():
@@ -317,6 +326,10 @@ def _meta_line(attr, spec, link_prefix):
         names = {"android": "Android", "ios": "iOS"}
         bits.append("**" + " and ".join(names.get(p, p) for p in platforms)
                     + " only**")
+    # `planned`: specified ahead of the implementations - the spec is the
+    # design, and no released app reads the attribute yet
+    if attr.get("agreement") == "planned":
+        bits.append("**planned, not yet implemented**")
 
     badge = _since_badge(attr.get("since"), spec, link_prefix)
     return (":   " + (badge + " " if badge else "")
@@ -619,10 +632,12 @@ COMMON_LABEL = {
     "output_attributes": ("Attributes accepted by every `<output>`", "output"),
     "view_element_attributes": ("Attributes accepted by every view element",
                                 None),
+    "horizontal_child_attributes": ("Attributes accepted by every direct "
+                                    "child of `horizontal`", None),
 }
 
 
-def render_common(block, spec, state):
+def render_common(block, spec, state, group=None):
     """The attributes a block states once rather than on each of its modules.
 
     The analysis block accepts `cycles` on all 53 modules and `as`, `type`,
@@ -632,10 +647,10 @@ def render_common(block, spec, state):
     point at.
     """
     parts = []
-    for group, items in (spec.common.get(block) or {}).items():
-        if not items:
+    for name, items in (spec.common.get(block) or {}).items():
+        if not items or (group and name != group):
             continue
-        label, tag = COMMON_LABEL.get(group, (group.replace("_", " "), None))
+        label, tag = COMMON_LABEL.get(name, (name.replace("_", " "), None))
         parts.append(f"**{label}**")
         if tag:
             attrs = " ".join(f'{a["name"]}="{_attr_placeholder(a)}"'
@@ -666,12 +681,12 @@ def render_element(block, parent, name, spec, state, mode=None, group=None):
     parts = []
 
     if mode == "common":
-        return render_common(block, spec, state)
+        return render_common(block, spec, state, group)
 
     if mode in (None, "xml", "wrapped"):
         skeleton = render_skeleton(element, spec, block)
         if mode == "wrapped":
-            skeleton = _wrap_skeleton(skeleton, element.get("parent"))
+            skeleton = _wrap_skeleton(skeleton, parent or parents_of(element)[0])
         parts.append(skeleton)
     if mode == "xml":
         return "\n\n".join(parts)

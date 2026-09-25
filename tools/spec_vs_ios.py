@@ -134,8 +134,14 @@ def spec_attributes():
                    "view" if "view" in group else None)
             if key:
                 common[key] = {i["name"] for i in items or []}
+        groups = {g: {i["name"] for i in items or []}
+                  for g, items in (doc.get("common") or {}).items()}
         for el in doc.get("elements") or []:
-            key = (el.get("parent"), el["name"])
+          # `parent:` may be a list (view elements under <view> and under
+          # every view group): the same entry, one key per parent
+          parents = el.get("parent")
+          for parent in (parents if isinstance(parents, list) else [parents]):
+            key = (parent, el["name"])
             out[key] = out.get(key, set()) | {a["name"] for a in (el.get("attributes") or [])}
             for a in el.get("attributes") or []:
                 if a.get("name_pattern"):
@@ -149,11 +155,12 @@ def spec_attributes():
                 if child in common:
                     k2 = (el["name"], child)
                     out[k2] = out.get(k2, set()) | common[child]
-            # a "view" common group applies to every child of the view element
-            if el["name"] == "view" and "view" in common:
+            # a container's child_attributes: groups apply to each of its
+            # children (<view> and the view groups: label/visibility, weight)
+            for group in el.get("child_attributes") or []:
                 for child in el.get("children") or []:
-                    k2 = ("view", child)
-                    out[k2] = out.get(k2, set()) | common["view"]
+                    k2 = (el["name"], child)
+                    out[k2] = out.get(k2, set()) | groups.get(group, set())
     return out, patterns
 
 

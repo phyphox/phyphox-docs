@@ -91,18 +91,27 @@ def load_spec():
         for group, items in (doc.get("common") or {}).items():
             key = ("input" if "input" in group else
                    "output" if "output" in group else
-                   "module" if "module" in group else
-                   "view" if "view" in group else None)
+                   "module" if "module" in group else None)
             if key:
                 common.setdefault(key, {})
                 for i in items or []:
                     common[key][i["name"]] = i
+            # every group is also reachable by its own name: view containers
+            # declare which groups their children accept (child_attributes:)
+            common.setdefault(group, {})
+            for i in items or []:
+                common[group][i["name"]] = i
         if doc.get("colors"):
             COLOR_NAMES.extend(c["name"] for c in doc["colors"].get("names") or [])
         for el in doc.get("elements") or []:
-            key = (el.get("parent"), el["name"])
+          # `parent:` may be a list (view elements under <view> and under
+          # every view group): the same entry is registered once per parent
+          parents = el.get("parent")
+          for parent in (parents if isinstance(parents, list) else [parents]):
+            key = (parent, el["name"])
             entry = elements.setdefault(key, {"attrs": {}, "children": set(),
                                               "patterns": []})
+            entry["child_groups"] = el.get("child_attributes") or []
             for a in el.get("attributes") or []:
                 if a.get("name_pattern"):
                     # dynamically numbered names like mapColorN: any attribute
@@ -206,13 +215,21 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
 
     known = dict(entry["attrs"])
     if node.tag in ("input", "output") and parent_name:
-        known.update(common.get(node.tag, {}))
+        # the shared io attributes fill in, they do not override: a
+        # transform's <input as="..."> enumerates its properties while the
+        # shared `as` is a free string
+        for k, v in common.get(node.tag, {}).items():
+            known.setdefault(k, v)
     # every analysis module accepts the shared module attributes
     if parent_name == "analysis":
         known.update(common.get("module", {}))
-    # every view element accepts the shared label/visibility attributes
-    if parent_name == "view":
-        known.update(common.get("view", {}))
+    # a view container declares what its children accept (child_attributes:
+    # on <view> and the view groups: label/visibility, weight in horizontal)
+    for k, e in spec.items():
+        if k[1] == parent_name:
+            for group in e.get("child_groups") or []:
+                known.update(common.get(group, {}))
+            break
     ckey = next((k for k in components if k[1] == parent_name), None)
     if node.tag == "output" and ckey:
         c = components[ckey]
@@ -244,11 +261,12 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
             continue
         if spec_a.get("type") == "color" and value:
             named = {c.lower() for c in COLOR_NAMES}
-            if not (re.fullmatch(r"#?[0-9a-fA-F]{6}", value)
+            if not (re.fullmatch(r"#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?", value)
                     or value.lower() in named):
                 rep.add("bad color value", fname,
                         f"{path}<{node.tag}>: {attr}=\"{value}\" is neither "
-                        f"a six-digit hex colour nor a name the spec lists")
+                        f"a six- or eight-digit hex colour nor a name the "
+                        f"spec lists")
         allowed = spec_a.get("values")
         if allowed and value.lower() not in {str(v).lower() for v in allowed}:
             rep.add("bad enum value", fname,
@@ -273,6 +291,17 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
         if a.get("required") and aname not in node.attrib:
             rep.add("missing required attribute", fname,
                     f"{path}<{node.tag}>: {aname}")
+
+    # A <transform> wraps exactly one view element; its <input> children
+    # bind the transform properties (docs/file-format/views/groups.md). The
+    # grammar admits any number of children, so the count lives here and in
+    # the generated Schematron (transform-single-child).
+    if node.tag == "transform":
+        wrapped = [c for c in node if c.tag.split("}")[-1] != "input"]
+        if len(wrapped) != 1:
+            rep.add("transform child count", fname,
+                    f"{path}<transform>: wraps {len(wrapped)} view elements, "
+                    f"needs exactly one")
 
     # Both parsers hard-require credentials for the TLS MQTT services
     # ("password must be set for the mqtts/json service" - NetworkService

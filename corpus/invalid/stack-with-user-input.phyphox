@@ -1,0 +1,16 @@
+<phyphox version="1.21">
+    <title>t</title>
+    <category>c</category>
+    <description>d</description>
+    <data-containers><container>value</container></data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="v">
+            <stack>
+                <info label="A stack is not interactive: no user-input elements" />
+                <edit label="e"><output>value</output></edit>
+            </stack>
+        </view>
+    </views>
+</phyphox>

@@ -1,0 +1,19 @@
+<phyphox version="1.21">
+    <title>t</title>
+    <category>c</category>
+    <description>d</description>
+    <data-containers><container>angle</container></data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="v">
+            <stack>
+                <transform>
+                    <input as="rotate">angle</input>
+                    <info label="one" />
+                    <info label="two - a transform wraps exactly one element" />
+                </transform>
+            </stack>
+        </view>
+    </views>
+</phyphox>

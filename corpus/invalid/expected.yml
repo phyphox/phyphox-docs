@@ -280,7 +280,7 @@ gausssmooth-zero-sigma.phyphox:   # sigma=0
 invalid-color-value.phyphox:   # a colour that is neither hex nor a named one
   parser: rejects
   findings:
-    - "<views>/<view>/<value>: color=\"bogus\" is neither a six-digit hex colour nor a name the spec lists"
+    - "<views>/<view>/<value>: color=\"bogus\" is neither a six- or eight-digit hex colour nor a name the spec lists"
 link-duplicate-label.phyphox:   # two root links with one label
   parser: rejects
   findings:
@@ -319,3 +319,23 @@ value-not-allowed-for-slot.phyphox:   # type="value" where no slot of the module
   parser: rejects
   findings:
     - "<average>/<input type=\"value\"> but no slot of this module allows a literal value"
+# --- view groups (file format 1.21, planned): the structural rules of
+# docs/file-format/views/groups.md. parser: rejects is the SPECIFIED
+# behaviour - no app implements 1.21 yet, so the app runners skip these
+# files until they bump their version (corpus/README.md).
+transform-outside-stack.phyphox:   # <transform> only exists directly inside <stack>
+  parser: rejects
+  findings:
+    - "<views>/<view>/: <transform> not modelled under <view>"
+transform-two-children.phyphox:   # a transform wraps exactly one element
+  parser: rejects
+  findings:
+    - "<views>/<view>/<stack>/<transform>: wraps 2 view elements, needs exactly one"
+transform-unknown-property.phyphox:   # as= names a property that does not exist
+  parser: rejects
+  findings:
+    - "<views>/<view>/<stack>/<transform>/<input> as=\"skew\" not in ['scale', 'scaleX', 'scaleY', 'translateX', 'translateY', 'rotate', 'opacity']"
+stack-with-user-input.phyphox:   # a stack holds only elements that show data
+  parser: rejects
+  findings:
+    - "<views>/<view>/<stack>/: <edit> not modelled under <stack>"
