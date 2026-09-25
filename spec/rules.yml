@@ -135,7 +135,10 @@ rules:
         Conforms as of the development branch (2026-08-12): a present but
         unparseable color anywhere throws ("Could not parse color \"...\" of
         attribute \"...\"."), via a strict parser accepting exactly the named
-        colors and six-digit hex (RGB.fromPhyphoxStringStrict). Previously it
+        colors and six-digit hex (RGB.fromPhyphoxStringStrict); since
+        2026-09-26 also the eight-digit RRGGBBAA form of file format 1.21,
+        whose alpha byte reaches the views, the GL plot, the light-mode
+        adjustment and the remote interface (rrggbbaa). Previously it
         rejected most garbage by accident (unhandled NumberFormatException,
         "Unhandled RuntimeException ... For input string: ...") while quietly
         accepting some (any parseable hex number of other lengths, e.g. "abc"
