@@ -152,8 +152,11 @@ rules:
         file format), and a present but unparseable value throws Android's
         message at every color site, including the per-set graph color and
         the numbered mapColorN stops (KeyedAttributeContainer.optionalColor,
-        GraphViewElementHandler.swift). The released app silently substitutes
-        its defaults.
+        GraphViewElementHandler.swift); since 2026-09-26 also the
+        eight-digit RRGGBBAA form of file format 1.21, whose alpha byte
+        reaches the views, the GL plot and colour map, the light-mode
+        adjustment and the remote interface (RRGGBBAA). The released app
+        silently substitutes its defaults.
 
   - id: unknown-attribute-ignored
     decided: 2026-08-24
