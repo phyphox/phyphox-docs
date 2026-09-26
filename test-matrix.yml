@@ -262,7 +262,11 @@ tests:
       and the pick outputs written to their containers, asserted through
       the remote API), dragging for the difference and slope read-out,
       the linear fit (a = 2, b = 1 on the fixture's line), panning and the
-      zoom reset - and every one of those gestures on a graph over empty
+      zoom reset, the log-scale menu items on the log graph (the checkmark
+      follows the toggle, the axis reads in linear units and pans by the
+      dragged fraction afterwards - iOS 1.2.1 kept clamping a toggled-off
+      axis to the log limit, freezing pan and zoom on the audio spectrum)
+      - and every one of those gestures on a graph over empty
       containers, which crashed Android 1.2.1 (a null buffer in the pick
       handler). Android splits the row: the touch geometry (pick, drag,
       pan, pinch, empty buffers) runs at T0 on Robolectric against

@@ -1,10 +1,12 @@
 <phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
     <title>fixture: graph interaction</title>
     <category>View fixtures</category>
-    <description>The maximized graph's tools on fixed data: a straight line (y = 2x + 1) to pick, drag, pan, zoom and fit, with pick outputs so that a pick has a buffer effect, and a graph over empty containers, which has to survive every gesture.</description>
+    <description>The maximized graph's tools on fixed data: a straight line (y = 2x + 1) to pick, drag, pan, zoom and fit, with pick outputs so that a pick has a buffer effect, a graph on log axes (y = 2x + 1 again, x from 100 to 900) whose menu switches each axis back to linear, and a graph over empty containers, which has to survive every gesture.</description>
     <data-containers>
         <container size="9" init="0,1,2,3,4,5,6,7,8">x</container>
         <container size="9" init="1,3,5,7,9,11,13,15,17">y</container>
+        <container size="9" init="100,200,300,400,500,600,700,800,900">x_log</container>
+        <container size="9" init="201,401,601,801,1001,1201,1401,1601,1801">y_log</container>
         <container size="100">nothing</container>
         <container size="1">picked_x</container>
         <container size="1">picked_y</container>
@@ -16,6 +18,10 @@
                 <input axis="y">y</input>
                 <output axis="x" label="Pick x">picked_x</output>
                 <output axis="y" label="Pick y">picked_y</output>
+            </graph>
+            <graph label="log" labelX="x" unitX="s" labelY="y" unitY="m" logX="true" logY="true">
+                <input axis="x">x_log</input>
+                <input axis="y">y_log</input>
             </graph>
             <graph label="empty" labelX="x" labelY="y">
                 <input axis="x">nothing</input>
