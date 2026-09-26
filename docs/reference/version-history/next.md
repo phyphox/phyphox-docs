@@ -45,7 +45,8 @@ remote interface and in the editor from that specification:
   An info without a label keeps the height of one line of text, a button keeps its size with an
   empty caption, as before.
 
-Specified 2026-09-26 as a second follow-up, not yet implemented:
+Specified 2026-09-26 as a second follow-up and implemented on both platforms, in the remote
+interface and in the editor from that specification:
 
 - **`align`** on value, edit, toggle, dropdown and slider aligns the label and the control left,
   centred or right when they take the full width - with *verticalLayout* or without a label (see
