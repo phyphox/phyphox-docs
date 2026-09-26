@@ -1,0 +1,13 @@
+<phyphox version="1.21">
+    <title>t</title>
+    <category>c</category>
+    <description>d</description>
+    <data-containers><container>b</container></data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="v">
+            <value label="align is left, center or right" verticalLayout="true" align="middle"><input>b</input></value>
+        </view>
+    </views>
+</phyphox>

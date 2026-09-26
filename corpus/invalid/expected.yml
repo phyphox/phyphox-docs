@@ -344,3 +344,9 @@ grid-unknown-width-unit.phyphox:   # maxWidthUnit is text or screen
   parser: rejects
   findings:
     - "<views>/<view>/<grid> maxWidthUnit=\"pixels\" not in ['text', 'screen']"
+# --- align on the full-width controls (file format 1.21, specified 2026-09-26;
+# Android rejects it since the same day, iOS since 2026-09-26)
+view-align-unknown.phyphox:   # align is left, center or right
+  parser: rejects
+  findings:
+    - "<views>/<view>/<value> align=\"middle\" not in ['left', 'right', 'center']"

@@ -727,7 +727,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       align on value, edit, toggle, dropdown and slider (file format 1.21,
       specified 2026-09-26): with verticalLayout, or without a label, the
@@ -740,7 +740,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       spacing on vertical, horizontal and grid (file format 1.21, specified
       2026-09-26): a gap in text line heights between adjacent visible

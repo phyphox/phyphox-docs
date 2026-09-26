@@ -253,7 +253,7 @@ elements:
           default layout, label in the left half and value with its unit in the right half,
           the attribute has no effect. The values are those of the info
           element's align attribute.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: color
         description: >-
@@ -989,7 +989,7 @@ elements:
           default layout, label in the left half and edit field with its unit in the right half,
           the attribute has no effect. The values are those of the info
           element's align attribute.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: signed
         description: >-
@@ -1206,7 +1206,7 @@ elements:
           default layout, label in the left half and switch in the right half,
           the attribute has no effect. The values are those of the info
           element's align attribute.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: default
         description: >-
@@ -1282,7 +1282,7 @@ elements:
           default layout, label in the left half and current value in the right half,
           the attribute has no effect. The values are those of the info
           element's align attribute.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: minValue
         description: >-
@@ -1417,7 +1417,7 @@ elements:
           default layout, label in the left half and dropdown in the right half,
           the attribute has no effect. The values are those of the info
           element's align attribute.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: default
         description: >-
@@ -1660,7 +1660,7 @@ elements:
           There is no gap at the outer edges of the group, and a child hidden
           through visibility takes no gap. Negative values are treated
           as 0.
-        agreement: planned
+        agreement: agreed
 
   - name: horizontal
     parent: [view, vertical, horizontal, grid]
@@ -1692,7 +1692,7 @@ elements:
           There is no gap at the outer edges of the group, and a child hidden
           through visibility takes no gap. The gaps are taken from the width first and the remainder is shared by weight. Negative values are treated
           as 0.
-        agreement: planned
+        agreement: agreed
 
   - name: grid
     parent: [view, vertical, horizontal, grid]
@@ -1770,7 +1770,7 @@ elements:
           There is no gap at the outer edges of the group, and a child hidden
           through visibility takes no gap. The same gap is used horizontally and vertically. The column count counts the gaps: it is the smallest number n for which (available width - (n-1) · spacing) / n is at most maxWidth, and the columns share the width left after the gaps; with fillLastRow, the children of an incomplete last row share the width left after their own gaps. Negative values are treated
           as 0.
-        agreement: planned
+        agreement: agreed
 
   - name: stack
     parent: [view, vertical, horizontal, grid]
