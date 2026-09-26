@@ -305,9 +305,9 @@ def scenes():
         <input axis="y">x</input>
     </graph>
     <vertical weight="2" spacing="0.5">
-        <value label="f" unit="Hz" precision="3" verticalLayout="true"><input>f</input></value>
-        <value label="T" unit="s" precision="3" verticalLayout="true"><input>T</input></value>
-        <value label="A" unit="cm" precision="1" factor="100" verticalLayout="true"><input>A</input></value>
+        <value label="f" unit="Hz" precision="3" verticalLayout="true" align="center"><input>f</input></value>
+        <value label="T" unit="s" precision="3" verticalLayout="true" align="center"><input>T</input></value>
+        <value label="A" unit="cm" precision="1" factor="100" verticalLayout="true" align="center"><input>A</input></value>
     </vertical>
 </horizontal>
 """),
