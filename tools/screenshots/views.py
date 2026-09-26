@@ -201,12 +201,12 @@ def scenes():
         dict(id="vertical", page="groups",
              containers={"t": t, "x": x, "f": [0.6214], "T": [1.6093], "A": [0.1184]},
              view="""
-<horizontal>
+<horizontal spacing="0.5">
     <graph label="Position" labelX="t" unitX="s" labelY="x" unitY="m" aspectRatio="1.5" weight="3">
         <input axis="x">t</input>
         <input axis="y">x</input>
     </graph>
-    <vertical weight="2">
+    <vertical weight="2" spacing="0.5">
         <value label="f" unit="Hz" precision="3" verticalLayout="true"><input>f</input></value>
         <value label="T" unit="s" precision="3" verticalLayout="true"><input>T</input></value>
         <value label="A" unit="cm" precision="1" factor="100" verticalLayout="true"><input>A</input></value>
@@ -216,7 +216,7 @@ def scenes():
         dict(id="horizontal", page="groups", containers={"run": None, "count": None},
              view="""
 <info label="Three buttons next to each other:" />
-<horizontal>
+<horizontal spacing="0.5">
     <button label="Start"><input type="value">1</input><output>run</output></button>
     <button label="Stop"><input type="value">0</input><output>run</output></button>
     <button label="Reset"><input type="value">0</input><output>count</output></button>
@@ -240,8 +240,8 @@ def scenes():
         <input as="rotate" min="0" max="100" mapMin="-2.35" mapMax="2.35" clamp="true">percent</input>
         <image src="gauge-needle.png" scale="0.8" />
     </transform>
+    <value label="" unit="%" size="2" precision="0" align="center"><input>percent</input></value>
 </stack>
-<value label="Level" unit="%" precision="0"><input>percent</input></value>
 """),
     ]
 

@@ -71,7 +71,7 @@ widths; the *weight* attribute on a child changes its share.
 ```xml
 <view label="Controls">
     <info label="Three buttons next to each other:" />
-    <horizontal>
+    <horizontal spacing="0.5">
         <button label="Start"><input type="value">1</input><output>run</output></button>
         <button label="Stop"><input type="value">0</input><output>run</output></button>
         <button label="Reset"><input type="value">0</input><output>count</output></button>
