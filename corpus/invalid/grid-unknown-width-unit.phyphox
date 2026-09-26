@@ -1,0 +1,15 @@
+<phyphox version="1.21">
+    <title>t</title>
+    <category>c</category>
+    <description>d</description>
+    <data-containers><container>b</container></data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="v">
+            <grid maxWidth="300" maxWidthUnit="pixels">
+                <info label="maxWidthUnit is text or screen" />
+            </grid>
+        </view>
+    </views>
+</phyphox>

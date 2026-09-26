@@ -102,7 +102,47 @@ Four graphs: one column on a phone, two by two on a tablet, and with *fillLastRo
 graph left over on a row of three would stretch across the row instead of leaving two empty
 cells.
 
+The text-based unit ties the column count to a real-world size. To tie it to the orientation
+instead, give *maxWidth* in multiples of the shorter side of the window with
+`maxWidthUnit="screen"`:
+
+```xml
+<grid maxWidth="1" maxWidthUnit="screen">
+    <graph label="x" labelX="t" unitX="s" labelY="x" unitY="m/s²"><input axis="x">t</input><input axis="y">ax</input></graph>
+    <graph label="y" labelX="t" unitX="s" labelY="y" unitY="m/s²"><input axis="x">t</input><input axis="y">ay</input></graph>
+</grid>
+```
+
+In portrait the available width equals the shorter side, so this is one column on a phone and
+on a tablet; in landscape the width exceeds it, so both show two columns. The reference is the
+app's window, not the display - a split-screen window is measured on its own - and in the
+remote interface the browser viewport.
+
 {{spec:views/view/grid}}
+
+## Labels in narrow columns
+
+The value, edit, toggle, dropdown and slider elements put their label in the left half of the
+row and the control in the right half, which leaves little room for either in a narrow column.
+Two attributes address this, both since file format 1.21:
+
+- **`verticalLayout="true"`** places the label on its own line above the control, both taking
+  the full width, left-aligned. On a slider this only applies with *showValue*, where the label,
+  the current value and the slider then take three rows.
+- **Leaving the label out** (no *label* attribute, or an empty one) omits the caption and the
+  space it would take, so the control gets the whole row. This is allowed on value, edit,
+  toggle, dropdown, slider, graph, camera-gui and depth-gui - a graph in a stack, or a switch
+  next to an info text, rarely needs one. It is not allowed on info, where the label is the
+  content, nor on a button unless *dynamicLabel* supplies the text: there a missing label is an
+  error.
+
+```xml
+<horizontal>
+    <value label="Frequency" unit="Hz" verticalLayout="true"><input>f</input></value>
+    <edit label="Length" unit="m" verticalLayout="true"><output>l</output></edit>
+    <toggle><output>run</output></toggle>
+</horizontal>
+```
 
 ## View-Element: stack
 

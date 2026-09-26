@@ -338,3 +338,17 @@ stack-with-user-input.phyphox:   # a stack holds only elements that show data
   parser: rejects
   findings:
     - "<views>/<view>/<stack>/: <edit> not modelled under <stack>"
+# --- labels and the grid unit (file format 1.21, specified 2026-09-27, not yet
+# implemented: the app runners assert these once they implement the rules)
+info-without-label.phyphox:   # the label is the content of an info element
+  parser: rejects
+  findings:
+    - "<views>/<view>/<info>: label"
+button-without-label.phyphox:   # the label is the caption of a button (unless dynamicLabel supplies it)
+  parser: rejects
+  findings:
+    - "<views>/<view>/<button>: label (or dynamicLabel)"
+grid-unknown-width-unit.phyphox:   # maxWidthUnit is text or screen
+  parser: rejects
+  findings:
+    - "<views>/<view>/<grid> maxWidthUnit=\"pixels\" not in ['text', 'screen']"

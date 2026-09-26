@@ -5,7 +5,10 @@
          maxWidth and fillLastRow; a stack with transforms binding every
          property, a constant input, the range map with clamp and the
          origins; the fixed plot area of a graph; eight-digit colours on a
-         graph, its inputs, a separator, a value and a map colour stop. -->
+         graph, its inputs, a separator, a value and a map colour stop.
+         Added 2026-09-27: maxWidthUnit="screen", verticalLayout on value,
+         edit, toggle, dropdown and a slider with showValue, and elements
+         without a label (value, edit, toggle, dropdown, graph). -->
     <title>Corpus: view groups</title>
     <category>Corpus</category>
     <description>Generated coverage fixture for view groups, transforms, alpha colours and the fixed plot area.</description>
@@ -55,12 +58,22 @@
                     <input axis="y">y</input>
                 </graph>
                 <horizontal>
-                    <edit label="Offset"><output>count</output></edit>
-                    <slider label="Level" minValue="0" maxValue="10"><output>count</output></slider>
+                    <edit label="Offset" verticalLayout="true"><output>count</output></edit>
+                    <slider label="Level" minValue="0" maxValue="10" showValue="true" verticalLayout="true"><output>count</output></slider>
+                    <vertical>
+                        <value label="Count" verticalLayout="true"><input>count</input></value>
+                        <toggle label="Run" verticalLayout="true"><output>run</output></toggle>
+                        <dropdown label="Choice" verticalLayout="true"><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
+                    </vertical>
                 </horizontal>
-                <grid maxWidth="12">
-                    <info label="A grid inside a grid" />
+                <grid maxWidth="1" maxWidthUnit="screen">
+                    <info label="A grid inside a grid, one column in portrait and two in landscape" />
                     <dropdown label="Choice"><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
+                    <value unit="%"><input>percent</input></value>
+                    <edit unit="s"><output>count</output></edit>
+                    <toggle><output>run</output></toggle>
+                    <dropdown><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
+                    <graph labelX="t" unitX="s"><input axis="x">t</input><input axis="y">x</input></graph>
                 </grid>
             </grid>
         </view>

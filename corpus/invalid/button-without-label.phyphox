@@ -1,0 +1,13 @@
+<phyphox version="1.21">
+    <title>t</title>
+    <category>c</category>
+    <description>d</description>
+    <data-containers><container>b</container></data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="v">
+            <button><input type="value">1</input><output>b</output></button>
+        </view>
+    </views>
+</phyphox>

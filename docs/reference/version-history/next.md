@@ -30,6 +30,21 @@ Further additions, specified in the documentation first (2026-09-25) and impleme
   plot rectangle to fractions of the graph element, so a plot can be aligned with an image below
   it (see [Graph: fixing the plot area](../../file-format/views/graph.md#fixing-the-plot-area)).
 
+Specified 2026-09-27 as a follow-up to the view groups (not yet implemented; the specification is
+the design the implementations follow):
+
+- **`maxWidthUnit` on grid:** *maxWidth* may be given in multiples of the shorter side of the
+  app's window (`screen`) instead of text line heights, so that a grid is one column in portrait
+  and two in landscape on phones and tablets alike (see
+  [View-Element: grid](../../file-format/views/groups.md#view-element-grid)).
+- **`verticalLayout`** on value, edit, toggle, dropdown and slider places the label above the
+  control instead of to its left, for narrow columns (see
+  [Labels in narrow columns](../../file-format/views/groups.md#labels-in-narrow-columns)).
+- **Optional labels:** the label may be left out on value, edit, toggle, dropdown, slider, graph,
+  camera-gui and depth-gui, which omits the caption and its space instead of leaving it blank.
+  On info, and on button unless *dynamicLabel* supplies the text, the label is now required; a
+  missing one is an error where both apps used to show an empty element.
+
 ## Changes on Android and iOS
 
 - An empty graph explains itself: "No data" while nothing has been measured, "No valid data" when every point is NaN or one axis has no values, and "No data in range" with an arrow towards the nearest point when the data lies outside the current zoom or a fixed range (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots)).

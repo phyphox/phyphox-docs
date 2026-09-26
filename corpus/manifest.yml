@@ -102,10 +102,13 @@
   version: "1.21"
   adds:
     - grid>dropdown
+    - grid>edit
     - grid>graph
     - grid>grid
     - grid>horizontal
     - grid>info
+    - grid>toggle
+    - grid>value
     - horizontal>button
     - horizontal>edit
     - horizontal>slider
@@ -119,6 +122,7 @@
     - transform>info
     - transform>input
     - transform>separator
+    - vertical>dropdown
     - vertical>stack
     - vertical>toggle
     - vertical>value
@@ -126,12 +130,15 @@
     - view>horizontal
     - view>vertical
     - button@weight
+    - dropdown@verticalLayout
+    - edit@verticalLayout
     - graph@plotBottom
     - graph@plotLeft
     - graph@plotRight
     - graph@plotTop
     - grid@fillLastRow
     - grid@maxWidth
+    - grid@maxWidthUnit
     - grid@visibility
     - horizontal@label
     - horizontal@visibility
@@ -141,10 +148,13 @@
     - input@mapMin
     - input@max
     - input@min
+    - slider@verticalLayout
     - stack@visibility
+    - toggle@verticalLayout
     - transform@originX
     - transform@originY
     - transform@visibility
+    - value@verticalLayout
 - file: generated/views-details.phyphox
   version: "1.20"
   adds:

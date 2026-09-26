@@ -44,7 +44,12 @@ common:
         translations block. Two exceptions: the info element has no separate
         caption - there, label is the displayed text itself (see info) - and
         separator and image display no label at all; both parsers accept the
-        attribute there like everywhere, but it has no effect.
+        attribute there like everywhere, but it has no effect. Since file
+        format 1.21 the label may be left out (absent or empty) on value,
+        edit, toggle, dropdown, slider, graph, camera-gui and depth-gui: the
+        caption and the space it would take are then omitted and the element
+        takes the full row. It is required on info, and on button unless
+        dynamicLabel supplies the text, and ignored on the view groups.
       agreement: agreed
     - name: visibility
       type: string
@@ -123,11 +128,14 @@ elements:
     attributes:
       - name: label
         description: >-
-          The text to be displayed to the user
+          The text to be displayed to the user. Required: an info element
+          without a label has no content and is an error (since 1.21; both
+          apps used to show an empty line).
         type: string
+        required: true
         translatable: true
         summary: The text to display.
-        agreement: agreed
+        agreement: planned
       - name: color
         description: >-
           The text color as six-digit RGB hex value (eight digits
@@ -212,6 +220,20 @@ elements:
     summary: A single number from a data container, formatted for display.
     children: [input, map]
     attributes:
+      - name: verticalLayout
+        type: boolean
+        default: false
+        since: "1.21"
+        summary: >-
+          Place the label above the element instead of to its left, both
+          taking the full width.
+        description: >-
+          By default the label sits in the left half of the row and the
+          element in the right half. With verticalLayout the label is shown
+          on its own line above the element and both take the full width,
+          left-aligned - the layout for a narrow column of a horizontal or
+          grid group. Without a label the attribute has no effect.
+        agreement: planned
       - name: color
         description: >-
           The text color as six-digit RGB hex value (eight digits
@@ -915,6 +937,20 @@ elements:
     summary: A field for the user to type a value into a data container.
     children: [output]
     attributes:
+      - name: verticalLayout
+        type: boolean
+        default: false
+        since: "1.21"
+        summary: >-
+          Place the label above the element instead of to its left, both
+          taking the full width.
+        description: >-
+          By default the label sits in the left half of the row and the
+          element in the right half. With verticalLayout the label is shown
+          on its own line above the element and both take the full width,
+          left-aligned - the layout for a narrow column of a horizontal or
+          grid group. Without a label the attribute has no effect.
+        agreement: planned
       - name: signed
         description: >-
           If set to *false* the user may not enter negative numbers.
@@ -1019,6 +1055,18 @@ elements:
       containers and an analysis append module instead.
     children: [input, output, map, trigger]
     attributes:
+      - name: label
+        description: >-
+          The text on the button, and the fallback when dynamicLabel is
+          set but no map matches. Required unless dynamicLabel is set: a
+          button with neither has no caption and is an error (since 1.21;
+          both apps used to show an empty button). The rule is conditional,
+          so the grammar cannot carry it; the experiment validator and the
+          Schematron check it.
+        type: string
+        translatable: true
+        summary: The button text; required unless dynamicLabel supplies it.
+        agreement: planned
       - name: dynamicLabel
         description: >-
           A buffer (data-container) that controls the label of the
@@ -1090,6 +1138,20 @@ elements:
     summary: An on/off switch writing 0 or 1 to a data container.
     children: [output]
     attributes:
+      - name: verticalLayout
+        type: boolean
+        default: false
+        since: "1.21"
+        summary: >-
+          Place the label above the element instead of to its left, both
+          taking the full width.
+        description: >-
+          By default the label sits in the left half of the row and the
+          element in the right half. With verticalLayout the label is shown
+          on its own line above the element and both take the full width,
+          left-aligned - the layout for a narrow column of a horizontal or
+          grid group. Without a label the attribute has no effect.
+        agreement: planned
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1131,6 +1193,22 @@ elements:
     summary: A slider for choosing a value, or a range with two handles.
     children: [output]
     attributes:
+      - name: verticalLayout
+        type: boolean
+        default: false
+        since: "1.21"
+        summary: >-
+          Place the label above the element instead of to its left, both
+          taking the full width.
+        description: >-
+          By default the label sits in the left half of the row and the
+          element in the right half. With verticalLayout the label is shown
+          on its own line above the element and both take the full width,
+          left-aligned - the layout for a narrow column of a horizontal or
+          grid group. On a slider this only applies with showValue: the
+          label, the current value and the slider then take three rows.
+          Without a label the attribute has no effect.
+        agreement: planned
       - name: minValue
         description: >-
           Value for a handle at the lower end of the slider.
@@ -1233,6 +1311,20 @@ elements:
     summary: A menu of predefined values.
     children: [output, map]
     attributes:
+      - name: verticalLayout
+        type: boolean
+        default: false
+        since: "1.21"
+        summary: >-
+          Place the label above the element instead of to its left, both
+          taking the full width.
+        description: >-
+          By default the label sits in the left half of the row and the
+          element in the right half. With verticalLayout the label is shown
+          on its own line above the element and both take the full width,
+          left-aligned - the layout for a narrow column of a horizontal or
+          grid group. Without a label the attribute has no effect.
+        agreement: planned
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1505,15 +1597,36 @@ elements:
         type: float
         required: true
         summary: >-
-          Largest width a child may get, in text line heights - the unit of
-          the separator's height.
+          Largest width a child may get, in the unit named by maxWidthUnit
+          (text line heights by default).
         description: >-
-          The width above which the group adds a column. Given in text line
-          heights, the unit the separator's height already uses: it follows
-          the screen density and the user's text size on every platform, so
-          one value means the same on Android, iOS and in the web interface,
-          and larger text gives fewer columns.
+          The width above which the group adds a column. By default given in
+          text line heights, the unit the separator's height already uses:
+          it follows the screen density and the user's text size on every
+          platform, so one value means the same on Android, iOS and in the
+          web interface, and larger text gives fewer columns. With
+          maxWidthUnit="screen" it is given in multiples of the shorter side
+          of the app's window instead, which makes the column count follow
+          the orientation: maxWidth="1" is one column in portrait and two in
+          landscape, on phones and tablets alike.
         agreement: agreed
+      - name: maxWidthUnit
+        type: enum
+        values: [text, screen]
+        default: text
+        since: "1.21"
+        value_notes:
+          text: >-
+            Text line heights, the unit of the separator's height; follows
+            density and the user's text size.
+          screen: >-
+            Multiples of the shorter side of the app's window - the window,
+            not the display, so a split-screen or Slide Over window counts
+            with its own size; in the remote interface, the browser
+            viewport. Independent of the text size.
+        summary: The unit of maxWidth.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: fillLastRow
         type: boolean
         default: false

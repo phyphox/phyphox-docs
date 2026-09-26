@@ -692,6 +692,34 @@ tests:
       container leaves the neutral value, and the stack takes no touches
       (no maximize, zoom or pick).
 
+  - id: view-vertical-layout
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Labels in narrow columns (file format 1.21, specified 2026-09-27):
+      with verticalLayout a value, edit, toggle, dropdown and a slider with
+      showValue put the label on its own line above the control, both full
+      width and left-aligned; without a label the caption and its space are
+      omitted and the control takes the whole row (value, edit, toggle,
+      dropdown, slider, graph, camera-gui, depth-gui); an info or button
+      without a label is refused (corpus/invalid info-without-label and
+      button-without-label).
+
+  - id: grid-screen-unit
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      A grid with maxWidthUnit="screen" (file format 1.21, specified
+      2026-09-27) counts its columns in multiples of the shorter side of the
+      app's window: maxWidth="1" shows one column in portrait and two in
+      landscape on a phone and on a tablet, and a split-screen window is
+      measured on its own size; an unknown unit is refused
+      (corpus/invalid grid-unknown-width-unit).
+
   - id: colors-alpha
     area: file-format
     tier: T1
