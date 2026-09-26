@@ -131,7 +131,9 @@
     - view>horizontal
     - view>vertical
     - button@weight
+    - dropdown@align
     - dropdown@verticalLayout
+    - edit@align
     - edit@verticalLayout
     - graph@plotBottom
     - graph@plotLeft
@@ -140,8 +142,10 @@
     - grid@fillLastRow
     - grid@maxWidth
     - grid@maxWidthUnit
+    - grid@spacing
     - grid@visibility
     - horizontal@label
+    - horizontal@spacing
     - horizontal@visibility
     - image@scale
     - input@clamp
@@ -149,13 +153,17 @@
     - input@mapMin
     - input@max
     - input@min
+    - slider@align
     - slider@verticalLayout
     - stack@visibility
+    - toggle@align
     - toggle@verticalLayout
     - transform@originX
     - transform@originY
     - transform@visibility
+    - value@align
     - value@verticalLayout
+    - vertical@spacing
 - file: generated/views-details.phyphox
   version: "1.20"
   adds:

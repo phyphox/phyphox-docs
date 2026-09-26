@@ -236,6 +236,25 @@ elements:
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
         agreement: agreed
+      - name: align
+        type: enum
+        values: [left, right, center]
+        default: left
+        since: "1.21"
+        summary: >-
+          Horizontal alignment of the label and the value with its unit when they
+          take the full width.
+        description: >-
+          Applies when the element is laid out at full width, i.e. with
+          verticalLayout="true" or without a label: the label line and
+          the value with its unit are then aligned left, centred or right within the
+          element's width. A control that spans the whole width anyway keeps
+          its width, and only its text content follows the alignment. In the
+          default layout, label in the left half and value with its unit in the right half,
+          the attribute has no effect. The values are those of the info
+          element's align attribute.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: color
         description: >-
           The text color as six-digit RGB hex value (eight digits
@@ -953,6 +972,25 @@ elements:
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
         agreement: agreed
+      - name: align
+        type: enum
+        values: [left, right, center]
+        default: left
+        since: "1.21"
+        summary: >-
+          Horizontal alignment of the label and the edit field with its unit when they
+          take the full width.
+        description: >-
+          Applies when the element is laid out at full width, i.e. with
+          verticalLayout="true" or without a label: the label line and
+          the edit field with its unit are then aligned left, centred or right within the
+          element's width. A control that spans the whole width anyway keeps
+          its width, and only its text content follows the alignment. In the
+          default layout, label in the left half and edit field with its unit in the right half,
+          the attribute has no effect. The values are those of the info
+          element's align attribute.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: signed
         description: >-
           If set to *false* the user may not enter negative numbers.
@@ -1151,6 +1189,25 @@ elements:
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
         agreement: agreed
+      - name: align
+        type: enum
+        values: [left, right, center]
+        default: left
+        since: "1.21"
+        summary: >-
+          Horizontal alignment of the label and the switch when they
+          take the full width.
+        description: >-
+          Applies when the element is laid out at full width, i.e. with
+          verticalLayout="true" or without a label: the label line and
+          the switch are then aligned left, centred or right within the
+          element's width. A control that spans the whole width anyway keeps
+          its width, and only its text content follows the alignment. In the
+          default layout, label in the left half and switch in the right half,
+          the attribute has no effect. The values are those of the info
+          element's align attribute.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1208,6 +1265,25 @@ elements:
           label, the current value and the slider then take three rows.
           Without a label the attribute has no effect.
         agreement: agreed
+      - name: align
+        type: enum
+        values: [left, right, center]
+        default: left
+        since: "1.21"
+        summary: >-
+          Horizontal alignment of the label and the current value when they
+          take the full width.
+        description: >-
+          Applies when the element is laid out at full width, i.e. with
+          verticalLayout="true" or without a label (on a slider, only with showValue, where the label and the current value take rows of their own; the slider bar keeps its row): the label line and
+          the current value are then aligned left, centred or right within the
+          element's width. A control that spans the whole width anyway keeps
+          its width, and only its text content follows the alignment. In the
+          default layout, label in the left half and current value in the right half,
+          the attribute has no effect. The values are those of the info
+          element's align attribute.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: minValue
         description: >-
           Value for a handle at the lower end of the slider.
@@ -1324,6 +1400,25 @@ elements:
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
         agreement: agreed
+      - name: align
+        type: enum
+        values: [left, right, center]
+        default: left
+        since: "1.21"
+        summary: >-
+          Horizontal alignment of the label and the dropdown when they
+          take the full width.
+        description: >-
+          Applies when the element is laid out at full width, i.e. with
+          verticalLayout="true" or without a label: the label line and
+          the dropdown are then aligned left, centred or right within the
+          element's width. A control that spans the whole width anyway keeps
+          its width, and only its text content follows the alignment. In the
+          default layout, label in the left half and dropdown in the right half,
+          the attribute has no effect. The values are those of the info
+          element's align attribute.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1551,7 +1646,21 @@ elements:
                dropdown, image, camera-gui, depth-gui,
                vertical, horizontal, grid, stack]
     child_attributes: [view_element_attributes]
-    attributes: []
+    attributes:
+      - name: spacing
+        type: float
+        default: 0
+        since: "1.21"
+        summary: >-
+          Gap between adjacent children, in text line heights.
+        description: >-
+          Empty space inserted between adjacent children, in text line heights -
+          the unit of the separator's height and of the grid's default
+          maxWidth unit, so it follows density and the user's text size.
+          There is no gap at the outer edges of the group, and a child hidden
+          through visibility takes no gap. Negative values are treated
+          as 0.
+        agreement: planned
 
   - name: horizontal
     parent: [view, vertical, horizontal, grid]
@@ -1569,7 +1678,21 @@ elements:
                dropdown, image, camera-gui, depth-gui,
                vertical, horizontal, grid, stack]
     child_attributes: [view_element_attributes, horizontal_child_attributes]
-    attributes: []
+    attributes:
+      - name: spacing
+        type: float
+        default: 0
+        since: "1.21"
+        summary: >-
+          Gap between adjacent children, in text line heights.
+        description: >-
+          Empty space inserted between adjacent children, in text line heights -
+          the unit of the separator's height and of the grid's default
+          maxWidth unit, so it follows density and the user's text size.
+          There is no gap at the outer edges of the group, and a child hidden
+          through visibility takes no gap. The gaps are taken from the width first and the remainder is shared by weight. Negative values are treated
+          as 0.
+        agreement: planned
 
   - name: grid
     parent: [view, vertical, horizontal, grid]
@@ -1634,6 +1757,20 @@ elements:
           row (true) or keep the column width of the other rows, leaving the
           rest of the row empty (false).
         agreement: agreed
+      - name: spacing
+        type: float
+        default: 0
+        since: "1.21"
+        summary: >-
+          Gap between adjacent columns and between rows, in text line heights.
+        description: >-
+          Empty space inserted between adjacent columns and between rows, in text line heights -
+          the unit of the separator's height and of the grid's default
+          maxWidth unit, so it follows density and the user's text size.
+          There is no gap at the outer edges of the group, and a child hidden
+          through visibility takes no gap. The same gap is used horizontally and vertically. The column count counts the gaps: it is the smallest number n for which (available width - (n-1) · spacing) / n is at most maxWidth, and the columns share the width left after the gaps; with fillLastRow, the children of an incomplete last row share the width left after their own gaps. Negative values are treated
+          as 0.
+        agreement: planned
 
   - name: stack
     parent: [view, vertical, horizontal, grid]

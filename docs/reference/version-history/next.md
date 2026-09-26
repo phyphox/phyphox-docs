@@ -45,6 +45,14 @@ remote interface and in the editor from that specification:
   An info without a label keeps the height of one line of text, a button keeps its size with an
   empty caption, as before.
 
+Specified 2026-09-26 as a second follow-up, not yet implemented:
+
+- **`align`** on value, edit, toggle, dropdown and slider aligns the label and the control left,
+  centred or right when they take the full width - with *verticalLayout* or without a label (see
+  [Labels in narrow columns](../../file-format/views/groups.md#labels-in-narrow-columns)).
+- **`spacing`** on vertical, horizontal and grid inserts a gap between the children, in text
+  line heights (see [Sizing](../../file-format/views/groups.md#sizing)).
+
 ## Changes on Android and iOS
 
 - An empty graph explains itself: "No data" while nothing has been measured, "No valid data" when every point is NaN or one axis has no values, and "No data in range" with an arrow towards the nearest point when the data lies outside the current zoom or a fixed range (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots)).

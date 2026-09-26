@@ -9,7 +9,10 @@
          Added 2026-09-27: maxWidthUnit="screen", verticalLayout on value,
          edit, toggle, dropdown and a slider with showValue, and elements
          without a label (value, edit, toggle, dropdown, graph, and info and
-         button, which keep their size with an empty caption). -->
+         button, which keep their size with an empty caption).
+         Added 2026-09-26 (planned): align on value, edit, toggle, dropdown
+         and slider, with verticalLayout and without a label, and spacing on
+         vertical, horizontal and grid. -->
     <title>Corpus: view groups</title>
     <category>Corpus</category>
     <description>Generated coverage fixture for view groups, transforms, alpha colours and the fixed plot area.</description>
@@ -49,7 +52,7 @@
                 </vertical>
             </horizontal>
             <separator height="1" color="39a2ff40" />
-            <grid maxWidth="25" fillLastRow="true" visibility="show">
+            <grid maxWidth="25" fillLastRow="true" spacing="0.5" visibility="show">
                 <graph label="x" labelX="t" unitX="s" labelY="x" color="#2bfb4cc0" lineWidth="2">
                     <input axis="x">t</input>
                     <input axis="y" color="edf668ff">x</input>
@@ -58,19 +61,19 @@
                     <input axis="x">t</input>
                     <input axis="y">y</input>
                 </graph>
-                <horizontal>
-                    <edit label="Offset" verticalLayout="true"><output>count</output></edit>
-                    <slider label="Level" minValue="0" maxValue="10" showValue="true" verticalLayout="true"><output>count</output></slider>
-                    <vertical>
-                        <value label="Count" verticalLayout="true"><input>count</input></value>
-                        <toggle label="Run" verticalLayout="true"><output>run</output></toggle>
-                        <dropdown label="Choice" verticalLayout="true"><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
+                <horizontal spacing="1">
+                    <edit label="Offset" verticalLayout="true" align="right"><output>count</output></edit>
+                    <slider label="Level" minValue="0" maxValue="10" showValue="true" verticalLayout="true" align="center"><output>count</output></slider>
+                    <vertical spacing="0.25">
+                        <value label="Count" verticalLayout="true" align="Center"><input>count</input></value>
+                        <toggle label="Run" verticalLayout="true" align="left"><output>run</output></toggle>
+                        <dropdown label="Choice" verticalLayout="true" align="right"><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
                     </vertical>
                 </horizontal>
                 <grid maxWidth="1" maxWidthUnit="screen">
                     <info label="A grid inside a grid, one column in portrait and two in landscape" />
                     <dropdown label="Choice"><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
-                    <value unit="%"><input>percent</input></value>
+                    <value unit="%" align="center"><input>percent</input></value>
                     <edit unit="s"><output>count</output></edit>
                     <toggle><output>run</output></toggle>
                     <dropdown><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>

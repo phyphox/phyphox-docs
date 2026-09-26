@@ -35,6 +35,21 @@ A row of a `horizontal` or `grid` group is as tall as its tallest child, and sho
 centred vertically in it. A child hidden through *visibility* takes no space; its siblings share
 the row.
 
+By default the children of a group sit directly next to each other. The *spacing* attribute of
+`vertical`, `horizontal` and `grid` inserts a gap between adjacent children (in a grid, between
+columns and between rows alike), in text line heights - the unit of the
+[separator](basics.md#view-element-separator)'s *height*. There is no gap at the outer edges of
+the group. In a `horizontal` group the gaps come off the width first and the rest is shared by
+*weight*; in a `grid` the column count takes the gaps into account, so a child never exceeds
+*maxWidth*.
+
+```xml
+<horizontal spacing="0.5">
+    <button label="Start"><input type="value">1</input><output>run</output></button>
+    <button label="Stop"><input type="value">0</input><output>run</output></button>
+</horizontal>
+```
+
 ## View-Element: vertical
 
 ![A horizontal group with a graph on the left and a vertical group of three values on the right](../../assets/screenshots/views/vertical-light.png#only-light){ .view-shot .on-glb }
@@ -138,6 +153,11 @@ Two attributes address this, both since file format 1.21:
 - **`verticalLayout="true"`** places the label on its own line above the control, both taking
   the full width, left-aligned. On a slider this only applies with *showValue*, where the label,
   the current value and the slider then take three rows.
+- **`align`** (`left`, `center` or `right`, default `left`) aligns the label line and the
+  control when they take the full width - with *verticalLayout*, or without a label. It uses the
+  values of the [info element's *align*](basics.md#view-element-info) and has no effect in the
+  default layout of label and control side by side. A control that spans the whole width anyway,
+  such as the dropdown, keeps its width and only aligns its text.
 - **Leaving the label out** (no *label* attribute, or an empty one) omits the caption and the
   space it would take, so the control gets the whole row, on value, edit, toggle, dropdown,
   slider, graph, camera-gui and depth-gui - a graph in a stack, or a switch next to an info
@@ -176,13 +196,13 @@ ambiguous. Use a `horizontal` or `grid` group next to the stack for controls.
         <input as="rotate" min="0" max="100" mapMin="-2.35" mapMax="2.35" clamp="true">percent</input>
         <image src="gauge-needle.png" />
     </transform>
-    <value label="" unit="%" size="2"><input>percent</input></value>
+    <value label="" unit="%" size="2" align="center"><input>percent</input></value>
 </stack>
 ```
 
 A gauge: the face is the background, the needle image is rotated about a point near its lower
 edge from -135° to +135° as the container *percent* goes from 0 to 100 and stops at the ends,
-and the numeric value is drawn on top.
+and the numeric value, without a label and centred with *align*, is drawn on top.
 
 {{spec:views/view/stack}}
 

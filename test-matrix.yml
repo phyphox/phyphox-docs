@@ -723,6 +723,32 @@ tests:
       measured on its own size; an unknown unit is refused
       (corpus/invalid grid-unknown-width-unit).
 
+  - id: view-align
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      align on value, edit, toggle, dropdown and slider (file format 1.21,
+      specified 2026-09-26): with verticalLayout, or without a label, the
+      label line and the control are aligned left (default), centred or
+      right; a full-width control keeps its width and aligns its text; in
+      the side-by-side layout the attribute has no effect; values are
+      case-insensitive.
+
+  - id: view-group-spacing
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      spacing on vertical, horizontal and grid (file format 1.21, specified
+      2026-09-26): a gap in text line heights between adjacent visible
+      children, none at the outer edges; horizontal subtracts the gaps
+      before sharing the width by weight; grid uses it between columns and
+      rows and counts it in the column count (smallest n with
+      (W - (n-1)·s)/n <= maxWidth); default 0 is the current flush layout.
+
   - id: colors-alpha
     area: file-format
     tier: T1
