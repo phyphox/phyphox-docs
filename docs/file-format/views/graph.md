@@ -2,6 +2,9 @@
 
 The view elements on this page additionally accept the [attributes common to all view elements](index.md#common-attributes).
 
+![A graph of a damped oscillation, position against time](../../assets/screenshots/views/graph-light.png#only-light){ .view-shot .on-glb }
+![A graph of a damped oscillation, position against time](../../assets/screenshots/views/graph-dark.png#only-dark){ .view-shot .on-glb }
+
 The graph element will show a plot of the YBUFFER data against the XBUFFER data. The input buffers are defined by *input* tags within the value block and need to be data-containers (see above). The input tags are linked to the axes with an additional *axis* attribute to the input tag, which may be *x* or *y*. See below for additional options for other graph types.
 
 The attribute *partialUpdate* is used for performance optimization. *PartialUpdate* should be set to true when the buffer is never changed entirely, but new data is just appended with increasing x values. *PartialUpdate* then allows only this new data to be transferred to the web interface to save bandwidth.

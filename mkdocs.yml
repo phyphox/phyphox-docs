@@ -92,6 +92,16 @@ extra_css:
 plugins:
   - search
   - awesome-nav
+  # Click-to-enlarge for the view-element screenshots. `manual` limits it to
+  # images carrying the on-glb class, so the QR codes and the images from the
+  # wiki stay plain images. `auto_themed` makes it honour Material's
+  # #only-light / #only-dark, so the enlarged image matches the scheme.
+  - glightbox:
+      manual: true
+      auto_themed: true
+      background: none
+      shadow: false
+      zoomable: true
   # Renders <swagger-ui src="..."/> tags. The plugin vendors Swagger UI itself,
   # so the built site stays self-contained - no CDN at page load.
   - swagger-ui-tag:

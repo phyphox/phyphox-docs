@@ -1,6 +1,10 @@
 # Pinned to the versions this site is known to build with.
 mkdocs-material==9.7.7
 mkdocs-awesome-nav==3.3.0
+
+# Click-to-enlarge for the view-element screenshots. Vendors GLightbox itself,
+# so the built site loads no scripts from a CDN.
+mkdocs-glightbox==0.5.2
 PyYAML==6.0.3
 
 # Renders docs/remote-interface/openapi.yaml. Vendors Swagger UI itself, so the

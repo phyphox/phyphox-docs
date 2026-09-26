@@ -200,3 +200,22 @@ iframe[src*="swagger"] {
     break-inside: avoid;
   }
 }
+
+/* The view-element screenshots (docs/assets/screenshots/views/, captured by
+ * phyphox-android/tools/docs_screenshots.py from the scenes in
+ * tools/screenshots/views.py). Each is a crop of a 1080 px wide phone screen,
+ * shown at roughly the size of a phone so the text in it reads like the app;
+ * a click enlarges it (glightbox). The border keeps the edge visible where the
+ * app's background matches the page's. The landscape capture of the grid
+ * takes the full column. No `display` here: it would tie with, and being
+ * loaded later override, the theme's rule that hides the #only-dark image in
+ * the light scheme and the #only-light one in the dark scheme. */
+.md-typeset img.view-shot {
+  width: 22rem;
+  max-width: 100%;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.2rem;
+}
+.md-typeset img.view-shot.wide {
+  width: 36rem;
+}
