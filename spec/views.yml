@@ -48,8 +48,10 @@ common:
         format 1.21 the label may be left out (absent or empty) on value,
         edit, toggle, dropdown, slider, graph, camera-gui and depth-gui: the
         caption and the space it would take are then omitted and the element
-        takes the full row. It is required on info, and on button unless
-        dynamicLabel supplies the text, and ignored on the view groups.
+        takes the full row. On info and button the label is the content:
+        without it an info keeps the height of one line of text and a
+        button keeps its size with an empty caption. On the view groups it
+        is ignored.
       agreement: agreed
     - name: visibility
       type: string
@@ -128,14 +130,13 @@ elements:
     attributes:
       - name: label
         description: >-
-          The text to be displayed to the user. Required: an info element
-          without a label has no content and is an error (since 1.21; both
-          apps used to show an empty line).
+          The text to be displayed to the user. Without a label the element
+          shows nothing but keeps the height of a single line of text, so it
+          can serve as a spacer that follows the text size.
         type: string
-        required: true
         translatable: true
         summary: The text to display.
-        agreement: planned
+        agreement: agreed
       - name: color
         description: >-
           The text color as six-digit RGB hex value (eight digits
@@ -1058,15 +1059,12 @@ elements:
       - name: label
         description: >-
           The text on the button, and the fallback when dynamicLabel is
-          set but no map matches. Required unless dynamicLabel is set: a
-          button with neither has no caption and is an error (since 1.21;
-          both apps used to show an empty button). The rule is conditional,
-          so the grammar cannot carry it; the experiment validator and the
-          Schematron check it.
+          set but no map matches. Without a label (and no matching map) the
+          button is shown with an empty caption and keeps its size.
         type: string
         translatable: true
-        summary: The button text; required unless dynamicLabel supplies it.
-        agreement: planned
+        summary: The button text.
+        agreement: agreed
       - name: dynamicLabel
         description: >-
           A buffer (data-container) that controls the label of the

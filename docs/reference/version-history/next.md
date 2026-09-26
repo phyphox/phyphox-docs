@@ -42,8 +42,8 @@ the design the implementations follow):
   [Labels in narrow columns](../../file-format/views/groups.md#labels-in-narrow-columns)).
 - **Optional labels:** the label may be left out on value, edit, toggle, dropdown, slider, graph,
   camera-gui and depth-gui, which omits the caption and its space instead of leaving it blank.
-  On info, and on button unless *dynamicLabel* supplies the text, the label is now required; a
-  missing one is an error where both apps used to show an empty element.
+  An info without a label keeps the height of one line of text, a button keeps its size with an
+  empty caption, as before.
 
 ## Changes on Android and iOS
 

@@ -101,6 +101,7 @@
 - file: generated/view-groups.phyphox
   version: "1.21"
   adds:
+    - grid>button
     - grid>dropdown
     - grid>edit
     - grid>graph

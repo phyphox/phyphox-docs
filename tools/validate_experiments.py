@@ -303,15 +303,6 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
                     f"{path}<transform>: wraps {len(wrapped)} view elements, "
                     f"needs exactly one")
 
-    # A button's label is its caption: required unless dynamicLabel names
-    # a container whose map tags supply the text (file format 1.21,
-    # docs/file-format/views/groups.md "Labels in narrow columns"). The
-    # info element's label is plain `required: true` in the spec; this one
-    # is conditional, so it lives here and in the generated Schematron.
-    if node.tag == "button" and not node.get("label") and not node.get("dynamicLabel"):
-        rep.add("missing required attribute", fname,
-                f"{path}<button>: label (or dynamicLabel)")
-
     # Both parsers hard-require credentials for the TLS MQTT services
     # ("password must be set for the mqtts/json service" - NetworkService
     # setup on Android, the network handler on iOS), found 2026-08-24 when a

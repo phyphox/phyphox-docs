@@ -8,7 +8,8 @@
          graph, its inputs, a separator, a value and a map colour stop.
          Added 2026-09-27: maxWidthUnit="screen", verticalLayout on value,
          edit, toggle, dropdown and a slider with showValue, and elements
-         without a label (value, edit, toggle, dropdown, graph). -->
+         without a label (value, edit, toggle, dropdown, graph, and info and
+         button, which keep their size with an empty caption). -->
     <title>Corpus: view groups</title>
     <category>Corpus</category>
     <description>Generated coverage fixture for view groups, transforms, alpha colours and the fixed plot area.</description>
@@ -74,6 +75,8 @@
                     <toggle><output>run</output></toggle>
                     <dropdown><map value="1">one</map><map value="2">two</map><output>count</output></dropdown>
                     <graph labelX="t" unitX="s"><input axis="x">t</input><input axis="y">x</input></graph>
+                    <info />
+                    <button><input type="value">1</input><output>run</output></button>
                 </grid>
             </grid>
         </view>

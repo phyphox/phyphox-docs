@@ -703,9 +703,8 @@ tests:
       showValue put the label on its own line above the control, both full
       width and left-aligned; without a label the caption and its space are
       omitted and the control takes the whole row (value, edit, toggle,
-      dropdown, slider, graph, camera-gui, depth-gui); an info or button
-      without a label is refused (corpus/invalid info-without-label and
-      button-without-label).
+      dropdown, slider, graph, camera-gui, depth-gui); an info without a
+      label keeps one line of height and a button keeps its size.
 
   - id: grid-screen-unit
     area: views

@@ -130,11 +130,11 @@ Two attributes address this, both since file format 1.21:
   the full width, left-aligned. On a slider this only applies with *showValue*, where the label,
   the current value and the slider then take three rows.
 - **Leaving the label out** (no *label* attribute, or an empty one) omits the caption and the
-  space it would take, so the control gets the whole row. This is allowed on value, edit,
-  toggle, dropdown, slider, graph, camera-gui and depth-gui - a graph in a stack, or a switch
-  next to an info text, rarely needs one. It is not allowed on info, where the label is the
-  content, nor on a button unless *dynamicLabel* supplies the text: there a missing label is an
-  error.
+  space it would take, so the control gets the whole row, on value, edit, toggle, dropdown,
+  slider, graph, camera-gui and depth-gui - a graph in a stack, or a switch next to an info
+  text, rarely needs one. On info and button the label is the content, and leaving it out does
+  not free space: an info keeps the height of one line of text and a button keeps its size with
+  an empty caption.
 
 ```xml
 <horizontal>

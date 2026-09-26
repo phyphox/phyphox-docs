@@ -836,14 +836,6 @@ def schematron(els, common):
             "A <transform> wraps exactly one view element (its <input> "
             "children bind the properties).")
 
-    # --- button: a caption from label or from dynamicLabel ----------------
-    p = pattern("button-label")
-    r = rule(p, f"/{ln('phyphox')}/{ln('views')}//{ln('button')}")
-    assert_(r, "(@label and normalize-space(@label) != '') or "
-               "(@dynamicLabel and normalize-space(@dynamicLabel) != '')",
-            "A <button> needs a label, unless dynamicLabel names the "
-            "container whose map tags supply its text.")
-
     # --- mapColor[N]: the wildcard the grammar admits, pinned down -------
     graph = [v for k, v in els.items() if k == ("views", "view", "graph")][0]
     known = [a["name"] for a in graph.get("attributes") or []
