@@ -50,6 +50,56 @@ def acceleration(n=160, t_end=8.0):
     return t, ax, ay, az, a
 
 
+def histogram():
+    """Bar edges 0..10 and counts; the last count only closes the last bar."""
+    edges = list(range(11))
+    counts = [2, 5, 11, 19, 26, 24, 17, 9, 4, 1, 0]
+    return edges, counts
+
+
+def ranking():
+    """hbars: y are the bar edges, x the lengths."""
+    y = [0, 1, 2, 3, 4, 5]
+    x = [9.78, 9.81, 9.79, 9.83, 9.80, 0]
+    return x, y
+
+
+def spectrum(n=301):
+    """A line spectrum over sensor pixels, three peaks on a weak background."""
+    px = [600 * i / (n - 1) for i in range(n)]
+    peaks = [(180, 0.55, 9), (310, 1.0, 7), (470, 0.7, 11)]
+    y = [0.04 + 0.02 * math.sin(p / 37) + sum(a * math.exp(-((p - c) / w) ** 2 / 2)
+                                              for c, a, w in peaks) for p in px]
+    return px, y
+
+
+def spectrogram(cols=120, rows=60):
+    """A rising whistle and its first harmonic over time, as x/y/z for a map."""
+    f, t, z = [], [], []
+    for r in range(rows):
+        ti = 4.0 * r / (rows - 1)
+        f0 = 400 + 180 * ti
+        for c in range(cols):
+            fi = 2000.0 * c / (cols - 1)
+            v = (0.02 + math.exp(-((fi - f0) / 60) ** 2)
+                 + 0.35 * math.exp(-((fi - 2 * f0) / 80) ** 2))
+            f.append(fi)
+            t.append(ti)
+            z.append(v)
+    return f, t, z
+
+
+def fit_data():
+    """Noisy measurements of a falling object and the fitted parabola."""
+    tm = [0.05 * i for i in range(13)]
+    noise = [0.012, -0.018, 0.006, 0.021, -0.009, -0.015, 0.017, -0.004, 0.011,
+             -0.02, 0.008, 0.014, -0.011]
+    ym = [1.8 - 0.5 * 9.81 * ti * ti + e for ti, e in zip(tm, noise)]
+    tf = [0.6 * i / 59 for i in range(60)]
+    yf = [1.8 - 0.5 * 9.81 * ti * ti for ti in tf]
+    return tm, ym, tf, yf
+
+
 # ---------------------------------------------------------------------------
 # Images for the scenes that need them. Drawn here rather than committed, so
 # the fixtures stay text. Colours work on the light and the dark background.
@@ -124,12 +174,20 @@ def gauge_needle_png():
 # `resources` names the images a zip container carries. `input` is extra XML
 # for the <input> block. `orientation` "landscape" rotates the device for the
 # capture, for the one element whose point is what it does with a wide screen.
+# `interaction` "picker" makes the capture maximize the graph, enter pick mode
+# and tap the point at `pick_at` (fractions of the maximized graph's frame,
+# from its top left), so the picture shows the pick popup with the outputs.
 # `format` "jpg" is for the camera preview, a photograph that PNG stores at
 # ten times the size; everything else is flat UI and stays a lossless PNG.
 
 def scenes():
     t, x = oscillation()
     ta, ax, ay, az, a = acceleration()
+    edges, counts = histogram()
+    hx, hy = ranking()
+    px, spec = spectrum()
+    mf, mt, mz = spectrogram()
+    tm, ym, tf, yf = fit_data()
     return [
         dict(id="info", page="basics", view="""
 <info label="Place the phone flat on the table, start the measurement and give the table a gentle knock. The recording stops automatically after five seconds." />
@@ -158,6 +216,46 @@ def scenes():
 <graph label="Position" labelX="t" unitX="s" labelY="x" unitY="m" partialUpdate="true">
     <input axis="x">t</input>
     <input axis="y">x</input>
+</graph>
+"""),
+        dict(id="graph-bars", page="graph", containers={
+                "edges": edges, "counts": counts, "hx": hx, "hy": hy}, view="""
+<graph label="Histogram" labelX="Period" unitX="s" labelY="Count" style="vbars" lineWidth="0.8">
+    <input axis="x">edges</input>
+    <input axis="y">counts</input>
+</graph>
+<graph label="Measured g per group" labelX="g" unitX="m/s²" labelY="Group" style="hbars" lineWidth="0.6" minX="9.7" scaleMinX="fixed">
+    <input axis="x">hx</input>
+    <input axis="y">hy</input>
+</graph>
+"""),
+        dict(id="graph-map", page="graph",
+             containers={"fmap": mf, "tmap": mt, "zmap": mz}, view="""
+<graph label="Spectrogram" labelX="f" unitX="Hz" labelY="t" unitY="s" labelZ="Amplitude" unitZ="a.u." aspectRatio="1.3" style="map" mapWidth="120">
+    <input axis="x">fmap</input>
+    <input axis="y">tmap</input>
+    <input axis="z">zmap</input>
+</graph>
+"""),
+        dict(id="graph-multiple", page="graph",
+             containers={"tm": tm, "ym": ym, "tf": tf, "yf": yf}, view="""
+<graph label="Free fall" labelX="t" unitX="s" labelY="h" unitY="m">
+    <input axis="x" style="dots" lineWidth="3">tm</input>
+    <input axis="y">ym</input>
+    <input axis="x" color="white">tf</input>
+    <input axis="y">yf</input>
+</graph>
+"""),
+        dict(id="graph-picker", page="graph", interaction="picker", pick_at=[0.39, 0.44],
+             containers={"px": px, "spec": spec, "cal_x1": None, "cal_lambda1": None,
+                         "cal_x2": None, "cal_lambda2": None}, view="""
+<graph label="Spectrum" labelX="Pixel" labelY="Intensity" unitY="a.u." pickLabel="Calibrate">
+    <input axis="x">px</input>
+    <input axis="y">spec</input>
+    <output axis="x" label="Calibration point 1">cal_x1</output>
+    <output axis="xcal" label="Assigned wavelength in nm">cal_lambda1</output>
+    <output axis="x" label="Calibration point 2">cal_x2</output>
+    <output axis="xcal" label="Assigned wavelength in nm">cal_lambda2</output>
 </graph>
 """),
         dict(id="edit", page="user-input", containers={"m": None, "l": None}, view="""
@@ -309,7 +407,9 @@ def main():
         path = write(s, args.out)
         listing.append(dict(id=s["id"], page=s["page"], file=os.path.basename(path),
                             orientation=s.get("orientation", "portrait"),
-                            format=s.get("format", "png")))
+                            format=s.get("format", "png"),
+                            interaction=s.get("interaction"),
+                            pick_at=s.get("pick_at")))
     if args.list:
         print(json.dumps(listing, indent=1))
     else:

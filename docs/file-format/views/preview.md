@@ -4,8 +4,11 @@ The view elements on this page additionally accept the [attributes common to all
 
 ## View-Element: camera-gui
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![The camera preview with the selected acquisition area marked in the image](../../assets/screenshots/views/camera-gui-light.jpg#only-light){ .view-shot .on-glb }
 ![The camera preview with the selected acquisition area marked in the image](../../assets/screenshots/views/camera-gui-dark.jpg#only-dark){ .view-shot .on-glb }
+</figure>
 
 This is a preview and control for a camera input, showing a preview of the camera and allowing for selecting an acquisition area and several camera settings. Note that this only makes sense if you also use a camera input in the configuration.
 

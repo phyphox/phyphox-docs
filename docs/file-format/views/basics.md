@@ -4,8 +4,11 @@ The view elements on this page additionally accept the [attributes common to all
 
 ## View-Element: info
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![An info element with a short instruction](../../assets/screenshots/views/info-light.png#only-light){ .view-shot .on-glb }
 ![An info element with a short instruction](../../assets/screenshots/views/info-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The info element does not take any inputs or write to any outputs. It just displays a string defined as the *label* attribute.
 
@@ -13,8 +16,11 @@ The info element does not take any inputs or write to any outputs. It just displ
 
 ## View-Element: separator
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![Two headings, each underlined by a thin orange separator, with a taller empty separator between the sections](../../assets/screenshots/views/separator-light.png#only-light){ .view-shot .on-glb }
 ![Two headings, each underlined by a thin orange separator, with a taller empty separator between the sections](../../assets/screenshots/views/separator-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The separator element does not take any inputs or write to any outputs. It just acts as a separator to give a visual aid in grouping other elements. It defaults to a very thin height of 0.1 (in units of text line heights) and a color matching the background color of the experiment screen. To achieve a margin between elements, you should set the height to 1; to create a narrow line, set the color (as a six-digit RGB hex value or a named color from the phyphox [Colors](../colors.md)) and leave the height at 0.1 - optionally padded by two other separator elements.
 
@@ -22,8 +28,11 @@ The separator element does not take any inputs or write to any outputs. It just 
 
 ## View-Element: value
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![Three value elements showing a frequency, a period and an amplitude with their units](../../assets/screenshots/views/value-light.png#only-light){ .view-shot .on-glb }
 ![Three value elements showing a frequency, a period and an amplitude with their units](../../assets/screenshots/views/value-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The value element displays a single value to the user. If the input buffer contains more than one value, the latest value will be displayed. The input is defined by a simple *input* tag within the value block and needs to be a data-container (see above).
 
@@ -39,8 +48,11 @@ Since file format version 1.19 (phyphox 1.2.0) the attribute gives even more opt
 
 ## View-Element: image
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![An info element above an image of a pendulum](../../assets/screenshots/views/image-light.png#only-light){ .view-shot .on-glb }
 ![An info element above an image of a pendulum](../../assets/screenshots/views/image-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 Display an image with the file name RESOURCE. Typically, RESOURCE is a png or jpg image (these are natively supported on both iOS and Android; we hope for SVG support on iOS eventually) that is placed in the resource folder "res" in a zip file along with the experiment XML file. So, for example, instead of sharing experiment.phyphox you would share a zip file that contains experiment.phyphox together with a folder called "res" that contains an image "demo.jpg". The image element would then set RESOURCE to "demo.jpg" (not res/demo.jpg), i.e. `<image src="demo.jpg" />`.
 

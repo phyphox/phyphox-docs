@@ -52,8 +52,11 @@ the group. In a `horizontal` group the gaps come off the width first and the res
 
 ## View-Element: vertical
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![A horizontal group with a graph on the left and a vertical group of three values on the right](../../assets/screenshots/views/vertical-light.png#only-light){ .view-shot .on-glb }
 ![A horizontal group with a graph on the left and a vertical group of three values on the right](../../assets/screenshots/views/vertical-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The layout of a view itself, available as an element so that it can be nested - most usefully as
 one column of a `horizontal` group holding several elements.
@@ -62,8 +65,11 @@ one column of a `horizontal` group holding several elements.
 
 ## View-Element: horizontal
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![Three buttons side by side in a horizontal group](../../assets/screenshots/views/horizontal-light.png#only-light){ .view-shot .on-glb }
 ![Three buttons side by side in a horizontal group](../../assets/screenshots/views/horizontal-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The children sit side by side in one row and share the full width. By default they get equal
 widths; the *weight* attribute on a child changes its share.
@@ -99,8 +105,11 @@ The graph gets three quarters of the width and the image one quarter.
 
 ## View-Element: grid
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![Four graphs in a grid, two by two on a phone in landscape](../../assets/screenshots/views/grid-light.png#only-light){ .view-shot .wide .on-glb }
 ![Four graphs in a grid, two by two on a phone in landscape](../../assets/screenshots/views/grid-dark.png#only-dark){ .view-shot .wide .on-glb }
+</figure>
 
 The children fill rows of equal-width columns. The group uses as many columns as needed to keep
 each child at or below *maxWidth*: one column while the available width is at most *maxWidth*,
@@ -175,8 +184,11 @@ Two attributes address this, both since file format 1.21:
 
 ## View-Element: stack
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![A gauge built from a stack: a scale image with a rotated needle image on top, and the value below](../../assets/screenshots/views/stack-light.png#only-light){ .view-shot .on-glb }
 ![A gauge built from a stack: a scale image with a rotated needle image on top, and the value below](../../assets/screenshots/views/stack-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The children are drawn on top of each other in one rectangle, all taking the full width. The
 tallest child sets the height of the stack and the others are centred vertically in it. Later

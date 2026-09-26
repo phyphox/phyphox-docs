@@ -2,8 +2,11 @@
 
 The view elements on this page additionally accept the [attributes common to all view elements](index.md#common-attributes).
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
 ![A graph of a damped oscillation, position against time](../../assets/screenshots/views/graph-light.png#only-light){ .view-shot .on-glb }
 ![A graph of a damped oscillation, position against time](../../assets/screenshots/views/graph-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The graph element will show a plot of the YBUFFER data against the XBUFFER data. The input buffers are defined by *input* tags within the value block and need to be data-containers (see above). The input tags are linked to the axes with an additional *axis* attribute to the input tag, which may be *x* or *y*. See below for additional options for other graph types.
 
@@ -50,6 +53,12 @@ axis ranges are fixed to the map's coordinates, and the colour scale runs from f
 blue to three-quarter opaque red, so the map stays visible under weak signals.
 
 ## Data picker
+
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![A maximized graph of a spectrum in pick mode, with a point selected and buttons for two calibration points](../../assets/screenshots/views/graph-picker-light.png#only-light){ .view-shot .on-glb }
+![A maximized graph of a spectrum in pick mode, with a point selected and buttons for two calibration points](../../assets/screenshots/views/graph-picker-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The graph can always be maximized by tapping it to reveal additional tools like zooming and a data picker. The data picker can be repurposed to allow users to pick and map data to measured data points. This can for example be used to pick a starting point for an automated data analysis or to match points to reference values for a calibration process. You can define how many x, y and z values (in the case of a color map plot) the user can pick, label the purpose of each pick and map it to data containers. Optionally, you can also request a value input from the user to map data points to calibration values. Finally, you can also rename the "pick data" button to reflect the use case for the data picker (see the "pickLabel" attribute of the graph above).
 
@@ -101,11 +110,23 @@ A formula node can then be used to calculate a linear calibration from these two
 
 ### Bar charts
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![A histogram drawn with vertical bars above a chart with horizontal bars](../../assets/screenshots/views/graph-bars-light.png#only-light){ .view-shot .on-glb }
+![A histogram drawn with vertical bars above a chart with horizontal bars](../../assets/screenshots/views/graph-bars-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
+
 Since file format 1.7, you can also use bar charts by setting style to "hbars" or "vbars" for horizontal or vertical bars, respectively. For bar charts, you also define x and y values as you do for line charts, but the x value represents the left edge of a bar while y represents its height (for horizontal bars, y defines the bottom and x the width). Each bar ends where the next one begins and the last height will not be drawn as it only marks the end of the previous bar. Therefore, to draw 4 bars, you need to provide 5 value pairs.
 
 For bar charts, the line width describes the gap between bars. A line width of 1 means that there is no gap, while a line width of 0.5 means that the bars only occupy 50% of the available width (they will be centered in this space).
 
 ### Color map charts
+
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![A color map of a spectrogram with its color scale above the plot](../../assets/screenshots/views/graph-map-light.png#only-light){ .view-shot .on-glb }
+![A color map of a spectrogram with its color scale above the plot](../../assets/screenshots/views/graph-map-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 File format 1.7 also introduces color map charts (also known as false color plots). These do not plot y values as a function of x values, but z values as a function of x and y. z is encoded as a color and the result is a map of different colors.
 
@@ -140,6 +161,12 @@ You can also define your own color palette. Phyphox uses a black-orange-white gr
 This example shows the colorful palette of the sonar experiment.
 
 ### Multiple graphs
+
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![Measured points drawn as dots together with a fitted curve drawn as a line in one graph](../../assets/screenshots/views/graph-multiple-light.png#only-light){ .view-shot .on-glb }
+![Measured points drawn as dots together with a fitted curve drawn as a line in one graph](../../assets/screenshots/views/graph-multiple-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 Since file format 1.7 (phyphox 1.1.0) you can also combine multiple graph types (except for the color map). To do so, you can simply define more than one dataset for x and y:
 
