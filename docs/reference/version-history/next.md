@@ -30,8 +30,8 @@ Further additions, specified in the documentation first (2026-09-25) and impleme
   plot rectangle to fractions of the graph element, so a plot can be aligned with an image below
   it (see [Graph: fixing the plot area](../../file-format/views/graph.md#fixing-the-plot-area)).
 
-Specified 2026-09-27 as a follow-up to the view groups (not yet implemented; the specification is
-the design the implementations follow):
+Specified 2026-09-27 as a follow-up to the view groups and implemented on both platforms, in the
+remote interface and in the editor from that specification:
 
 - **`maxWidthUnit` on grid:** *maxWidth* may be given in multiples of the shorter side of the
   app's window (`screen`) instead of text line heights, so that a grid is one column in portrait

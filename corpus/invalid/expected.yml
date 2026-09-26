@@ -338,8 +338,8 @@ stack-with-user-input.phyphox:   # a stack holds only elements that show data
   parser: rejects
   findings:
     - "<views>/<view>/<stack>/: <edit> not modelled under <stack>"
-# --- labels and the grid unit (file format 1.21, specified 2026-09-27, not yet
-# implemented: the app runners assert these once they implement the rules)
+# --- the grid unit (file format 1.21, specified 2026-09-27, asserted by both
+# app runners since the same day)
 grid-unknown-width-unit.phyphox:   # maxWidthUnit is text or screen
   parser: rejects
   findings:

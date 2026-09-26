@@ -48,7 +48,8 @@ common:
         format 1.21 the label may be left out (absent or empty) on value,
         edit, toggle, dropdown, slider, graph, camera-gui and depth-gui: the
         caption and the space it would take are then omitted and the element
-        takes the full row. On info and button the label is the content:
+        takes the full row (camera-gui shows its label only in the remote
+        interface; the apps' preview carries none). On info and button the label is the content:
         without it an info keeps the height of one line of text and a
         button keeps its size with an empty caption. On the view groups it
         is ignored.
@@ -234,7 +235,7 @@ elements:
           on its own line above the element and both take the full width,
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
-        agreement: planned
+        agreement: agreed
       - name: color
         description: >-
           The text color as six-digit RGB hex value (eight digits
@@ -951,7 +952,7 @@ elements:
           on its own line above the element and both take the full width,
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
-        agreement: planned
+        agreement: agreed
       - name: signed
         description: >-
           If set to *false* the user may not enter negative numbers.
@@ -1149,7 +1150,7 @@ elements:
           on its own line above the element and both take the full width,
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
-        agreement: planned
+        agreement: agreed
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1206,7 +1207,7 @@ elements:
           grid group. On a slider this only applies with showValue: the
           label, the current value and the slider then take three rows.
           Without a label the attribute has no effect.
-        agreement: planned
+        agreement: agreed
       - name: minValue
         description: >-
           Value for a handle at the lower end of the slider.
@@ -1322,7 +1323,7 @@ elements:
           on its own line above the element and both take the full width,
           left-aligned - the layout for a narrow column of a horizontal or
           grid group. Without a label the attribute has no effect.
-        agreement: planned
+        agreement: agreed
       - name: default
         description: >-
           The value with which the associated buffer should start.
@@ -1623,7 +1624,7 @@ elements:
             with its own size; in the remote interface, the browser
             viewport. Independent of the text size.
         summary: The unit of maxWidth.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: fillLastRow
         type: boolean

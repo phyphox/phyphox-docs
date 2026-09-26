@@ -696,7 +696,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Labels in narrow columns (file format 1.21, specified 2026-09-27):
       with verticalLayout a value, edit, toggle, dropdown and a slider with
@@ -710,7 +710,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       A grid with maxWidthUnit="screen" (file format 1.21, specified
       2026-09-27) counts its columns in multiples of the shorter side of the
