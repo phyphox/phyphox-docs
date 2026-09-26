@@ -109,7 +109,7 @@ rules:
       like enumerated values) or a hexadecimal RGB value of exactly six hex
       digits, optionally prefixed with '#' - or, from file format 1.21, of
       exactly eight hex digits, the last two being the alpha byte (RRGGBBAA,
-      ff opaque; planned, see docs/file-format/colors.md). Anything else
+      ff opaque; see docs/file-format/colors.md). Anything else
       rejects the experiment file, exactly as an invalid enumerated value
       does. For the
       numbered mapColorN attributes of a map graph the scale still ends at the
@@ -124,9 +124,10 @@ rules:
       and iOS silently substitutes its defaults for every color attribute, not
       just the map scale. Given the corrected facts the maintainer decided
       (2026-08-12) to extend the strictness of enum-invalid-value to colors.
-      Amended 2026-09-25 for the planned alpha byte of file format 1.21: the
+      Amended 2026-09-25 for the alpha byte of file format 1.21: the
       eight-digit form is part of the lexeme from that version on, and the
-      validators warn when an older file uses it. Neither app reads it yet.
+      validators warn when an older file uses it. Both apps read it since
+      2026-09-26 (development branches).
     applies_to: >-
       every attribute with type: color, and the numbered mapColorN attributes
       of the graph element.

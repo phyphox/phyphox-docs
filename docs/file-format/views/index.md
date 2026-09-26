@@ -48,4 +48,4 @@ The view elements are documented by category:
 - [Graph](graph.md) — plots of all kinds, including bar charts, color maps and the data picker
 - [User input](user-input.md) — [edit](user-input.md#view-element-edit), [button](user-input.md#view-element-button), [toggle](user-input.md#view-element-toggle), [slider](user-input.md#view-element-slider) and [dropdown](user-input.md#view-element-dropdown)
 - [Camera and depth preview](preview.md) — [camera-gui](preview.md#view-element-camera-gui) and [depth-gui](preview.md#view-element-depth-gui)
-- [View groups](groups.md) — [vertical](groups.md#view-element-vertical), [horizontal](groups.md#view-element-horizontal), [grid](groups.md#view-element-grid) and [stack](groups.md#view-element-stack) with [transform](groups.md#view-element-transform), which arrange other view elements (planned for file format 1.21)
+- [View groups](groups.md) — [vertical](groups.md#view-element-vertical), [horizontal](groups.md#view-element-horizontal), [grid](groups.md#view-element-grid) and [stack](groups.md#view-element-stack) with [transform](groups.md#view-element-transform), which arrange other view elements (file format 1.21)

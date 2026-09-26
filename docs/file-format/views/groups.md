@@ -1,10 +1,9 @@
 # View groups
 
-!!! note "Planned for file format 1.21 (phyphox 1.3.0)"
-    The elements on this page are specified ahead of their implementation: this page and the
-    [spec](../../reference/validators.md) are the design, and no app implements them yet. They
-    are part of file format 1.21, which the [next release](../../reference/version-history/next.md)
-    carries; every released app refuses a file declaring that version.
+!!! note "New in file format 1.21 (phyphox 1.3.0)"
+    The elements on this page are part of file format 1.21, which the
+    [next release](../../reference/version-history/next.md) carries. Every app released before it
+    refuses a file declaring that version.
 
 A view lays out its elements top to bottom, each taking the full width. View groups are view
 elements that contain other view elements and arrange them differently: side by side, in a grid

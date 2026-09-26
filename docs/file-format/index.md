@@ -234,7 +234,7 @@ Each view can be built from individual view elements:
 - [depth-gui](views/preview.md#view-element-depth-gui)
 - [image](views/basics.md#view-element-image)
 
-and, planned for file format 1.21, [view groups](views/groups.md) that arrange other view elements:
+and, since file format 1.21, [view groups](views/groups.md) that arrange other view elements:
 
 - [vertical](views/groups.md#view-element-vertical)
 - [horizontal](views/groups.md#view-element-horizontal)

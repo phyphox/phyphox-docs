@@ -141,6 +141,8 @@ tests:
       followX from the first frame, the data picker (nearest point on screen,
       hover preview, two-point span) with its outputs written through /set,
       log toggles, tap-to-maximize and the phone layout, color maps, the
+      view groups (weights, grid columns, stacks and transforms from a
+      bound buffer, maximize inside a group, fixed plot area, alpha colours), the
       empty-plot hints, clock-labelled time axes, view switching, bright mode
       and the legacy app-generated element functions. No phone involved.
       Host-driven per repo: the tag lives in each app repo's T0 CI workflow,
@@ -655,7 +657,7 @@ tests:
       the app usable. Once per major OS release rather than every release:
       the wording and the timing are the OS's, and they change with it.
 
-  # --- view groups (file format 1.21, planned 2026-09-25) -----------------
+  # --- view groups (file format 1.21, specified 2026-09-25, active 2026-09-26) --
   # docs/file-format/views/groups.md is the design. Parsing is covered by
   # corpus-valid-load / corpus-invalid-reject once the apps declare 1.21
   # (corpus/generated/view-groups.phyphox and the transform-*/stack-*
@@ -665,7 +667,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Rendering the "Groups" view of corpus/generated/view-groups.phyphox:
       the children of a horizontal share the width by weight (2:1:1 in the
@@ -679,7 +681,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Rendering the "Stack" view of corpus/generated/view-groups.phyphox:
       all children of a stack share one rectangle sized by the tallest
@@ -694,7 +696,7 @@ tests:
     area: file-format
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       An eight-digit colour (RRGGBBAA) on a graph line, a graph input, a
       separator, a value and a map colour stop is blended with what lies

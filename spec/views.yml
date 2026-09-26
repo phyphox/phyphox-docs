@@ -77,7 +77,7 @@ common:
         quarters of the width. The default 1 on every child gives equal
         widths. Only read on a direct child of horizontal; anywhere else the
         attribute is unknown and ignored.
-      agreement: planned
+      agreement: agreed
 
 elements:
 
@@ -752,28 +752,28 @@ elements:
           plotBottom). The labels, tics and the graph's own label are then
           drawn in whatever space remains outside the plot area, and dropped
           where they do not fit.
-        agreement: planned
+        agreement: agreed
       - name: plotTop
         type: float
         since: "1.21"
         summary: >-
           Top edge of the plot area, as a fraction of the graph element's
           height measured from its top edge. See plotLeft.
-        agreement: planned
+        agreement: agreed
       - name: plotRight
         type: float
         since: "1.21"
         summary: >-
           Right edge of the plot area, as a fraction of the graph element's
           width measured from its left edge. See plotLeft.
-        agreement: planned
+        agreement: agreed
       - name: plotBottom
         type: float
         since: "1.21"
         summary: >-
           Bottom edge of the plot area, as a fraction of the graph element's
           height measured from its top edge. See plotLeft.
-        agreement: planned
+        agreement: agreed
       - name: mapWidth
         description: >-
           Number of data points per line.
@@ -1316,7 +1316,9 @@ elements:
           Scales the size of the image. By default (scale="1.0") the
           image is shown in full width. The factor is relative to
           this, so scale="0.5" sets it to half the width of the
-          view.
+          view. The element's box shrinks with the image (the height
+          follows the image's aspect ratio) and the image is centred;
+          no blank space is reserved for the full-width size.
         type: float
         default: 1.0
         summary: Size relative to the available width.
@@ -1433,11 +1435,12 @@ elements:
         agreement: agreed
 
   # ------------------------------------------------------------ view groups --
-  # Containers that arrange other view elements. File format 1.21, planned:
-  # specified 2026-09-25 ahead of the implementations (agreement: planned on
-  # every attribute; docs/file-format/views/groups.md is the design). The
-  # leaf elements list every group they may sit in under `parent:`; each
-  # group declares what its children accept under `child_attributes:`.
+  # Containers that arrange other view elements. File format 1.21, specified
+  # 2026-09-25 ahead of the implementations (docs/file-format/views/groups.md
+  # is the design) and implemented on both apps' development branches, in
+  # the web interface and in the editor on 2026-09-26. The leaf elements list
+  # every group they may sit in under `parent:`; each group declares what its
+  # children accept under `child_attributes:`.
   #
   # Nesting: vertical, horizontal and grid nest freely into each other and
   # into view; stack sits in any of those but takes only leaf elements and
@@ -1510,7 +1513,7 @@ elements:
           the screen density and the user's text size on every platform, so
           one value means the same on Android, iOS and in the web interface,
           and larger text gives fewer columns.
-        agreement: planned
+        agreement: agreed
       - name: fillLastRow
         type: boolean
         default: false
@@ -1518,7 +1521,7 @@ elements:
           Whether the children of an incomplete last row stretch to fill the
           row (true) or keep the column width of the other rows, leaving the
           rest of the row empty (false).
-        agreement: planned
+        agreement: agreed
 
   - name: stack
     parent: [view, vertical, horizontal, grid]
@@ -1569,7 +1572,7 @@ elements:
           Horizontal position of the origin of scaling and rotation, as a
           fraction of the wrapped element's width (0 is the left edge, 1 the
           right edge).
-        agreement: planned
+        agreement: agreed
       - name: originY
         type: float
         default: 0.5
@@ -1577,7 +1580,7 @@ elements:
           Vertical position of the origin of scaling and rotation, as a
           fraction of the wrapped element's height (0 is the top edge, 1 the
           bottom edge).
-        agreement: planned
+        agreement: agreed
 
   - name: input
     parent: transform
@@ -1621,35 +1624,35 @@ elements:
             Opacity from 0 (invisible) to 1 (neutral); values outside that
             range are clamped.
         summary: The property this input drives.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: type
         type: enum
         values: [buffer, value]
         default: buffer
         summary: Whether the text names a data container or is a constant.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: min
         type: float
         default: 0
         summary: Lower end of the value range that is mapped.
-        agreement: planned
+        agreement: agreed
       - name: max
         type: float
         default: 1
         summary: Upper end of the value range that is mapped.
-        agreement: planned
+        agreement: agreed
       - name: mapMin
         type: float
         default: 0
         summary: Property value at min.
-        agreement: planned
+        agreement: agreed
       - name: mapMax
         type: float
         default: 1
         summary: Property value at max.
-        agreement: planned
+        agreement: agreed
       - name: clamp
         type: boolean
         default: false
@@ -1657,4 +1660,4 @@ elements:
           Limit the result to the range between mapMin and mapMax, so the
           property stops at the ends of the map instead of following values
           outside min and max.
-        agreement: planned
+        agreement: agreed

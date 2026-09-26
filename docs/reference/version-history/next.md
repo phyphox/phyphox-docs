@@ -8,7 +8,7 @@ In development. This page collects the format changes of the release that is cur
 - The manual switch between the calibrated and the uncalibrated version, previously offered for the magnetometer only, is available for every sensor type that comes in both versions on the device.
 - The *accuracy* output of sensor inputs is no longer limited to the magnetometer: Android reports the calibration status for every sensor type, iOS for the magnetometer and the attitude sensor, and the uncalibrated version of a sensor writes 0 on both platforms (see [Input module: sensor](../../file-format/input.md#input-module-sensor)). This is a behavior change only in that buffers mapped to *accuracy* of other sensors, which stayed empty before, now receive data.
 
-The following additions are specified (2026-09-25) and documented but not yet implemented in either app; the specification is the design the implementations follow:
+Further additions, specified in the documentation first (2026-09-25) and implemented on both platforms, in the remote interface and in the editor from that specification:
 
 - **View groups** - new view elements that contain and arrange other view elements:
   [vertical](../../file-format/views/groups.md#view-element-vertical),

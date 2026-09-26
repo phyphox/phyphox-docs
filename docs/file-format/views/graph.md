@@ -20,7 +20,7 @@ An empty plot area says why it is empty rather than staying blank: "No data" whi
 
 ## Fixing the plot area
 
-*Planned for file format 1.21.* The plot area - the rectangle the data is drawn in, without axes,
+*Since file format 1.21.* The plot area - the rectangle the data is drawn in, without axes,
 tics and labels - is normally laid out automatically around the labels, and moves as tic labels
 grow. The attributes *plotLeft*, *plotTop*, *plotRight* and *plotBottom* fix it instead, as
 fractions of the graph element's own box measured from its left and top edges. This is what

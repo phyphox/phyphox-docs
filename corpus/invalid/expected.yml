@@ -319,10 +319,9 @@ value-not-allowed-for-slot.phyphox:   # type="value" where no slot of the module
   parser: rejects
   findings:
     - "<average>/<input type=\"value\"> but no slot of this module allows a literal value"
-# --- view groups (file format 1.21, planned): the structural rules of
-# docs/file-format/views/groups.md. parser: rejects is the SPECIFIED
-# behaviour - no app implements 1.21 yet, so the app runners skip these
-# files until they bump their version (corpus/README.md).
+# --- view groups (file format 1.21): the structural rules of
+# docs/file-format/views/groups.md, asserted by both app runners since
+# 2026-09-26.
 transform-outside-stack.phyphox:   # <transform> only exists directly inside <stack>
   parser: rejects
   findings:
