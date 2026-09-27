@@ -64,6 +64,7 @@ interface and in the editor from that specification:
 
 ## Changes on Android
 
+- Fix: a file without a *locale* attribute on its root element could get a translation block that did not match the device language, most visibly a German block on an English device whose locale carries no region (as the in-app language setting produces). The base strings now count as English, as on iOS, and a block carrying the file's own base language stands in for them (see [Block: translations](../../file-format/index.md#block-translations)).
 - Fix: on a graph without a colour map, the x tic labels were drawn left-aligned on the first frame, and a label at the right border vanished.
 - The magnetometer and gyroscope switches in the experiment menu are joined by one for the accelerometer, shown when the device offers the uncalibrated type.
 - Fix: the calibrated magnetometer always reported accuracy 3, whatever the system said.

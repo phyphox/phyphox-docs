@@ -191,8 +191,10 @@ elements:
     summary: Container for the translations of everything shown to the user.
     description: >-
       Exactly one of its translation blocks is applied - the one whose locale
-      best matches the user's locale, with the base strings of the file used
-      where no block matches better. Blocks are never combined.
+      best matches the user's locale. Where no block matches better, the block
+      carrying the root's locale ("en" when omitted) is applied if there is
+      one, and the base strings of the file are used otherwise. Blocks are
+      never combined.
     attributes: []
     children: [translation]
 
