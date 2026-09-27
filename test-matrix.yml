@@ -105,7 +105,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Which translation block a file gets (file-format/index.md, "Block:
       translations"): a German block is applied on a German device and not on
