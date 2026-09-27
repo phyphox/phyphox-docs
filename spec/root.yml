@@ -39,9 +39,9 @@ elements:
         type: string
         summary: >-
           Language the strings outside the translations block are written in.
-          Without it they are assumed to be English.
-        agreement: divergent
-        inconsistency: translation-english-placeholder
+          Without it they are rated as English ("en"), so an English
+          translation block never replaces them.
+        agreement: agreed
       - name: isLink
         type: boolean
         default: false

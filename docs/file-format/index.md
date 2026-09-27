@@ -73,11 +73,9 @@ A link tag defines a link to some resource on the web. You may have multiple lin
 
 ## Block: translations
 
-The translations block may hold one or more *translation* (note: singular) blocks, describing the translations of strings shown to the user. Any string outside the translations block is considered to be in English and then translated to other languages from within the translations block, unless a different global language has been defined in the tag of the phyphox-block or English appears explicitly as a translation block. If English is used in a translation block and no language has been defined in the phyphox-block, the text outside the translation block should be treated as a placeholder.
+The translations block may hold one or more *translation* (note: singular) blocks, describing the translations of strings shown to the user. Any string outside the translations block is considered to be in English and then translated to other languages from within the translations block, unless a different global language has been defined in the *locale* attribute of the phyphox-block. A file without that attribute is treated exactly like one with `locale="en"`: its base strings are the English text, and an English translation block in such a file is never applied, because it cannot match the user's locale better than the base strings already do. To ship English as a translation block, give the base strings their real language in the phyphox-block.
 
 Exactly one translation block is applied: the one whose locale best matches the user's locale. Where no block matches better than the file's base language, the base strings are used as they are. Blocks are never combined, so each translation block has to be complete in itself.
-
-{{inconsistency:translation-english-placeholder}}
 
 ```xml
 <phyphox version="...">
