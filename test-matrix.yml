@@ -101,6 +101,24 @@ tests:
       handling, and one declaring the exact supported version loads. Guards
       the version gate that all feature rollout relies on.
 
+  - id: translation-block-selection
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Which translation block a file gets (file-format/index.md, "Block:
+      translations"): a German block is applied on a German device and not on
+      an English, French or English-in-Germany one, with and without a root
+      locale, and also on a device locale without a region (as an in-app
+      language setting produces); with two blocks the better-matching one
+      wins. Written 2026-09-27 after a report that Android applied a German
+      block regardless of the device language when the root locale was
+      omitted (the empty-region bonus in the language rating). Note the
+      English-placeholder case is a recorded inconsistency
+      (translation-english-placeholder) and is asserted the Android way
+      until it is decided.
+
   - id: sensor-prefer-uncalibrated
     area: file-format
     tier: T0

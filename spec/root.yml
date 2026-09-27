@@ -40,7 +40,8 @@ elements:
         summary: >-
           Language the strings outside the translations block are written in.
           Without it they are assumed to be English.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: translation-english-placeholder
       - name: isLink
         type: boolean
         default: false

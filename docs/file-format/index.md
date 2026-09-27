@@ -77,6 +77,8 @@ The translations block may hold one or more *translation* (note: singular) block
 
 Exactly one translation block is applied: the one whose locale best matches the user's locale. Where no block matches better than the file's base language, the base strings are used as they are. Blocks are never combined, so each translation block has to be complete in itself.
 
+{{inconsistency:translation-english-placeholder}}
+
 ```xml
 <phyphox version="...">
     <title>My experiment</title>

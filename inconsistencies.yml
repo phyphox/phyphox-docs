@@ -89,3 +89,30 @@
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
     gives identical results on both.
+
+- id: translation-english-placeholder
+  title: An English translation block in a file without a root locale
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Treats the base strings as a placeholder as the documentation says.
+      A base without a root locale rates 1, an English block rates at least
+      2, so the English block is applied on every device that matches no
+      other block (helper/Helper.java getLanguageRating, PhyphoxFile.java
+      translationsBlockParser). Verified with a Robolectric test on
+      development, 2026-09-27.
+    ios: >-
+      Defaults the missing root locale to "en" before rating, so the base
+      and the English block score the same, and a block is applied only when
+      it scores strictly higher: the English block is never applied and the
+      base strings stay on screen (PhyphoxElementHandler.swift
+      "attributes.optionalString(for: .locale) ?? \"en\"",
+      ExperimentTranslationCollection.swift init). Read from the source, not
+      observed on a device.
+  summary: >-
+    When the root element has no locale attribute and the translations hold
+    an English block, Android shows the English block and iOS shows the base
+    strings. The documentation says the base is a placeholder in this case,
+    which is what Android does; nobody has decided yet whether that rule
+    stays.
