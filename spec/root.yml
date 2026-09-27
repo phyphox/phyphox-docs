@@ -39,8 +39,9 @@ elements:
         type: string
         summary: >-
           Language the strings outside the translations block are written in.
-          Without it they are rated as English ("en"), so an English
-          translation block never replaces them.
+          Without it they are rated as English ("en"). A translation block
+          with the same locale stands in for the base strings unless another
+          block matches the user's locale better.
         agreement: agreed
       - name: isLink
         type: boolean

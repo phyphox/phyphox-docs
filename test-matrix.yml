@@ -115,8 +115,10 @@ tests:
       wins. Written 2026-09-27 after a report that Android applied a German
       block regardless of the device language when the root locale was
       omitted; the decided rule (2026-09-27) treats a missing root locale as
-      "en", so an English block in such a file is never applied, and the
-      row asserts that too.
+      "en", and a block carrying the root's own locale stands in for the
+      base strings unless another block rates strictly better (the bundled
+      light experiment has no base strings and relies on this); the row
+      asserts both.
 
   - id: sensor-prefer-uncalibrated
     area: file-format
