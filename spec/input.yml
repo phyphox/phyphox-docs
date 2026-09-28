@@ -1052,10 +1052,22 @@ elements:
             auto-detects notification or indication regardless of
             what is chosen here.
         type: enum
-        required: true
         values: [notification, indication, poll]
+        default: notification
         summary: How data is obtained from the characteristic.
-        agreement: agreed
+        agreement: divergent
+        inconsistency: bluetooth-mode-default
+        note: >-
+          Documented as required with no default until 2026-09-28, and
+          wrongly marked agreed: only iOS required it
+          (InputElementHandler.swift, BluetoothElementHandler.endElement,
+          attributes.value(for: .mode) throws when absent), while Android has
+          always read an absent mode as notification (PhyphoxFile.java,
+          inputBlockParser case "bluetooth"). Maintainer ruling 2026-09-28:
+          notification is the default, keeping every file that loads on
+          Android loading everywhere. The editor always emits the attribute
+          (src/blocks/input/bluetooth.ts), and so do the Arduino and
+          MicroPython libraries (corpus/valid/ble-libraries).
       - name: rate
         description: >-
           Only used when the mode is poll; the rate in Hz at which

@@ -39,7 +39,6 @@ bluetooth-pre-ble.phyphox:           # pre-BLE bluetooth of phyphox 1.0x
   findings:
     - '<bluetooth>: protocol='
     - '<bluetooth>: separator='
-    - '<bluetooth>: mode'              # required by the BLE syntax it predates
 bluetooth-dev-conversion.phyphox:    # 2018 device-specific conversion draft
   parser: rejects                      # (ti_acc_*, removed pre-release in
   findings:                            # phyphox-android 37b3fb69)
