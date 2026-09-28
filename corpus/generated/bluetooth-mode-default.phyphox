@@ -1,0 +1,20 @@
+<!-- Covers a bluetooth input without a mode attribute, which defaults to
+     notification. Every other corpus file sets mode explicitly. -->
+<phyphox version="1.7">
+    <title>Bluetooth mode default</title>
+    <category>Corpus</category>
+    <description>Fixture for a bluetooth input that leaves out mode.</description>
+    <data-containers>
+        <container size="0">value</container>
+    </data-containers>
+    <input>
+        <bluetooth name="CorpusDevice">
+            <output char="0000ffe1-0000-1000-8000-00805f9b34fb" conversion="float32LittleEndian">value</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Data">
+            <value label="Value"><input>value</input></value>
+        </view>
+    </views>
+</phyphox>

@@ -61,26 +61,6 @@
     connections. A client cannot tell a phone without the data from a phone that
     does not report it.
 
-- id: bluetooth-mode-default
-  title: Bluetooth input without a mode attribute
-  area: file-format
-  status: decided
-  canonical: >-
-    mode is optional and defaults to notification. A bluetooth input without
-    it behaves exactly as one with mode="notification".
-  affects:
-    android: >-
-      Conforms: an absent mode is read as notification (PhyphoxFile.java,
-      inputBlockParser, case "bluetooth").
-    ios: >-
-      Refuses the file, reporting that mode is missing: the attribute is read
-      as required (InputElementHandler.swift, BluetoothElementHandler.endElement,
-      attributes.value(for: .mode)).
-  summary: >-
-    A bluetooth input that leaves out mode loads on Android, which uses
-    notification, but is refused on iOS. Until iOS is fixed, set mode
-    explicitly for an experiment that has to work on both platforms.
-
 - id: fft-non-power-of-two-input
   title: FFT output for input lengths that are not a power of two
   area: file-format

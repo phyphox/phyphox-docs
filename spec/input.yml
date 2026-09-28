@@ -1055,17 +1055,17 @@ elements:
         values: [notification, indication, poll]
         default: notification
         summary: How data is obtained from the characteristic.
-        agreement: divergent
-        inconsistency: bluetooth-mode-default
+        agreement: agreed
         note: >-
-          Documented as required with no default until 2026-09-28, and
-          wrongly marked agreed: only iOS required it
-          (InputElementHandler.swift, BluetoothElementHandler.endElement,
-          attributes.value(for: .mode) throws when absent), while Android has
-          always read an absent mode as notification (PhyphoxFile.java,
-          inputBlockParser case "bluetooth"). Maintainer ruling 2026-09-28:
-          notification is the default, keeping every file that loads on
-          Android loading everywhere. The editor always emits the attribute
+          Optional with default notification since the maintainer ruling of
+          2026-09-28; before that the spec wrongly called it required and
+          agreed. Android has always read an absent mode as notification
+          (PhyphoxFile.java, inputBlockParser case "bluetooth"); iOS required
+          it until phyphox-ios dbf08e79 (InputElementHandler.swift,
+          BluetoothElementHandler.endElement, optionalValue ?? .notification),
+          so released iOS builds up to 1.2.1 still refuse a file without it.
+          An invalid value stays an error on both. The editor always emits
+          the attribute
           (src/blocks/input/bluetooth.ts), and so do the Arduino and
           MicroPython libraries (corpus/valid/ble-libraries).
       - name: rate
