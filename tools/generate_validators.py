@@ -114,6 +114,18 @@ def load():
     return els, common, colors
 
 
+def load_units():
+    """The known units of spec/units.yml: {"quantities": [...], "units": [...]}.
+
+    Shared with validate_experiments so the checker and the published
+    Schematron agree on which ids exist."""
+    path = os.path.join(SPEC, "units.yml")
+    if not os.path.exists(path):
+        return {"quantities": [], "units": []}
+    doc = yaml.safe_load(open(path, encoding="utf-8")) or {}
+    return doc.get("units") or {"quantities": [], "units": []}
+
+
 def parents_of(el):
     """The parent names an element is modelled under (`parent:` may be a list)."""
     p = el.get("parent")
@@ -194,6 +206,10 @@ def attr_value_pattern(attr, colors):
     if kind == "color":
         return P("choice", parts=[P("data", pattern="#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?")]
                  + [P("data", pattern=ci_pattern(c)) for c in colors])
+    if kind == "unit":
+        # a unit reference (@id) or any text; the grammar cannot tell the
+        # two apart without the file version, so the Schematron does
+        return P("text")
     if attr.get("name") == "version":
         return P("data", pattern="[0-9]+\\.[0-9]+")
     return P("text")
@@ -908,6 +924,50 @@ def schematron(els, common):
             "A colour with an alpha channel (eight hex digits) needs file "
             "format 1.21 or later; this file declares an older version.",
             warning=True)
+
+    # --- unit references (spec/units.yml, rule unit-reference) -----------
+    # A unit attribute holding `@<id>` is a reference to a known unit from
+    # file format 1.21 on. Three checks, none of which a grammar can make
+    # because they depend on the file's version: an unknown id in a 1.21
+    # file is an error; a reference in an older file is text there and
+    # warns (the author probably wants 1.21); the deprecated placeholder
+    # [[unit_short_<id>]] warns in a 1.21 file. Its own pattern, since a
+    # node fires only the first matching rule within a pattern.
+    units = load_units()
+    ids = [u["id"] for u in units.get("units") or []]
+    unit_attrs = sorted({(name, a["name"])
+                         for (block, parent, name), el in els.items()
+                         for a in el.get("attributes") or []
+                         if a.get("type") == "unit"})
+    if ids and unit_attrs:
+        p = pattern("unit-references")
+        v121 = version_ok("1.21")
+        # one rule per ELEMENT, asserts per attribute: within a pattern a
+        # node fires only the first rule whose context matches, so per-
+        # attribute contexts (graph[@unitX], graph[@unitY]) would check one
+        # attribute of a graph and skip the rest
+        by_element = {}
+        for name, attr in unit_attrs:
+            by_element.setdefault(name, []).append(attr)
+        for name, attrs in sorted(by_element.items()):
+            r = rule(p, f"/{ln('phyphox')}/{ln('views')}//{ln(name)}")
+            for attr in attrs:
+                known = " or ".join(f"substring(@{attr}, 2) = '{i}'" for i in ids)
+                is_ref = f"starts-with(@{attr}, '@')"
+                assert_(r, f"not(@{attr}) or not({is_ref}) or not({v121}) or ({known})",
+                        f"The {attr} attribute of <{name}> starts with '@' but "
+                        "does not name a known unit (spec/units.yml). A 1.21 "
+                        "file shows it as text, which is almost certainly not "
+                        "what was meant.")
+                assert_(r, f"not(@{attr}) or not({is_ref} and ({known})) or {v121}",
+                        f"The {attr} attribute of <{name}> looks like a unit "
+                        "reference, which needs file format 1.21 or later; this "
+                        "file declares an older version, so the apps show it as "
+                        "text.", warning=True)
+                assert_(r, f"not(@{attr}) or not(starts-with(@{attr}, '[[unit_short_')) or not({v121})",
+                        f"The {attr} attribute of <{name}> uses the deprecated "
+                        "placeholder form [[unit_short_...]]; from file format "
+                        "1.21 write the unit reference @... instead.", warning=True)
 
     import xml.etree.ElementTree as ET2
     ET2.indent(root)

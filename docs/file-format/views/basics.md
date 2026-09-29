@@ -40,6 +40,8 @@ Since file format version 1.5 (phyphox 1.0.7) you can define range mappings with
 
 Since file format version 1.19 (phyphox 1.2.0) the attribute gives even more options to change how the value is displayed, like for example showing GPS coordinates not only as a decimal value, but as degrees, minutes and seconds. Also, the positiveUnit and negativeUnit make it possible to change the unit depending on the value's sign. In the case of the GPS coordinate example, this allows showing N (for north) after positive latitudes and S (for south) after negative latitudes.
 
+The *unit* is either a [unit reference](../units.md#unit-references) such as `@meter`, which the app can convert to other units of the same quantity, or plain text shown as written.
+
 {{spec:views/view/value}}
 
 {{spec:views/value/input}}

@@ -183,6 +183,7 @@ def on_config(config, **kwargs):
     _check_spec(entries)
     _check_spec_against_docs()
     _check_colors()
+    _check_units()
     _check_corpus()
     _check_validators()
     _check_conversion_values()
@@ -393,6 +394,104 @@ def _check_colors():
         raise ValueError("the colour table on the Colors page is out of step "
                          "with spec/root.yml:\n"
                          + "\n".join(f"  {p}" for p in problems))
+
+
+def _check_units():
+    """spec/units.yml is consistent, and the app string tables carry it.
+
+    The unit table is copied into three implementations and rendered on
+    docs/file-format/units.md, so the shape is checked here rather than
+    trusted: ids unique and well-formed, quantities declared with a base
+    unit that converts trivially, counterparts existing, of the same
+    quantity and of the other system, scales positive. When the app
+    checkouts sit next to this repository, every unit that has a
+    placeholder form (the 2021 string set) must have its
+    common_unit_short_<id> string in both string tables today; once the
+    table's agreement is flipped to agreed, every unit must.
+    """
+    path = os.path.join(SPEC_DIR, "units.yml")
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        doc = (yaml.safe_load(f) or {}).get("units") or {}
+    units = doc.get("units") or []
+    quantities = {q["name"]: q for q in doc.get("quantities") or []}
+    systems = set(doc.get("systems") or [])
+    problems = []
+    seen = set()
+    by_id = {}
+    for u in units:
+        uid = u.get("id")
+        if not isinstance(uid, str) or not re.fullmatch(r"[a-z][a-z0-9_]*", uid):
+            problems.append(f"unit id {uid!r} is not a lowercase identifier")
+            continue
+        if uid in seen:
+            problems.append(f"unit {uid} is listed twice")
+        seen.add(uid)
+        by_id[uid] = u
+        if not u.get("symbol"):
+            problems.append(f"unit {uid} has no symbol")
+        if u.get("system") not in systems:
+            problems.append(f"unit {uid}: system {u.get('system')!r} is not one "
+                            f"of {sorted(systems)}")
+        q = u.get("quantity")
+        if q is None:
+            for k in ("scale", "offset", "counterpart"):
+                if k in u:
+                    problems.append(f"unit {uid} has no quantity but a {k}")
+            continue
+        if q not in quantities:
+            problems.append(f"unit {uid}: quantity {q!r} is not declared")
+            continue
+        try:
+            if float(u.get("scale")) <= 0:
+                problems.append(f"unit {uid}: scale must be positive")
+        except (TypeError, ValueError):
+            problems.append(f"unit {uid}: scale {u.get('scale')!r} is not a number")
+        if "offset" not in u:
+            problems.append(f"unit {uid}: offset missing (0 for most units)")
+    for name, q in quantities.items():
+        base = by_id.get(q.get("base"))
+        if base is None:
+            problems.append(f"quantity {name}: base unit {q.get('base')!r} is "
+                            "not in the table")
+        elif (base.get("quantity") != name or float(base.get("scale", 0)) != 1
+              or float(base.get("offset", 1)) != 0):
+            problems.append(f"quantity {name}: base unit {q['base']} must be of "
+                            "that quantity with scale 1 and offset 0")
+    for u in units:
+        cp = u.get("counterpart")
+        if cp is None:
+            continue
+        other = by_id.get(cp)
+        if other is None:
+            problems.append(f"unit {u['id']}: counterpart {cp!r} is not in the table")
+        elif other.get("quantity") != u.get("quantity"):
+            problems.append(f"unit {u['id']}: counterpart {cp} measures "
+                            f"{other.get('quantity')}, not {u.get('quantity')}")
+        elif {u.get("system"), other.get("system")} != {"metric", "imperial"}:
+            problems.append(f"unit {u['id']}: a counterpart pairs a metric with "
+                            f"an imperial unit ({u.get('system')} -> {other.get('system')})")
+
+    # the string tables of the two apps, when checked out next to this repo
+    android = os.path.join(ROOT, "..", "phyphox-android", "app", "src", "main",
+                           "res", "values", "strings.xml")
+    ios = os.path.join(ROOT, "..", "phyphox-ios", "phyphox-iOS", "phyphox",
+                       "en.lproj", "Localizable.strings")
+    required = [u["id"] for u in units
+                if u.get("placeholder") or doc.get("agreement") == "agreed"]
+    for label, p, rx in (("Android", android, r'name="common_unit_short_([a-z0-9_]+)"'),
+                         ("iOS", ios, r'"common_unit_short_([a-z0-9_]+)"\s*=')):
+        if not os.path.exists(p):
+            continue
+        with open(p, encoding="utf-8") as f:
+            have = set(re.findall(rx, f.read()))
+        missing = [i for i in required if i not in have]
+        if missing:
+            problems.append(f"{label} string table has no common_unit_short_ "
+                            f"entry for: {', '.join(missing)}")
+    if problems:
+        raise ValueError("spec/units.yml: " + "; ".join(problems))
 
 
 def _check_corpus():
@@ -827,10 +926,14 @@ def _expand_spec(markdown, link_prefix, src):
     _ensure_path()
     import spec_reference
 
-    if "{{spec:" not in markdown:
+    if "{{spec:" not in markdown and "{{units}}" not in markdown:
         return markdown
     if _spec is None:
         _spec = spec_reference.Spec()
+    # the table of known units (docs/file-format/units.md) is generated from
+    # spec/units.yml like the element references are from the block files
+    markdown = markdown.replace("{{units}}",
+                                spec_reference.render_units(_spec, link_prefix))
     state = spec_reference.PageState(link_prefix)
     # a marker the author already placed by hand counts as this page's one
     # full admonition for that entry - the spec-driven emission must not

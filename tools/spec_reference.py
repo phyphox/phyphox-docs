@@ -112,6 +112,7 @@ PLACEHOLDER = {
     "boolean": "BOOLEAN",
     "string": "STRING",
     "color": "COLOR",
+    "unit": "UNIT",
 }
 
 
@@ -298,6 +299,9 @@ def _meta_line(attr, spec, link_prefix):
         bits.append("one of " + _code_list(attr["values"]) + unit)
     elif kind == "float-list":
         bits.append("comma-separated floats" + unit)
+    elif kind == "unit":
+        bits.append(f"[unit reference or text]({link_prefix}file-format/"
+                    "units.md#unit-references)")
     elif kind and kind != "string":
         bits.append(kind + unit)
     elif unit:
@@ -751,6 +755,71 @@ def expand(markdown, spec, state):
         block, parent, name, mode, group = m.groups()
         return render_element(block, parent, name, spec, state, mode, group)
     return MARKER.sub(one, markdown)
+
+
+def _number(x):
+    """A conversion factor as the docs show it: 1e-9 as 0.000000001 is
+    unreadable, 1609.344 as 1.609344e3 too; shortest repr, exponent only
+    for the very small."""
+    x = float(x)
+    if x.is_integer():
+        return str(int(x))
+    if x < 1e-3:
+        import math
+        e = round(math.log10(x))
+        if abs(x - 10 ** e) < 1e-12 * 10 ** e:
+            return f"10<sup>{e}</sup>"
+    return repr(x)
+
+
+def render_units(spec, link_prefix=""):
+    """The table of known units, one per quantity, from spec/units.yml.
+
+    Expanded in place of a {{units}} marker (docs/file-format/units.md).
+    Nothing about a unit is written on the page by hand: id, symbol,
+    conversion, system and counterpart all come from the spec, which is
+    also what the validators and - by copying - the apps use."""
+    doc = (spec.blocks.get("units") or {}).get("units") or {}
+    units = doc.get("units") or []
+    by_id = {u["id"]: u for u in units}
+    quantities = doc.get("quantities") or []
+    bases = {q["name"]: q["base"] for q in quantities}
+    out = []
+
+    def sym(uid):
+        return by_id[uid]["symbol"] if uid in by_id else uid
+
+    def conversion(u):
+        if u.get("formula"):
+            return u["formula"]
+        base = sym(bases[u["quantity"]])
+        if u["id"] == bases[u["quantity"]]:
+            return "base unit"
+        return f"1 {u['symbol']} = {_number(u['scale'])} {base}"
+
+    for q in quantities:
+        rows = [u for u in units if u.get("quantity") == q["name"]]
+        title = q["name"].replace("_", " ")
+        out.append(f"### {title[0].upper()}{title[1:]}\n")
+        out.append("| Unit reference | Symbol | Conversion | System | "
+                   "Counterpart | Placeholder form |")
+        out.append("|---|---|---|---|---|---|")
+        for u in rows:
+            cp = f"`@{u['counterpart']}` ({sym(u['counterpart'])})" if u.get("counterpart") else "—"
+            ph = f"`[[unit_short_{u['id']}]]`" if u.get("placeholder") else "—"
+            out.append(f"| `@{u['id']}` | {u['symbol']} | {conversion(u)} | "
+                       f"{u['system']} | {cp} | {ph} |")
+        out.append("")
+    rest = [u for u in units if not u.get("quantity")]
+    if rest:
+        out.append("### Known, not convertible\n")
+        out.append("| Unit reference | Symbol | Placeholder form |")
+        out.append("|---|---|---|")
+        for u in rest:
+            ph = f"`[[unit_short_{u['id']}]]`" if u.get("placeholder") else "—"
+            out.append(f"| `@{u['id']}` | {u['symbol']} | {ph} |")
+        out.append("")
+    return "\n".join(out)
 
 
 def main():

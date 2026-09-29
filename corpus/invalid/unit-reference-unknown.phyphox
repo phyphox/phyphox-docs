@@ -1,0 +1,18 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <!-- A unit reference naming an id that spec/units.yml does not know. In
+         a 1.21 file this is a validation error (rule unit-reference); the
+         apps tolerate it as a custom string and show "@metre" verbatim. -->
+    <title>Corpus: unknown unit reference</title>
+    <category>Corpus</category>
+    <description>unit="@metre" - the unit is called meter.</description>
+    <data-containers>
+        <container size="1" init="1.5">distance</container>
+    </data-containers>
+    <views>
+        <view label="Units">
+            <value label="Distance" unit="@metre">
+                <input>distance</input>
+            </value>
+        </view>
+    </views>
+</phyphox>

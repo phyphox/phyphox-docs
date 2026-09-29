@@ -54,6 +54,20 @@ interface and in the editor from that specification:
 - **`spacing`** on vertical, horizontal and grid inserts a gap between the children, in text
   line heights (see [Sizing](../../file-format/views/groups.md#sizing)).
 
+Specified 2026-09-30 ahead of the implementations (Android first, then iOS and the editor):
+
+- **Unit references:** the *unit* attributes of value, edit and graph (*unit*, *unitX*, *unitY*,
+  *unitZ*, *unitYperX*) take `@id` naming one of the [known units](../../file-format/units.md)
+  (`unit="@meter"`, `unitY="@meter_per_square_second"`). A referenced unit is shown with the
+  app's symbol and can be converted: a new app setting *Unit system* (as defined by the
+  experiment / metric / imperial) converts to the other system's counterpart, and the user can
+  switch the unit of any graph axis, value or edit element to another unit of the same quantity
+  from a dialog. Text units stay text and are never converted. The placeholder form
+  `[[unit_short_…]]` is deprecated and resolves to the same units, so existing experiments
+  become convertible unchanged (see [Units](../../file-format/units.md)). Exports and the remote
+  interface's data endpoints carry the original values; the remote interface converts in the
+  browser.
+
 ## Changes on Android and iOS
 
 - An empty graph explains itself: "No data" while nothing has been measured, "No valid data" when every point is NaN or one axis has no values, and "No data in range" with an arrow towards the nearest point when the data lies outside the current zoom or a fixed range (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots)).

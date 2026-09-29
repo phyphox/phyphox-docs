@@ -158,6 +158,16 @@ Use the string-tag to translate any string shown to the user besides the title, 
 
 {{spec:root/translation/string}}
 
+#### Common strings
+
+Since phyphox 1.1.6 a label or unit may be written as a *common-string placeholder*, a name in double square brackets that the app replaces by the corresponding entry of its own string table — translated into the user's language without the experiment carrying a translation block. A placeholder that the app does not know is shown as written. Three families exist:
+
+- `[[quantity_short_…]]` — the symbol of a physical quantity, for labels: `time` (t), `acceleration` (a), `velocity` (v), `distance` (d), `height` (h), `altitude` (z), `amplitude` (A), `angular_velocity` (ω), `magnetic_field` (B), `illuminance` (Ev), `luminance` (Lv), `luma` (Y'), `pressure` (p), `earth_acceleration` (g), `sound_pressure_level` (SPL), `latitude` (φ), `longitude` (λ), `wavelength` (λ).
+- `[[direction_short_…]]` — compass directions, for *positiveUnit* and *negativeUnit*: `north`, `south`, `east`, `west`, `north_east`, `north_west`, `south_east`, `south_west`.
+- `[[unit_short_…]]` — a unit symbol. **Deprecated since file format 1.21** in favour of the [unit reference](units.md#unit-references) `@…`, which names the unit logically and makes it convertible; every placeholder of this family resolves to the same unit as the reference with the same id, and the [table of known units](units.md#known-units) lists which ids ever had a placeholder form.
+
+Placeholders are looked up after the translation block: a `<string original="[[quantity_short_time]]">` entry overrides the app's text for that language.
+
 ## Block: data-containers
 
 In data-containers all buffers are defined. Any input (sensors, microphone) writes to these buffers, any analysis module performs its operations on these buffers, the output modules read from these buffers and the results are shown to the user from these buffers. The buffers connect every module of the experiment.

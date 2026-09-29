@@ -12,6 +12,8 @@ The graph element will show a plot of the YBUFFER data against the XBUFFER data.
 
 The attribute *partialUpdate* is used for performance optimization. *PartialUpdate* should be set to true when the buffer is never changed entirely, but new data is just appended with increasing x values. *PartialUpdate* then allows only this new data to be transferred to the web interface to save bandwidth.
 
+The axis units *unitX*, *unitY*, *unitZ* and the slope unit *unitYperX* are either [unit references](../units.md#unit-references) such as `@second`, which let the user switch an axis to another unit of the same quantity, or plain text shown as written.
+
 {{spec:views/view/graph}}
 
 {{spec:views/graph/input}}

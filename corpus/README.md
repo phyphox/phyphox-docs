@@ -42,8 +42,10 @@ test suite as well is planned.
 - `generated/` — hand-written fixtures for the spec surface that no collected
   file exercises either: the inverse and hyperbolic trigonometry modules,
   `gcd`/`lcm`, `butterworth`, the `events` block of saved states, `appleBan`,
-  and a set of rarely used view, network and I/O attributes. Each file states
-  its purpose in a comment.
+  a set of rarely used view, network and I/O attributes, and the unit
+  references of file format 1.21 (`unit-references.phyphox`, plus
+  `unit-reference-old-version.phyphox` for the pre-1.21 file in which an
+  `@`-value is text). Each file states its purpose in a comment.
 - `invalid/` — files carrying a documented defect each, nearly all
   collected from real use: dead draft syntax that never shipped
   (`mode="trigger"` on a network connection, the pre-BLE Bluetooth syntax,
@@ -108,8 +110,9 @@ Both apps run this corpus in their own test suites (test-matrix rows
   in `expected.yml`: files marked `rejects` must fail to load (any error;
   message texts are platform wording and never asserted), files marked
   `accepts` must LOAD — their defects are tolerated for compatibility:
-  unknown or misapplied attributes (which the parsers ignore) or
-  duplicated root metadata (where the last occurrence wins), and that
+  unknown or misapplied attributes (which the parsers ignore), duplicated
+  root metadata (where the last occurrence wins) or a unit reference with
+  an unknown id (shown as text, rule `unit-reference`), and that
   tolerance is itself contract worth pinning. The classification was
   measured on the Android development branch (2026-08-24); an app runner
   disagreeing with it is a finding to report, not to code around.

@@ -53,6 +53,20 @@ tests:
       differences, e.g. bluetooth address= on iOS). See corpus/README.md,
       "The app test suites".
 
+  - id: unit-reference-parse
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The unit attributes are parsed to logical units (spec/rules.yml,
+      unit-reference; spec/units.yml): in a 1.21 file `@meter` yields the
+      known unit meter, shown with the app's symbol; `[[unit_short_meter]]`
+      yields the same unit in any version; a literal `m`, an `@meter` in a
+      file declaring 1.20, and an unknown `@metre` in a 1.21 file are custom
+      text, shown verbatim and not convertible. Specified 2026-09-30 ahead of
+      the implementations; flip to active once both parsers carry the tag.
+
   - id: corpus-invalid-reject
     area: file-format
     tier: T0

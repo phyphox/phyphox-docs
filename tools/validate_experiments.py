@@ -80,6 +80,16 @@ NUMBER_LEX = {
 
 
 COLOR_NAMES = []
+UNIT_IDS = {u["id"] for u in _gv.load_units().get("units") or []}
+
+
+def _version_at_least(version, major, minor):
+    """True if a declared file format version string is >= major.minor."""
+    try:
+        m, n = str(version or "1.0").split(".")[:2]
+        return (int(m), int(n)) >= (major, minor)
+    except ValueError:
+        return False
 
 
 def load_spec():
@@ -151,6 +161,7 @@ def load_spec():
 class Report:
     def __init__(self):
         self.items = collections.defaultdict(list)   # kind -> [(file, detail)]
+        self.version = None    # the file's declared format version, set by check_file
 
     def add(self, kind, path, detail):
         self.items[kind].append((path, detail))
@@ -284,6 +295,15 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
                     f"{path}<{node.tag}> {attr}=\"{value}\" is not "
                     + ("a comma-separated list of numbers"
                        if kind == "float-list" else f"a valid {kind}"))
+        # a unit reference (rule unit-reference, spec/units.yml): `@id` names
+        # a known unit from file format 1.21 on; in older files it is text,
+        # and the published Schematron warns about that case
+        elif (kind == "unit" and value.startswith("@")
+              and _version_at_least(rep.version, 1, 21)
+              and value[1:] not in UNIT_IDS):
+            rep.add("unknown unit reference", fname,
+                    f"{path}<{node.tag}> {attr}=\"{value}\" does not name a "
+                    f"known unit (spec/units.yml)")
 
     # required attributes must be present (found missing 2026-08-24: the
     # generated RELAX NG checked this while nothing here did)
@@ -362,6 +382,7 @@ def check_file(root, spec, common, slots, components, rep, fname):
     BLE lab's capture check - each with its own copy of the sequence, and
     a check added to one silently did not exist in the other.
     """
+    rep.version = root.get("version")
     for child in root:
         check_element(child, "phyphox", spec, common, slots, components,
                       rep, "", fname)

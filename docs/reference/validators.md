@@ -15,9 +15,12 @@ pages — so they cannot drift from the documentation.
   [Schematron](https://schematron.com/) ruleset for what a grammar cannot
   express: buffer references must name a declared container, container names
   must be unique, the [graph dataset pairing rules](../file-format/views/graph.md#multiple-graphs),
-  the numbered `mapColor[N]` attribute shape, and — as *warnings*, not
-  errors — the version gates: an element or attribute used by a file that
-  declares an older format version than the feature requires.
+  the numbered `mapColor[N]` attribute shape, a [unit reference](../file-format/units.md#unit-references)
+  that names no known unit, and — as *warnings*, not errors — the version
+  gates: an element or attribute used by a file that declares an older format
+  version than the feature requires, a unit reference or an eight-digit colour
+  in a pre-1.21 file, and the deprecated `[[unit_short_…]]` placeholder in a
+  1.21 file.
 
 ## Running them
 

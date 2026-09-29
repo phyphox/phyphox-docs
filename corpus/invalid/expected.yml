@@ -18,8 +18,9 @@
 #                         functions, the graph pairing rules)
 #               accepts - the file LOADS: its defects are tolerated for
 #                         compatibility - unknown or misapplied attributes
-#                         (unknown-attribute-ignored) or duplicated root
-#                         metadata (duplicate-metadata-last-wins). The app
+#                         (unknown-attribute-ignored), duplicated root
+#                         metadata (duplicate-metadata-last-wins) or an
+#                         unknown unit reference (unit-reference). The app
 #                         suites assert the load succeeds - that tolerance
 #                         is itself contract.
 #             Classification measured on the Android development branch
@@ -349,3 +350,11 @@ view-align-unknown.phyphox:   # align is left, center or right
   parser: rejects
   findings:
     - "<views>/<view>/<value> align=\"middle\" not in ['left', 'right', 'center']"
+# --- unit references (file format 1.21, specified 2026-09-30 ahead of the
+# implementations; rule unit-reference). An unknown id is tolerated by the apps
+# as a custom string - the value space of a unit attribute is open - so the
+# apps load the file and show "@metre" verbatim, while the validators flag it.
+unit-reference-unknown.phyphox:   # @metre is not a known unit id
+  parser: accepts
+  findings:
+    - 'unit="@metre"'

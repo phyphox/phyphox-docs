@@ -101,6 +101,12 @@
   version: "1.20"
   adds:
     - link@translation
+- file: generated/unit-reference-old-version.phyphox
+  version: "1.20"
+  adds: []
+- file: generated/unit-references.phyphox
+  version: "1.21"
+  adds: []
 - file: generated/view-groups.phyphox
   version: "1.21"
   adds:

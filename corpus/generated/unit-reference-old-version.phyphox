@@ -1,0 +1,21 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.20" locale="en">
+    <!-- Generated fixture: a unit that LOOKS like a unit reference in a file
+         declaring a format older than 1.21. Per the unit-reference rule
+         (spec/rules.yml) it is a custom string there, shown verbatim as
+         "@meter" and never converted; the file is valid and must load on
+         every app. The published Schematron warns about it, as it does for
+         every version gate, because the author almost certainly meant 1.21. -->
+    <title>Corpus: unit reference in an old file</title>
+    <category>Corpus</category>
+    <description>A pre-1.21 file whose unit starts with '@': text, not a reference.</description>
+    <data-containers>
+        <container size="1" init="1.5">distance</container>
+    </data-containers>
+    <views>
+        <view label="Units">
+            <value label="Distance" unit="@meter">
+                <input>distance</input>
+            </value>
+        </view>
+    </views>
+</phyphox>

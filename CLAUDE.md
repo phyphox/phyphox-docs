@@ -382,6 +382,9 @@ file-format page — the mechanism was there, the markers were never placed by h
   file error.
 - `tools/hooks.py` checks the spec against `inconsistencies.yml`, that declared children are
   modelled, that an attribute does not predate its element, and that slot names survived YAML.
+  `_check_units` does the same for `spec/units.yml` (the table behind the `unit` attribute
+  type, rendered by the `{{units}}` marker on `file-format/units.md`): ids, quantities, base
+  units and counterparts are consistent, and the app string tables carry the symbols.
 - `tools/check_test_matrix.py` keeps `test-matrix.yml` (repository root) and the app test
   suites in step: the matrix lists every cross-platform test, app tests carry their row id as
   a `phyphox-test: <id>` tag comment, and the build fails when an `active` row's tag is

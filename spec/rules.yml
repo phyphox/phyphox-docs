@@ -386,6 +386,53 @@ rules:
       with an existing one once case-folded, and prefer all-lowercase names
       (hyphenated where needed, like camera-gui).
 
+  - id: unit-reference
+    decided: 2026-09-29
+    summary: >-
+      A unit attribute holds a unit reference (`@id`, file format 1.21) or
+      free text; references resolve to known units, text is shown verbatim.
+    rule: >-
+      The unit attributes of the format (value/@unit, edit/@unit and the
+      graph's unitX, unitY, unitZ and unitYperX; every attribute with
+      type: unit) are parsed to a LOGICAL UNIT, not to a display string.
+      A value that starts with `@` and continues with the id of a unit in
+      spec/units.yml is a unit reference: the app displays the symbol of
+      that unit from its own string table, never text from the experiment,
+      and treats the values as convertible to every other unit of the same
+      quantity (docs/file-format/units.md). Any other value is a custom
+      string: shown as written, translatable through the experiment's
+      translation block, never converted. Unit references require file
+      format 1.21 or later; in an older file `@meter` is a custom string
+      like any other, so a reference never changes what a released app
+      shows. An `@`-value whose id is unknown in a 1.21 file is a
+      validation error, and the apps treat it as a custom string, showing
+      it verbatim without conversion. The rationale for that leniency,
+      unlike enum-invalid-value: a unit attribute's value space is open,
+      so an unknown id cannot be told from a custom string with certainty,
+      and showing the author's text hides nothing and loads identically on
+      every platform. The placeholder form `[[unit_short_<id>]]`, which the
+      apps have resolved through their string tables since 2021, is
+      accepted in every file format version and resolves to the same
+      logical unit as `@<id>`, so existing experiments become convertible
+      without being edited; it is deprecated, the validators warn about it
+      in 1.21 files, and only the 21 ids marked `placeholder: true` in
+      spec/units.yml ever existed in that form - new experiments use `@`.
+    applies_to: "every attribute with type: unit"
+    state:
+      android: >-
+        Not implemented (2026-09-30): PhyphoxFile.translate() resolves the
+        placeholder to a string after the translation-block lookup and the
+        elements store strings. Planned; see the Android handoff.
+      ios: >-
+        Not implemented (2026-09-30): ExperimentTranslationCollection.
+        localizeString() resolves the placeholder to a string and the view
+        descriptors store strings. Planned; follows Android.
+    check: >-
+      Adding a unit means a row in spec/units.yml AND a string
+      common_unit_short_<id> in both app string tables; the docs build
+      compares the two when the app checkouts sit next to this repository
+      (tools/hooks.py, _check_units).
+
 
 # The "one-sided attributes" question, which the input probe expected to be a
 # growing case-by-case list, did not survive scrutiny. Of the six attributes it

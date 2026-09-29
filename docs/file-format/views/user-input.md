@@ -10,7 +10,7 @@ The view elements on this page additionally accept the [attributes common to all
 ![Two edit elements for a mass in grams and a length in centimetres](../../assets/screenshots/views/edit-dark.png#only-dark){ .view-shot .on-glb }
 </figure>
 
-The edit element displays an edit box, which takes data from the user and writes it to a buffer. The output is defined by a simple *output* tag within the value block and needs to be a data-container.
+The edit element displays an edit box, which takes data from the user and writes it to a buffer. The output is defined by a simple *output* tag within the value block and needs to be a data-container. The *unit* is either a [unit reference](../units.md#unit-references) such as `@centi_meter`, which lets the user enter the value in another unit of the same quantity, or plain text shown as written.
 
 {{spec:views/view/edit}}
 

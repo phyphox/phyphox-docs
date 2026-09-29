@@ -292,10 +292,11 @@ elements:
         agreement: agreed
       - name: unit
         description: >-
-          A unit to be displayed after the value
-        type: string
+          A unit to be displayed after the value. Either a unit reference `@id` naming one of the [known units](../units.md) (file format 1.21), whose symbol the app shows and whose values it can convert to other units of the same quantity, or any text, shown as written and never converted.
+        type: unit
         translatable: true
         summary: Unit appended to the value.
+        rules: [unit-reference]
         agreement: agreed
       - name: factor
         description: >-
@@ -418,33 +419,44 @@ elements:
         agreement: agreed
       - name: unitX
         description: >-
-          The unit of the x axis
+          The unit of the x axis. Either a unit reference `@id` naming one of the [known units](../units.md) (file format 1.21), whose symbol the app shows and whose values it can convert to other units of the same quantity, or any text, shown as written and never converted.
         since: "1.7"
-        type: string
+        type: unit
         translatable: true
         summary: Unit of the x axis.
+        rules: [unit-reference]
         agreement: agreed
       - name: unitY
         description: >-
-          The unit of the y axis
+          The unit of the y axis. Either a unit reference `@id` naming one of the [known units](../units.md) (file format 1.21), whose symbol the app shows and whose values it can convert to other units of the same quantity, or any text, shown as written and never converted.
         since: "1.7"
-        type: string
+        type: unit
         translatable: true
         summary: Unit of the y axis.
+        rules: [unit-reference]
         agreement: agreed
       - name: unitZ
-        type: string
+        description: >-
+          The unit of the z axis of a color map. Either a unit reference `@id` naming one of the [known units](../units.md) (file format 1.21), whose symbol the app shows and whose values it can convert to other units of the same quantity, or any text, shown as written and never converted.
+        type: unit
         translatable: true
         summary: Unit of the z axis.
+        rules: [unit-reference]
         agreement: agreed
       - name: unitYperX
         description: >-
           An explicit unit for slopes. If not set, phyphox will use
-          "unitY / unitX".
+          "unitY / unitX". Takes a unit reference or text like the other
+          unit attributes; it is used as long as both axes show their
+          experiment units. Once the user has switched an axis to another
+          unit, the slope is shown in the unit composed from the two
+          displayed units instead, because an explicit slope unit cannot
+          be converted in general (see [Units](../units.md)).
         since: "1.10"
-        type: string
+        type: unit
         translatable: true
         summary: Unit shown for the slope when the user measures on the graph.
+        rules: [unit-reference]
         agreement: agreed
       - name: timeOnX
         description: >-
@@ -1028,10 +1040,13 @@ elements:
         agreement: agreed
       - name: unit
         description: >-
-          A unit to be displayed after the value
-        type: string
+          A unit to be displayed after the value. Either a unit reference `@id` naming one of the [known units](../units.md) (file format 1.21), whose symbol the app shows and whose values it can convert to other units of the same quantity, or any text, shown as written and never converted. The user types the
+          number in the unit currently shown; the app converts it back before
+          `factor` is applied.
+        type: unit
         translatable: true
         summary: Unit shown after the field.
+        rules: [unit-reference]
         agreement: agreed
       - name: factor
         description: >-

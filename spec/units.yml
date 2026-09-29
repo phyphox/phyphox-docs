@@ -1,0 +1,125 @@
+# The known units of the phyphox file format.
+#
+# A unit attribute (value/@unit, edit/@unit, graph/@unitX, @unitY, @unitZ,
+# @unitYperX) holds either free text, shown as written, or - from file format
+# 1.21 - a UNIT REFERENCE `@<id>` naming one of the units below. A referenced
+# unit is a logical unit: the app shows its symbol and can convert the values
+# to any other unit of the same quantity (docs/file-format/units.md). This
+# file is the single source for the table on that page, for the validators,
+# and for the three implementations of the conversion (Android, iOS, the web
+# interface), which must carry exactly these numbers.
+#
+# Decided by the maintainer 2026-09-29/30 (specification ahead of the
+# implementations, like the view groups). No app reads unit references yet;
+# `agreement: planned` flips to agreed once both apps ship them.
+#
+# Fields per unit:
+#   id           the reference is `@<id>`; the app's symbol string resource is
+#                common_unit_short_<id> (Android res/values/strings.xml, iOS
+#                Localizable.strings), and the deprecated placeholder form is
+#                [[unit_short_<id>]] where `placeholder: true` says one existed
+#                before 1.21 (the 21 strings of the 2021 set).
+#   symbol       the English symbol; the string tables translate it where a
+#                language has native designations (ru, uk, ka, ta, zh-TW).
+#   quantity     what the unit measures; null for units that are not
+#                convertible (dB, %, arb. unit). Units of one quantity convert
+#                into each other through the quantity's base unit:
+#                base = value * scale + offset.
+#   system       metric, imperial, or common (neither; never touched by the
+#                app's unit-system setting).
+#   counterpart  the unit the app switches to when the user forces the other
+#                system: DECLARED, not computed - the nearest unit by magnitude
+#                would map m to yd, not to ft. Absent: the unit stays.
+#   formula      optional display form of the conversion for the docs, where
+#                "1 X = scale base" does not read well (temperature).
+#
+# Symbols: `µ` is U+00B5 MICRO SIGN throughout. Note the app string tables
+# write micro_meter with U+03BC GREEK SMALL LETTER MU and micro_tesla with
+# U+00B5 (both platforms, since 2021); the display is identical, the table
+# here is the reference.
+
+units:
+  since: "1.21"
+  agreement: planned
+  systems: [metric, imperial, common]
+  quantities:
+    - {name: length,                base: meter}
+    - {name: time,                  base: second}
+    - {name: frequency,             base: hertz}
+    - {name: speed,                 base: meter_per_second}
+    - {name: acceleration,          base: meter_per_square_second}
+    - {name: angular_velocity,      base: radian_per_second}
+    - {name: angle,                 base: radian}
+    - {name: magnetic_flux_density, base: tesla}
+    - {name: illuminance,           base: lux}
+    - {name: pressure,              base: pascal}
+    - {name: temperature,           base: kelvin}
+  units:
+    # ---------------------------------------------------------- length --
+    - {id: nano_meter,   symbol: nm, quantity: length, scale: 1.0e-9, offset: 0, system: metric,   placeholder: true}
+    - {id: micro_meter,  symbol: µm, quantity: length, scale: 1.0e-6, offset: 0, system: metric,   placeholder: true}
+    - {id: milli_meter,  symbol: mm, quantity: length, scale: 1.0e-3, offset: 0, system: metric,   counterpart: inch,        placeholder: true}
+    - {id: centi_meter,  symbol: cm, quantity: length, scale: 1.0e-2, offset: 0, system: metric,   counterpart: inch,        placeholder: true}
+    - {id: meter,        symbol: m,  quantity: length, scale: 1,      offset: 0, system: metric,   counterpart: foot,        placeholder: true}
+    - {id: kilo_meter,   symbol: km, quantity: length, scale: 1000,   offset: 0, system: metric,   counterpart: mile,        placeholder: true}
+    - {id: inch,         symbol: in, quantity: length, scale: 0.0254, offset: 0, system: imperial, counterpart: centi_meter}
+    - {id: foot,         symbol: ft, quantity: length, scale: 0.3048, offset: 0, system: imperial, counterpart: meter}
+    - {id: yard,         symbol: yd, quantity: length, scale: 0.9144, offset: 0, system: imperial, counterpart: meter}
+    - {id: mile,         symbol: mi, quantity: length, scale: 1609.344, offset: 0, system: imperial, counterpart: kilo_meter}
+    # ------------------------------------------------------------ time --
+    - {id: micro_second, symbol: µs,  quantity: time, scale: 1.0e-6, offset: 0, system: common}
+    - {id: milli_second, symbol: ms,  quantity: time, scale: 1.0e-3, offset: 0, system: common, placeholder: true}
+    - {id: second,       symbol: s,   quantity: time, scale: 1,      offset: 0, system: common, placeholder: true}
+    - {id: minute,       symbol: min, quantity: time, scale: 60,     offset: 0, system: common}
+    - {id: hour,         symbol: h,   quantity: time, scale: 3600,   offset: 0, system: common}
+    # ------------------------------------------------------- frequency --
+    - {id: hertz,        symbol: Hz,    quantity: frequency, scale: 1,    offset: 0, system: common, placeholder: true}
+    - {id: kilo_hertz,   symbol: kHz,   quantity: frequency, scale: 1000, offset: 0, system: common}
+    - {id: per_minute,   symbol: 1/min, quantity: frequency, scale: 0.016666666666666666, offset: 0, system: common,
+       formula: "1/min = 1/60 Hz"}
+    # ----------------------------------------------------------- speed --
+    - {id: meter_per_second,     symbol: m/s,  quantity: speed, scale: 1,       offset: 0, system: metric,   counterpart: foot_per_second, placeholder: true}
+    - {id: kilo_meter_per_hour,  symbol: km/h, quantity: speed, scale: 0.2777777777777778, offset: 0, system: metric, counterpart: mile_per_hour, placeholder: true,
+       formula: "1 km/h = 1/3.6 m/s"}
+    - {id: foot_per_second,      symbol: ft/s, quantity: speed, scale: 0.3048,  offset: 0, system: imperial, counterpart: meter_per_second}
+    - {id: mile_per_hour,        symbol: mph,  quantity: speed, scale: 0.44704, offset: 0, system: imperial, counterpart: kilo_meter_per_hour}
+    # ---------------------------------------------------- acceleration --
+    - {id: meter_per_square_second, symbol: m/s²,  quantity: acceleration, scale: 1,       offset: 0, system: metric,   counterpart: foot_per_square_second, placeholder: true}
+    - {id: foot_per_square_second,  symbol: ft/s², quantity: acceleration, scale: 0.3048,  offset: 0, system: imperial, counterpart: meter_per_square_second}
+    - {id: standard_gravity,        symbol: g,     quantity: acceleration, scale: 9.80665, offset: 0, system: common}
+    # ------------------------------------------------ angular velocity --
+    - {id: radian_per_second,     symbol: rad/s, quantity: angular_velocity, scale: 1, offset: 0, system: common, placeholder: true}
+    - {id: degree_per_second,     symbol: °/s,   quantity: angular_velocity, scale: 0.017453292519943295, offset: 0, system: common,
+       formula: "1 °/s = π/180 rad/s"}
+    - {id: revolution_per_minute, symbol: rpm,   quantity: angular_velocity, scale: 0.10471975511965977, offset: 0, system: common,
+       formula: "1 rpm = 2π/60 rad/s"}
+    # ----------------------------------------------------------- angle --
+    - {id: degree,  symbol: °,   quantity: angle, scale: 0.017453292519943295, offset: 0, system: common, placeholder: true,
+       formula: "1° = π/180 rad"}
+    - {id: radian,  symbol: rad, quantity: angle, scale: 1, offset: 0, system: common}
+    # ------------------------------------------- magnetic flux density --
+    - {id: micro_tesla, symbol: µT, quantity: magnetic_flux_density, scale: 1.0e-6, offset: 0, system: common, placeholder: true}
+    - {id: milli_tesla, symbol: mT, quantity: magnetic_flux_density, scale: 1.0e-3, offset: 0, system: common}
+    - {id: tesla,       symbol: T,  quantity: magnetic_flux_density, scale: 1,      offset: 0, system: common}
+    - {id: gauss,       symbol: G,  quantity: magnetic_flux_density, scale: 1.0e-4, offset: 0, system: common}
+    # ----------------------------------------------------- illuminance --
+    - {id: lux,         symbol: lx, quantity: illuminance, scale: 1,       offset: 0, system: metric,   counterpart: foot_candle, placeholder: true}
+    - {id: foot_candle, symbol: fc, quantity: illuminance, scale: 10.7639, offset: 0, system: imperial, counterpart: lux}
+    # -------------------------------------------------------- pressure --
+    - {id: pascal,          symbol: Pa,   quantity: pressure, scale: 1,        offset: 0, system: metric}
+    - {id: hecto_pascal,    symbol: hPa,  quantity: pressure, scale: 100,      offset: 0, system: metric,   counterpart: inch_of_mercury, placeholder: true}
+    - {id: kilo_pascal,     symbol: kPa,  quantity: pressure, scale: 1000,     offset: 0, system: metric,   counterpart: psi}
+    - {id: milli_bar,       symbol: mbar, quantity: pressure, scale: 100,      offset: 0, system: metric,   counterpart: inch_of_mercury}
+    - {id: bar,             symbol: bar,  quantity: pressure, scale: 100000,   offset: 0, system: metric}
+    - {id: inch_of_mercury, symbol: inHg, quantity: pressure, scale: 3386.389, offset: 0, system: imperial, counterpart: hecto_pascal}
+    - {id: psi,             symbol: psi,  quantity: pressure, scale: 6894.757, offset: 0, system: imperial, counterpart: kilo_pascal}
+    # ----------------------------------------------------- temperature --
+    - {id: degree_celsius,    symbol: °C, quantity: temperature, scale: 1, offset: 273.15, system: metric, counterpart: degree_fahrenheit, placeholder: true,
+       formula: "K = °C + 273.15"}
+    - {id: kelvin,            symbol: K,  quantity: temperature, scale: 1, offset: 0, system: common}
+    - {id: degree_fahrenheit, symbol: °F, quantity: temperature, scale: 0.5555555555555556, offset: 255.37222222222223, system: imperial, counterpart: degree_celsius,
+       formula: "K = (°F + 459.67) × 5/9"}
+    # -------------------------------------- known, but not convertible --
+    - {id: decibel,        symbol: dB,        quantity: null, system: common, placeholder: true}
+    - {id: percent,        symbol: "%",       quantity: null, system: common, placeholder: true}
+    - {id: arbitrary_unit, symbol: arb. unit, quantity: null, system: common, placeholder: true}

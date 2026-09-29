@@ -80,6 +80,20 @@ whose `since` the document satisfies wins:
       - value: limit
 ```
 
+### `units.yml` is a table, not a block
+
+`spec/units.yml` holds no elements. It is the table of known units behind the `unit`
+attribute type (value/@unit, edit/@unit, the graph's unitX/Y/Z/YperX): id, symbol, quantity,
+conversion to the quantity's base unit, system and the declared counterpart the app's
+unit-system setting switches to. `docs/file-format/units.md` renders it through the `{{units}}`
+marker, `generate_validators.py` derives the unit-reference Schematron rules from it,
+`validate_experiments.py` checks `@id` values against it, and the apps and the remote interface
+copy the numbers. `tools/hooks.py` (`_check_units`) checks the table's shape and, with the app
+checkouts beside this repository, that the string tables carry `common_unit_short_<id>` for every
+unit that has a placeholder form (all of them once the table's `agreement` is flipped to agreed).
+The loaders of the other tools read a spec file for `elements:` and `common:` only, so a file
+with neither is inert to them.
+
 ### `agreement` is mandatory on every attribute
 
 This is the field that keeps the spec honest. It records what was found when the two

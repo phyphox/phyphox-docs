@@ -1,0 +1,53 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <!-- Generated fixture: unit references (file format 1.21, planned - see
+         docs/file-format/units.md and spec/units.yml). Every unit attribute
+         of the format carrying a reference: value/@unit with a factor, an
+         affine (temperature) unit, edit/@unit with limits in buffer units,
+         the graph's unitX, unitY, unitYperX and, on a color map, unitZ.
+         Next to them the two forms that stay text: a custom string
+         ("m/s³", a unit the table does not know) and the deprecated
+         placeholder [[unit_short_second]], which resolves to the same
+         logical unit as @second and only warns in a 1.21 file. -->
+    <title>Corpus: unit references</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for unit references on value, edit and graph elements.</description>
+    <data-containers>
+        <container size="1" init="1.5">distance</container>
+        <container size="1" init="21.5">temperature</container>
+        <container size="1" init="0.5">length</container>
+        <container size="100">t</container>
+        <container size="100">a</container>
+        <container size="100">x</container>
+        <container size="100">y</container>
+        <container size="100">z</container>
+    </data-containers>
+    <views>
+        <view label="Units">
+            <value label="Distance" unit="@centi_meter" factor="100" precision="1">
+                <input>distance</input>
+            </value>
+            <value label="Temperature" unit="@degree_celsius" precision="1">
+                <input>temperature</input>
+            </value>
+            <value label="Jerk" unit="m/s³">
+                <input>a</input>
+            </value>
+            <edit label="Length" unit="@meter" min="0.1" max="2.0" default="0.5">
+                <output>length</output>
+            </edit>
+            <graph label="Acceleration" labelX="[[quantity_short_time]]" unitX="@second" labelY="[[quantity_short_acceleration]]" unitY="@meter_per_square_second" unitYperX="@meter_per_second">
+                <input axis="x">t</input>
+                <input axis="y">a</input>
+            </graph>
+            <graph label="Deprecated placeholder" labelX="t" unitX="[[unit_short_second]]" labelY="a" unitY="[[unit_short_meter_per_square_second]]">
+                <input axis="x">t</input>
+                <input axis="y">a</input>
+            </graph>
+            <graph label="Map" style="map" labelX="x" unitX="@milli_meter" labelY="y" unitY="@milli_meter" labelZ="B" unitZ="@micro_tesla" mapWidth="10">
+                <input axis="x">x</input>
+                <input axis="y">y</input>
+                <input axis="z">z</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>
