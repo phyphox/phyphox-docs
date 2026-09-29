@@ -67,6 +67,47 @@ tests:
       text, shown verbatim and not convertible. Specified 2026-09-30 ahead of
       the implementations; flip to active once both parsers carry the tag.
 
+  - id: unit-conversion-display
+    area: ui
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      What the view elements DISPLAY follows the unit conversion
+      (docs/file-format/units.md, "Conversion in the app"), checked on the
+      corpus fixture generated/unit-references.phyphox without rendering:
+      under each of the three unit-system settings (experiment, metric,
+      imperial) and after a programmatic per-element switch (what the unit
+      dialog does), the value element's text and unit, the edit element's
+      shown value, unit and limits, the graph's axis titles, tic labels and
+      the data picker's point/difference/slope read-outs equal the expected
+      strings - including the precision rule (cm with one decimal shows two
+      in inches), the affine temperature (°C position vs. Δ), the composed
+      slope unit once an axis is switched, and that text units, a value
+      with positiveUnit/negativeUnit and an edit with decimal="false" are
+      untouched. Android: Robolectric against the elements and GraphView
+      (like GraphTicLabelTest); iOS: XCTest against the view descriptors
+      and the graph module. Specified 2026-09-30 ahead of the
+      implementations.
+
+  - id: unit-conversion-ui
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The user-facing path of the unit conversion on the running app
+      (Espresso / XCUITest, on the emulator or simulator, with
+      generated/unit-references.phyphox loaded): tapping the unit text of a
+      value and of an edit element, and an axis label of a graph in its
+      exclusive mode, opens the unit dialog listing the units of that
+      quantity with the experiment's unit marked; choosing another unit
+      changes the displayed text immediately and the data itself does not
+      change (the buffer value read back through the remote interface or
+      the export is the original); the Unit system setting converts every
+      convertible element on the next experiment load and leaves the
+      exclusions alone. Specified 2026-09-30 ahead of the implementations.
+
   - id: corpus-invalid-reject
     area: file-format
     tier: T0

@@ -31,7 +31,8 @@ A reference names the unit *logically*. The app shows the unit's symbol from its
 table, never text from the experiment file, and it knows what the unit measures, so it can
 convert the values to any other unit of the same quantity — a length shown in metres can be shown
 in centimetres or in feet at the user's request ([Conversion in the app](#conversion-in-the-app)).
-The ids are English words, so they can be typed on any keyboard; `@micro_tesla` displays as µT.
+The ids are English words, so they can be typed on any keyboard; `@micro_tesla` displays as µT
+(with the micro sign U+00B5, which is the character the apps use for every micro- prefix).
 
 Anything that is not a unit reference is **text**: `unit="m/s³"`, `unitYperX="rad/s²"`,
 `unit="m (WGS84)"`. Text is shown exactly as written, can be translated through the

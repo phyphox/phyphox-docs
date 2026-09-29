@@ -478,18 +478,34 @@ def _check_units():
                            "res", "values", "strings.xml")
     ios = os.path.join(ROOT, "..", "phyphox-ios", "phyphox-iOS", "phyphox",
                        "en.lproj", "Localizable.strings")
-    required = [u["id"] for u in units
-                if u.get("placeholder") or doc.get("agreement") == "agreed"]
-    for label, p, rx in (("Android", android, r'name="common_unit_short_([a-z0-9_]+)"'),
-                         ("iOS", ios, r'"common_unit_short_([a-z0-9_]+)"\s*=')):
+    agreed = doc.get("agreement") == "agreed"
+    required = [u["id"] for u in units if u.get("placeholder") or agreed]
+    symbol = {u["id"]: str(u.get("symbol")) for u in units}
+    warnings = []
+    for label, p, rx in (("Android", android,
+                          r'name="common_unit_short_([a-z0-9_]+)">([^<]*)<'),
+                         ("iOS", ios,
+                          r'"common_unit_short_([a-z0-9_]+)"\s*=\s*"([^"]*)"')):
         if not os.path.exists(p):
             continue
         with open(p, encoding="utf-8") as f:
-            have = set(re.findall(rx, f.read()))
+            have = dict(re.findall(rx, f.read()))
         missing = [i for i in required if i not in have]
         if missing:
             problems.append(f"{label} string table has no common_unit_short_ "
                             f"entry for: {', '.join(missing)}")
+        # the English symbol is the spec's symbol, byte for byte - this is
+        # what keeps U+00B5 and U+03BC from being mixed again
+        differ = [f"{i} ({have[i]!r} vs {symbol[i]!r})" for i in required
+                  if i in have and have[i] != symbol[i]]
+        if differ:
+            (problems if agreed else warnings).append(
+                f"{label} English symbol differs from spec/units.yml for: "
+                + ", ".join(differ))
+    for w in warnings:
+        # not yet a build failure: the apps have not implemented the table,
+        # and the unification of the micro sign is on their handoff lists
+        print(f"WARNING - spec/units.yml: {w}")
     if problems:
         raise ValueError("spec/units.yml: " + "; ".join(problems))
 

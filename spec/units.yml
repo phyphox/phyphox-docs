@@ -33,10 +33,14 @@
 #   formula      optional display form of the conversion for the docs, where
 #                "1 X = scale base" does not read well (temperature).
 #
-# Symbols: `µ` is U+00B5 MICRO SIGN throughout. Note the app string tables
-# write micro_meter with U+03BC GREEK SMALL LETTER MU and micro_tesla with
-# U+00B5 (both platforms, since 2021); the display is identical, the table
-# here is the reference.
+# Symbols: `µ` is U+00B5 MICRO SIGN throughout - the character keyboards
+# produce (AltGr+M) and the one 40 of the app's locales already use in µT.
+# Decided 2026-09-30, because the app string tables were mixed: micro_meter
+# with U+03BC GREEK SMALL LETTER MU, micro_tesla with U+00B5 (both platforms,
+# since 2021). The English string of every unit must equal `symbol` here;
+# tools/hooks.py (_check_units) compares them when the app checkouts sit
+# next to this repository - a warning until the table is agreed, an error
+# afterwards - so the two tables cannot drift apart again.
 
 units:
   since: "1.21"
