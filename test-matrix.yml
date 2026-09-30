@@ -858,3 +858,33 @@ tests:
       ISO or shutter speed change. With feature spectroscopy the three
       linear outputs hold exactly as many values as pixelPosition on every
       frame, while red, green and blue keep one value per frame.
+
+  # The analyzers' shader math on generated frames instead of camera frames:
+  # a bitmap drawn into the same kind of texture the camera delivers, every
+  # analyzer run on it, expected values from a per-pixel reference. Written
+  # 2026-09-30 on Android, where it found three defects of the GPU reduction
+  # (carries counted as 256 instead of 255 units, fractional carries rounded
+  # after bilinear filtering, edge samples duplicated by clamp-to-edge and
+  # counted at every step); fixed there the same day.
+
+  - id: camera-analyzer-math
+    area: file-format
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Every camera analyzer on synthetic frames fed through the camera's own
+      texture path, offscreen and without a camera. On a uniform frame
+      red, green, blue, luma, luminance, the linear channels, hue,
+      saturation and value equal their per-pixel formulas (1e-4, hue 0.1
+      degrees); the exposure factor scales only the linear outputs; a
+      region of interest returns exactly its quadrant of a four-colour
+      frame; a frame whose size is no multiple of four (ramps plus a
+      pseudo-random channel) reproduces the CPU means of every channel to
+      3e-4, i.e. the partial tiles of each reduction step carry the right
+      weight; hue is the direction of the mean unit vector (a half frame
+      just below 360 degrees with a half frame just above 0 averages to 0,
+      not 180), checked on sweeps and ramps whose mean vector is not short;
+      under spectroscopy a ramp along the spectrum axis comes back as one
+      exact value per pixel and a ramp across it as a flat spectrum, in
+      both orientations, with the exposure factor applied.
