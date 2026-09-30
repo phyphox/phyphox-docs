@@ -968,7 +968,7 @@ elements:
             Value according to the HSV color model, ranging from 0 to 1.
         - name: red
           since: "1.21"
-          agreement: planned
+          agreement: agreed
           summary: >-
             Mean of the gamma-encoded red channel.
           description: >-
@@ -980,7 +980,7 @@ elements:
             frame, with either feature.
         - name: green
           since: "1.21"
-          agreement: planned
+          agreement: agreed
           summary: >-
             Mean of the gamma-encoded green channel.
           description: >-
@@ -992,7 +992,7 @@ elements:
             frame, with either feature.
         - name: blue
           since: "1.21"
-          agreement: planned
+          agreement: agreed
           summary: >-
             Mean of the gamma-encoded blue channel.
           description: >-
@@ -1004,7 +1004,7 @@ elements:
             frame, with either feature.
         - name: linearRed
           since: "1.21"
-          agreement: planned
+          agreement: agreed
           summary: >-
             Linear, exposure-normalized red channel.
           description: >-
@@ -1021,7 +1021,7 @@ elements:
             i-th value belonging to the i-th position.
         - name: linearGreen
           since: "1.21"
-          agreement: planned
+          agreement: agreed
           summary: >-
             Linear, exposure-normalized green channel.
           description: >-
@@ -1038,7 +1038,7 @@ elements:
             i-th value belonging to the i-th position.
         - name: linearBlue
           since: "1.21"
-          agreement: planned
+          agreement: agreed
           summary: >-
             Linear, exposure-normalized blue channel.
           description: >-

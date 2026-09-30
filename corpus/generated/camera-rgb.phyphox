@@ -1,7 +1,7 @@
 <phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
     <!-- Generated fixture: the colour-channel outputs of the camera input
-         (file format 1.21, planned - see spec/input.yml, camera components,
-         and docs/file-format/input.md "Colour channels"). Every camera
+         (file format 1.21, see spec/input.yml, camera components, and
+         docs/file-format/input.md "Colour channels"). Every camera
          output mapped once with the photometric feature, so the six new
          components red, green, blue, linearRed, linearGreen and linearBlue
          sit next to the combined quantities they decompose. A parsing

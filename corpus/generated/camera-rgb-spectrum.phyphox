@@ -1,7 +1,7 @@
 <phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
     <!-- Generated fixture: the linear colour-channel outputs of the camera
-         input under the spectroscopy feature (file format 1.21, planned -
-         see spec/input.yml, camera components, and
+         input under the spectroscopy feature (file format 1.21, see
+         spec/input.yml, camera components, and
          docs/file-format/input.md "Colour channels"). linearRed, linearGreen
          and linearBlue carry a spectrum each, paired with pixelPosition like
          luminance; red, green and blue stay per-frame values, so this file

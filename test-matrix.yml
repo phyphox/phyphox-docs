@@ -849,7 +849,7 @@ tests:
     area: file-format
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       On a steady scene, per frame and within rounding: luma equals
       0.2126·red + 0.7152·green + 0.0722·blue, and luminance equals the same
@@ -871,7 +871,7 @@ tests:
     area: file-format
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Every camera analyzer on synthetic frames fed through the camera's own
       texture path, offscreen and without a camera. On a uniform frame

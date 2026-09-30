@@ -69,8 +69,8 @@ same day on both platforms, in the remote interface and in the editor:
   interface's data endpoints carry the original values; the remote interface converts in the
   browser.
 
-Specified 2026-09-30 ahead of the implementations (marked *planned* in the reference until both
-apps ship it):
+Specified 2026-09-30 ahead of the implementations and implemented from that specification the
+same day on both platforms:
 
 - **Colour channels of the camera input:** the outputs *red*, *green* and *blue* (mean of the
   gamma-encoded channel, 0 to 1) and *linearRed*, *linearGreen* and *linearBlue* (linearized and
