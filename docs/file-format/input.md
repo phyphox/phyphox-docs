@@ -58,7 +58,7 @@ Since file format 1.21 the three colour channels are available next to the combi
     luma      = 0.2126 · red       + 0.7152 · green       + 0.0722 · blue
     luminance = 0.2126 · linearRed + 0.7152 · linearGreen + 0.0722 · linearBlue
 
-Two limits are worth knowing. The linearization undoes only the sRGB curve, not the tone mapping inside the phone's image pipeline, so the linear channels are not raw sensor values. And the channel ratios follow the phone's automatic white balance, which neither app controls yet; a colour measured this way is comparable within a frame, but it can drift between frames when the white balance adapts.
+Two limits are worth knowing. The linearization undoes only the sRGB curve, not the tone mapping inside the phone's image pipeline, so the linear channels are not raw sensor values. And the channel ratios follow the camera's white balance. Both apps let the user pick a white balance preset in the *camera-gui* element (at *exposure_adjustment_level* 3), but a file cannot set or lock it yet, and the default is the phone's automatic white balance; a colour measured under it is comparable within a frame, but it can drift between frames when the white balance adapts.
 
 With *feature* set to "spectroscopy", *linearRed*, *linearGreen* and *linearBlue* carry a spectrum each, alongside *luminance* and paired with *pixelPosition* in the same way. *red*, *green* and *blue* stay one value per frame, like *luma*, *hue*, *saturation* and *value*.
 
