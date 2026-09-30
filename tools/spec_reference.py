@@ -515,6 +515,9 @@ def _components(element, mapping, spec, state):
         bits = []
         if comp.get("required"):
             bits.append("*required*")
+        # `planned`: specified ahead of the implementations, like an attribute
+        if comp.get("agreement") == "planned":
+            bits.append("**planned, not yet implemented**")
         badge = _since_badge(comp.get("since"), spec, state.link_prefix)
         if bits or badge:
             entry.append(":   " + (badge + " " if badge else "")

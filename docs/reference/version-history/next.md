@@ -69,6 +69,16 @@ same day on both platforms, in the remote interface and in the editor:
   interface's data endpoints carry the original values; the remote interface converts in the
   browser.
 
+Specified 2026-09-30 ahead of the implementations (marked *planned* in the reference until both
+apps ship it):
+
+- **Colour channels of the camera input:** the outputs *red*, *green* and *blue* (mean of the
+  gamma-encoded channel, 0 to 1) and *linearRed*, *linearGreen* and *linearBlue* (linearized and
+  exposure-normalized like *luminance*), defined so that *luma* and *luminance* are exactly the
+  BT.709 combination of the respective triple. With the spectroscopy feature the three linear
+  channels carry a spectrum each, paired with *pixelPosition* like *luminance* (see
+  [Colour channels](../../file-format/input.md#colour-channels)).
+
 ## Changes on Android and iOS
 
 - An empty graph explains itself: "No data" while nothing has been measured, "No valid data" when every point is NaN or one axis has no values, and "No data in range" with an arrow towards the nearest point when the data lies outside the current zoom or a fixed range (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots)).

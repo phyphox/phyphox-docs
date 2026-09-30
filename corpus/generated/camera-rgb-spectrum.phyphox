@@ -1,0 +1,62 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <!-- Generated fixture: the linear colour-channel outputs of the camera
+         input under the spectroscopy feature (file format 1.21, planned -
+         see spec/input.yml, camera components, and
+         docs/file-format/input.md "Colour channels"). linearRed, linearGreen
+         and linearBlue carry a spectrum each, paired with pixelPosition like
+         luminance; red, green and blue stay per-frame values, so this file
+         maps them too. A parsing fixture, not a maintained experiment. -->
+    <title>Corpus: camera colour spectra</title>
+    <category>Corpus</category>
+    <description>Generated coverage fixture for the linear colour-channel outputs of the camera input with the spectroscopy feature.</description>
+    <data-containers>
+        <container size="0">t</container>
+        <container size="0">pixelPosition</container>
+        <container size="0">luminance</container>
+        <container size="0">linearRed</container>
+        <container size="0">linearGreen</container>
+        <container size="0">linearBlue</container>
+        <container size="0">red</container>
+        <container size="0">green</container>
+        <container size="0">blue</container>
+    </data-containers>
+    <input>
+        <camera feature="spectroscopy" x1="0.2" x2="0.8" y1="0.45" y2="0.55" auto_exposure="true" aeStrategy="avoidOverexposure">
+            <output component="t">t</output>
+            <output component="pixelPosition">pixelPosition</output>
+            <output component="luminance">luminance</output>
+            <output component="linearRed">linearRed</output>
+            <output component="linearGreen">linearGreen</output>
+            <output component="linearBlue">linearBlue</output>
+            <output component="red">red</output>
+            <output component="green">green</output>
+            <output component="blue">blue</output>
+        </camera>
+    </input>
+    <views>
+        <view label="Spectrum">
+            <graph label="Spectrum per channel" labelX="pixel" labelY="linear channel">
+                <input axis="x" color="red">pixelPosition</input>
+                <input axis="y">linearRed</input>
+                <input axis="x" color="green">pixelPosition</input>
+                <input axis="y">linearGreen</input>
+                <input axis="x" color="blue">pixelPosition</input>
+                <input axis="y">linearBlue</input>
+                <input axis="x" color="white">pixelPosition</input>
+                <input axis="y">luminance</input>
+            </graph>
+            <camera-gui label="Preview" exposure_adjustment_level="3"/>
+        </view>
+    </views>
+    <analysis>
+    </analysis>
+    <export>
+        <set name="Spectra">
+            <data name="pixel">pixelPosition</data>
+            <data name="luminance">luminance</data>
+            <data name="linear red">linearRed</data>
+            <data name="linear green">linearGreen</data>
+            <data name="linear blue">linearBlue</data>
+        </set>
+    </export>
+</phyphox>

@@ -837,3 +837,24 @@ tests:
       separator, a value and a map colour stop is blended with what lies
       below, in dark and in light mode (the light-mode adjustment keeps the
       alpha), and a six-digit colour stays opaque.
+
+  # --- camera colour channels (file format 1.21, specified 2026-09-30, planned) --
+  # spec/input.yml (camera components red, green, blue, linearRed, linearGreen,
+  # linearBlue) and docs/file-format/input.md "Colour channels" are the design.
+  # Parsing is covered by corpus-valid-load through
+  # corpus/generated/camera-rgb.phyphox and camera-rgb-spectrum.phyphox; this
+  # row covers the values.
+
+  - id: camera-color-channels
+    area: file-format
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      On a steady scene, per frame and within rounding: luma equals
+      0.2126·red + 0.7152·green + 0.0722·blue, and luminance equals the same
+      combination of linearRed, linearGreen and linearBlue; the linear
+      channels scale with the exposure factor the way luminance does when
+      ISO or shutter speed change. With feature spectroscopy the three
+      linear outputs hold exactly as many values as pixelPosition on every
+      frame, while red, green and blue keep one value per frame.

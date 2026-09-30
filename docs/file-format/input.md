@@ -37,7 +37,7 @@ The bluetooth block defines an input from a Bluetooth Low Energy device. Please 
 
 ## Input module: camera
 
-Get data from the phone's camera(s). At the time of phyphox file format 1.19 (phyphox 1.2.0) this data is photometric data, but this is expected to be expanded in the future.
+Get data from the phone's camera(s). At the time of phyphox file format 1.19 (phyphox 1.2.0) this data is photometric data, extended in file format 1.21 by the individual colour channels, and this is expected to be expanded further in the future.
 
 ### Photometric measurements
 
@@ -50,6 +50,17 @@ The camera input is typically used together with a *camera-gui* view element (se
 The framerate of your measurement will depend on your phone's camera. Different cameras on the same phone can have different framerates and the exposure setting can also reduce the framerate if the exposure time (shutter speed) is longer than the duration of a frame. This could be a reason to lock the shutter_speed, but in most scenarios the better solution is using an auto exposure strategy *aeStrategy* for this.
 
 The photometric properties are calculated on the GPU, so keeping up a high framerate is not limited by processing power on most phones.
+
+### Colour channels
+
+Since file format 1.21 the three colour channels are available next to the combined quantities, in two forms that mirror the pair *luma* and *luminance*. The outputs *red*, *green* and *blue* are the mean of the gamma-encoded channel over the selected area, from 0 to 1, exactly as the camera pipeline delivers it - sRGB-like, tone-mapped and white-balanced by the phone. The outputs *linearRed*, *linearGreen* and *linearBlue* linearize each pixel with the sRGB transfer function and apply the same exposure normalization as *luminance*, so that 1 corresponds to a white image at ISO 100, 1/60 s and f/1. Both triples are averaged the way their combined counterpart is, which gives two identities that hold for every frame:
+
+    luma      = 0.2126 · red       + 0.7152 · green       + 0.0722 · blue
+    luminance = 0.2126 · linearRed + 0.7152 · linearGreen + 0.0722 · linearBlue
+
+Two limits are worth knowing. The linearization undoes only the sRGB curve, not the tone mapping inside the phone's image pipeline, so the linear channels are not raw sensor values. And the channel ratios follow the phone's automatic white balance, which neither app controls yet; a colour measured this way is comparable within a frame, but it can drift between frames when the white balance adapts.
+
+With *feature* set to "spectroscopy", *linearRed*, *linearGreen* and *linearBlue* carry a spectrum each, alongside *luminance* and paired with *pixelPosition* in the same way. *red*, *green* and *blue* stay one value per frame, like *luma*, *hue*, *saturation* and *value*.
 
 {{spec:input/input/camera}}
 

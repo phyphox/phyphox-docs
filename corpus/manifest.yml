@@ -56,6 +56,12 @@
 - file: generated/bluetooth-mode-default.phyphox
   version: "1.7"
   adds: []
+- file: generated/camera-rgb-spectrum.phyphox
+  version: "1.21"
+  adds: []
+- file: generated/camera-rgb.phyphox
+  version: "1.21"
+  adds: []
 - file: generated/events-state.phyphox
   version: "1.20"
   adds:

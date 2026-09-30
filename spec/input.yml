@@ -904,9 +904,11 @@ elements:
             One value per frame - luma, luminance, hue, saturation or value -
             averaged over the selected area.
           spectroscopy: >-
-            A spectrum per frame, taken across the selected area. Only the
-            luminance output receives the spectrum, paired with the
-            pixelPosition output; no other component carries spectral data.
+            A spectrum per frame, taken across the selected area. The
+            luminance output and, since file format 1.21, linearRed,
+            linearGreen and linearBlue receive the spectrum, each paired
+            with the pixelPosition output; every other output keeps
+            delivering its per-frame value.
         agreement: agreed
         rules: [enum-case-insensitive, enum-invalid-value]
         note: >-
@@ -917,8 +919,11 @@ elements:
           LuminanceAnalyzer is not registered. The luma, hue, saturation and
           value analyzers are registered regardless of the feature on both
           platforms, so those outputs keep delivering their per-frame
-          photometric averages even in spectroscopy mode - the docs do not
-          promise that, it is just what both implementations happen to do.
+          photometric averages even in spectroscopy mode. Until 2026-09-30
+          the docs did not promise that; the colour-channel addition of
+          file format 1.21 made it part of the contract, because the split
+          between scalar and spectral outputs has to be stated for the new
+          components anyway.
 
     outputs:
       attribute: component
@@ -961,6 +966,93 @@ elements:
             Value, in the HSV sense.
           description: >-
             Value according to the HSV color model, ranging from 0 to 1.
+        - name: red
+          since: "1.21"
+          agreement: planned
+          summary: >-
+            Mean of the gamma-encoded red channel.
+          description: >-
+            Mean of the gamma-encoded red channel over the selected area,
+            from 0 to 1, as delivered by the camera pipeline - sRGB-like,
+            already tone-mapped and white-balanced by the phone. The three
+            channels are averaged the same way luma is, so for every frame
+            luma = 0.2126·red + 0.7152·green + 0.0722·blue. One value per
+            frame, with either feature.
+        - name: green
+          since: "1.21"
+          agreement: planned
+          summary: >-
+            Mean of the gamma-encoded green channel.
+          description: >-
+            Mean of the gamma-encoded green channel over the selected area,
+            from 0 to 1, as delivered by the camera pipeline - sRGB-like,
+            already tone-mapped and white-balanced by the phone. The three
+            channels are averaged the same way luma is, so for every frame
+            luma = 0.2126·red + 0.7152·green + 0.0722·blue. One value per
+            frame, with either feature.
+        - name: blue
+          since: "1.21"
+          agreement: planned
+          summary: >-
+            Mean of the gamma-encoded blue channel.
+          description: >-
+            Mean of the gamma-encoded blue channel over the selected area,
+            from 0 to 1, as delivered by the camera pipeline - sRGB-like,
+            already tone-mapped and white-balanced by the phone. The three
+            channels are averaged the same way luma is, so for every frame
+            luma = 0.2126·red + 0.7152·green + 0.0722·blue. One value per
+            frame, with either feature.
+        - name: linearRed
+          since: "1.21"
+          agreement: planned
+          summary: >-
+            Linear, exposure-normalized red channel.
+          description: >-
+            The red channel linearized per pixel with the sRGB transfer
+            function, averaged over the selected area and scaled by the
+            same exposure factor as luminance, so that 1 represents a white
+            image at ISO 100, a shutter speed of 1/60 s and an aperture of
+            f/1. For every frame luminance = 0.2126·linearRed +
+            0.7152·linearGreen + 0.0722·linearBlue. The linearization undoes
+            only the sRGB curve, not the tone mapping of the phone's image
+            pipeline; this is not a raw sensor value. With the spectroscopy
+            feature this output carries a spectrum like luminance: exactly
+            as many values as pixelPosition, written together with it, the
+            i-th value belonging to the i-th position.
+        - name: linearGreen
+          since: "1.21"
+          agreement: planned
+          summary: >-
+            Linear, exposure-normalized green channel.
+          description: >-
+            The green channel linearized per pixel with the sRGB transfer
+            function, averaged over the selected area and scaled by the
+            same exposure factor as luminance, so that 1 represents a white
+            image at ISO 100, a shutter speed of 1/60 s and an aperture of
+            f/1. For every frame luminance = 0.2126·linearRed +
+            0.7152·linearGreen + 0.0722·linearBlue. The linearization undoes
+            only the sRGB curve, not the tone mapping of the phone's image
+            pipeline; this is not a raw sensor value. With the spectroscopy
+            feature this output carries a spectrum like luminance: exactly
+            as many values as pixelPosition, written together with it, the
+            i-th value belonging to the i-th position.
+        - name: linearBlue
+          since: "1.21"
+          agreement: planned
+          summary: >-
+            Linear, exposure-normalized blue channel.
+          description: >-
+            The blue channel linearized per pixel with the sRGB transfer
+            function, averaged over the selected area and scaled by the
+            same exposure factor as luminance, so that 1 represents a white
+            image at ISO 100, a shutter speed of 1/60 s and an aperture of
+            f/1. For every frame luminance = 0.2126·linearRed +
+            0.7152·linearGreen + 0.0722·linearBlue. The linearization undoes
+            only the sRGB curve, not the tone mapping of the phone's image
+            pipeline; this is not a raw sensor value. With the spectroscopy
+            feature this output carries a spectrum like luminance: exactly
+            as many values as pixelPosition, written together with it, the
+            i-th value belonging to the i-th position.
         - name: shutterSpeed
           summary: >-
             Shutter speed in use.
@@ -993,8 +1085,9 @@ elements:
           description: >-
             Position within the spectrum, for the spectroscopy feature. This
             output holds exactly as many values as the matching luminance
-            output - the two are written together, so the i-th luminance
-            value belongs to the i-th position. The positions are absolute
+            output and, since file format 1.21, the linearRed, linearGreen
+            and linearBlue outputs - all are written together, so the i-th
+            value of each belongs to the i-th position. The positions are absolute
             pixel indices along the dispersion axis of the camera image, so
             a calibration stays valid when the user moves the selected area.
         # A "wavelength" component existed here as part of a superseded
