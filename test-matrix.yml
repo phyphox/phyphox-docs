@@ -905,9 +905,11 @@ tests:
     description: >-
       With locked="white_balance=T" and a neutral target lit by a source of
       colour temperature T, linearRed, linearGreen and linearBlue agree
-      within tolerance; raising T makes the target bluer and lowering it
-      redder in the linear channels; a positive white_balance_tint shifts a
-      target that was neutral towards magenta, a negative one towards green.
+      within tolerance; a setting above the source's temperature makes the
+      target redder and one below it bluer in the linear channels (the
+      camera convention: the setting names the light to correct for); a
+      positive white_balance_tint shifts a target that was neutral towards
+      magenta, a negative one towards green.
       With locked="white_balance" and no value, the channel ratios of a
       static scene stay constant between frames after the first start while
       the illumination colour is changed, where they would drift under
