@@ -10,8 +10,12 @@
 # interface), which must carry exactly these numbers.
 #
 # Decided by the maintainer 2026-09-29/30 (specification ahead of the
-# implementations, like the view groups). No app reads unit references yet;
-# `agreement: planned` flips to agreed once both apps ship them.
+# implementations, like the view groups). Implemented from it on both apps'
+# development branches, in the web interface and in the editor by
+# 2026-09-30 (Android 326a4c3c, iOS f995e6a8, webinterface c4bf958, editor
+# ed3b152); the editor generates its table from this file
+# (scripts/generate-units.mjs), the apps and the web interface copy it and
+# were compared line by line when the agreement was flipped.
 #
 # Fields per unit:
 #   id           the reference is `@<id>`; the app's symbol string resource is
@@ -44,7 +48,7 @@
 
 units:
   since: "1.21"
-  agreement: planned
+  agreement: agreed
   systems: [metric, imperial, common]
   quantities:
     - {name: length,                base: meter}

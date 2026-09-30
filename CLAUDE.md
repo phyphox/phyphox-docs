@@ -417,4 +417,7 @@ proven against the corpus on every build) is done, and so is phase 4b's app half
 both apps run the corpus in their own test suites with T0 CI, kept in step by `test-matrix.yml`
 and its checker. What is left of 4b is wiring the corpus into the editor test suite (deferred
 until the editor is picked up again), and phase 5, making the Blockly editor consume the spec
-instead of encoding the format a fifth time.
+instead of encoding the format a fifth time. Phase 5 has its first piece since 2026-09-30: the
+editor's unit picker is generated from `spec/units.yml` (`scripts/generate-units.mjs`, with a
+test that fails when the committed table drifts from the spec) - the pattern the rest of
+phase 5 should follow.

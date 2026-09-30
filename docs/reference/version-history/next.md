@@ -54,7 +54,8 @@ interface and in the editor from that specification:
 - **`spacing`** on vertical, horizontal and grid inserts a gap between the children, in text
   line heights (see [Sizing](../../file-format/views/groups.md#sizing)).
 
-Specified 2026-09-30 ahead of the implementations (Android first, then iOS and the editor):
+Specified 2026-09-30 ahead of the implementations and implemented from that specification the
+same day on both platforms, in the remote interface and in the editor:
 
 - **Unit references:** the *unit* attributes of value, edit and graph (*unit*, *unitX*, *unitY*,
   *unitZ*, *unitYperX*) take `@id` naming one of the [known units](../../file-format/units.md)

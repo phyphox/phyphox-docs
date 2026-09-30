@@ -420,13 +420,28 @@ rules:
     applies_to: "every attribute with type: unit"
     state:
       android: >-
-        Not implemented (2026-09-30): PhyphoxFile.translate() resolves the
-        placeholder to a string after the translation-block lookup and the
-        elements store strings. Planned; see the Android handoff.
+        Conforms as of the development branch (326a4c3c, 2026-09-30): the
+        unit attributes are parsed to a Unit (Units.java holds the table
+        from spec/units.yml), `@id` at file format 1.21 and the deprecated
+        placeholder in any version resolve to it, everything else stays
+        text; the Unit system setting (key unitSystem) and the per-element
+        dialog convert what the elements display, the remote server emits
+        the logical unit. Tests: UnitReferenceParseTest,
+        UnitConversionDisplayTest, GraphUnitConversionTest (Robolectric),
+        UnitConversionUiTest (instrumented).
       ios: >-
-        Not implemented (2026-09-30): ExperimentTranslationCollection.
-        localizeString() resolves the placeholder to a string and the view
-        descriptors store strings. Planned; follows Android.
+        Conforms as of the development branch (f995e6a8 and 8f290c93,
+        2026-09-30): Helper/Units.swift holds the table, the view
+        descriptors carry the logical unit, the Settings-app entry
+        unitSystem and the dialog convert the display, the web server emits
+        the logical unit. Tests: UnitReferenceParseTests,
+        UnitConversionDisplayTests (XCTest), UnitConversionUITests.
+      editor: >-
+        The unit attributes offer a preset picker generated from
+        spec/units.yml (ed3b152, 2026-09-30; scripts/generate-units.mjs
+        with a --check mode and tests/units.test.ts comparing the committed
+        table with the spec); `@id` and the placeholder load into the
+        preset, the editor writes `@id`.
     check: >-
       Adding a unit means a row in spec/units.yml AND a string
       common_unit_short_<id> in both app string tables; the docs build

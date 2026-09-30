@@ -4,8 +4,9 @@
     Unit references are part of file format 1.21, which the
     [next release](../reference/version-history/next.md) carries. A file using them must declare
     that version, and every app released before it refuses such a file. This page was written
-    ahead of the implementations (2026-09-30): it is the design the apps, the remote interface and
-    the editor are built from.
+    ahead of the implementations (2026-09-30), which followed it the same day on both apps'
+    development branches, in the remote interface and in the editor; it remains the definition
+    they are checked against.
 
 Several view elements show a unit next to a number: the [value](views/basics.md#view-element-value)
 and [edit](views/user-input.md#view-element-edit) elements with their *unit* attribute, and the
@@ -68,8 +69,9 @@ added with 1.21 have no placeholder form, only the reference.
 
 ## Known units
 
-The table is generated from `spec/units.yml`, which is the single source for the validators and
-for the conversion tables of the apps and the remote interface. Units of one quantity convert
+The table is generated from `spec/units.yml`, which is the single source for the validators,
+for the editor's unit picker (generated from it at build time) and for the conversion tables of
+the apps and the remote interface, which copy it. Units of one quantity convert
 into each other through the quantity's base unit; the *conversion* column gives the factor to
 that base unit. *System* is metric, imperial or common (neither — a unit the unit-system setting
 never touches); *counterpart* is the unit the app switches to when the user forces the other

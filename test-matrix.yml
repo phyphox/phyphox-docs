@@ -57,21 +57,22 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The unit attributes are parsed to logical units (spec/rules.yml,
       unit-reference; spec/units.yml): in a 1.21 file `@meter` yields the
       known unit meter, shown with the app's symbol; `[[unit_short_meter]]`
       yields the same unit in any version; a literal `m`, an `@meter` in a
       file declaring 1.20, and an unknown `@metre` in a 1.21 file are custom
-      text, shown verbatim and not convertible. Specified 2026-09-30 ahead of
-      the implementations; flip to active once both parsers carry the tag.
+      text, shown verbatim and not convertible (UnitReferenceParseTest /
+      UnitReferenceParseTests). Specified 2026-09-30 ahead of the
+      implementations, active the same day.
 
   - id: unit-conversion-display
     area: ui
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       What the view elements DISPLAY follows the unit conversion
       (docs/file-format/units.md, "Conversion in the app"), checked on the
@@ -86,15 +87,16 @@ tests:
       slope unit once an axis is switched, and that text units, a value
       with positiveUnit/negativeUnit and an edit with decimal="false" are
       untouched. Android: Robolectric against the elements and GraphView
-      (like GraphTicLabelTest); iOS: XCTest against the view descriptors
-      and the graph module. Specified 2026-09-30 ahead of the
-      implementations.
+      (UnitConversionDisplayTest, GraphUnitConversionTest); iOS: XCTest
+      against the view descriptors and the graph module
+      (UnitConversionDisplayTests). Specified 2026-09-30 ahead of the
+      implementations, active the same day.
 
   - id: unit-conversion-ui
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The user-facing path of the unit conversion on the running app
       (Espresso / XCUITest, on the emulator or simulator, with
@@ -106,7 +108,9 @@ tests:
       change (the buffer value read back through the remote interface or
       the export is the original); the Unit system setting converts every
       convertible element on the next experiment load and leaves the
-      exclusions alone. Specified 2026-09-30 ahead of the implementations.
+      exclusions alone (UnitConversionUiTest / UnitConversionUITests).
+      Specified 2026-09-30 ahead of the implementations, active the same
+      day.
 
   - id: corpus-invalid-reject
     area: file-format
