@@ -79,6 +79,18 @@ same day on both platforms:
   channels carry a spectrum each, paired with *pixelPosition* like *luminance* (see
   [Colour channels](../../file-format/input.md#colour-channels)).
 
+Specified 2026-10-01 ahead of the implementations (marked *planned* in the reference until both
+apps ship it):
+
+- **White balance in the camera's *locked* attribute:** `white_balance` alone freezes the
+  automatic white balance when the measurement is first started; `white_balance=5600` balances
+  for a correlated colour temperature in Kelvin; `white_balance_tint` shifts the white point off
+  the Planckian locus as Duv. The format knows no named presets - the phones' presets are only
+  approximations that differ per device. The camera-gui's preset picker becomes a control with
+  the same three choices, automatic, locked, or a temperature scale with tint, carrying the old
+  preset names as reference marks (see
+  [White balance](../../file-format/input.md#white-balance)).
+
 ## Changes on Android and iOS
 
 - An empty graph explains itself: "No data" while nothing has been measured, "No valid data" when every point is NaN or one axis has no values, and "No data in range" with an arrow towards the nearest point when the data lies outside the current zoom or a fixed range (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots)).

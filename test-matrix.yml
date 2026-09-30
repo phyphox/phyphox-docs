@@ -888,3 +888,31 @@ tests:
       under spectroscopy a ramp along the spectrum axis comes back as one
       exact value per pixel and a ramp across it as a flat spectrum, in
       both orientations, with the exposure factor applied.
+
+  # --- camera white balance (file format 1.21, specified 2026-10-01, planned) --
+  # spec/input.yml (camera locked: white_balance, white_balance_tint) and
+  # docs/file-format/input.md "White balance" are the design. Parsing is
+  # covered by corpus-valid-load through corpus/generated/camera-white-
+  # balance-lock.phyphox and camera-white-balance-temperature.phyphox, but
+  # both apps ignore unknown locked entries, so those files load before the
+  # feature exists; this row carries the behaviour.
+
+  - id: camera-white-balance
+    area: file-format
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      With locked="white_balance=T" and a neutral target lit by a source of
+      colour temperature T, linearRed, linearGreen and linearBlue agree
+      within tolerance; raising T makes the target bluer and lowering it
+      redder in the linear channels; a positive white_balance_tint shifts a
+      target that was neutral towards magenta, a negative one towards green.
+      With locked="white_balance" and no value, the channel ratios of a
+      static scene stay constant between frames after the first start while
+      the illumination colour is changed, where they would drift under
+      automatic white balance. In both forms the camera-gui's white balance
+      control is disabled and shows the value in effect; a clamped
+      temperature is shown as clamped. The camera-gui control at level 3
+      offers automatic, locked and a temperature scale with tint; the
+      reference marks on the scale set nothing but a temperature.

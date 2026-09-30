@@ -58,9 +58,25 @@ Since file format 1.21 the three colour channels are available next to the combi
     luma      = 0.2126 · red       + 0.7152 · green       + 0.0722 · blue
     luminance = 0.2126 · linearRed + 0.7152 · linearGreen + 0.0722 · linearBlue
 
-Two limits are worth knowing. The linearization undoes only the sRGB curve, not the tone mapping inside the phone's image pipeline, so the linear channels are not raw sensor values. And the channel ratios follow the camera's white balance. Both apps let the user pick a white balance preset in the *camera-gui* element (at *exposure_adjustment_level* 3), but a file cannot set or lock it yet, and the default is the phone's automatic white balance; a colour measured under it is comparable within a frame, but it can drift between frames when the white balance adapts.
+Two limits are worth knowing. The linearization undoes only the sRGB curve, not the tone mapping inside the phone's image pipeline, so the linear channels are not raw sensor values. And the channel ratios follow the white balance. Under the default automatic white balance a colour is comparable within a frame, but it can drift between frames when the camera adapts; with the white balance locked or set to a colour temperature (see [White balance](#white-balance) below), the linear channels are balanced for that illuminant and stay comparable between frames.
 
 With *feature* set to "spectroscopy", *linearRed*, *linearGreen* and *linearBlue* carry a spectrum each, alongside *luminance* and paired with *pixelPosition* in the same way. *red*, *green* and *blue* stay one value per frame, like *luma*, *hue*, *saturation* and *value*.
+
+### White balance
+
+Since file format 1.21 the white balance can be held through the *locked* attribute, in the same syntax as the exposure settings. It is always expressed by the physical white point, never by a device preset, because the presets that phone cameras offer are only approximations of the standard illuminants and differ from device to device.
+
+    locked="white_balance"                                  <!-- freeze the automatic result -->
+    locked="white_balance=5600"                             <!-- balance for 5600 K -->
+    locked="white_balance=3200,white_balance_tint=-0.004"   <!-- 3200 K, shifted towards magenta -->
+
+- *white_balance* without a value lets the automatic white balance run until the measurement is first started, freezes it at the state it has reached then, and keeps that state for the rest of the experiment. This is the cheapest and most universal form, and it is what most brightness or colour-change experiments want: the camera no longer adapts while the data is being taken, whatever the white point happens to be.
+- *white_balance* with a value is a correlated colour temperature in Kelvin. The image is balanced for an illuminant of that temperature, so a neutral surface lit by such a light gives equal *linearRed*, *linearGreen* and *linearBlue*.
+- *white_balance_tint* shifts that white point off the Planckian locus, measured as Duv, the distance in the CIE 1960 uv diagram: positive values move towards green, negative towards magenta. Typical adjustments are a few thousandths. The default is 0, and the entry is only meaningful together with a temperature; on its own it is ignored.
+
+Without a *white_balance* entry the automatic white balance stays active, as it always was. A temperature the device cannot reach is clamped, and the camera preview shows the value in effect, as it does for exposure settings. Either form disables the white balance control in the *camera-gui* element, which otherwise offers the same three choices to the user at *exposure_adjustment_level* 3: automatic, locked, or a temperature scale with a tint adjustment. That scale carries reference marks such as incandescent or daylight as a guide, but they are labels on the scale, not settings of their own.
+
+How the apps reach the requested white point differs by device, and the accuracy is not promised: where the camera offers a calibrated control by colour temperature, it is used; otherwise the camera is held at a fixed daylight white point and the correction to the requested illuminant is applied in phyphox's own image processing, for the preview and the measurement alike. On a device that offers neither, the automatic result is frozen and the temperature is only relative to that unknown starting point.
 
 {{spec:input/input/camera}}
 

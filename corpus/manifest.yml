@@ -62,6 +62,12 @@
 - file: generated/camera-rgb.phyphox
   version: "1.21"
   adds: []
+- file: generated/camera-white-balance-lock.phyphox
+  version: "1.21"
+  adds: []
+- file: generated/camera-white-balance-temperature.phyphox
+  version: "1.21"
+  adds: []
 - file: generated/events-state.phyphox
   version: "1.20"
   adds:

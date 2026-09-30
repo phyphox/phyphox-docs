@@ -1568,7 +1568,11 @@ elements:
           exposure result. Level 3 finally offers all controls,
           replacing the exposure value control from level 2 with
           shutter speed (exposure time), ISO and aperture and also
-          showing the white balance control.
+          showing the white balance control: automatic, locked, or a
+          colour temperature with a tint adjustment (see the camera
+          input's locked attribute). The temperature scale may carry
+          reference marks such as incandescent or daylight, which are
+          labels only; the format knows no named presets.
         type: integer
         default: 1
         summary: >-

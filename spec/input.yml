@@ -879,17 +879,52 @@ elements:
           value used by the simplified exposure control of the
           camera-gui element. focus_distance disables auto focus and
           fixes the focus distance, given in meters, with zero
-          meaning focus at infinity.
+          meaning focus at infinity. Since file format 1.21 the white
+          balance can be held as well, always by its physical white
+          point and never by a device preset: white_balance without a
+          value freezes the automatic white balance at the state it
+          has reached when the measurement is first started, for the
+          rest of the experiment; white_balance=5600 balances the
+          image for an illuminant of the given correlated colour
+          temperature in Kelvin, so that a neutral surface under that
+          light gives equal linear red, green and blue;
+          white_balance_tint=0.004 shifts that white point off the
+          Planckian locus by the given Duv distance in the CIE 1960
+          diagram, positive towards green and negative towards
+          magenta (default 0, only meaningful together with a
+          temperature and ignored on its own). Without a white_balance
+          entry the automatic white balance stays active. A temperature
+          the device cannot reach is clamped, and the camera-gui shows
+          the value in effect. Either form disables the white balance
+          control of the camera-gui element.
         type: string
         default: ""
         summary: >-
           Comma-separated camera settings to hold fixed, each optionally with a
-          value (`shutter_speed=1/500,iso=100`).
+          value (`shutter_speed=1/500,iso=100`); since 1.21 also the white
+          balance, by colour temperature and tint.
         agreement: agreed
         note: >-
           Both accept the same syntax including the shutter-speed fraction form,
           but they parse it in different places - iOS in the handler, Android
           further downstream. Worth a conformance test rather than trust.
+          The white_balance and white_balance_tint entries were specified
+          2026-10-01 ahead of the implementations (planned; both apps ignore
+          unknown entry names, so files carrying them load today and the
+          entries simply have no effect until the apps follow). Implementation
+          guidance, not contract: iOS converts temperature and Duv to a CIE xy
+          white point and asks AVCaptureDevice for the matching gains, clamped
+          to maxWhiteBalanceGain. Android uses the CCT colour-correction mode
+          of Android 16 where the device lists it; otherwise it holds the
+          camera in the daylight AWB mode as a D65 anchor and applies a
+          Bradford adaptation to the target white point in the analysis and
+          preview shaders; a device without the daylight mode falls back to
+          the AWB lock, where the temperature is relative to an unknown
+          anchor. Accuracy is not promised. Named presets were dropped
+          deliberately: Android's AWB modes are only approximately the
+          standard illuminants and vary per device, iOS has none, and the
+          two apps' preset lists disagreed (Android daylight is D65, iOS used
+          5600 K).
 
       - name: feature
         description: >-
