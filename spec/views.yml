@@ -1570,9 +1570,8 @@ elements:
           shutter speed (exposure time), ISO and aperture and also
           showing the white balance control: automatic, locked, or a
           colour temperature with a tint adjustment (see the camera
-          input's locked attribute). The temperature scale may carry
-          reference marks such as incandescent or daylight, which are
-          labels only; the format knows no named presets.
+          input's locked attribute). The scale carries no named
+          presets: the format knows none, and the apps offer none.
         type: integer
         default: 1
         summary: >-

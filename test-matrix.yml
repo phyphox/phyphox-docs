@@ -916,5 +916,5 @@ tests:
       automatic white balance. In both forms the camera-gui's white balance
       control is disabled and shows the value in effect; a clamped
       temperature is shown as clamped. The camera-gui control at level 3
-      offers automatic, locked and a temperature scale with tint; the
-      reference marks on the scale set nothing but a temperature.
+      offers automatic, locked and a temperature scale with tint, and no
+      named presets.
