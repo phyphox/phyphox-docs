@@ -889,19 +889,18 @@ tests:
       exact value per pixel and a ramp across it as a flat spectrum, in
       both orientations, with the exposure factor applied.
 
-  # --- camera white balance (file format 1.21, specified 2026-10-01, planned) --
+  # --- camera white balance (file format 1.21, specified 2026-10-01) --
   # spec/input.yml (camera locked: white_balance, white_balance_tint) and
   # docs/file-format/input.md "White balance" are the design. Parsing is
   # covered by corpus-valid-load through corpus/generated/camera-white-
-  # balance-lock.phyphox and camera-white-balance-temperature.phyphox, but
-  # both apps ignore unknown locked entries, so those files load before the
-  # feature exists; this row carries the behaviour.
+  # balance-lock.phyphox and camera-white-balance-temperature.phyphox; this
+  # row carries the behaviour.
 
   - id: camera-white-balance
     area: file-format
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       With locked="white_balance=T" and a neutral target lit by a source of
       colour temperature T, linearRed, linearGreen and linearBlue agree

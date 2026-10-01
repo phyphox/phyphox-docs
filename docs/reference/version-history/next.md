@@ -79,17 +79,16 @@ same day on both platforms:
   channels carry a spectrum each, paired with *pixelPosition* like *luminance* (see
   [Colour channels](../../file-format/input.md#colour-channels)).
 
-Specified 2026-10-01 ahead of the implementations (marked *planned* in the reference until both
-apps ship it):
+Specified 2026-10-01 ahead of the implementations and implemented from that specification the
+same day on both platforms:
 
 - **White balance in the camera's *locked* attribute:** `white_balance` alone freezes the
   automatic white balance when the measurement is first started; `white_balance=5600` balances
   for a correlated colour temperature in Kelvin; `white_balance_tint` shifts the white point off
   the Planckian locus as Duv. The format knows no named presets - the phones' presets are only
   approximations that differ per device. The camera-gui's preset picker becomes a control with
-  the same three choices, automatic, locked, or a temperature scale with tint, carrying the old
-  preset names as reference marks (see
-  [White balance](../../file-format/input.md#white-balance)).
+  the same three choices, automatic, locked, or a temperature scale with tint, and no named
+  presets (see [White balance](../../file-format/input.md#white-balance)).
 
 ## Changes on Android and iOS
 

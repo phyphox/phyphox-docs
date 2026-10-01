@@ -1,10 +1,9 @@
 <phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
     <!-- Generated fixture: the value-less white_balance entry, which freezes the automatic white balance at the first start in the camera input's locked attribute
-         (file format 1.21, planned - see spec/input.yml, camera/locked, and
-         docs/file-format/input.md "White balance"). Both apps ignore unknown
-         locked entries, so this file loads before the feature exists; the
-         behaviour is the matrix row camera-white-balance. A parsing fixture,
-         not a maintained experiment. -->
+         (file format 1.21 - see spec/input.yml, camera/locked, and
+         docs/file-format/input.md "White balance"). The behaviour is the matrix
+         row camera-white-balance. A parsing fixture, not a maintained
+         experiment. -->
     <title>Corpus: camera white balance lock</title>
     <category>Corpus</category>
     <description>Generated coverage fixture for the value-less white_balance entry, which freezes the automatic white balance at the first start.</description>

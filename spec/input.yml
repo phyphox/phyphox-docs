@@ -909,9 +909,8 @@ elements:
           but they parse it in different places - iOS in the handler, Android
           further downstream. Worth a conformance test rather than trust.
           The white_balance and white_balance_tint entries were specified
-          2026-10-01 ahead of the implementations (planned; both apps ignore
-          unknown entry names, so files carrying them load today and the
-          entries simply have no effect until the apps follow). Implementation
+          2026-10-01 ahead of the implementations and implemented from that
+          specification the same day on both platforms. Implementation
           guidance, not contract: iOS converts temperature and Duv to a CIE xy
           white point and asks AVCaptureDevice for the matching gains, clamped
           to maxWhiteBalanceGain. Android uses the CCT colour-correction mode
