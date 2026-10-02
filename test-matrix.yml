@@ -361,7 +361,7 @@ tests:
     area: ui
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The rules behind "Keep this view?" when a maximized graph is left with a
       zoom: no question when nothing is zoomed, also while a time axis shows
@@ -374,14 +374,14 @@ tests:
       others' zoom (iOS dropped a z zoom when x was reset); each axis section
       is titled with the zoomed range in the display unit, formatted like the
       tic labels. Robolectric on Android (ApplyZoomChoiceTest), XCTest on iOS
-      (ApplyZoomChoiceTests). Implemented and tested on both platforms
-      2026-10-02; planned until the Android test carries the tag.
+      (ApplyZoomChoiceTests).
+      Implemented and tested on both platforms 2026-10-02.
 
   - id: exclusive-navigation
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The ways back from a maximized element: the toolbar's back arrow ("‹"
       on iOS) and, on Android, the system back first close the maximized
@@ -392,9 +392,8 @@ tests:
       Android runs it at T0 on Robolectric against the activity
       (ExclusiveNavigationTest, inline XML); iOS as XCUITest against the
       simulator over fixtures/views/graphs-interaction.phyphox, whose second
-      view takes the tab change (ExclusiveNavigationUITests). Implemented
-      and tested on both platforms 2026-10-02; planned until the Android test
-      carries the tag.
+      view takes the tab change (ExclusiveNavigationUITests).
+      Implemented and tested on both platforms 2026-10-02.
 
   - id: graph-empty-state
     area: ui
