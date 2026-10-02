@@ -353,6 +353,48 @@ tests:
       (GraphInteractionTests) against the simulator, placing taps and
       drags through the plot's accessibility value, which reports the
       visible axis ranges. Added 2026-09-12 after the 1.2.1 crash review.
+      Since 2026-10-02 the fixture carries a second view ("Other", one value
+      element) for the exclusive-navigation row; the tests here work on the
+      first view only.
+
+  - id: apply-zoom-choice
+    area: ui
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The rules behind "Keep this view?" when a maximized graph is left with a
+      zoom: no question when nothing is zoomed, also while a time axis shows
+      system time (a followX graph following its configured window is not
+      zoomed); the emphasised button is Keep once the user has kept a zoom
+      before and Reset otherwise, and the per-axis controls under "More
+      options…" start from it, a following incremental x axis as "keep and
+      follow new data"; applying a choice resets an axis with NaN, keeps the
+      follow fallback of a followX graph, and resetting one axis keeps the
+      others' zoom (iOS dropped a z zoom when x was reset); each axis section
+      is titled with the zoomed range in the display unit, formatted like the
+      tic labels. Robolectric on Android (ApplyZoomChoiceTest), XCTest on iOS
+      (ApplyZoomChoiceTests). Implemented and tested on both platforms
+      2026-10-02; planned until the Android test carries the tag.
+
+  - id: exclusive-navigation
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The ways back from a maximized element: the toolbar's back arrow ("‹"
+      on iOS) and, on Android, the system back first close the maximized
+      element and leave the experiment only without one; a tab change while
+      an element is maximized is held back until the element is gone (the
+      pager swipe is locked meanwhile); on either route a zoomed graph asks
+      "Keep this view?" first, and Cancel stays on the maximized graph.
+      Android runs it at T0 on Robolectric against the activity
+      (ExclusiveNavigationTest, inline XML); iOS as XCUITest against the
+      simulator over fixtures/views/graphs-interaction.phyphox, whose second
+      view takes the tab change (ExclusiveNavigationUITests). Implemented
+      and tested on both platforms 2026-10-02; planned until the Android test
+      carries the tag.
 
   - id: graph-empty-state
     area: ui

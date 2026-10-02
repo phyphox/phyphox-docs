@@ -18,7 +18,9 @@ screen with no sensors and no analysis.
   pan/zoom all have exact expected values, plus a graph over empty
   containers that has to survive every one of those gestures (the
   1.2.1 crash). The touch geometry itself runs at T0 on Android
-  (GraphView is a plain canvas view; only the curve needs GL).
+  (GraphView is a plain canvas view; only the curve needs GL). A second
+  view, `Other`, holds one value element so that a tab change while a
+  graph is maximized has somewhere to go (row `exclusive-navigation`).
 - `init-vs-default` — behavior only, no goldens: every input control once
   over a container that already holds a value and once over an empty one.
   The spec says a default fills an EMPTY buffer and never overwrites one,
