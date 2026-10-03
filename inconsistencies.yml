@@ -61,6 +61,36 @@
     connections. A client cannot tell a phone without the data from a phone that
     does not report it.
 
+- id: audio-output-retrigger
+  title: Audio output triggered again while it is still playing
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Every analysis cycle restarts the output from its beginning, whether it
+      is still playing or not: AudioOutput.play() sets index = 0 before
+      checking whether playback is already running, and the fill thread
+      continues with the next block of 2048 frames from that index. A direct
+      source without loop is cut off and started over if the next cycle ends
+      before it is finished. With loop="true" the waveform jumps back to its
+      first sample at the next block boundary after each cycle, so a looped
+      waveform stays continuous only if its length divides 2048. The duration
+      of tone and noise generators without loop also counts from the latest
+      cycle (their phase is kept).
+    ios: >-
+      A trigger while the output is still playing is ignored: AudioEngine.play()
+      only acts if not already playing (frameIndex is reset only then). A
+      direct source without loop always plays to its end before the next
+      cycle can start it again, and a looped waveform of any length plays
+      continuously.
+  summary: >-
+    Playback is triggered at the end of every analysis cycle, but the
+    platforms disagree about what a trigger does to a sound that is still
+    playing. Android restarts it, iOS lets it finish (or, with loop, keeps
+    looping undisturbed). Experiments that need a strictly periodic output
+    on both platforms currently have to use a looped waveform whose length
+    divides 2048 samples, as the sonar experiment does.
+
 - id: fft-non-power-of-two-input
   title: FFT output for input lengths that are not a power of two
   area: file-format

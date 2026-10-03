@@ -26,6 +26,8 @@ The audio tag defines audio as an output (i.e. a speaker). The audio waveform ca
 
 Playback is triggered after each analysis process and each source can have individual durations (in seconds) and amplitudes (float value with 0.0 being silent and 1.0 maximum amplitude without clipping). If loop is set to true, the playback will loop. The default playback rate is 48kHz, but it can be changed using the *rate* attribute (in Hz). However, this is not recommended if the experiment targets a wide audience since supported playback rates are very device specific.
 
+{{inconsistency:audio-output-retrigger}}
+
 Since **file format 1.20 (phyphox version 1.2.1)** the tone and noise generators support panning from left to right, mapped to values from -1 (left) to +1 (right) with 0 being center. Note that this does not compensate for amplitude or loudness, but instead a center tone will be played at full amplitude on both channels and a pan to the right will not change the amplitude on the right channel but reduce the one on the left (and vice versa). The direct source cannot be panned — it always plays centered on both channels.
 
 {{spec:output/output/audio}}
