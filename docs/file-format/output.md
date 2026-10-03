@@ -24,7 +24,7 @@ The audio tag defines audio as an output (i.e. a speaker). The audio waveform ca
 
 **noise** A **noise** block represents a generator for white noise. Its parameters **amplitude** and **duration** can either be fixed values (type="value") or a buffer (type="buffer", default) to control it dynamically. Only one *noise* block is supported.
 
-Playback is triggered after each analysis process and each source can have individual durations (in seconds) and amplitudes (float value with 0.0 being silent and 1.0 maximum amplitude without clipping). If loop is set to true, the playback will loop. The default playback rate is 48kHz, but it can be changed using the *rate* attribute (in Hz). However, this is not recommended if the experiment targets a wide audience since supported playback rates are very device specific.
+Playback is triggered after each analysis process and each source can have individual durations (in seconds) and amplitudes (float value with 0.0 being silent and 1.0 maximum amplitude without clipping). If loop is set to true, the playback will loop. Without loop, every trigger starts the output over from its beginning, even if the previous playback has not finished yet. With loop, a trigger while the output is playing changes nothing, so a looped waveform plays continuously; new data in its buffer is picked up with the next block of audio, a fraction of a second later. For tone and noise generators, loop means that their duration is ignored. The default playback rate is 48kHz, but it can be changed using the *rate* attribute (in Hz). However, this is not recommended if the experiment targets a wide audience since supported playback rates are very device specific.
 
 {{inconsistency:audio-output-retrigger}}
 
