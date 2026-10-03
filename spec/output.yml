@@ -62,11 +62,6 @@ elements:
           continuously. In both cases, changed data or parameters are picked
           up with the next block of audio the app generates, which may be
           heard a fraction of a second later.
-        note: >-
-          Decided 2026-10-03 (inconsistency audio-output-retrigger): iOS
-          ignored every trigger while playing, Android restarted every
-          output. A restart re-reads the end of a one-shot output from the
-          current data.
         agreement: agreed
       - name: normalize
         type: boolean

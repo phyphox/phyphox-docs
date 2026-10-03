@@ -61,42 +61,6 @@
     connections. A client cannot tell a phone without the data from a phone that
     does not report it.
 
-- id: audio-output-retrigger
-  title: Audio output triggered again while it is still playing
-  area: file-format
-  status: decided
-  canonical: >-
-    Without loop, a trigger at the end of an analysis cycle starts the output
-    over from its beginning (the direct source from its first sample, the
-    duration of tone and noise generators from zero), whether or not the
-    previous playback has finished. The end of a one-shot output is determined
-    from the data and parameters current at that time. With loop, a trigger
-    while the output is playing changes nothing, so a looped waveform of any
-    length plays continuously. Changed data and parameters are picked up with
-    the next generated block in both cases.
-  affects:
-    android: >-
-      Conforms on the development branch since 2026-10-03
-      (AudioOutput.retrigger skips a playing looped output). Before, every
-      trigger restarted the output: a looped waveform jumped back to its first
-      sample at the next block of 2048 frames and stayed continuous only if its
-      length divided 2048.
-    ios: >-
-      A trigger while the output is still playing is ignored: AudioEngine.play()
-      only acts if not already playing, so a one-shot output always plays to its
-      end before a trigger can start it again. While it plays, each block reads
-      the current data from position frameIndex, but endIndex was computed from
-      the data at the start, so a one-shot output that grows is cut at its old
-      length and one that shrinks is padded with silence up to it (also for a
-      changed tone or noise duration).
-  summary: >-
-    Playback is triggered at the end of every analysis cycle, but the
-    platforms disagreed about what a trigger does to a sound that is still
-    playing: Android restarted it, iOS let it finish. A one-shot output now
-    starts over on every trigger and a looped one plays on undisturbed. Until
-    iOS conforms, a non-looped output that is still playing when the next
-    cycle ends behaves differently on the two platforms.
-
 - id: fft-non-power-of-two-input
   title: FFT output for input lengths that are not a power of two
   area: file-format
