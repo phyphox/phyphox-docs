@@ -149,6 +149,26 @@ tests:
       supports are skipped, like corpus-valid-load. See
       corpus/analysis/README.md for the runner contract.
 
+  - id: audio-output-retrigger
+    area: output
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      What the trigger at the end of an analysis cycle does to an audio
+      output that is still playing (spec/output.yml, loop): a looped output
+      plays on undisturbed, a one-shot output starts over from its beginning
+      - the direct source from its first sample, a tone's duration from zero
+      - whether or not the previous playback had finished, and a one-shot
+      output ends with the data it has now, so a source that grew plays on
+      and one that shrank stops earlier. Blocks are generated through
+      nextBlock() without an audio engine: Robolectric on Android
+      (AudioOutputRetriggerTest, which also drives the sample index past the
+      int range), XCTest on iOS (AudioOutputRetriggerTests). Added 2026-10-04
+      with the fix of the former audio-output-retrigger inconsistency; the
+      tests exist on both platforms but carry no tag yet (see the handoff
+      files).
+
   - id: corpus-version-gate
     area: file-format
     tier: T0
