@@ -153,7 +153,7 @@ tests:
     area: output
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       What the trigger at the end of an analysis cycle does to an audio
       output that is still playing (spec/output.yml, loop): a looped output
@@ -165,9 +165,8 @@ tests:
       nextBlock() without an audio engine: Robolectric on Android
       (AudioOutputRetriggerTest, which also drives the sample index past the
       int range), XCTest on iOS (AudioOutputRetriggerTests). Added 2026-10-04
-      with the fix of the former audio-output-retrigger inconsistency; the
-      tests exist on both platforms but carry no tag yet (see the handoff
-      files).
+      with the fix of the former audio-output-retrigger inconsistency.
+      Implemented and tested on both platforms 2026-10-04.
 
   - id: corpus-version-gate
     area: file-format
