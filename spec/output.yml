@@ -61,7 +61,10 @@ elements:
           changes nothing, so a looped waveform of any length plays
           continuously. In both cases, changed data or parameters are picked
           up with the next block of audio the app generates, which may be
-          heard a fraction of a second later.
+          heard a fraction of a second later. The end of a one-shot output
+          follows the data as well: a direct source that grows while it
+          plays goes on to its new end, one that shrinks stops earlier, and
+          a changed tone or noise duration applies from the next block.
         agreement: agreed
       - name: normalize
         type: boolean
@@ -79,10 +82,14 @@ elements:
     parent: audio
     since: "1.0"
     summary: >-
-      The waveform, written to the speaker at the end of each analysis pass.
-      Values run from -1 to +1 and the buffer's length sets the duration. The
-      mono signal plays identically on both stereo channels and the element
-      takes no parameter inputs. Only one direct source is supported.
+      The waveform, played from the data container at the end of each
+      analysis pass. Values run from -1 to +1 and the buffer's length sets the
+      duration. Without loop, each pass starts the waveform over from its
+      first sample; with loop, it repeats continuously and a pass that ends
+      while it plays changes nothing - new buffer contents are picked up with
+      the next block of audio. The mono signal plays identically on both
+      stereo channels and the element takes no parameter inputs. Only one
+      direct source is supported.
     text: Name of the data container holding the waveform.
     agreement: agreed
     attributes: []
