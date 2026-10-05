@@ -5,7 +5,8 @@
     [next release](../../reference/version-history/next.md) carries; every app released before
     1.3.0 refuses a file declaring that version. This page was written ahead of the
     implementations (2026-10-05), which followed it the same day on both apps' development
-    branches and in the remote interface; it remains the definition they are checked against.
+    branches, in the remote interface and in the editor; it remains the definition they are
+    checked against.
 
 A gauge built as a [stack](groups.md#view-element-stack) of images needs a new image whenever
 its range changes, cannot follow a [unit conversion](../units.md), and asks the author to draw

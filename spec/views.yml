@@ -1553,7 +1553,8 @@ elements:
   # geometry and scale: static drawings for gauges built as stacks. File
   # format 1.21, specified 2026-10-05 ahead of the implementations
   # (docs/file-format/views/drawing.md is the design) and implemented from it
-  # the same day on Android, iOS and in the web interface; the editor follows.
+  # the same day on Android, iOS, in the web interface and in the editor (whose
+  # attribute tables are generated from this file, scripts/generate-drawing.mjs).
   # Compared attribute by attribute against both parsers 2026-10-05 (Android
   # PhyphoxFile.java, iOS DrawingViewElementHandlers.swift via
   # tools/spec_vs_ios.py). The coordinate conventions - positions

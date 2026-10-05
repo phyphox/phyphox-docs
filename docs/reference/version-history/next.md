@@ -55,7 +55,7 @@ interface and in the editor from that specification:
   line heights (see [Sizing](../../file-format/views/groups.md#sizing)).
 
 Specified 2026-10-05 ahead of the implementations and implemented from that specification the
-same day on both platforms and in the remote interface:
+same day on both platforms, in the remote interface and in the editor:
 
 - **Drawing elements:** [geometry](../../file-format/views/drawing.md#view-element-geometry)
   draws a rectangle, circle, line or ring segment with a fill and an outline, and
