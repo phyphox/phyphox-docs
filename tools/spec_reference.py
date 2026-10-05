@@ -703,6 +703,11 @@ def render_element(block, parent, name, spec, state, mode=None, group=None):
                              element_level=True)
         if badge:
             parts.append(badge)
+        if element.get("deprecated"):
+            note = "*Deprecated.*"
+            if element.get("superseded_by"):
+                note += " Superseded by " + element["superseded_by"] + "."
+            parts.append(note)
         if element.get("text"):
             parts.append("**Text content:** " + _sentence(element["text"]))
         if element.get("remark"):

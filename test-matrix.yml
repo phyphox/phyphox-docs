@@ -623,6 +623,45 @@ tests:
       its trailing signature, rebuilt and loaded. See
       fixtures/containers/README.md.
 
+  - id: saved-state-load
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The saved-state container (docs/saved-states.md, phyphox 1.3.0)
+      through the real intake route: fixtures/containers/saved-state.zip
+      restores title, buffers (NaN and Infinity intact, the static
+      buffer marked filled, the empty one empty, init replaced, the
+      odd-named one found through data/index.csv), time reference and
+      resource; a legacy .phyphox state (corpus/generated/
+      events-state.phyphox) still loads; a count/size mismatch in the
+      index is refused. See fixtures/containers/README.md.
+
+  - id: saved-state-write
+    area: file-format
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Writing a state and reading it back round-trips buffers, static
+      flags, time reference and title; the container has the documented
+      entry set and CSV dialect, experiment.phyphox byte-identical to the
+      source, only referenced resources in res/; a legacy state's
+      experiment file is copied as is. See fixtures/containers/README.md.
+
+  - id: saved-state-collection
+    area: ui
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The saved-state flow driven by UI automation: save a state to the
+      collection, it appears under "Saved states" with the given title and
+      the app's own colour, reopens with its data, renames (only
+      meta/state.csv changes), shares as a .zip that is itself a loadable
+      state, and deletes cleanly including its resources. Hermetic.
+
   - id: save-to-collection
     area: ui
     tier: T1

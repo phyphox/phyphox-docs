@@ -33,7 +33,9 @@ The title of the experiment. This is just a simple string. Try to keep it short 
 
 ### Tag: state-title
 
-This should not be used for an experiment which will be distributed. This tag contains the title given by the user when saving the state of an experiment. If this is set, the app will show this experiment in the saved-states section. A file may carry at most one `state-title` — like the other metadata tags of the root element, it must not be repeated. If a legacy file nevertheless carries a duplicate (old versions of the app could write one when re-saving a state), the app tolerates it and the last occurrence wins.
+This should not be used for an experiment which will be distributed. This tag contains the title given by the user when saving the state of an experiment in the legacy saved-state format. If this is set, the app will show this experiment in the saved-states section. A file may carry at most one `state-title` — like the other metadata tags of the root element, it must not be repeated. If a legacy file nevertheless carries a duplicate (old versions of the app could write one when re-saving a state), the app tolerates it and the last occurrence wins.
+
+**Deprecated** since phyphox 1.3.0: a saved state is now a [container](../saved-states.md) that leaves the experiment file untouched and keeps the title in `meta/state.csv`. The tag stays supported for reading, so that states saved by earlier versions keep loading.
 
 {{spec:root/phyphox/state-title}}
 
@@ -298,7 +300,7 @@ documented on a [separate page](network-connections.md), covering:
 
 ## Block: events
 
-The events block was introduced with file format 1.12 (phyphox version 1.1.8) as a temporary solution to store event and time reference data. It will remain supported in the future to allow reading old experiment state files, but there will be no specific use for this feature once the experiment state is stored in a form that separates measured data (and events) from the phyphox configuration file.
+The events block was introduced with file format 1.12 (phyphox version 1.1.8) as a temporary solution to store event and time reference data in a saved state. **Deprecated** since phyphox 1.3.0: the [saved-state container](../saved-states.md) keeps the events in `meta/time.csv`, outside the experiment file. The block remains supported for reading so that old state files keep loading, but no app writes it any more.
 
 The events block contains a list of event blocks with tags corresponding to any known event, which are currently *start* and *pause*. Each event needs to have an attribute *experimentTime* and an attribute *systemTime* giving the experiment time (seconds since first start, ignoring pauses) and the system time (milliseconds since 1970) of the event.
 

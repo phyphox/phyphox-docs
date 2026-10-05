@@ -1,0 +1,23 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.18" locale="en">
+    <title>Container fixture saved state</title>
+    <category>Container fixtures</category>
+    <color>orange</color>
+    <description>Source experiment of saved-state.zip (docs/saved-states.md). Four containers: a timed series, a static calibration buffer that the state marks as filled, an empty infinite buffer, and a name that is not a valid entry name so the index has to be used. The image comes from res/.</description>
+    <data-containers>
+        <container size="0">t</container>
+        <container size="0">x</container>
+        <container size="1" static="true">calibration</container>
+        <container size="0">empty</container>
+        <container size="3" init="1,2,3">max x (m/s²)</container>
+    </data-containers>
+    <views>
+        <view label="State">
+            <image src="pic.png" />
+            <graph label="x" labelX="t" labelY="x">
+                <input axis="x">t</input>
+                <input axis="y">x</input>
+            </graph>
+            <value label="calibration"><input>calibration</input></value>
+        </view>
+    </views>
+</phyphox>

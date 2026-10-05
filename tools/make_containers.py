@@ -22,6 +22,13 @@ transfers carry. This script builds each form deterministically:
                           writes STORE, so a deflated payload loads
                           nowhere (this fixture had it wrong until
                           2026-08-26)
+    saved-state.zip       the saved-state container of docs/saved-states.md:
+                          saved-state.phyphox as experiment.phyphox, its
+                          res/pic.png, data/index.csv plus one binary64
+                          little-endian file per container (STATE_DATA
+                          below, with a NaN, an empty buffer and a static
+                          one), meta/device.csv, meta/time.csv and
+                          meta/state.csv in the fixed CSV dialect
 
 tools/hooks.py verifies the built artifacts against src/ content-wise on
 every docs build (byte-exact zip reproducibility across zlib builds is
@@ -54,6 +61,41 @@ def make_png():
             + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
+# The data of saved-state.zip, keyed by container name in data-containers
+# order; the entry names follow the writer rule of the docs page (ASCII
+# letters, digits, _ and - kept, everything else -> _, then .bin).
+STATE_DATA = [
+    ("t", "t.bin", [0.0, 0.5, 1.0, 1.5]),
+    ("x", "x.bin", [1.0, float("nan"), -2.5, float("inf")]),
+    ("calibration", "calibration.bin", [9.81]),
+    ("empty", "empty.bin", []),
+    ("max x (m/s²)", "max_x__m_s__.bin", [7.0]),
+]
+
+STATE_INDEX = ('"container","file","count"\n'
+               + "".join(f'"{name}","{file}",{len(values)}\n'
+                         for name, file, values in STATE_DATA))
+
+STATE_TIME = ('"event","experiment time","system time","system time text"\n'
+              '"START",0.000000000E0,1759650000.000,"2025-10-05 10:20:00.000 UTC+02:00"\n'
+              '"PAUSE",1.500000000E0,1759650001.500,"2025-10-05 10:20:01.500 UTC+02:00"\n')
+
+STATE_META = ('"property","value"\n'
+              '"format","1"\n'
+              '"title","Fixture state"\n'
+              '"saved","1759650100.000"\n'
+              '"saved text","2025-10-05 10:21:40.000 UTC+02:00"\n'
+              '"app","phyphox-docs tools/make_containers.py"\n')
+
+STATE_DEVICE = ('"property","value"\n'
+                '"version","fixture"\n'
+                '"build","fixture"\n')
+
+
+def state_bin(values):
+    return struct.pack("<%dd" % len(values), *values)
+
+
 def zwrite(zf, arcname, data):
     info = zipfile.ZipInfo(arcname, date_time=FIXED_DATE)
     info.compress_type = zipfile.ZIP_DEFLATED
@@ -82,6 +124,16 @@ def build(out_dir=CDIR):
     with zipfile.ZipFile(os.path.join(out_dir, "traversal.zip"), "w") as z:
         zwrite(z, "container-a.phyphox", a)
         zwrite(z, "../evil.phyphox", b)
+
+    with zipfile.ZipFile(os.path.join(out_dir, "saved-state.zip"), "w") as z:
+        zwrite(z, "experiment.phyphox", read_src("saved-state.phyphox"))
+        zwrite(z, "res/pic.png", png)
+        zwrite(z, "data/index.csv", STATE_INDEX.encode())
+        for _name, file, values in STATE_DATA:
+            zwrite(z, "data/" + file, state_bin(values))
+        zwrite(z, "meta/device.csv", STATE_DEVICE.encode())
+        zwrite(z, "meta/time.csv", STATE_TIME.encode())
+        zwrite(z, "meta/state.csv", STATE_META.encode())
 
     # the partial zip: a STORED payload plus the data descriptor, matching
     # what the apps rebuild (method 0) and what the editor emits
@@ -114,6 +166,21 @@ def check():
         with zipfile.ZipFile(os.path.join(CDIR, "traversal.zip")) as z:
             if "../evil.phyphox" not in z.namelist():
                 problems.append("traversal.zip lost its traversal entry")
+        with zipfile.ZipFile(os.path.join(CDIR, "saved-state.zip")) as z:
+            expected = sorted(["experiment.phyphox", "res/pic.png",
+                               "data/index.csv", "meta/device.csv",
+                               "meta/time.csv", "meta/state.csv"]
+                              + ["data/" + file for _n, file, _v in STATE_DATA])
+            if sorted(z.namelist()) != expected:
+                problems.append("saved-state.zip: wrong entry set")
+            elif (z.read("experiment.phyphox") != read_src("saved-state.phyphox")
+                  or z.read("data/index.csv") != STATE_INDEX.encode()
+                  or z.read("meta/time.csv") != STATE_TIME.encode()
+                  or z.read("meta/state.csv") != STATE_META.encode()
+                  or any(z.read("data/" + file) != state_bin(values)
+                         for _n, file, values in STATE_DATA)):
+                problems.append("saved-state.zip: stale content - run "
+                                "tools/make_containers.py")
         with open(os.path.join(CDIR, "partial.bin"), "rb") as f:
             blob = f.read()
         if blob[-16:-12] != b"PK\x07\x08":

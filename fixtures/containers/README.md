@@ -32,6 +32,41 @@ not a lenient unzip):
   justify it; elsewhere a file nobody can inspect or edit is the wrong
   answer), so a test opening it as a local file asserts the REFUSAL.
 
+## `saved-state-load` (T0)
+
+`saved-state.zip` is the saved-state container of `docs/saved-states.md`
+(phyphox 1.3.0), built from `src/saved-state.phyphox` with the data in
+`STATE_DATA` of `tools/make_containers.py`. Through the real intake route
+it must restore the state, not open the plain experiment:
+
+- the list shows it under "Saved states" as "Fixture state" (from
+  `meta/state.csv`), the experiment's own title as the subtitle;
+- `t` holds 0, 0.5, 1, 1.5 and `x` holds 1, NaN, -2.5, +Infinity (binary
+  values survive, which the legacy text form could not promise);
+- `calibration` holds 9.81 and is marked filled, so the analysis of a
+  static buffer does not run again;
+- `empty` is empty although its file exists; `max x (m/s²)` holds 7, the
+  state replacing its `init="1,2,3"`, located through `data/index.csv`
+  since its name is no entry name;
+- the time reference has START at experiment time 0 / system time
+  1759650000.000 s and PAUSE at 1.5 / 1759650001.500 s;
+- the image element gets `res/pic.png`.
+
+The same row keeps `corpus/generated/events-state.phyphox` loading as a
+legacy state (title from `state-title`, events from the block, data from
+`init`), and asserts that a container whose `data/index.csv` count does
+not match the file size is refused.
+
+## `saved-state-write` (T0)
+
+Writing the state of a running experiment and reading it back through the
+same code yields the same buffers, static flags, time reference and title;
+the written container has the entry set and the CSV dialect of the docs
+page (comma, dot, quoted strings, LF), `experiment.phyphox` byte-identical
+to the source, and only the referenced resources under `res/`. Saving the
+state of a legacy state copies its experiment file as is, `state-title`,
+`events` and `init` data included.
+
 ## `save-to-collection` (T1)
 
 The save flow the auto-confirm switch deliberately declines, driven by
