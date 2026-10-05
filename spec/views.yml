@@ -1723,8 +1723,9 @@ elements:
       The axis of a gauge: a straight or circular baseline from min to max
       with tics, the values at the tics and a label with a unit.
     remark: >-
-      The scale is static: its range and geometry come from attributes, not
-      from data containers. It takes the full width and is as tall as
+      The geometry of the scale comes from attributes; its range comes from
+      min and max, which an input child can bind to a data container. It
+      takes the full width and is as tall as
       width / aspectRatio; positions inside it are fractions of that box,
       lengths are fractions of its width, angles are radians clockwise from
       twelve o'clock, and drawing outside the box is clipped. The baseline
@@ -1745,8 +1746,11 @@ elements:
       the valueEvery rhythm apply in the experiment's unit only). Tapping
       the label opens the unit dialog, also inside a stack as long as the
       scale is not wrapped in a transform. The text follows the app's text
-      size, not the element's size. label is the axis label (a text, like
-      labelX of a graph); visibility hides the element.
+      size, not the element's size; the values are upright unless
+      valueOrientation turns them along or across the baseline. label is
+      the axis label (a text, like labelX of a graph); visibility hides the
+      element.
+    children: [input]
     attributes:
       - name: shape
         type: enum
@@ -1857,6 +1861,24 @@ elements:
           With a converted unit the precision rule of the units page
           applies.
         agreement: planned
+      - name: valueOrientation
+        type: enum
+        values: [upright, tangential, radial]
+        default: upright
+        value_notes:
+          upright: Every value is drawn horizontally, centred on its position.
+          tangential: >-
+            The value runs along the baseline, rotated with it, reading in
+            the direction from min to max; on the lower half of a clockwise
+            circle it is therefore upside down.
+          radial: >-
+            The value runs across the baseline, reading towards the positive
+            side - outward on a circular scale, so the text points away from
+            the centre; on a linear scale it reads from the baseline towards
+            the tic side.
+        summary: How the values at the tics are turned.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
       - name: labelPositionX
         type: float
         default: 0.5
@@ -1918,6 +1940,34 @@ elements:
           circular: angle from min to max, in radians; positive clockwise.
           The default is 270°, so min and max sit symmetric about the bottom.
         agreement: planned
+
+  - name: input
+    parent: scale
+    since: "1.21"
+    summary: >-
+      Binds the min or max of the scale to a data container, so the range
+      of a gauge can follow the data or a user input.
+    text: >-
+      Name of the data container whose last value replaces the attribute.
+    remark: >-
+      While the container is empty or its last value is not finite, the
+      attribute value stays. The tics, values and conversion follow the
+      bound range as they follow the attributes; the baseline and the
+      positions of min and max do not move. A needle driven by a transform
+      does not follow by itself: its linear map has fixed ends, so an
+      experiment with a changing range maps the value to the needle in the
+      analysis block.
+    attributes:
+      - name: as
+        type: enum
+        required: true
+        values: [min, max]
+        value_notes:
+          min: The value at the start of the baseline.
+          max: The value at the end of the baseline.
+        summary: Which end of the range the container drives.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
 
   # ------------------------------------------------------------- camera-gui --
   - name: camera-gui
@@ -2176,9 +2226,12 @@ elements:
       graph's plot area is transparent, and colours with an alpha byte are
       blended. A stack is not interactive: its graphs cannot be maximized,
       zoomed or used for picking, and it takes no user-input, camera or
-      depth elements; the one touch it passes on is a tap on the label of
-      an untransformed scale, which opens the unit dialog. label has no
-      effect on a group; visibility hides the whole group.
+      depth elements. The one touch it passes on is a tap on the label of
+      an untransformed scale, which opens the unit dialog: the tap is
+      offered to the children from the topmost down, skipping transformed
+      children and any child that does not handle it, so a scale under a
+      needle is still reached. label has no effect on a group; visibility
+      hides the whole group.
     children: [info, separator, value, graph, image, geometry, scale, transform]
     child_attributes: [view_element_attributes]
     attributes: []

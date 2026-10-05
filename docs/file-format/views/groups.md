@@ -201,7 +201,8 @@ A stack is not interactive. Its graphs cannot be maximized, zoomed or used for p
 transformed element receives no touches - with children overlapping, a touch would be
 ambiguous. Use a `horizontal` or `grid` group next to the stack for controls. The one exception
 is the label of an untransformed [scale](drawing.md#view-element-scale), which opens the unit
-dialog like a graph axis does.
+dialog like a graph axis does: a tap is offered to the children from the topmost down, skipping
+transformed children and any child that does not handle it, until one does.
 
 ```xml
 <stack>

@@ -10,9 +10,9 @@ A gauge built as a [stack](groups.md#view-element-stack) of images needs a new i
 its range changes, cannot follow a [unit conversion](../units.md), and asks the author to draw
 a dial in the first place. The two elements on this page replace the images with drawings the
 app makes from attributes: `geometry` draws a shape - a face, a needle, a coloured band - and
-`scale` draws the axis of a gauge with tics, values and a label. Both are static: nothing in
-them reads a data container. Motion comes from wrapping them in a
-[transform](groups.md#view-element-transform), exactly as with images.
+`scale` draws the axis of a gauge with tics, values and a label. A geometry is static, and so
+is the geometry of a scale; only the range of a scale can follow data. Motion comes from
+wrapping either in a [transform](groups.md#view-element-transform), exactly as with images.
 
 The view elements on this page additionally accept the
 [attributes common to all view elements](index.md#common-attributes). On a geometry the *label*
@@ -102,8 +102,10 @@ is chosen as a graph axis would choose it for an axis of the same length on scre
 puts that many minor tics between two major ones. The values are formatted with as many
 decimals as the step needs, or with *precision* when it is given.
 
-**Text** - the values and the label - is drawn upright, centred on its position, in the app's
-text size scaled by *size*. It follows the user's text-size setting like every other text in
+**Text** - the values and the label - is drawn centred on its position, in the app's text
+size scaled by *size*. The values are upright by default; *valueOrientation* turns them
+*tangential* (along the baseline, reading from *min* to *max*, so they follow a dial round)
+or *radial* (across the baseline, reading outward on a dial). The label is always upright. It follows the user's text-size setting like every other text in
 the app rather than the size of the element, so a dial that is small on a phone keeps readable
 numbers; leave room for them, as text outside the element's box is clipped. The label is drawn
 as "label (unit)", or either part alone, centred at *labelPositionX*/*labelPositionY*, which
@@ -126,11 +128,30 @@ Tics inward from a ring of radius 0.42, with the values inside and the label bel
 A thermometer scale across a wide element, tics and values below the line, in degrees Celsius -
 convertible to Fahrenheit by the user.
 
+**Range from data.** *min* and *max* are attributes, but an `input` child binds either of
+them to a data container, so a gauge can take its range from a user's edit field or from an
+analysis result:
+
+```xml
+<scale shape="circular" min="0" max="100" unit="@meter">
+    <input as="max">range</input>
+</scale>
+```
+
+The last value of the container replaces the attribute; while the container is empty or its
+value is not finite, the attribute holds. The baseline does not move - only the tics, the values
+and the conversion follow. A needle driven by a transform has a map with fixed ends and does
+not follow by itself; an experiment with a changing range maps the value to the needle's angle
+in the [analysis block](../analysis/index.md) and binds the transform to that result.
+
 **Units.** *unit* takes a [unit reference](../units.md#unit-references) or text, like the unit
 of a value or a graph axis. With a reference the scale takes part in the unit conversion: the
 *Unit system* setting converts it on loading, and tapping the label opens the unit dialog. The
 tap works inside a stack as well, as long as the scale is not wrapped in a transform - this is
-the one touch a stack passes on, so that a gauge can be switched like a graph axis. A converted
+the one touch a stack passes on, so that a gauge can be switched like a graph axis. The tap is
+offered to the stack's children from the topmost down, skipping transformed children and any
+child that does not handle it, so a scale at the bottom of the stack with a needle drawn over
+its label is still reached. A converted
 scale keeps its geometry: the positions of *min* and *max* do not move (a needle driven by the
 buffer value still points at the right place), only the numbers change. While another unit is
 shown, the tics are chosen automatically in that unit, as a graph axis does - an explicit
@@ -140,6 +161,8 @@ metres would be odd numbers in feet - and an explicit *precision* follows the
 convert with their offset, as every position does.
 
 {{spec:views/view/scale}}
+
+{{spec:views/scale/input}}
 
 ## A gauge without images
 

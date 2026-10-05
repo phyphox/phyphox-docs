@@ -902,8 +902,14 @@ tests:
       outward; major tics at min + k * ticStep, minorTics between them,
       values at every valueEvery-th major tic at valueDistance, the label
       as "label (unit)" centred at labelPositionX/Y; lineWidth 0, ticLength
-      0 and valueEvery 0 leave the respective part out; a tap on the label
-      of an untransformed scale inside a stack opens the unit dialog, a tap
+      0 and valueEvery 0 leave the respective part out; valueOrientation
+      draws the values upright, along the baseline (tangential) or across
+      it (radial); writing to a container bound with <input as="min"> or
+      as="max" re-ranges the tics and values without moving the baseline,
+      an empty or NaN container leaves the attribute value; a tap on the
+      label of an untransformed scale inside a stack opens the unit dialog
+      even with a transformed needle drawn over it (the tap is offered from
+      the topmost child down, skipping transformed children), a tap
       anywhere else on the stack does nothing.
 
   - id: view-scale-units

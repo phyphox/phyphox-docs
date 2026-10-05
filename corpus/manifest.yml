@@ -126,6 +126,7 @@
     - grid>scale
     - horizontal>geometry
     - horizontal>scale
+    - scale>input
     - stack>geometry
     - stack>scale
     - stack>transform
@@ -193,6 +194,7 @@
     - scale@unit
     - scale@valueDistance
     - scale@valueEvery
+    - scale@valueOrientation
     - scale@visibility
     - scale@weight
     - stack@visibility

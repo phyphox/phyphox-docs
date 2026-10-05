@@ -60,8 +60,9 @@ Specified 2026-10-05 ahead of the implementations:
   draws a rectangle, circle, line or ring segment with a fill and an outline, and
   [scale](../../file-format/views/drawing.md#view-element-scale) draws the axis of a gauge - a
   straight or circular baseline from *min* to *max* with major and minor tics, the values at
-  the tics and a label with a unit that takes part in the unit conversion. Both are static and
-  share the coordinate conventions of the fixed plot area and the transform (positions as
+  the tics (upright, along or across the baseline) and a label with a unit that takes part in
+  the unit conversion; *min* and *max* can be bound to data containers. Both share the
+  coordinate conventions of the fixed plot area and the transform (positions as
   fractions of the element's box, lengths as fractions of its width, angles in radians
   clockwise from twelve o'clock), so a gauge is built as a stack of drawings and a transformed
   needle without any image, and follows a changed range or a converted unit (see
