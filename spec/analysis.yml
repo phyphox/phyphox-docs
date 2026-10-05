@@ -737,7 +737,7 @@ elements:
             No factor in either direction. For the forward modules the same
             as backward, for the inverse modules the same as forward; spelled
             out for an experiment that applies its own scaling.
-        agreement: planned
+        agreement: agreed
         rules: [fourier-transform-conventions, enum-invalid-value, enum-case-insensitive]
     inputs:
       - name: re

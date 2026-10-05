@@ -384,7 +384,8 @@ bluetooth-name-regex-invalid.phyphox:   # the pattern does not compile
   findings:
     - 'nameRegex="phyphox:(m" does not compile'
 # --- Fourier modules (file format 1.21, specified 2026-10-05 ahead of the
-# implementations; rule fourier-transform-conventions). normalization is an
+# implementations and refused by both apps since the same day; rule
+# fourier-transform-conventions). normalization is an
 # enumerated attribute of fft, ifft, dft and idft; "unitary" is what ortho
 # means but not how the format spells it.
 fourier-unknown-normalization.phyphox:   # normalization="unitary" is not a value

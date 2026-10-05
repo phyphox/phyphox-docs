@@ -581,11 +581,15 @@ rules:
         written back. The golden vectors pass on both paths (the native one
         checked on the emulator 2026-10-05).
       ios: >-
-        Not implemented (2026-10-05); the item is in iOS-TODO.md. fft is
-        FFTAnalysis.swift over vDSP_DFT_zop_CreateSetupD, which supports
-        lengths f*2^n only and therefore zero-pads other lengths to
-        nextFFTSize; no normalization, no inverse, no dft module. Registered
-        in ExperimentAnalysisFactory.swift.
+        Conforms as of the development branch (b8500f3f, 2026-10-05):
+        FFTAnalysis.swift carries direction and exactness as class flags
+        with IFFTAnalysis, DFTAnalysis and IDFTAnalysis as thin subclasses,
+        registered in ExperimentAnalysisFactory.swift; normalization is a
+        CaseInsensitiveAttributeDecodable enum, an unknown value refuses the
+        file. fft/ifft stay on vDSP (.FORWARD/.INVERSE, the factor applied
+        afterwards), dft/idft are a direct sum over a twiddle table. An
+        empty input gives an empty output, a single sample is the identity.
+        Golden vectors and both corpus fixtures pass.
       editor: >-
         Conforms as of main (91f97f7, 2026-10-05): fft, ifft, dft and idft
         are built by one factory in src/blocks/analysis/advanced-math.ts
