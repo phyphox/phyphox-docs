@@ -549,7 +549,7 @@ rules:
       offers and are only guaranteed to agree across platforms for a
       power-of-two number of samples (fft-non-power-of-two-input, permanent);
       for a power of two - including a single sample, whose transform is
-      the identity (fft-single-sample-input) - they must equal dft and idft
+      the identity - they must equal dft and idft
       respectively, which is what the golden vectors pin. No precision is prescribed beyond the
       tolerances of the golden vectors, which admit single-precision native
       paths.
@@ -567,14 +567,19 @@ rules:
     applies_to: "fft, ifft, dft, idft and their normalization attribute"
     state:
       android: >-
-        Not implemented (2026-10-05); the item is in Android-TODO.md. fft is
-        Analysis.fftAM (Analysis.java) over fftw3complex (cpp/analysis/
-        analysis.cpp, FFTW single precision, exact for any N) with a Java
-        radix-2 fallback (Analysis.FFT, zero-pads to the next power of two
-        and truncates back); no normalization, no inverse, no dft module,
-        and both paths return without output for a single sample (`size <
-        2`), which fft-single-sample-input rules out. Registered in
-        PhyphoxFile.analysisBlockParser, case "fft".
+        Implemented 2026-10-05 (development). One module, Analysis.fftAM
+        (Analysis.java), carries the direction, the exactness and the
+        normalization; PhyphoxFile.analysisBlockParser registers fft, ifft,
+        dft and idft on it and refuses an unknown normalization value. The
+        native path is FFTW (cpp/analysis/analysis.cpp fftw3complex, single
+        precision, FFTW_FORWARD/FFTW_BACKWARD unscaled, exact for any N)
+        with the factor applied in Java afterwards; without the native
+        library fft/ifft use the radix-2 kernel (zero-padded and truncated
+        for lengths that are not a power of two, the inverse as
+        conj(FFT(conj(x)))) and dft/idft a direct O(N^2) sum in double
+        precision. An empty input gives an empty output, a single sample is
+        written back. The golden vectors pass on both paths (the native one
+        checked on the emulator 2026-10-05).
       ios: >-
         Not implemented (2026-10-05); the item is in iOS-TODO.md. fft is
         FFTAnalysis.swift over vDSP_DFT_zop_CreateSetupD, which supports

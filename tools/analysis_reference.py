@@ -333,9 +333,9 @@ def idft(re, im=None, normalization="backward"):  # exact inverse DFT, any N
 
 
 def fft(re, im=None, normalization="backward"):   # fftAM
-    """Same result as dft - golden vectors use power-of-two lengths of at
-    least two only (fft-non-power-of-two-input is platform-defined, a single
-    sample is fft-single-sample-input)."""
+    """Same result as dft - golden vectors use power-of-two lengths only
+    (fft-non-power-of-two-input is platform-defined); a single sample is
+    the identity."""
     return dft(re, im, normalization)
 
 

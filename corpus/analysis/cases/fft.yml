@@ -2,9 +2,8 @@
 # complex spectrum; the normalization attribute (file format 1.21) sets the
 # factor, backward (unscaled) by default. Power-of-two lengths ONLY -
 # other lengths are platform-defined (fft-non-power-of-two-input). A
-# single sample is the identity (fft-single-sample-input, decided
-# 2026-10-05: Android currently writes nothing and fails that case until
-# fixed). Android's native path is float32, hence the tolerance. See
+# single sample is the identity (ruled 2026-10-05). Android's native path
+# is float32, hence the tolerance. See
 # spec/rules.yml fourier-transform-conventions.
 module: fft
 cases:
@@ -129,7 +128,7 @@ cases:
   - name: length-one
     description: >-
       N=1, re only: the transform of a single sample is the identity, with
-      an imaginary part of zero (fft-single-sample-input).
+      an imaginary part of zero.
     expected_source: reference
     buffers:
       re: {size: 1, init: [2.5]}
