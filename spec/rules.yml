@@ -491,15 +491,23 @@ rules:
         from the shipped files. Test BluetoothNameFilterTest carries the
         ble-name-regex-match tag.
       ios: >-
-        Not implemented (2026-10-05); the item is in iOS-TODO.md. The name
-        criterion is a substring test in BluetoothScan.swift and
-        ExperimentManager.swift, fed from the descriptors the element
-        handlers in InputElementHandler.swift and OutputElementHandler.swift
-        produce.
+        Conforms as of the development branch (a8e25dbb, 2026-10-05):
+        BluetoothNameFilter (Experiments/BluetoothNameFilter.swift)
+        compiles the pattern once at parse time with NSRegularExpression
+        as ^(?:...)$, so alternatives backtrack to the whole name like
+        Java's matches(); it replaces the name string on the descriptors,
+        in BluetoothScan and in ExperimentManager's shipped-experiment
+        lookup. A pattern that does not compile is an ElementHandlerError.
+        Test BluetoothNameFilterTests carries the ble-name-regex-match tag.
       editor: >-
-        Not implemented (2026-10-05); the item is in Editor-TODO.md. The
-        bluetooth blocks offer a "device name" field only
-        (src/blocks/input/bluetooth.ts, src/blocks/output/bluetooth.ts).
+        Conforms as of main (8fa26a2, 2026-10-05): both bluetooth blocks
+        carry a "device name (regular expression)" field
+        (src/blocks/bluetoothMatching.ts), emitted only when set and read
+        back on load, with a warning on a pattern JavaScript's RegExp does
+        not compile (a superset of the documented subset, so it warns and
+        never certifies). The phyphox:m sensorbox emits
+        nameRegex="phyphox:m( \d+)?" since 2ae6404. Tests:
+        bluetoothNameRegex.test.ts, loaderRegressions.test.ts.
     check: >-
       tools/validate_experiments.py compiles every nameRegex with Python's
       re module, which accepts the documented subset, and reports a value

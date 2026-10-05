@@ -262,7 +262,7 @@ elements:
         summary: >-
           Connect only to a device whose whole name matches this regular
           expression. Same semantics as on the bluetooth input element.
-        agreement: planned
+        agreement: agreed
         rules: [ble-name-regex]
       - name: uuid
         group: matching

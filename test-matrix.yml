@@ -1094,14 +1094,15 @@ tests:
       the same code path as the app's own play, pause and trash buttons.
 
   # --- Bluetooth device matching by regular expression (file format 1.21,
-  # specified 2026-10-05 ahead of the implementations; spec/rules.yml
-  # ble-name-regex)
+  # specified 2026-10-05 ahead of the implementations and active the same
+  # day: Android BluetoothNameFilterTest, iOS BluetoothNameFilterTests;
+  # spec/rules.yml ble-name-regex)
 
   - id: ble-name-regex-match
     area: hardware
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The nameRegex criterion of the bluetooth element, as a pure matching
       test without a radio: the whole device name has to match

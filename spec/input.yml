@@ -1166,14 +1166,15 @@ elements:
         summary: >-
           Connect only to a device whose whole name matches this regular
           expression.
-        agreement: planned
+        agreement: agreed
         rules: [ble-name-regex]
         note: >-
-          Specified ahead of the implementations (2026-10-05): file format
-          1.21 is the next version and neither app parses the attribute yet.
-          The Android-TODO.md, iOS-TODO.md and Editor-TODO.md handoff files
-          in the parent folder carry the implementation items; the rule
-          ble-name-regex in rules.yml records the decided behaviour.
+          Specified ahead of the implementations on 2026-10-05 and
+          implemented from that specification the same day on Android
+          (24a3e752), iOS (a8e25dbb) and in the editor (8fa26a2); "agreed"
+          records that both apps were built to this spec and carry the
+          matrix row ble-name-regex-match, not that two prior parsers were
+          compared.
       - name: uuid
         group: matching
         description: >-

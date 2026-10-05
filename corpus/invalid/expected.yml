@@ -377,7 +377,8 @@ stack-with-spacing.phyphox:   # spacing is not an attribute of stack
   findings:
     - '<stack>: spacing='
 # --- bluetooth nameRegex (file format 1.21, specified 2026-10-05 ahead of the
-# implementations; rule ble-name-regex)
+# implementations and refused by both apps since the same day; rule
+# ble-name-regex)
 bluetooth-name-regex-invalid.phyphox:   # the pattern does not compile
   parser: rejects
   findings:
