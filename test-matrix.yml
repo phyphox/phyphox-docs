@@ -1021,14 +1021,14 @@ tests:
   # docs/file-format/bluetooth-low-energy.md "Phyphox command characteristic
   # (0005)" is the design: a notify characteristic on which a device sends
   # PAUSE/START/TOGGLE (0x0n), CLEAR/CLEAR_ALL (0x1n) and STATUS (0xF0); the
-  # app answers on the event characteristic. Android carries the tag since
-  # 2026-10-05, iOS is pending (iOS-TODO.md in the working root).
+  # app answers on the event characteristic. Both platforms carry the tag
+  # since 2026-10-05 (Android BluetoothCommandTest, iOS BluetoothCommandTests).
 
   - id: ble-command-dispatch
     area: hardware
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The command byte contract: every documented code decodes to its
       command, bytes after the first are ignored, an empty notification and
