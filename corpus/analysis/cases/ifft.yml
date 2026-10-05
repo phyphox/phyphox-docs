@@ -1,8 +1,9 @@
 # Golden vectors: ifft (file format 1.21). Inverse DFT, kernel
 # e^(+2 pi i k n / N), divided by N under the default normalization
 # (backward), so ifft after fft returns the input. Same length restriction
-# as fft: power-of-two lengths of at least two only. Android's native path
-# is float32, hence the tolerance. See spec/rules.yml
+# as fft: power-of-two lengths only, a single bin being the identity
+# (fft-single-sample-input). Android's native path is float32, hence the
+# tolerance. See spec/rules.yml
 # fourier-transform-conventions.
 module: ifft
 cases:
@@ -105,3 +106,23 @@ cases:
     expect:
       outre: [4.000000000000001, 8.0, 11.999999999999998, 16.0]
       outim: [1.9999999999999978, -2.0000000000000013, 1.9999999999999998, -1.9999999999999987]
+  - name: length-one
+    description: >-
+      N=1: the inverse transform of a single bin is the identity under the
+      default normalization (1/N = 1), see fft-single-sample-input.
+    expected_source: reference
+    buffers:
+      re: {size: 1, init: [2.5]}
+      im: {size: 1, init: [-0.75]}
+      outre: {size: 1}
+      outim: {size: 1}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [2.5]
+      outim: [-0.75]

@@ -97,7 +97,15 @@
 - id: fft-single-sample-input
   title: FFT of a single sample
   area: file-format
-  status: open
+  status: decided
+  canonical: >-
+    A single input sample is written back unchanged, with an imaginary part
+    of zero when none is given - the exact transform of length one is the
+    identity under every normalization (one term, kernel e^0 = 1, factor
+    1/N = 1), which is also what dft and idft specify for N = 1 and what
+    iOS does today. fft and ifft therefore write one output value for one
+    input value; only an empty input yields an empty output. Decided by the
+    maintainer 2026-10-05.
   affects:
     android: >-
       Both the native path and the Java fallback return without writing
@@ -112,5 +120,5 @@
     One is a power of two, so the contract of fft-non-power-of-two-input
     promises identical results for a single input sample, yet Android writes
     nothing and iOS writes the sample back. Found 2026-10-05 while specifying
-    dft, whose exact transform of length one is the identity. Until decided,
-    an experiment should not feed fft (or ifft) a single sample.
+    dft, whose exact transform of length one is the identity; the iOS
+    behaviour is the correct one and Android is to be fixed.

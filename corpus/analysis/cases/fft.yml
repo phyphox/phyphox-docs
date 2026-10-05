@@ -1,10 +1,11 @@
 # Golden vectors: fft. Forward DFT, kernel e^(-2 pi i k n / N), full
 # complex spectrum; the normalization attribute (file format 1.21) sets the
-# factor, backward (unscaled) by default. Power-of-two lengths of at least
-# two ONLY - other lengths are platform-defined (fft-non-power-of-two-
-# input), a single sample is fft-single-sample-input. Android's native
-# path is float32, hence the tolerance. See spec/rules.yml
-# fourier-transform-conventions.
+# factor, backward (unscaled) by default. Power-of-two lengths ONLY -
+# other lengths are platform-defined (fft-non-power-of-two-input). A
+# single sample is the identity (fft-single-sample-input, decided
+# 2026-10-05: Android currently writes nothing and fails that case until
+# fixed). Android's native path is float32, hence the tolerance. See
+# spec/rules.yml fourier-transform-conventions.
 module: fft
 cases:
   - name: real-cosine
@@ -125,3 +126,21 @@ cases:
     expect:
       outre: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]
       outim: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]
+  - name: length-one
+    description: >-
+      N=1, re only: the transform of a single sample is the identity, with
+      an imaginary part of zero (fft-single-sample-input).
+    expected_source: reference
+    buffers:
+      re: {size: 1, init: [2.5]}
+      outre: {size: 1}
+      outim: {size: 1}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [2.5]
+      outim: [0.0]

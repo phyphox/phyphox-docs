@@ -548,8 +548,9 @@ rules:
       tolerance. fft and ifft may use the fastest transform the platform
       offers and are only guaranteed to agree across platforms for a
       power-of-two number of samples (fft-non-power-of-two-input, permanent);
-      for a power of two they must equal dft and idft respectively, which is
-      what the golden vectors pin. No precision is prescribed beyond the
+      for a power of two - including a single sample, whose transform is
+      the identity (fft-single-sample-input) - they must equal dft and idft
+      respectively, which is what the golden vectors pin. No precision is prescribed beyond the
       tolerances of the golden vectors, which admit single-precision native
       paths.
     rationale: >-
@@ -570,8 +571,10 @@ rules:
         Analysis.fftAM (Analysis.java) over fftw3complex (cpp/analysis/
         analysis.cpp, FFTW single precision, exact for any N) with a Java
         radix-2 fallback (Analysis.FFT, zero-pads to the next power of two
-        and truncates back); no normalization, no inverse, no dft module.
-        Registered in PhyphoxFile.analysisBlockParser, case "fft".
+        and truncates back); no normalization, no inverse, no dft module,
+        and both paths return without output for a single sample (`size <
+        2`), which fft-single-sample-input rules out. Registered in
+        PhyphoxFile.analysisBlockParser, case "fft".
       ios: >-
         Not implemented (2026-10-05); the item is in iOS-TODO.md. fft is
         FFTAnalysis.swift over vDSP_DFT_zop_CreateSetupD, which supports
@@ -585,7 +588,8 @@ rules:
     check: >-
       Golden vectors corpus/analysis/cases/{fft,ifft,dft,idft}.yml pin the
       kernel sign, every normalization value, the dft/idft lengths 1, 3, 5
-      and 7 and the fft/ifft power-of-two agreement with dft/idft
+      and 7, the fft/ifft single-sample identity and the fft/ifft
+      power-of-two agreement with dft/idft
       (test-matrix row analysis-golden-vectors); the generated fixture
       corpus/generated/analysis-fourier.phyphox exercises the four modules
       with every attribute value, and corpus/invalid/fourier-unknown-

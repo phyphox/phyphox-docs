@@ -73,9 +73,10 @@ are left out:
   the write-once lifecycle) — the runner has no user-clear step; the
   write-once skip itself is pinned by execution/static-write-once.
 - `fft` and `ifft` with non-power-of-two input (`fft-non-power-of-two-input`,
-  permanent) — power-of-two lengths of at least two only (a single sample
-  is `fft-single-sample-input`, open). `dft` and `idft` have no such
-  restriction and are pinned at odd lengths too. The Fourier and
+  permanent) — power-of-two lengths only. A single sample IS pinned (the
+  identity, `fft-single-sample-input`, decided 2026-10-05; Android fails it
+  until fixed). `dft` and `idft` have no such restriction and are pinned at
+  odd lengths too. The Fourier and
   crosscorrelation tolerances are widened to cover Android's float32
   native path, and gausssmooth's for iOS's single-precision vImage path.
 - The `info` module — every output is live device state; no vector

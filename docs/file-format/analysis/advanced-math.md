@@ -26,7 +26,7 @@ The output values are the raw correlation sums without any normalization, matchi
 
 Four modules transform between a signal and its spectrum: *fft* and *dft* compute the forward transform, *ifft* and *idft* the inverse. They share one interface and one set of conventions, so a spectrum computed by one module can be transformed back by any inverse module. They differ in what they promise about the input length:
 
-- **fft** and **ifft** use the fastest transform each platform offers. Only a **power-of-two** number of input samples (at least two, see [below](#fft)) is guaranteed to give identical results on both platforms; for any other length the output is implementation-defined and differs between platforms.
+- **fft** and **ifft** use the fastest transform each platform offers. Only a **power-of-two** number of input samples is guaranteed to give identical results on both platforms; for any other length the output is implementation-defined and differs between platforms.
 - **dft** and **idft** are the exact transforms for **any length**: N input samples give exactly N output values on every platform. They are slower than fft for lengths that are not a power of two, which is rarely a concern for the buffer sizes of a phone experiment, and the right choice whenever the buffer length is not under the experiment's control. Both are available since file format 1.21.
 
 For a power-of-two length fft and dft (and ifft and idft) give the same result.
@@ -87,7 +87,7 @@ Performs a simple differentiation of a single input by calculating the differenc
 
 The fast Fourier transform of a complex input, written as complex output. See [Fourier transforms](#fourier-transforms) for the interface, the kernel and the *normalization* attribute, all of which it shares with *dft*, *ifft* and *idft*.
 
-Provide a **power-of-two** number of input samples: only then is the output guaranteed to be identical on both platforms. This lets the module use the fastest transform each platform offers. For other input lengths the result is implementation-defined and differs between platforms; use *dft*, the exact transform of any length, for those cases. A single input sample is a power of two but currently handled differently by the two platforms as well.
+Provide a **power-of-two** number of input samples: only then is the output guaranteed to be identical on both platforms. This lets the module use the fastest transform each platform offers. For other input lengths the result is implementation-defined and differs between platforms; use *dft*, the exact transform of any length, for those cases. A single input sample is returned unchanged, as the transform of length one is the identity (Android currently writes nothing instead, see below).
 
 {{inconsistency:fft-non-power-of-two-input}}
 
@@ -111,7 +111,7 @@ The inverse discrete Fourier transform of a complex spectrum of **any length**, 
 
 The inverse fast Fourier transform of a complex spectrum - the inverse of *fft*, with the opposite sign in the kernel and, under the default *normalization*, divided by N, so *ifft* after *fft* returns the input. See [Fourier transforms](#fourier-transforms) for the interface and the conventions.
 
-It carries the same guarantee as *fft*: only a **power-of-two** number of input samples (the length of the spectrum) is guaranteed to give identical results on both platforms, any other length is implementation-defined - use *idft* for those. Both platforms handle a spectrum of a single bin differently as well, see the notes on [fft](#fft).
+It carries the same guarantee as *fft*: only a **power-of-two** number of input samples (the length of the spectrum) is guaranteed to give identical results on both platforms, any other length is implementation-defined - use *idft* for those. A spectrum of a single bin is returned unchanged, like a single sample by [fft](#fft).
 
 {{spec:analysis/analysis/ifft}}
 
