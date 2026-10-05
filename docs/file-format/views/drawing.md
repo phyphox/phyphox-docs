@@ -48,6 +48,12 @@ and the numbers in the file are the same numbers in every child.
 
 ## View-Element: geometry
 
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![A gauge drawn without images: a face, a red band, the scale and a needle, all from geometry and scale elements](../../assets/screenshots/views/drawing-light.png#only-light){ .view-shot .on-glb }
+![A gauge drawn without images: a face, a red band, the scale and a needle, all from geometry and scale elements](../../assets/screenshots/views/drawing-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
+
 A single shape on a transparent background. An area shape - rectangle, circle, arc - is filled
 with *color* and outlined with *lineColor*, each only when the attribute is given; a line is
 drawn with *lineColor*, or with *color* when there is no *lineColor*. Which position
@@ -78,6 +84,18 @@ rounded or tapered look use a tall, narrow rectangle with *cornerRadius* instead
 {{spec:views/view/geometry}}
 
 ## View-Element: scale
+
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![A circular scale from 0 to 100 % with minor tics and a needle](../../assets/screenshots/views/scale-circular-light.png#only-light){ .view-shot .on-glb }
+![A circular scale from 0 to 100 % with minor tics and a needle](../../assets/screenshots/views/scale-circular-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
+
+<figure class="view-example" markdown>
+<figcaption>Example</figcaption>
+![A linear scale from -20 to 60 °C below a thermometer bar](../../assets/screenshots/views/scale-linear-light.png#only-light){ .view-shot .on-glb }
+![A linear scale from -20 to 60 °C below a thermometer bar](../../assets/screenshots/views/scale-linear-dark.png#only-dark){ .view-shot .on-glb }
+</figure>
 
 The axis of a gauge: a baseline from the position of *min* to the position of *max*, major tics
 every *ticStep*, optional minor tics between them, the value at every *valueEvery*-th major tic,
