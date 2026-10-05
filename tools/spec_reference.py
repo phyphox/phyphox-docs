@@ -113,6 +113,7 @@ PLACEHOLDER = {
     "string": "STRING",
     "color": "COLOR",
     "unit": "UNIT",
+    "regex": "REGEX",
 }
 
 
@@ -302,6 +303,8 @@ def _meta_line(attr, spec, link_prefix):
     elif kind == "unit":
         bits.append(f"[unit reference or text]({link_prefix}file-format/"
                     "units.md#unit-references)")
+    elif kind == "regex":
+        bits.append("regular expression")
     elif kind and kind != "string":
         bits.append(kind + unit)
     elif unit:

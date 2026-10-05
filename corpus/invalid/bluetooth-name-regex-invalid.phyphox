@@ -1,0 +1,21 @@
+<!-- nameRegex that does not compile: an unclosed group. The apps refuse the
+     file (rule ble-name-regex); the published grammar cannot tell, so this
+     fixture is on the validator's blind list. -->
+<phyphox version="1.21">
+    <title>Bluetooth name regex invalid</title>
+    <category>Corpus</category>
+    <description>Fixture for an invalid nameRegex pattern.</description>
+    <data-containers>
+        <container size="0">value</container>
+    </data-containers>
+    <input>
+        <bluetooth nameRegex="phyphox:(m" mode="notification">
+            <output char="cddf1002-30f7-4671-8b43-5e40ba53514a" conversion="float32LittleEndian">value</output>
+        </bluetooth>
+    </input>
+    <views>
+        <view label="Data">
+            <value label="Value"><input>value</input></value>
+        </view>
+    </views>
+</phyphox>

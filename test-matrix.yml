@@ -1092,3 +1092,26 @@ tests:
       cddf0005 reaches the experiment screen as the decoded command while
       unknown ones never do. Pure dispatch; what the command then does is
       the same code path as the app's own play, pause and trash buttons.
+
+  # --- Bluetooth device matching by regular expression (file format 1.21,
+  # specified 2026-10-05 ahead of the implementations; spec/rules.yml
+  # ble-name-regex)
+
+  - id: ble-name-regex-match
+    area: hardware
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The nameRegex criterion of the bluetooth element, as a pure matching
+      test without a radio: the whole device name has to match
+      (nameRegex="phyphox:m" accepts phyphox:m and refuses phyphox:mini and
+      Xphyphox:m; "phyphox:m.*" accepts both phyphox names; "phyphox:(m|mini)"
+      refuses phyphox:max), matching is case-sensitive, name and nameRegex
+      given together both have to hold, and a file whose nameRegex does not
+      compile is refused by the real loading path (the corpus fixture
+      invalid/bluetooth-name-regex-invalid covers the last point through
+      corpus-invalid-reject as well). The same matcher must serve every
+      place the name criterion is applied - device resolution, the scan
+      dialog's filter, and the lookup of shipped experiments for a scanned
+      device - so the test exercises the shared matcher, not three copies.

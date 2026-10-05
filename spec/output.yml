@@ -255,6 +255,15 @@ elements:
         type: string
         summary: Connect only to a device whose name contains this text.
         agreement: agreed
+      - name: nameRegex
+        group: matching
+        since: "1.21"
+        type: regex
+        summary: >-
+          Connect only to a device whose whole name matches this regular
+          expression. Same semantics as on the bluetooth input element.
+        agreement: planned
+        rules: [ble-name-regex]
       - name: uuid
         group: matching
         type: string

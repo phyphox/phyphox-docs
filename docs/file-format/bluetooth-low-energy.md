@@ -66,6 +66,18 @@ The device-matching attributes are the same wherever a bluetooth element appears
 
 {{spec:input/input/bluetooth|attributes:matching}}
 
+The name criterion comes in two forms. The *name* attribute is a substring test: the device matches if its name *contains* the text, so `name="phyphox:m"` accepts a device called `phyphox:m` but also one called `phyphox:mini`. Since file format 1.21 (phyphox 1.3.0) the *nameRegex* attribute matches the *whole* device name against a regular expression instead. A pattern without special characters is therefore an exact name:
+
+```xml
+<bluetooth nameRegex="phyphox:m" mode="notification">        <!-- phyphox:m only -->
+<bluetooth nameRegex="phyphox:m.*" mode="notification">      <!-- phyphox:m, phyphox:mini, ... -->
+<bluetooth nameRegex="phyphox:(m|mini)" mode="notification"> <!-- exactly these two -->
+```
+
+Both forms are case-sensitive, both apply wherever the name is matched (when the experiment resolves its device, in the scan dialog, and when the app looks for shipped experiments that fit a scanned device), and they can be combined with each other and with *uuid*; every criterion that is given has to hold. A *nameRegex* that is not a valid regular expression makes the file fail to load.
+
+The apps use the regular expression engine of their platform (`java.util.regex` on Android, `NSRegularExpression` on iOS). Only the syntax both engines share is guaranteed, which covers everything a device name needs: literal characters, backslash escapes for special characters (`\.`, `\(`), character classes in brackets (`[0-9]`, `[A-Za-z_-]`) and the shorthands `\d`, `\w` and `\s`, the dot for any character, the quantifiers `*`, `+`, `?` and `{m,n}`, alternation with `|`, groups in parentheses, and the anchors `^` and `$` (redundant, as the whole name has to match anyway). The name that is matched is the one the Bluetooth stack reports, which for a device that was connected before may be its full name rather than the shortened one it advertises.
+
 ### BLE as input
 
 If data should be read from a BLE device and displayed in phyphox, the device should be defined within the input block of the phyphox file.

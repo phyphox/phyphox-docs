@@ -659,6 +659,9 @@ def _check_corpus():
 # slot without redoing the apps' positional matching - so the published
 # RELAX NG and Schematron pass these files and validate_experiments does not.
 VALIDATOR_BLIND = {
+    "bluetooth-name-regex-invalid.phyphox",   # a pattern that does not compile:
+                                              # RELAX NG and Schematron cannot
+                                              # compile a regular expression
     "missing-required-slot.phyphox",
     "subtract-one-input-of-two.phyphox",
     "value-not-allowed-for-slot.phyphox",

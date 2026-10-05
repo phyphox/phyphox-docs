@@ -56,6 +56,10 @@
 - file: generated/bluetooth-mode-default.phyphox
   version: "1.7"
   adds: []
+- file: generated/bluetooth-name-regex.phyphox
+  version: "1.21"
+  adds:
+    - bluetooth@nameRegex
 - file: generated/camera-rgb-spectrum.phyphox
   version: "1.21"
   adds: []

@@ -304,6 +304,18 @@ def check_element(node, parent_name, spec, common, slots, components, rep, path,
             rep.add("unknown unit reference", fname,
                     f"{path}<{node.tag}> {attr}=\"{value}\" does not name a "
                     f"known unit (spec/units.yml)")
+        # a regular expression (rule ble-name-regex): the apps refuse a
+        # pattern their engine cannot compile. Python's re accepts the
+        # documented subset, which is all the format guarantees; the
+        # published grammar cannot compile a pattern, so this check has no
+        # RELAX NG or Schematron counterpart (VALIDATOR_BLIND in hooks.py)
+        elif kind == "regex":
+            try:
+                re.compile(value)
+            except re.error as e:
+                rep.add("bad regular expression", fname,
+                        f"{path}<{node.tag}> {attr}=\"{value}\" does not "
+                        f"compile: {e}")
 
     # required attributes must be present (found missing 2026-08-24: the
     # generated RELAX NG checked this while nothing here did)

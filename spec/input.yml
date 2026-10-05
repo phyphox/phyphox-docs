@@ -1148,6 +1148,32 @@ elements:
         type: string
         summary: Connect only to a device advertising this name.
         agreement: agreed
+      - name: nameRegex
+        group: matching
+        description: >-
+          A regular expression that the complete name of a device found while
+          scanning has to match, as an alternative to the substring test of
+          the name attribute. The whole name has to match, so a plain text
+          matches exactly that name: nameRegex="phyphox:m" accepts a device
+          called phyphox:m and not one called phyphox:mini, which
+          name="phyphox:m" would also accept. Both attributes may be given,
+          and like every matching criterion each one given has to hold.
+          Matching is case-sensitive. A value that is not a valid regular
+          expression is an error, and the file is refused. See "BLE device
+          matching" for the supported syntax.
+        since: "1.21"
+        type: regex
+        summary: >-
+          Connect only to a device whose whole name matches this regular
+          expression.
+        agreement: planned
+        rules: [ble-name-regex]
+        note: >-
+          Specified ahead of the implementations (2026-10-05): file format
+          1.21 is the next version and neither app parses the attribute yet.
+          The Android-TODO.md, iOS-TODO.md and Editor-TODO.md handoff files
+          in the parent folder carry the implementation items; the rule
+          ble-name-regex in rules.yml records the decided behaviour.
       - name: uuid
         group: matching
         description: >-

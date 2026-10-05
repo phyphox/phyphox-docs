@@ -448,6 +448,64 @@ rules:
       compares the two when the app checkouts sit next to this repository
       (tools/hooks.py, _check_units).
 
+  - id: ble-name-regex
+    decided: 2026-10-05
+    summary: >-
+      bluetooth@nameRegex (file format 1.21) matches the whole device name
+      against a regular expression; an invalid pattern refuses the file.
+    rule: >-
+      The nameRegex attribute of the bluetooth element, in the input and the
+      output block alike, holds a regular expression that the COMPLETE name
+      of a scanned device has to match - not a substring of it, as the name
+      attribute tests. So a pattern without metacharacters is an exact name
+      (nameRegex="phyphox:m" does not accept phyphox:mini), a prefix is
+      written phyphox:m.* and alternatives phyphox:(m|mini). Matching is
+      case-sensitive, and the criterion applies wherever the name criterion
+      applies: when the experiment resolves its device, in the filter of the
+      scan dialog, and when the app looks for shipped experiments that fit a
+      scanned device. nameRegex may be combined with name and uuid; every
+      criterion given has to hold. A value that does not compile as a
+      regular expression is an error and the parser refuses the file, like
+      an invalid enum value (enum-invalid-value): the file would silently
+      match nothing otherwise. The implementations use their platform's
+      engine (java.util.regex on Android, NSRegularExpression on iOS), and
+      the format guarantees only the syntax both share, which is what the
+      documentation lists - literal characters, backslash escapes, character
+      classes in brackets and the shorthands \d \w \s, the dot, the
+      quantifiers * + ? and {m,n}, alternation with |, groups in parentheses
+      and the anchors ^ and $. The device name the apps match is the one
+      their Bluetooth stack reports, which may be the cached full name of a
+      previously connected device rather than a shortened advertised one;
+      an author who sees a device under a shortened name should match that.
+    applies_to: "bluetooth@nameRegex in the input and the output block"
+    state:
+      android: >-
+        Not implemented (2026-10-05); the item is in Android-TODO.md. The
+        name criterion is a substring test in Bluetooth.kt (paired-device
+        shortcut), BluetoothScanDialog.kt (scan filter and the supported
+        flag) and ExperimentListActivity.java (shipped experiments for a
+        scanned device), with AssetExperimentLoader.java collecting the
+        names of the shipped experiments separately from PhyphoxFile.java.
+      ios: >-
+        Not implemented (2026-10-05); the item is in iOS-TODO.md. The name
+        criterion is a substring test in BluetoothScan.swift and
+        ExperimentManager.swift, fed from the descriptors the element
+        handlers in InputElementHandler.swift and OutputElementHandler.swift
+        produce.
+      editor: >-
+        Not implemented (2026-10-05); the item is in Editor-TODO.md. The
+        bluetooth blocks offer a "device name" field only
+        (src/blocks/input/bluetooth.ts, src/blocks/output/bluetooth.ts).
+    check: >-
+      tools/validate_experiments.py compiles every nameRegex with Python's
+      re module, which accepts the documented subset, and reports a value
+      that does not compile (corpus/invalid/bluetooth-name-regex-invalid).
+      The published RELAX NG and Schematron cannot compile a pattern, so
+      that fixture is on the VALIDATOR_BLIND list in tools/hooks.py.
+      Test-matrix row ble-name-regex-match covers the matching semantics on
+      both apps.
+
+
 
 # The "one-sided attributes" question, which the input probe expected to be a
 # growing case-by-case list, did not survive scrutiny. Of the six attributes it
