@@ -1016,3 +1016,24 @@ tests:
       temperature is shown as clamped. The camera-gui control at level 3
       offers automatic, locked and a temperature scale with tint, and no
       named presets.
+
+  # --- BLE command characteristic (phyphox 1.3.0, specified 2026-10-05) --
+  # docs/file-format/bluetooth-low-energy.md "Phyphox command characteristic
+  # (0005)" is the design: a notify characteristic on which a device sends
+  # PAUSE/START/TOGGLE (0x0n), CLEAR/CLEAR_ALL (0x1n) and STATUS (0xF0); the
+  # app answers on the event characteristic. Android carries the tag since
+  # 2026-10-05, iOS is pending (iOS-TODO.md in the working root).
+
+  - id: ble-command-dispatch
+    area: hardware
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The command byte contract: every documented code decodes to its
+      command, bytes after the first are ignored, an empty notification and
+      every unassigned code (inside the groups, an unknown group, the event
+      characteristic's 0xff) decode to nothing, and a notification on
+      cddf0005 reaches the experiment screen as the decoded command while
+      unknown ones never do. Pure dispatch; what the command then does is
+      the same code path as the app's own play, pause and trash buttons.
