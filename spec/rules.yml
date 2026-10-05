@@ -582,9 +582,16 @@ rules:
         nextFFTSize; no normalization, no inverse, no dft module. Registered
         in ExperimentAnalysisFactory.swift.
       editor: >-
-        Not implemented (2026-10-05); the item is in Editor-TODO.md. The fft
-        block in src/blocks/analysis/advanced-math.ts has a cycles mutator
-        only and no settings block; no blocks for ifft, dft, idft.
+        Conforms as of main (91f97f7, 2026-10-05): fft, ifft, dft and idft
+        are built by one factory in src/blocks/analysis/advanced-math.ts
+        with the shared re/im slot layout and a settings block carrying the
+        normalization dropdown (backward, forward, ortho, none; default
+        backward, written only when it differs) and cycles. Toolbox entries
+        for the three new modules sit next to fft. tests/fourier.test.ts
+        round-trips every module with every normalization value and the
+        corpus fixture analysis-fourier.phyphox without a logical
+        difference. The editor does not compute transforms, so the kernel
+        and the length guarantees are the apps' share of this rule.
     check: >-
       Golden vectors corpus/analysis/cases/{fft,ifft,dft,idft}.yml pin the
       kernel sign, every normalization value, the dft/idft lengths 1, 3, 5
