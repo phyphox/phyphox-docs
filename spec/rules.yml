@@ -480,12 +480,16 @@ rules:
     applies_to: "bluetooth@nameRegex in the input and the output block"
     state:
       android: >-
-        Not implemented (2026-10-05); the item is in Android-TODO.md. The
-        name criterion is a substring test in Bluetooth.kt (paired-device
-        shortcut), BluetoothScanDialog.kt (scan filter and the supported
-        flag) and ExperimentListActivity.java (shipped experiments for a
-        scanned device), with AssetExperimentLoader.java collecting the
-        names of the shipped experiments separately from PhyphoxFile.java.
+        Conforms as of the development branch (24a3e752, 2026-10-05):
+        BluetoothNameFilter.kt holds name and nameRegex (compiled once in
+        PhyphoxFile.parseBluetoothNameFilter, a PatternSyntaxException is
+        the usual phyphoxFileException) and replaces the name string in
+        Bluetooth.kt (paired-device shortcut), BluetoothScanDialog.kt (scan
+        filter and the supported flag) and ExperimentListActivity.java
+        (shipped experiments for a scanned device, the repository map is
+        keyed by the filter); AssetExperimentLoader.java reads nameRegex
+        from the shipped files. Test BluetoothNameFilterTest carries the
+        ble-name-regex-match tag.
       ios: >-
         Not implemented (2026-10-05); the item is in iOS-TODO.md. The name
         criterion is a substring test in BluetoothScan.swift and
