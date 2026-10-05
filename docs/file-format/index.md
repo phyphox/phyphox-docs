@@ -253,6 +253,11 @@ and, since file format 1.21, [view groups](views/groups.md) that arrange other v
 - [grid](views/groups.md#view-element-grid)
 - [stack](views/groups.md#view-element-stack) with [transform](views/groups.md#view-element-transform)
 
+and, also since 1.21, two [drawing elements](views/drawing.md) that draw gauge parts from attributes instead of images:
+
+- [geometry](views/drawing.md#view-element-geometry)
+- [scale](views/drawing.md#view-element-scale)
+
 ## Block: export
 
 The export block may hold one or more *set* blocks, grouping and naming multiple data-containers as a logical unit to be written to a file when the user wants to export the data. All sets are written on every export — the user only chooses the file format. Grouping for example the raw data and the analysis results into separate sets keeps them apart in the exported file.

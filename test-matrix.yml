@@ -873,6 +873,55 @@ tests:
       container leaves the neutral value, and the stack takes no touches
       (no maximize, zoom or pick).
 
+  - id: view-geometry-draw
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Rendering the "Drawing" view of corpus/generated/view-drawing.phyphox
+      (docs/file-format/views/drawing.md, specified 2026-10-05): a geometry
+      takes the full width and is width / aspectRatio tall; a rectangle
+      with cornerRadius, a circle, a line and a ring segment are drawn at
+      the positions the attributes give, positions as fractions of the box
+      and lengths as fractions of the width; an area shape is filled only
+      with color and outlined only with lineColor, a line takes lineColor
+      or falls back to color; drawing outside the box is clipped; a
+      geometry in a transform rotates about the origin like an image.
+
+  - id: view-scale-draw
+    area: views
+    tier: T1
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      Rendering the scales of corpus/generated/view-drawing.phyphox: a
+      linear scale runs from start to end with tics on the positive side
+      (right of the direction of travel), a circular one on the arc from
+      startAngle over sweepAngle, clockwise, with positive distances
+      outward; major tics at min + k * ticStep, minorTics between them,
+      values at every valueEvery-th major tic at valueDistance, the label
+      as "label (unit)" centred at labelPositionX/Y; lineWidth 0, ticLength
+      0 and valueEvery 0 leave the respective part out; a tap on the label
+      of an untransformed scale inside a stack opens the unit dialog, a tap
+      anywhere else on the stack does nothing.
+
+  - id: view-scale-units
+    area: ui
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      What a scale with a unit reference shows under the unit conversion,
+      checked without rendering on corpus/generated/view-drawing.phyphox:
+      in the experiment's unit the tics follow ticStep from min and the
+      values carry as many decimals as the step needs (or precision);
+      under the imperial setting the Celsius scale shows Fahrenheit values
+      at automatically chosen tics within the same geometry (the positions
+      of min and max unchanged, converted with the offset), an explicit
+      precision follows the precision rule of docs/file-format/units.md;
+      a text unit is shown verbatim and never converted.
+
   - id: view-vertical-layout
     area: views
     tier: T1

@@ -103,7 +103,7 @@ elements:
     since: "1.0"
     summary: One page of the experiment, listed in the view selector.
     children: [info, separator, value, graph, edit, button, toggle, slider,
-               dropdown, image, camera-gui, depth-gui,
+               dropdown, image, geometry, scale, camera-gui, depth-gui,
                vertical, horizontal, grid, stack]
     child_attributes: [view_element_attributes]
     attributes:
@@ -1549,6 +1549,376 @@ elements:
         agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
+  # --------------------------------------------------------- drawing elements --
+  # geometry and scale: static drawings for gauges built as stacks. File
+  # format 1.21, specified 2026-10-05 ahead of the implementations
+  # (docs/file-format/views/drawing.md is the design); every attribute is
+  # `planned` until both apps carry it. The coordinate conventions - positions
+  # as fractions of the element's box, lengths as fractions of its width,
+  # angles in radians clockwise from twelve o'clock - are shared by the two
+  # elements and stated once on the page under "Drawing coordinates".
+  - name: geometry
+    parent: [view, vertical, horizontal, grid, stack, transform]
+    since: "1.21"
+    summary: >-
+      A static shape - rectangle, circle, line or arc - on a transparent
+      background, for gauge faces, needles and range bands.
+    remark: >-
+      The element is static: nothing in it reads a data container, and a
+      transform moves it as a whole. It takes the full width and is as tall
+      as width / aspectRatio; positions inside it are fractions of that box
+      (x from the left edge, y from the top edge), lengths are fractions of
+      its width, and drawing outside the box is clipped. Which position
+      attributes apply depends on shape; the others are ignored. An area
+      shape is filled with color and outlined with lineColor, each only
+      when given; a line is drawn with lineColor, or with color if
+      lineColor is absent. label has no effect; visibility hides the
+      element.
+    attributes:
+      - name: shape
+        type: enum
+        values: [rectangle, circle, line, arc]
+        default: rectangle
+        value_notes:
+          rectangle: >-
+            The box from left/top to right/bottom, with corners rounded by
+            cornerRadius.
+          circle: >-
+            A circle of radius around centerX/centerY.
+          line: >-
+            A straight line from startX/startY to endX/endY of width
+            lineWidth with square ends that stop exactly at the points.
+          arc: >-
+            A ring segment around centerX/centerY between innerRadius and
+            radius, from startAngle over sweepAngle; with innerRadius 0 a
+            pie slice, with a full sweep a ring.
+        summary: What is drawn.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: aspectRatio
+        type: float
+        default: 1
+        summary: >-
+          Width divided by height of the element's box; the box takes the
+          full width.
+        agreement: planned
+      - name: color
+        type: color
+        summary: >-
+          Fill of an area shape, or the colour of a line without lineColor.
+          Without it an area shape has no fill.
+        rules: [color-invalid-value]
+        agreement: planned
+      - name: lineColor
+        type: color
+        summary: >-
+          Colour of the outline of an area shape, or of a line. Without it
+          an area shape has no outline.
+        rules: [color-invalid-value]
+        agreement: planned
+      - name: lineWidth
+        type: float
+        default: 0.01
+        summary: >-
+          Width of the outline or of a line, as a fraction of the element's
+          width (not relative to a default width like the graph's).
+        agreement: planned
+      - name: left
+        type: float
+        default: 0
+        summary: >-
+          rectangle: left edge, as a fraction of the width from the left.
+        agreement: planned
+      - name: top
+        type: float
+        default: 0
+        summary: >-
+          rectangle: top edge, as a fraction of the height from the top.
+        agreement: planned
+      - name: right
+        type: float
+        default: 1
+        summary: >-
+          rectangle: right edge, as a fraction of the width from the left.
+        agreement: planned
+      - name: bottom
+        type: float
+        default: 1
+        summary: >-
+          rectangle: bottom edge, as a fraction of the height from the top.
+        agreement: planned
+      - name: cornerRadius
+        type: float
+        default: 0
+        summary: >-
+          rectangle: radius of the rounded corners, as a fraction of the
+          width; 0 is a sharp corner, half the shorter side a stadium.
+        agreement: planned
+      - name: centerX
+        type: float
+        default: 0.5
+        summary: >-
+          circle, arc: horizontal centre, as a fraction of the width.
+        agreement: planned
+      - name: centerY
+        type: float
+        default: 0.5
+        summary: >-
+          circle, arc: vertical centre, as a fraction of the height.
+        agreement: planned
+      - name: radius
+        type: float
+        default: 0.5
+        summary: >-
+          circle: the radius; arc: the outer radius. A fraction of the
+          width.
+        agreement: planned
+      - name: innerRadius
+        type: float
+        default: 0
+        summary: >-
+          arc: the inner radius as a fraction of the width; 0 fills to the
+          centre.
+        agreement: planned
+      - name: startAngle
+        type: float
+        default: 0
+        summary: >-
+          arc: where the segment begins, in radians clockwise from twelve
+          o'clock.
+        agreement: planned
+      - name: sweepAngle
+        type: float
+        default: 6.2832
+        summary: >-
+          arc: how far the segment extends from startAngle, in radians;
+          positive clockwise, negative counter-clockwise. The default is a
+          full turn.
+        agreement: planned
+      - name: startX
+        type: float
+        default: 0
+        summary: "line: horizontal start, as a fraction of the width."
+        agreement: planned
+      - name: startY
+        type: float
+        default: 0.5
+        summary: "line: vertical start, as a fraction of the height."
+        agreement: planned
+      - name: endX
+        type: float
+        default: 1
+        summary: "line: horizontal end, as a fraction of the width."
+        agreement: planned
+      - name: endY
+        type: float
+        default: 0.5
+        summary: "line: vertical end, as a fraction of the height."
+        agreement: planned
+
+  - name: scale
+    parent: [view, vertical, horizontal, grid, stack, transform]
+    since: "1.21"
+    summary: >-
+      The axis of a gauge: a straight or circular baseline from min to max
+      with tics, the values at the tics and a label with a unit.
+    remark: >-
+      The scale is static: its range and geometry come from attributes, not
+      from data containers. It takes the full width and is as tall as
+      width / aspectRatio; positions inside it are fractions of that box,
+      lengths are fractions of its width, angles are radians clockwise from
+      twelve o'clock, and drawing outside the box is clipped. The baseline
+      runs from the position of min to the position of max - on a straight
+      line between startX/startY and endX/endY, or on the arc around
+      centerX/centerY of radius from startAngle over sweepAngle. Distances
+      from the baseline (ticLength, minorTicLength, valueDistance) are
+      signed: on a circular scale positive is outward from the centre, on a
+      linear scale positive is to the right of the direction from start to
+      end as seen on screen - below a scale running left to right, right of
+      one running upwards. Major tics sit at min + k * ticStep up to max;
+      without ticStep the step is chosen as a graph axis would choose it
+      for an axis of this length. The label and the unit are drawn together
+      as "label (unit)", centred at labelPositionX/labelPositionY. With a
+      unit reference the values at the tics follow the unit conversion: the
+      positions of min and max stay, and while another unit is shown the
+      tics are chosen automatically in that unit (an explicit ticStep and
+      the valueEvery rhythm apply in the experiment's unit only). Tapping
+      the label opens the unit dialog, also inside a stack as long as the
+      scale is not wrapped in a transform. The text follows the app's text
+      size, not the element's size. label is the axis label (a text, like
+      labelX of a graph); visibility hides the element.
+    attributes:
+      - name: shape
+        type: enum
+        values: [linear, circular]
+        default: linear
+        value_notes:
+          linear: >-
+            A straight baseline from startX/startY (min) to endX/endY
+            (max), in any direction.
+          circular: >-
+            An arc around centerX/centerY of radius from startAngle (min)
+            over sweepAngle (max), clockwise for a positive sweep.
+        summary: Straight or circular.
+        agreement: planned
+        rules: [enum-invalid-value, enum-case-insensitive]
+      - name: aspectRatio
+        type: float
+        default: 1
+        summary: >-
+          Width divided by height of the element's box; the box takes the
+          full width.
+        agreement: planned
+      - name: min
+        type: float
+        default: 0
+        summary: Value at the start of the baseline, in the experiment's unit.
+        agreement: planned
+      - name: max
+        type: float
+        default: 1
+        summary: Value at the end of the baseline, in the experiment's unit.
+        agreement: planned
+      - name: unit
+        type: unit
+        translatable: true
+        summary: >-
+          Unit of the values, appended to the label in parentheses. A unit
+          reference makes the values convertible.
+        rules: [unit-reference]
+        agreement: planned
+      - name: color
+        type: color
+        summary: >-
+          Colour of the baseline, the tics and all text. Defaults to the
+          text colour of the current theme.
+        rules: [color-invalid-value]
+        agreement: planned
+      - name: size
+        type: float
+        default: 1
+        summary: >-
+          Size of the values and the label relative to the default text
+          size, like the value element's size.
+        agreement: planned
+      - name: lineWidth
+        type: float
+        default: 0.005
+        summary: >-
+          Width of the baseline and the tics, as a fraction of the element's
+          width; 0 draws no baseline.
+        agreement: planned
+      - name: ticStep
+        type: float
+        default: 0
+        summary: >-
+          Distance between major tics in the experiment's unit, laid out
+          from min; 0 chooses the step automatically, like a graph axis.
+        agreement: planned
+      - name: ticLength
+        type: float
+        default: 0.03
+        summary: >-
+          Length of the major tics from the baseline, as a fraction of the
+          width; negative draws them on the other side, 0 draws none.
+        agreement: planned
+      - name: minorTics
+        type: integer
+        default: 0
+        summary: >-
+          Number of minor tics between two major tics; 4 divides a step into
+          five.
+        agreement: planned
+      - name: minorTicLength
+        type: float
+        default: 0.015
+        summary: >-
+          Length of the minor tics, as a fraction of the width, signed like
+          ticLength.
+        agreement: planned
+      - name: valueEvery
+        type: integer
+        default: 1
+        summary: >-
+          Show the value at every n-th major tic, counted from min; 0 shows
+          no values.
+        agreement: planned
+      - name: valueDistance
+        type: float
+        default: 0.08
+        summary: >-
+          Distance from the baseline to the centre of a value text, as a
+          fraction of the width, signed like ticLength.
+        agreement: planned
+      - name: precision
+        type: integer
+        summary: >-
+          Decimals of the values. Without it as many as the tic step needs.
+          With a converted unit the precision rule of the units page
+          applies.
+        agreement: planned
+      - name: labelPositionX
+        type: float
+        default: 0.5
+        summary: >-
+          Horizontal centre of the label text, as a fraction of the width.
+        agreement: planned
+      - name: labelPositionY
+        type: float
+        default: 0.5
+        summary: >-
+          Vertical centre of the label text, as a fraction of the height.
+        agreement: planned
+      - name: startX
+        type: float
+        default: 0.1
+        summary: "linear: horizontal position of min, as a fraction of the width."
+        agreement: planned
+      - name: startY
+        type: float
+        default: 0.5
+        summary: "linear: vertical position of min, as a fraction of the height."
+        agreement: planned
+      - name: endX
+        type: float
+        default: 0.9
+        summary: "linear: horizontal position of max, as a fraction of the width."
+        agreement: planned
+      - name: endY
+        type: float
+        default: 0.5
+        summary: "linear: vertical position of max, as a fraction of the height."
+        agreement: planned
+      - name: centerX
+        type: float
+        default: 0.5
+        summary: "circular: horizontal centre, as a fraction of the width."
+        agreement: planned
+      - name: centerY
+        type: float
+        default: 0.5
+        summary: "circular: vertical centre, as a fraction of the height."
+        agreement: planned
+      - name: radius
+        type: float
+        default: 0.4
+        summary: "circular: radius of the baseline, as a fraction of the width."
+        agreement: planned
+      - name: startAngle
+        type: float
+        default: -2.3562
+        summary: >-
+          circular: angle of min, in radians clockwise from twelve o'clock.
+          The default is -135°.
+        agreement: planned
+      - name: sweepAngle
+        type: float
+        default: 4.7124
+        summary: >-
+          circular: angle from min to max, in radians; positive clockwise.
+          The default is 270°, so min and max sit symmetric about the bottom.
+        agreement: planned
+
   # ------------------------------------------------------------- camera-gui --
   - name: camera-gui
     parent: [view, vertical, horizontal, grid]
@@ -1661,7 +2031,7 @@ elements:
       column. label has no effect on a group; visibility hides the whole
       group.
     children: [info, separator, value, graph, edit, button, toggle, slider,
-               dropdown, image, camera-gui, depth-gui,
+               dropdown, image, geometry, scale, camera-gui, depth-gui,
                vertical, horizontal, grid, stack]
     child_attributes: [view_element_attributes]
     attributes:
@@ -1693,7 +2063,7 @@ elements:
       tallest child and shorter children are centred vertically. label has
       no effect on a group; visibility hides the whole group.
     children: [info, separator, value, graph, edit, button, toggle, slider,
-               dropdown, image, camera-gui, depth-gui,
+               dropdown, image, geometry, scale, camera-gui, depth-gui,
                vertical, horizontal, grid, stack]
     child_attributes: [view_element_attributes, horizontal_child_attributes]
     attributes:
@@ -1729,7 +2099,7 @@ elements:
       child. label has no effect on a group; visibility hides the whole
       group.
     children: [info, separator, value, graph, edit, button, toggle, slider,
-               dropdown, image, camera-gui, depth-gui,
+               dropdown, image, geometry, scale, camera-gui, depth-gui,
                vertical, horizontal, grid, stack]
     child_attributes: [view_element_attributes]
     attributes:
@@ -1806,9 +2176,10 @@ elements:
       graph's plot area is transparent, and colours with an alpha byte are
       blended. A stack is not interactive: its graphs cannot be maximized,
       zoomed or used for picking, and it takes no user-input, camera or
-      depth elements. label has no effect on a group; visibility hides the
-      whole group.
-    children: [info, separator, value, graph, image, transform]
+      depth elements; the one touch it passes on is a tap on the label of
+      an untransformed scale, which opens the unit dialog. label has no
+      effect on a group; visibility hides the whole group.
+    children: [info, separator, value, graph, image, geometry, scale, transform]
     child_attributes: [view_element_attributes]
     attributes: []
 
@@ -1829,7 +2200,7 @@ elements:
       fractions of the wrapped element's own untransformed size, which is
       also what the stack's layout uses. The wrapped element receives no
       touches. label has no effect; visibility hides the wrapped element.
-    children: [input, info, separator, value, graph, image]
+    children: [input, info, separator, value, graph, image, geometry, scale]
     child_attributes: [view_element_attributes]
     attributes:
       - name: originX

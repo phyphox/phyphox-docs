@@ -9,8 +9,9 @@
     they are checked against.
 
 Several view elements show a unit next to a number: the [value](views/basics.md#view-element-value)
-and [edit](views/user-input.md#view-element-edit) elements with their *unit* attribute, and the
-[graph](views/graph.md) with *unitX*, *unitY*, *unitZ* and *unitYperX*. Each of these attributes
+and [edit](views/user-input.md#view-element-edit) elements with their *unit* attribute, the
+[graph](views/graph.md) with *unitX*, *unitY*, *unitZ* and *unitYperX*, and the
+[scale](views/drawing.md#view-element-scale) of a gauge with its *unit*. Each of these attributes
 takes either a **unit reference** or plain **text**.
 
 ## Unit references
@@ -105,8 +106,9 @@ map metres to yards, and the intent is feet. The setting is applied when an expe
 
 **Switching a unit by hand.** Independently of the setting, the user can change the unit of any
 element that shows a referenced unit: on a graph by tapping an axis while the graph is in its
-exclusive (maximised) mode — the x and y axis labels, and the colour-scale label for z — and on a
-value or edit element by tapping the unit text. A dialog lists every unit of the same quantity,
+exclusive (maximised) mode — the x and y axis labels, and the colour-scale label for z — on a
+value or edit element by tapping the unit text, and on a scale by tapping its label (also inside
+a stack, unless the scale is wrapped in a transform). A dialog lists every unit of the same quantity,
 in the order of the table and grouped by system, with the experiment's own unit marked as its
 default. The choice holds while the experiment is open and is not stored: it is not part of a
 saved state, and reopening the experiment applies the setting again.
@@ -116,7 +118,9 @@ the value text, the edit field (a number the user types is converted back before
 of the element is applied, and the *min* and *max* limits, which are in buffer units, are
 converted the same way for the check), axis tick labels, fixed and extended axis ranges, the
 *followX* window, the points, differences and slope of the [data picker](views/graph.md#data-picker),
-and the colour scale of a colour map. The data itself is untouched: buffers, analysis, saved
+the colour scale of a colour map, and the values at the tics of a
+[scale](views/drawing.md#view-element-scale), whose tics are then chosen automatically in the
+displayed unit while its geometry stays put. The data itself is untouched: buffers, analysis, saved
 states, [exports](index.md#block-export) and the [remote interface's](../remote-interface/index.md)
 data endpoints always carry the original values. The remote interface performs the same
 conversion in the browser from the same table, starting from the phone's setting.

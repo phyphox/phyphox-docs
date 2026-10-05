@@ -358,3 +358,10 @@ unit-reference-unknown.phyphox:   # @metre is not a known unit id
   parser: accepts
   findings:
     - 'unit="@metre"'
+# --- drawing elements (file format 1.21, specified 2026-10-05 ahead of the
+# implementations)
+geometry-unknown-shape.phyphox:   # shape is an enumeration on both elements
+  parser: rejects
+  findings:
+    - "<views>/<view>/<stack>/<geometry> shape=\"triangle\" not in ['rectangle', 'circle', 'line', 'arc']"
+    - "<views>/<view>/<stack>/<scale> shape=\"spiral\" not in ['linear', 'circular']"

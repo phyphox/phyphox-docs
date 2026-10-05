@@ -50,3 +50,4 @@ The view elements are documented by category:
 - [Units](../units.md) — how the *unit* attributes of value, edit and graph name a unit, and how the app converts referenced units
 - [Camera and depth preview](preview.md) — [camera-gui](preview.md#view-element-camera-gui) and [depth-gui](preview.md#view-element-depth-gui)
 - [View groups](groups.md) — [vertical](groups.md#view-element-vertical), [horizontal](groups.md#view-element-horizontal), [grid](groups.md#view-element-grid) and [stack](groups.md#view-element-stack) with [transform](groups.md#view-element-transform), which arrange other view elements (file format 1.21)
+- [Drawing elements](drawing.md) — [geometry](drawing.md#view-element-geometry) and [scale](drawing.md#view-element-scale), static shapes and gauge axes drawn from attributes, for gauges built as stacks without images (file format 1.21)

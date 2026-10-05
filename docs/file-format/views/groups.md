@@ -20,8 +20,8 @@ for every group: *label* has no effect on a group, and *visibility* hides the wh
 | Group | May appear in | May contain |
 |---|---|---|
 | `vertical`, `horizontal`, `grid` | a view or any of these three | every view element, including these groups and `stack` |
-| `stack` | a view, `vertical`, `horizontal` or `grid` | `info`, `separator`, `value`, `graph`, `image` and `transform` |
-| `transform` | a `stack` only | exactly one of `info`, `separator`, `value`, `graph`, `image` |
+| `stack` | a view, `vertical`, `horizontal` or `grid` | `info`, `separator`, `value`, `graph`, `image`, `geometry`, `scale` and `transform` |
+| `transform` | a `stack` only | exactly one of `info`, `separator`, `value`, `graph`, `image`, `geometry`, `scale` |
 
 The groups nest to any depth. A stack deliberately holds only elements that show data: it is
 not interactive (see below), so user-input elements, the camera and the depth preview cannot sit
@@ -199,7 +199,9 @@ their alpha channel, the plot area of a graph is transparent, and
 
 A stack is not interactive. Its graphs cannot be maximized, zoomed or used for picking, and a
 transformed element receives no touches - with children overlapping, a touch would be
-ambiguous. Use a `horizontal` or `grid` group next to the stack for controls.
+ambiguous. Use a `horizontal` or `grid` group next to the stack for controls. The one exception
+is the label of an untransformed [scale](drawing.md#view-element-scale), which opens the unit
+dialog like a graph axis does.
 
 ```xml
 <stack>
@@ -246,7 +248,10 @@ own.
 
 - **Gauges:** a static face image and a needle image in a `transform` bound to the value, as in
   the example above. A linear gauge scales a solid-colour image with `scaleX` from an origin at
-  its left edge, under a face image whose window is transparent.
+  its left edge, under a face image whose window is transparent. The
+  [drawing elements](drawing.md) do the same without images: a `geometry` for the face, the
+  needle and the bar, a `scale` for the tics and values, which then follow the range and the
+  unit conversion.
 - **Compass:** a rose image rotated with `rotate` under a fixed needle, or the other way round,
   from the magnetometer heading mapped from degrees to radians.
 - **Map with a position marker:** a marker image shifted with `translateX` and `translateY`
@@ -258,6 +263,6 @@ own.
   buttons, a `vertical` column of values next to a plot.
 
 The images live in the [experiment's resource folder](basics.md#view-element-image), so an
-experiment using them is shared as a zip container rather than a bare `.phyphox` file. Images for
-common cases, such as gauge faces and a compass rose, are planned to ship with the app; until
-then, bring your own.
+experiment using them is shared as a zip container rather than a bare `.phyphox` file. A gauge
+drawn with the [drawing elements](drawing.md) needs no image and ships as a bare file; images
+remain the way to show a photograph, a map or a design the shapes cannot express.

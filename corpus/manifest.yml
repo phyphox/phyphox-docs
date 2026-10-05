@@ -119,6 +119,87 @@
 - file: generated/unit-references.phyphox
   version: "1.21"
   adds: []
+- file: generated/view-drawing.phyphox
+  version: "1.21"
+  adds:
+    - grid>geometry
+    - grid>scale
+    - horizontal>geometry
+    - horizontal>scale
+    - stack>geometry
+    - stack>scale
+    - stack>transform
+    - stack>value
+    - transform>geometry
+    - transform>input
+    - transform>scale
+    - vertical>geometry
+    - vertical>scale
+    - view>grid
+    - view>horizontal
+    - view>stack
+    - view>vertical
+    - geometry@aspectRatio
+    - geometry@bottom
+    - geometry@centerX
+    - geometry@centerY
+    - geometry@color
+    - geometry@cornerRadius
+    - geometry@endX
+    - geometry@endY
+    - geometry@innerRadius
+    - geometry@label
+    - geometry@left
+    - geometry@lineColor
+    - geometry@lineWidth
+    - geometry@radius
+    - geometry@right
+    - geometry@shape
+    - geometry@startAngle
+    - geometry@startX
+    - geometry@startY
+    - geometry@sweepAngle
+    - geometry@top
+    - grid@maxWidth
+    - input@clamp
+    - input@mapMax
+    - input@mapMin
+    - input@max
+    - input@min
+    - scale@aspectRatio
+    - scale@centerX
+    - scale@centerY
+    - scale@color
+    - scale@endX
+    - scale@endY
+    - scale@label
+    - scale@labelPositionX
+    - scale@labelPositionY
+    - scale@lineWidth
+    - scale@max
+    - scale@min
+    - scale@minorTicLength
+    - scale@minorTics
+    - scale@precision
+    - scale@radius
+    - scale@shape
+    - scale@size
+    - scale@startAngle
+    - scale@startX
+    - scale@startY
+    - scale@sweepAngle
+    - scale@ticLength
+    - scale@ticStep
+    - scale@unit
+    - scale@valueDistance
+    - scale@valueEvery
+    - scale@visibility
+    - scale@weight
+    - stack@visibility
+    - transform@originX
+    - transform@originY
+    - transform@visibility
+    - value@align
 - file: generated/view-groups.phyphox
   version: "1.21"
   adds:
@@ -325,10 +406,7 @@
   adds: []
 - file: valid/camera/camera_stopwatch_luma_fullcontrol.phyphox
   version: "1.19"
-  adds:
-    - analysis>split
-    - split>input
-    - split>output
+  adds: []
 - file: valid/camera/color_counter.phyphox
   version: "1.19"
   adds: []
@@ -446,7 +524,6 @@
     - analysis@timedRunStopDelay
     - connection@interval
     - send@clear
-    - timer@linearTime
 - file: valid/net/mqtt-json-example.phyphox
   version: "1.11"
   adds:
@@ -464,11 +541,8 @@
   version: "1.14"
   adds:
     - analysis>movingaverage
-    - analysis>split
     - movingaverage>input
     - movingaverage>output
-    - split>input
-    - split>output
     - edit@decimal
     - movingaverage@dropIncomplete
 - file: valid/physik-im-advent/doppler/doppler.phyphox
@@ -482,13 +556,15 @@
     - abs>output
     - analysis>abs
     - analysis>cos
+    - analysis>sin
     - cos>input
     - cos>output
+    - sin>input
+    - sin>output
 - file: valid/popcorn/popcorn_v2.phyphox
   version: "1.14"
   adds:
     - edit@decimal
-    - reduce@sumY
 - file: valid/rate-test/10auto.phyphox
   version: "1.14"
   adds:
@@ -586,6 +662,9 @@
 - file: valid/rutsche/Rutsche _Schule_ V1.phyphox
   version: "1.19"
   adds:
+    - analysis>sin
+    - sin>input
+    - sin>output
     - sin@deg
 - file: valid/sun_trace.phyphox
   version: "1.4"
