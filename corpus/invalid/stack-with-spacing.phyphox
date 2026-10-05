@@ -1,0 +1,16 @@
+<phyphox version="1.21">
+    <title>t</title>
+    <category>c</category>
+    <description>d</description>
+    <data-containers><container>v</container></data-containers>
+    <input></input>
+    <analysis></analysis>
+    <views>
+        <view label="v">
+            <stack spacing="1">
+                <geometry shape="circle" color="orange" />
+                <value label="v"><input>v</input></value>
+            </stack>
+        </view>
+    </views>
+</phyphox>

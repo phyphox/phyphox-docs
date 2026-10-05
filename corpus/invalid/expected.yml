@@ -365,3 +365,14 @@ geometry-unknown-shape.phyphox:   # shape is an enumeration on both elements
   findings:
     - "<views>/<view>/<stack>/<geometry> shape=\"triangle\" not in ['rectangle', 'circle', 'line', 'arc']"
     - "<views>/<view>/<stack>/<scale> shape=\"spiral\" not in ['linear', 'circular']"
+# --- spacing on a stack: an attribute of vertical, horizontal and grid only.
+# Both parsers read it only for those kinds and leave a stack flush
+# (PhyphoxFile.java `kind != Kind.stack`, GroupViewElementHandler
+# `kind == .stack ? 0 : readSpacing`), so the file loads and the attribute is
+# ignored (unknown-attribute-ignored). Pinned 2026-10-05 after
+# tools/spec_vs_ios.py reported it as declared on the stack handler - the
+# enum is shared by the three groups, which makes it dead code, not a gap.
+stack-with-spacing.phyphox:   # spacing is not an attribute of stack
+  parser: accepts
+  findings:
+    - '<stack>: spacing='

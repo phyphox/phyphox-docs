@@ -341,6 +341,30 @@ def scenes():
     <value label="" unit="%" size="2" precision="0" align="center"><input>percent</input></value>
 </stack>
 """),
+        dict(id="scale-circular", page="drawing", containers={"percent": [72]}, view="""
+<stack>
+    <scale shape="circular" min="0" max="100" ticStep="10" minorTics="4"
+           radius="0.42" ticLength="-0.04" minorTicLength="-0.02" valueDistance="-0.11" size="0.8"
+           label="Load" unit="%" labelPositionY="0.72" />
+    <transform originX="0.5" originY="0.5">
+        <input as="rotate" min="0" max="100" mapMin="-2.3562" mapMax="2.3562" clamp="true">percent</input>
+        <geometry shape="line" startX="0.5" startY="0.5" endX="0.5" endY="0.12" lineColor="ff7e22" lineWidth="0.015" />
+    </transform>
+</stack>
+"""),
+        dict(id="scale-linear", page="drawing", containers={"temperature": [21.5]}, view="""
+<stack>
+    <geometry shape="rectangle" aspectRatio="3" left="0.05" top="0.15" right="0.95" bottom="0.4" cornerRadius="0.03" color="303030" lineColor="ff7e22" lineWidth="0.004" />
+    <transform originX="0.05" originY="0.5">
+        <input as="scaleX" min="-20" max="60" mapMin="0" mapMax="1" clamp="true">temperature</input>
+        <geometry shape="rectangle" aspectRatio="3" left="0.05" top="0.15" right="0.95" bottom="0.4" cornerRadius="0.03" color="ff7e22" />
+    </transform>
+    <scale shape="linear" aspectRatio="3" min="-20" max="60" ticStep="10" minorTics="1" unit="@degree_celsius"
+           startX="0.05" startY="0.4" endX="0.95" endY="0.4"
+           ticLength="0.03" minorTicLength="0.015" valueDistance="0.08" size="0.8"
+           label="Temperature" labelPositionX="0.5" labelPositionY="0.88" />
+</stack>
+"""),
         dict(id="drawing", page="drawing", containers={"percent": [72]}, view="""
 <stack>
     <geometry shape="circle" radius="0.48" color="202020" lineColor="ff7e22" lineWidth="0.01" />
