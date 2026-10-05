@@ -627,7 +627,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The saved-state container (docs/saved-states.md, phyphox 1.3.0)
       through the real intake route: fixtures/containers/saved-state.zip
@@ -642,7 +642,7 @@ tests:
     area: file-format
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Writing a state and reading it back round-trips buffers, static
       flags, time reference and title; the container has the documented
@@ -654,7 +654,7 @@ tests:
     area: ui
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The saved-state flow driven by UI automation: save a state to the
       collection, it appears under "Saved states" with the given title and
