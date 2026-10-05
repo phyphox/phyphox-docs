@@ -363,6 +363,7 @@ Additional functionality becomes accessible if your device supports the phyphox 
 - 0002 - experiment characteristic (transfer XML configuration to phyphox)
 - 0003 - experiment control characteristic (optional helper to control data flow of 0002)
 - 0004 - event characteristic (receive events and time references from phyphox)
+- 0005 - command characteristic (control the measurement from the device)
 
 Note that you have to implement 0002 if you advertise the phyphox service. If you do not advertise the service, all characteristics are optional.
 
@@ -399,3 +400,24 @@ Events are sent as soon as possible with the SYNC event being as close to the ac
 This feature is available since phyphox file format 1.15 (version 1.1.11).
 
 Note that the CLEAR event is generated when the user chooses to delete the current experiment data. It is sent before clear is executed, so it will contain the old experiment time before it is reset to zero. This is sent from phyphox version 1.2.0 onwards.
+
+### Phyphox command characteristic (0005)
+
+A device can control the measurement in the other direction through a characteristic with the UUID cddf0005-30f7-4671-8b43-5e40ba53514a that supports notifications (or indications). If phyphox sees this characteristic when it connects to the device for an experiment, it subscribes to it and executes every notification as a command, exactly as if the user had used the corresponding function in the app. A device that implements it should also implement the event characteristic (0004), because that is where phyphox reports whether and when a command took effect: a START command that actually starts the measurement is followed by a START event with the precise start time, a PAUSE command by a PAUSE event, and so on. The command characteristic itself carries no reply.
+
+Byte 0 of each notification is the command. All further bytes are ignored at the moment; they are reserved for parameters of future commands and should be omitted or set to zero. The upper four bits of the command byte group related commands and the lower four bits enumerate them, so that each group can grow later. phyphox ignores a notification whose command it does not know, so a device may send a newer command to an older app without harm; it just has no effect.
+
+| Command | Byte 0 | Effect |
+|---|---|---|
+| PAUSE | 0x00 | Stops the measurement, like the pause button. If a timed-run countdown is running, it is cancelled. |
+| START | 0x01 | Starts the measurement, like the play button. If the timed-run function is enabled, this starts its countdown and the measurement begins when the countdown ends. The start can be refused, most commonly because another Bluetooth device required by the experiment is not connected; in that case no START event follows. |
+| TOGGLE | 0x02 | PAUSE if the measurement is running or a countdown is in progress, START otherwise. This is the single play/pause button of the app and the natural choice for a device with one physical button. |
+| CLEAR | 0x10 | Deletes the measurement data, like the trash button with no clear group selected: the measurement is stopped and every data container that has no *clearGroup* returns to its init values. Containers with a *clearGroup* keep their data, so calibration data and settings an experiment author protected this way are never touched by this command. A CLEAR event is sent before the data is deleted. |
+| CLEAR_ALL | 0x11 | Like CLEAR, but also clears every clear group, as if the user had selected all groups in the dialog. Containers in the special group `_` are still kept, as they are never offered for clearing. Use this only if your device deliberately wants to reset settings and calibration data as well. |
+| STATUS | 0xF0 | Asks phyphox to write its current state to the event characteristic: a START event with the current experiment time if the measurement is running, a PAUSE event otherwise (also during a timed-run countdown). This lets a device that connected late, or that missed an event, learn the state and resynchronize its clock at any time. A device without an event characteristic receives no answer. |
+
+Commands are only accepted on the connection phyphox opens for the experiment, not on the short connection used to transfer an experiment file (0002). phyphox subscribes once after connecting and again after it has reconnected to a device that was lost during a measurement. A START that arrives while the measurement is already running, or a PAUSE while it is paused, has no effect.
+
+Timed runs cannot be configured from the device, and there is no command that bypasses the countdown. A device that needs a precisely timed measurement window should send START and PAUSE itself and read the exact times from the START and PAUSE events it receives.
+
+This feature is available from phyphox version 1.3.0 onwards. It does not require a particular file format version.
