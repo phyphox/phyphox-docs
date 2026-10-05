@@ -1,7 +1,5 @@
 # Saved states
 
-**Not yet in a released app version (specified 2026-10-05 for phyphox 1.3.0).**
-
 A *saved state* is an experiment together with the data it has recorded: the user saves it from the experiment menu, either into the app's own collection, where it appears under "Saved states", or as a file to share. Opening a saved state restores the experiment with its buffers filled and its time reference intact, so the measurement can be looked at, exported, or continued.
 
 Up to phyphox 1.2 a saved state was a single `.phyphox` file with the recorded data written into the *init* attributes of the data containers, the title in a `state-title` element and the start and pause events in an `events` block. That form is described under [the legacy format](#the-legacy-format) below; the apps keep reading it indefinitely, but no longer write it.
