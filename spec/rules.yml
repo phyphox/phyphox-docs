@@ -517,6 +517,80 @@ rules:
       Test-matrix row ble-name-regex-match covers the matching semantics on
       both apps.
 
+  - id: fourier-transform-conventions
+    decided: 2026-10-05
+    summary: >-
+      fft, ifft, dft and idft (the latter three file format 1.21) share one
+      kernel convention, one slot layout and one normalization attribute;
+      dft and idft are exact for any length, fft and ifft only guarantee
+      power-of-two lengths.
+    rule: >-
+      The four Fourier modules take a complex input as the slots re and im
+      (im optional, zeros when absent; a provided im truncates the transform
+      to the shorter of the two) and write a complex output to the slots re
+      and im. The forward modules fft and dft compute
+      X[k] = s * sum_n x[n] * exp(-2*pi*i*k*n/N), the inverse modules ifft
+      and idft compute x[n] = s * sum_k X[k] * exp(+2*pi*i*k*n/N), N being
+      the transform length and s the factor the normalization attribute
+      selects: backward (the default) is s = 1 forward and s = 1/N inverse,
+      forward is s = 1/N forward and s = 1 inverse, ortho is s = 1/sqrt(N)
+      in both directions, none is s = 1 in both. The default keeps fft
+      producing exactly what it always has and makes ifft after fft return
+      the input; the same value on a forward and an inverse module always
+      round-trips, except none, which returns N times the input. Values are
+      matched like every enumerated attribute (enum-case-insensitive) and an
+      unknown value refuses the file (enum-invalid-value). dft and idft are
+      the exact transforms for any input length: N samples give exactly N
+      output values, on every platform, for every N >= 1, and an empty
+      input gives an empty output; the implementation is free to use any
+      algorithm (a direct O(N^2) sum, Bluestein's or a mixed-radix FFT) as
+      long as the result is the exact transform within floating-point
+      tolerance. fft and ifft may use the fastest transform the platform
+      offers and are only guaranteed to agree across platforms for a
+      power-of-two number of samples (fft-non-power-of-two-input, permanent);
+      for a power of two they must equal dft and idft respectively, which is
+      what the golden vectors pin. No precision is prescribed beyond the
+      tolerances of the golden vectors, which admit single-precision native
+      paths.
+    rationale: >-
+      Teachers and students meet the Fourier transform through NumPy, SciPy
+      and MATLAB, whose common default is an unscaled forward transform and a
+      1/N inverse; adopting it, with NumPy's names for the alternatives,
+      means a phyphox spectrum matches what a Python session prints for the
+      same data, and the existing fft output does not change. A general
+      transform of exact length exists because audio buffers and sensor
+      histories rarely have a power-of-two length and zero-padding or
+      truncating in the experiment file is error-prone; it is a separate
+      module rather than a change to fft so that fft stays fast and existing
+      experiments keep their behaviour.
+    applies_to: "fft, ifft, dft, idft and their normalization attribute"
+    state:
+      android: >-
+        Not implemented (2026-10-05); the item is in Android-TODO.md. fft is
+        Analysis.fftAM (Analysis.java) over fftw3complex (cpp/analysis/
+        analysis.cpp, FFTW single precision, exact for any N) with a Java
+        radix-2 fallback (Analysis.FFT, zero-pads to the next power of two
+        and truncates back); no normalization, no inverse, no dft module.
+        Registered in PhyphoxFile.analysisBlockParser, case "fft".
+      ios: >-
+        Not implemented (2026-10-05); the item is in iOS-TODO.md. fft is
+        FFTAnalysis.swift over vDSP_DFT_zop_CreateSetupD, which supports
+        lengths f*2^n only and therefore zero-pads other lengths to
+        nextFFTSize; no normalization, no inverse, no dft module. Registered
+        in ExperimentAnalysisFactory.swift.
+      editor: >-
+        Not implemented (2026-10-05); the item is in Editor-TODO.md. The fft
+        block in src/blocks/analysis/advanced-math.ts has a cycles mutator
+        only and no settings block; no blocks for ifft, dft, idft.
+    check: >-
+      Golden vectors corpus/analysis/cases/{fft,ifft,dft,idft}.yml pin the
+      kernel sign, every normalization value, the dft/idft lengths 1, 3, 5
+      and 7 and the fft/ifft power-of-two agreement with dft/idft
+      (test-matrix row analysis-golden-vectors); the generated fixture
+      corpus/generated/analysis-fourier.phyphox exercises the four modules
+      with every attribute value, and corpus/invalid/fourier-unknown-
+      normalization.phyphox pins the enum rule.
+
 
 
 # The "one-sided attributes" question, which the input probe expected to be a

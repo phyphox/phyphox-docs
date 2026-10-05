@@ -1,0 +1,22 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: idft/real-signal-re-output-only</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/idft.yml - do not edit.</description>
+    <data-containers>
+        <container size="7" init="21.0,-3.5000000000000018,-3.500000000000001,-3.499999999999993,-3.4999999999999996,-3.4999999999999707,-3.499999999999972">re</container>
+        <container size="7" init="0.0,7.267824888003179,2.7911568610884125,0.7988521603655276,-0.7988521603655272,-2.7911568610884188,-7.267824888003183">im</container>
+        <container size="7">outre</container>
+    </data-containers>
+    <analysis>
+        <idft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+        </idft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

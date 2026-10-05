@@ -1,0 +1,31 @@
+{
+ "case": "round-trip-three",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "outim": {
+     "values": [
+      -1.4802973661668753e-16,
+      1.0,
+      -1.0
+     ]
+    },
+    "outre": {
+     "values": [
+      1.0,
+      -2.0,
+      0.5
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "idft"
+}

@@ -1,0 +1,107 @@
+# Golden vectors: ifft (file format 1.21). Inverse DFT, kernel
+# e^(+2 pi i k n / N), divided by N under the default normalization
+# (backward), so ifft after fft returns the input. Same length restriction
+# as fft: power-of-two lengths of at least two only. Android's native path
+# is float32, hence the tolerance. See spec/rules.yml
+# fourier-transform-conventions.
+module: ifft
+cases:
+  - name: round-trip-default
+    description: >-
+      N=4: the spectrum fft/complex-input produces, transformed back
+      with the default normalization, returns [1,2,3,4] + i[0.5,-0.5,0.5,-0.5].
+    expected_source: reference
+    buffers:
+      re: {size: 4, init: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]}
+      im: {size: 4, init: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [1.0000000000000002, 2.0, 2.9999999999999996, 4.0]
+      outim: [0.49999999999999944, -0.5000000000000003, 0.49999999999999994, -0.49999999999999967]
+  - name: real-spectrum-re-only
+    description: >-
+      N=8: the spectrum of fft/real-cosine (4 at bins 2 and 6), given as
+      re only (im absent reads as zeros), with only the re output mapped:
+      the cosine comes back.
+    expected_source: reference
+    buffers:
+      re: {size: 8, init: [0.0, 7.267471740958731e-17, 4.0, -3.2904645469127765e-16, 0.0, 2.3617750313732183e-15, 4.0, 9.345669101455923e-16]}
+      outre: {size: 8}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [1.0000000000000004, -1.518734369255973e-16, -1.0, 2.7433811684033235e-16, 0.9999999999999997, -1.1036990225187338e-15, -1.0, -5.501931369667805e-16]
+  - name: normalization-forward
+    description: >-
+      N=4 spectrum with normalization=forward: the inverse is a plain
+      sum, 4 times the round-trip-default result.
+    expected_source: reference
+    attributes: {normalization: forward}
+    buffers:
+      re: {size: 4, init: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]}
+      im: {size: 4, init: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [4.000000000000001, 8.0, 11.999999999999998, 16.0]
+      outim: [1.9999999999999978, -2.0000000000000013, 1.9999999999999998, -1.9999999999999987]
+  - name: normalization-ortho
+    description: >-
+      N=4 spectrum with normalization=ortho: divided by sqrt(4) = 2,
+      twice the round-trip-default result.
+    expected_source: reference
+    attributes: {normalization: ortho}
+    buffers:
+      re: {size: 4, init: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]}
+      im: {size: 4, init: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [2.0000000000000004, 4.0, 5.999999999999999, 8.0]
+      outim: [0.9999999999999989, -1.0000000000000007, 0.9999999999999999, -0.9999999999999993]
+  - name: normalization-none
+    description: >-
+      N=4 spectrum with normalization=none: identical to forward for an
+      inverse module.
+    expected_source: reference
+    attributes: {normalization: none}
+    buffers:
+      re: {size: 4, init: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]}
+      im: {size: 4, init: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [4.000000000000001, 8.0, 11.999999999999998, 16.0]
+      outim: [1.9999999999999978, -2.0000000000000013, 1.9999999999999998, -1.9999999999999987]

@@ -1,0 +1,35 @@
+{
+ "case": "normalization-forward",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "outim": {
+     "values": [
+      0.2,
+      0.8340463028429883,
+      -0.9168949603276073,
+      0.3696813648276493,
+      -0.4868327073430303
+     ]
+    },
+    "outre": {
+     "values": [
+      1.0,
+      0.10186947472474235,
+      0.20791922201622715,
+      0.515687575733752,
+      0.1745237275252788
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "dft"
+}

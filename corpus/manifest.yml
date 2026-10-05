@@ -6,6 +6,22 @@
 # a reason the construct list cannot show (a crash reproduction,
 # a systematic value sweep, a container form).
 
+- file: generated/analysis-fourier.phyphox
+  version: "1.21"
+  adds:
+    - analysis>dft
+    - analysis>idft
+    - analysis>ifft
+    - dft>input
+    - dft>output
+    - idft>input
+    - idft>output
+    - ifft>input
+    - ifft>output
+    - dft@normalization
+    - fft@normalization
+    - idft@normalization
+    - ifft@normalization
 - file: generated/analysis-modules.phyphox
   version: "1.20"
   adds:
@@ -58,8 +74,7 @@
   adds: []
 - file: generated/bluetooth-name-regex.phyphox
   version: "1.21"
-  adds:
-    - bluetooth@nameRegex
+  adds: []
 - file: generated/camera-rgb-spectrum.phyphox
   version: "1.21"
   adds: []

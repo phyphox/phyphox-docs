@@ -1,0 +1,28 @@
+{
+ "case": "real-signal-re-output-only",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "outre": {
+     "values": [
+      9.198990775465582e-15,
+      0.9999999999999989,
+      1.9999999999999964,
+      2.9999999999999973,
+      4.000000000000001,
+      4.999999999999995,
+      6.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "idft"
+}

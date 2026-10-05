@@ -1,7 +1,10 @@
-# Golden vectors: fft. Unnormalized forward DFT, full complex
-# spectrum. Power-of-two lengths ONLY - other lengths are platform-
-# defined (fft-non-power-of-two-input). Android's native path is
-# float32, hence the tolerance.
+# Golden vectors: fft. Forward DFT, kernel e^(-2 pi i k n / N), full
+# complex spectrum; the normalization attribute (file format 1.21) sets the
+# factor, backward (unscaled) by default. Power-of-two lengths of at least
+# two ONLY - other lengths are platform-defined (fft-non-power-of-two-
+# input), a single sample is fft-single-sample-input. Android's native
+# path is float32, hence the tolerance. See spec/rules.yml
+# fourier-transform-conventions.
 module: fft
 cases:
   - name: real-cosine
@@ -25,6 +28,88 @@ cases:
     description: >-
       N=4 with an explicit imaginary input.
     expected_source: reference
+    buffers:
+      re: {size: 4, init: [1.0, 2.0, 3.0, 4.0]}
+      im: {size: 4, init: [0.5, -0.5, 0.5, -0.5]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]
+      outim: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]
+  - name: normalization-forward
+    description: >-
+      N=8 cosine with normalization=forward: the two mirrored bins hold
+      half the amplitude each, 0.5.
+    expected_source: reference
+    attributes: {normalization: forward}
+    buffers:
+      re: {size: 8, init: [1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0]}
+      outre: {size: 8}
+      outim: {size: 8}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [0.0, 9.084339676198414e-18, 0.5, -4.1130806836409706e-17, 0.0, 2.952218789216523e-16, 0.5, 1.1682086376819903e-16]
+      outim: [0.0, -1.3877787807814457e-17, 9.184850993605148e-17, -5.551115123125783e-17, -6.123233995736765e-17, -8.326672684688674e-17, 2.755455298081545e-16, -1.1102230246251565e-16]
+  - name: normalization-ortho
+    description: >-
+      N=4 complex input with normalization=ortho: the backward result
+      divided by sqrt(4) = 2.
+    expected_source: reference
+    attributes: {normalization: ortho}
+    buffers:
+      re: {size: 4, init: [1.0, 2.0, 3.0, 4.0]}
+      im: {size: 4, init: [0.5, -0.5, 0.5, -0.5]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [5.0, -1.0000000000000004, -1.0, -0.9999999999999991]
+      outim: [0.0, 0.9999999999999998, 0.9999999999999996, -1.0000000000000004]
+  - name: normalization-none
+    description: >-
+      N=4 complex input with normalization=none: for the forward
+      transform identical to backward.
+    expected_source: reference
+    attributes: {normalization: none}
+    buffers:
+      re: {size: 4, init: [1.0, 2.0, 3.0, 4.0]}
+      im: {size: 4, init: [0.5, -0.5, 0.5, -0.5]}
+      outre: {size: 4}
+      outim: {size: 4}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [10.0, -2.000000000000001, -2.0, -1.9999999999999982]
+      outim: [0.0, 1.9999999999999996, 1.9999999999999991, -2.000000000000001]
+  - name: normalization-backward-explicit
+    description: >-
+      N=4 complex input with normalization=backward written out:
+      identical to the default (and to the pre-1.21 module).
+    expected_source: reference
+    attributes: {normalization: backward}
     buffers:
       re: {size: 4, init: [1.0, 2.0, 3.0, 4.0]}
       im: {size: 4, init: [0.5, -0.5, 0.5, -0.5]}

@@ -1,0 +1,31 @@
+{
+ "case": "normalization-ortho",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "outim": {
+     "values": [
+      -2.563950248511419e-16,
+      1.7320508075688779,
+      -1.7320508075688779
+     ]
+    },
+    "outre": {
+     "values": [
+      1.7320508075688779,
+      -3.4641016151377557,
+      0.8660254037844389
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "idft"
+}

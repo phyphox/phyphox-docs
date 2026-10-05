@@ -1,0 +1,180 @@
+# Golden vectors: dft (file format 1.21). The exact forward DFT for ANY
+# length: N samples in, N bins out, kernel e^(-2 pi i k n / N), unscaled
+# under the default normalization. Odd lengths are the point of the module
+# and are pinned here; the power-of-two case must equal fft. A single-
+# precision implementation is admitted by the tolerance. See
+# spec/rules.yml fourier-transform-conventions.
+module: dft
+cases:
+  - name: length-one
+    description: >-
+      N=1: the transform of a single sample is the identity.
+    expected_source: reference
+    buffers:
+      re: {size: 1, init: [3.5]}
+      im: {size: 1, init: [-1.25]}
+      outre: {size: 1}
+      outim: {size: 1}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [3.5]
+      outim: [-1.25]
+  - name: length-three
+    description: >-
+      N=3 complex input - the smallest length fft does not guarantee.
+    expected_source: reference
+    buffers:
+      re: {size: 3, init: [1.0, -2.0, 0.5]}
+      im: {size: 3, init: [0.0, 1.0, -1.0]}
+      outre: {size: 3}
+      outim: {size: 3}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [-0.5, 3.4820508075688767, 0.017949192431123695]
+      outim: [0.0, 2.1650635094610973, -2.1650635094610977]
+  - name: length-five
+    description: >-
+      N=5 complex input.
+    expected_source: reference
+    buffers:
+      re: {size: 5, init: [2.0, 0.0, -1.0, 3.0, 1.0]}
+      im: {size: 5, init: [0.0, 0.5, 0.0, -0.5, 1.0]}
+      outre: {size: 5}
+      outim: {size: 5}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [5.0, 0.5093473736237117, 1.0395961100811357, 2.57843787866876, 0.872618637626394]
+      outim: [1.0, 4.170231514214941, -4.584474801638036, 1.8484068241382463, -2.4341635367151513]
+  - name: length-seven-real-ramp
+    description: >-
+      N=7 real ramp 0..6, im absent: bin 0 is the sum 21, the other bins
+      are the mirrored pairs of a real signal.
+    expected_source: reference
+    buffers:
+      re: {size: 7, init: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]}
+      outre: {size: 7}
+      outim: {size: 7}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [21.0, -3.5000000000000018, -3.500000000000001, -3.499999999999993, -3.4999999999999996, -3.4999999999999707, -3.499999999999972]
+      outim: [0.0, 7.267824888003179, 2.7911568610884125, 0.7988521603655276, -0.7988521603655272, -2.7911568610884188, -7.267824888003183]
+  - name: power-of-two-equals-fft
+    description: >-
+      N=8 cosine at bin 2: identical to fft/real-cosine.
+    expected_source: reference
+    buffers:
+      re: {size: 8, init: [1.0, 0.0, -1.0, 0.0, 1.0, 0.0, -1.0, 0.0]}
+      outre: {size: 8}
+      outim: {size: 8}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [0.0, 7.267471740958731e-17, 4.0, -3.2904645469127765e-16, 0.0, 2.3617750313732183e-15, 4.0, 9.345669101455923e-16]
+      outim: [0.0, -1.1102230246251565e-16, 7.347880794884119e-16, -4.440892098500626e-16, -4.898587196589412e-16, -6.661338147750939e-16, 2.204364238465236e-15, -8.881784197001252e-16]
+  - name: normalization-forward
+    description: >-
+      N=5 complex input with normalization=forward: every bin divided
+      by 5.
+    expected_source: reference
+    attributes: {normalization: forward}
+    buffers:
+      re: {size: 5, init: [2.0, 0.0, -1.0, 3.0, 1.0]}
+      im: {size: 5, init: [0.0, 0.5, 0.0, -0.5, 1.0]}
+      outre: {size: 5}
+      outim: {size: 5}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [1.0, 0.10186947472474235, 0.20791922201622715, 0.515687575733752, 0.1745237275252788]
+      outim: [0.2, 0.8340463028429883, -0.9168949603276073, 0.3696813648276493, -0.4868327073430303]
+  - name: normalization-ortho
+    description: >-
+      N=3 complex input with normalization=ortho: every bin divided by
+      sqrt(3).
+    expected_source: reference
+    attributes: {normalization: ortho}
+    buffers:
+      re: {size: 3, init: [1.0, -2.0, 0.5]}
+      im: {size: 3, init: [0.0, 1.0, -1.0]}
+      outre: {size: 3}
+      outim: {size: 3}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [-0.2886751345948129, 2.010362971081845, 0.01036297108184566]
+      outim: [0.0, 1.2500000000000004, -1.2500000000000009]
+  - name: normalization-none
+    description: >-
+      N=3 complex input with normalization=none: identical to backward
+      for a forward module.
+    expected_source: reference
+    attributes: {normalization: none}
+    buffers:
+      re: {size: 3, init: [1.0, -2.0, 0.5]}
+      im: {size: 3, init: [0.0, 1.0, -1.0]}
+      outre: {size: 3}
+      outim: {size: 3}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [-0.5, 3.4820508075688767, 0.017949192431123695]
+      outim: [0.0, 2.1650635094610973, -2.1650635094610977]
+  - name: empty-input
+    description: >-
+      An empty input gives empty outputs.
+    expected_source: reference
+    buffers:
+      re: {size: 1}
+      outre: {size: 1}
+      outim: {size: 1}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: []
+      outim: []

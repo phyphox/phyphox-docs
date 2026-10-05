@@ -1,0 +1,28 @@
+<!-- normalization="unitary" is not a value of the Fourier modules'
+     normalization attribute (backward, forward, ortho, none - "unitary" is
+     what ortho means, but the format spells it ortho like NumPy). An
+     unknown enumerated value refuses the file (enum-invalid-value). -->
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>Corpus: unknown normalization</title>
+    <category>Corpus</category>
+    <description>Invalid fixture: an unknown value of the normalization attribute.</description>
+    <data-containers>
+        <container size="12" init="0,1,2,3,4,5,6,5,4,3,2,1">signal</container>
+        <container size="12">re</container>
+        <container size="12">im</container>
+    </data-containers>
+    <analysis>
+        <dft normalization="unitary">
+            <input as="re">signal</input>
+            <output as="re">re</output>
+            <output as="im">im</output>
+        </dft>
+    </analysis>
+    <views>
+        <view label="Spectrum">
+            <graph label="Spectrum" labelX="bin" labelY="Re">
+                <input axis="y">re</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

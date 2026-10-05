@@ -72,10 +72,12 @@ are left out:
 - The static-buffer reset on the user's clear-data action (ruled with
   the write-once lifecycle) — the runner has no user-clear step; the
   write-once skip itself is pinned by execution/static-write-once.
-- `fft` with non-power-of-two input (`fft-non-power-of-two-input`,
-  permanent) — power-of-two lengths only. The fft and crosscorrelation
-  tolerances are widened to cover Android's float32 native path, and
-  gausssmooth's for iOS's single-precision vImage path.
+- `fft` and `ifft` with non-power-of-two input (`fft-non-power-of-two-input`,
+  permanent) — power-of-two lengths of at least two only (a single sample
+  is `fft-single-sample-input`, open). `dft` and `idft` have no such
+  restriction and are pinned at odd lengths too. The Fourier and
+  crosscorrelation tolerances are widened to cover Android's float32
+  native path, and gausssmooth's for iOS's single-precision vImage path.
 - The `info` module — every output is live device state; no vector
   exists for it.
 - `periodicity` without an explicit min/max search range (the adaptive

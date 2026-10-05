@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: dft/length-one</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/dft.yml - do not edit.</description>
+    <data-containers>
+        <container size="1" init="3.5">re</container>
+        <container size="1" init="-1.25">im</container>
+        <container size="1">outre</container>
+        <container size="1">outim</container>
+    </data-containers>
+    <analysis>
+        <dft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </dft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

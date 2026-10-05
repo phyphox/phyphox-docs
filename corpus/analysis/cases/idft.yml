@@ -1,0 +1,163 @@
+# Golden vectors: idft (file format 1.21). The exact inverse DFT for ANY
+# length: N bins in, N samples out, kernel e^(+2 pi i k n / N), divided by
+# N under the default normalization (backward), so idft after dft returns
+# the input. Odd lengths pinned; a single-precision implementation is
+# admitted by the tolerance. See spec/rules.yml
+# fourier-transform-conventions.
+module: idft
+cases:
+  - name: length-one
+    description: >-
+      N=1: the inverse transform of a single bin is the identity.
+    expected_source: reference
+    buffers:
+      re: {size: 1, init: [3.5]}
+      im: {size: 1, init: [-1.25]}
+      outre: {size: 1}
+      outim: {size: 1}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [3.5]
+      outim: [-1.25]
+  - name: round-trip-three
+    description: >-
+      N=3: the spectrum dft/length-three produces, transformed back with
+      the default normalization, returns [1,-2,0.5] + i[0,1,-1].
+    expected_source: reference
+    buffers:
+      re: {size: 3, init: [-0.5, 3.4820508075688767, 0.017949192431123695]}
+      im: {size: 3, init: [0.0, 2.1650635094610973, -2.1650635094610977]}
+      outre: {size: 3}
+      outim: {size: 3}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [1.0, -2.0, 0.5]
+      outim: [-1.4802973661668753e-16, 1.0, -1.0]
+  - name: round-trip-five
+    description: >-
+      N=5: the spectrum of dft/length-five transformed back.
+    expected_source: reference
+    buffers:
+      re: {size: 5, init: [5.0, 0.5093473736237117, 1.0395961100811357, 2.57843787866876, 0.872618637626394]}
+      im: {size: 5, init: [1.0, 4.170231514214941, -4.584474801638036, 1.8484068241382463, -2.4341635367151513]}
+      outre: {size: 5}
+      outim: {size: 5}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [2.0000000000000004, -8.881784197001253e-17, -1.0, 3.0, 1.0000000000000004]
+      outim: [0.0, 0.5, -8.881784197001253e-17, -0.49999999999999994, 1.0000000000000002]
+  - name: real-signal-re-output-only
+    description: >-
+      N=7: the spectrum of the real ramp dft/length-seven-real-ramp,
+      transformed back with only the re output mapped, returns 0..6.
+    expected_source: reference
+    buffers:
+      re: {size: 7, init: [21.0, -3.5000000000000018, -3.500000000000001, -3.499999999999993, -3.4999999999999996, -3.4999999999999707, -3.499999999999972]}
+      im: {size: 7, init: [0.0, 7.267824888003179, 2.7911568610884125, 0.7988521603655276, -0.7988521603655272, -2.7911568610884188, -7.267824888003183]}
+      outre: {size: 7}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [9.198990775465582e-15, 0.9999999999999989, 1.9999999999999964, 2.9999999999999973, 4.000000000000001, 4.999999999999995, 6.0]
+  - name: normalization-forward
+    description: >-
+      N=5 spectrum with normalization=forward: a plain sum, 5 times the
+      round-trip-five result.
+    expected_source: reference
+    attributes: {normalization: forward}
+    buffers:
+      re: {size: 5, init: [5.0, 0.5093473736237117, 1.0395961100811357, 2.57843787866876, 0.872618637626394]}
+      im: {size: 5, init: [1.0, 4.170231514214941, -4.584474801638036, 1.8484068241382463, -2.4341635367151513]}
+      outre: {size: 5}
+      outim: {size: 5}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [10.000000000000002, -4.440892098500626e-16, -5.0, 15.0, 5.000000000000002]
+      outim: [0.0, 2.5, -4.440892098500626e-16, -2.4999999999999996, 5.000000000000001]
+  - name: normalization-ortho
+    description: >-
+      N=3 spectrum with normalization=ortho: divided by sqrt(3), i.e.
+      sqrt(3) times the round-trip-three result.
+    expected_source: reference
+    attributes: {normalization: ortho}
+    buffers:
+      re: {size: 3, init: [-0.5, 3.4820508075688767, 0.017949192431123695]}
+      im: {size: 3, init: [0.0, 2.1650635094610973, -2.1650635094610977]}
+      outre: {size: 3}
+      outim: {size: 3}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [1.7320508075688779, -3.4641016151377557, 0.8660254037844389]
+      outim: [-2.563950248511419e-16, 1.7320508075688779, -1.7320508075688779]
+  - name: normalization-none
+    description: >-
+      N=3 spectrum with normalization=none: identical to forward for an
+      inverse module.
+    expected_source: reference
+    attributes: {normalization: none}
+    buffers:
+      re: {size: 3, init: [-0.5, 3.4820508075688767, 0.017949192431123695]}
+      im: {size: 3, init: [0.0, 2.1650635094610973, -2.1650635094610977]}
+      outre: {size: 3}
+      outim: {size: 3}
+    inputs:
+      - {as: re, buffer: re}
+      - {as: im, buffer: im}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: [3.0000000000000004, -6.000000000000001, 1.5000000000000002]
+      outim: [-4.440892098500626e-16, 3.0000000000000004, -3.0000000000000004]
+  - name: empty-input
+    description: >-
+      An empty input gives empty outputs.
+    expected_source: reference
+    buffers:
+      re: {size: 1}
+      outre: {size: 1}
+      outim: {size: 1}
+    inputs:
+      - {as: re, buffer: re}
+    outputs:
+      - {as: re, buffer: outre}
+      - {as: im, buffer: outim}
+    tolerance: {rel: 0.0001, abs: 1e-05}
+    expect:
+      outre: []
+      outim: []

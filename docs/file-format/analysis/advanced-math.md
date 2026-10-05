@@ -22,6 +22,61 @@ The output values are the raw correlation sums without any normalization, matchi
 
 {{spec:analysis/analysis/crosscorrelation}}
 
+## Fourier transforms
+
+Four modules transform between a signal and its spectrum: *fft* and *dft* compute the forward transform, *ifft* and *idft* the inverse. They share one interface and one set of conventions, so a spectrum computed by one module can be transformed back by any inverse module. They differ in what they promise about the input length:
+
+- **fft** and **ifft** use the fastest transform each platform offers. Only a **power-of-two** number of input samples (at least two, see [below](#fft)) is guaranteed to give identical results on both platforms; for any other length the output is implementation-defined and differs between platforms.
+- **dft** and **idft** are the exact transforms for **any length**: N input samples give exactly N output values on every platform. They are slower than fft for lengths that are not a power of two, which is rarely a concern for the buffer sizes of a phone experiment, and the right choice whenever the buffer length is not under the experiment's control. Both are available since file format 1.21.
+
+For a power-of-two length fft and dft (and ifft and idft) give the same result.
+
+**Complex data.** Input and output are complex, each given as two buffers *re* and *im* for the real and the imaginary part. The *im* input is optional and filled with zeros if omitted; the full complex spectrum is returned either way, not a shortened real-input half, so a real signal of N samples gives N bins with the upper half mirroring the lower. A *provided* *im* input truncates the transform to the shorter of *re* and *im*. Both outputs are optional as well; omit *im* on the inverse of a spectrum that stems from a real signal.
+
+**Kernel.** With N the transform length, the forward modules compute
+
+    X[k] = s · Σ x[n] · e^(−2πi·k·n/N)        (sum over n = 0 … N−1)
+
+and the inverse modules compute
+
+    x[n] = s · Σ X[k] · e^(+2πi·k·n/N)        (sum over k = 0 … N−1)
+
+so bin k of the forward transform belongs to the frequency k · (sample rate) / N, and bins above N/2 are the negative frequencies.
+
+**Normalization.** The factor s is set by the *normalization* attribute, the same attribute with the same values on all four modules. It names which of the two directions carries the 1/N factor, as in NumPy and SciPy:
+
+| *normalization* | forward (fft, dft) | inverse (ifft, idft) | round trip |
+|---|---|---|---|
+| `backward` (default) | 1 | 1/N | returns the input |
+| `forward` | 1/N | 1 | returns the input |
+| `ortho` | 1/√N | 1/√N | returns the input; both transforms are unitary |
+| `none` | 1 | 1 | returns N times the input |
+
+The default is the convention of NumPy, SciPy, MATLAB and FFTW: an unscaled forward transform and an inverse divided by N. For the forward modules it is exactly what *fft* has always produced, so existing experiments are unchanged; for the inverse modules it means *ifft* after *fft* (or *idft* after *dft*) returns the input. Use `forward` when a bin should hold the amplitude of its frequency component directly (for a real signal, half of it in each of the two mirrored bins), `ortho` when the sum of squared magnitudes must be preserved (Parseval), and `none` when the experiment applies its own scaling - for the forward modules `none` is the same as `backward`, for the inverse modules the same as `forward`.
+
+Like every enumerated attribute the value is matched without regard to case, and an unknown value refuses the file.
+
+```xml
+<fft normalization="forward">
+    <input as="re">signal</input>
+    <output as="re">spectrumRe</output>
+    <output as="im">spectrumIm</output>
+</fft>
+<ifft normalization="forward">
+    <input as="re">spectrumRe</input>
+    <input as="im">spectrumIm</input>
+    <output as="re">signalBack</output>
+</ifft>
+```
+
+## dft
+
+The discrete Fourier transform of a complex input of **any length**, written as complex output of exactly that length: N samples in, N bins out, on every platform. See [Fourier transforms](#fourier-transforms) for the interface, the kernel and the *normalization* attribute, all of which it shares with *fft*. An empty input gives an empty output; a single sample is returned unchanged (the transform of length one is the identity).
+
+The module is free to use any algorithm (a direct sum, Bluestein's algorithm or a mixed-radix FFT); what it promises is the exact transform within floating-point tolerance. It is slower than *fft* for lengths that are not a power of two and equal to it for lengths that are.
+
+{{spec:analysis/analysis/dft}}
+
 ## differentiate
 
 Performs a simple differentiation of a single input by calculating the difference of consecutive elements. It will write the result to the output buffer with exactly one value fewer than there are values in the input buffer.
@@ -30,11 +85,13 @@ Performs a simple differentiation of a single input by calculating the differenc
 
 ## fft
 
-This module will perform a fast Fourier transform of a complex input and will write the complex result to the output buffers. For input and output the complex data is defined by two buffers *re* and *im* corresponding to the real and imaginary part. The *imaginary* buffer is optional and will be filled with zeros if omitted (the full complex spectrum is returned either way, not a shortened real-input half). A *provided* im input, in contrast, truncates the transform to the shorter of *re* and *im*.
+The fast Fourier transform of a complex input, written as complex output. See [Fourier transforms](#fourier-transforms) for the interface, the kernel and the *normalization* attribute, all of which it shares with *dft*, *ifft* and *idft*.
 
-Provide a **power-of-two** number of input samples: only then is the output guaranteed to be identical on both platforms. This lets the module use the fastest transform each platform offers. For other input lengths the result is implementation-defined and differs between platforms; a separate general-purpose `dft` module (slower, exact input length) is planned for those cases.
+Provide a **power-of-two** number of input samples: only then is the output guaranteed to be identical on both platforms. This lets the module use the fastest transform each platform offers. For other input lengths the result is implementation-defined and differs between platforms; use *dft*, the exact transform of any length, for those cases. A single input sample is a power of two but currently handled differently by the two platforms as well.
 
 {{inconsistency:fft-non-power-of-two-input}}
+
+{{inconsistency:fft-single-sample-input}}
 
 {{spec:analysis/analysis/fft}}
 
@@ -43,6 +100,20 @@ Provide a **power-of-two** number of input samples: only then is the output guar
 This module will smooth the data provided from the only input. The data of each point will be calculated from neighboring points with a Gaussian distribution. The width of this distribution can be controlled by the attribute *sigma* and is interpreted in terms of value indices. An omitted or empty *sigma* attribute selects the default of 3; a present value must be greater than zero. This module will output as many values as there are values in the input buffer.
 
 {{spec:analysis/analysis/gausssmooth}}
+
+## idft
+
+The inverse discrete Fourier transform of a complex spectrum of **any length**, written as complex output of exactly that length - the inverse of *dft*, with the opposite sign in the kernel and, under the default *normalization*, divided by N, so *idft* after *dft* returns the input. See [Fourier transforms](#fourier-transforms) for the interface and the conventions. Like *dft* it is exact for every length on every platform; an empty input gives an empty output.
+
+{{spec:analysis/analysis/idft}}
+
+## ifft
+
+The inverse fast Fourier transform of a complex spectrum - the inverse of *fft*, with the opposite sign in the kernel and, under the default *normalization*, divided by N, so *ifft* after *fft* returns the input. See [Fourier transforms](#fourier-transforms) for the interface and the conventions.
+
+It carries the same guarantee as *fft*: only a **power-of-two** number of input samples (the length of the spectrum) is guaranteed to give identical results on both platforms, any other length is implementation-defined - use *idft* for those. Both platforms handle a spectrum of a single bin differently as well, see the notes on [fft](#fft).
+
+{{spec:analysis/analysis/ifft}}
 
 ## interpolate
 

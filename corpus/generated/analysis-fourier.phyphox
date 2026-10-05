@@ -1,0 +1,69 @@
+<!-- Covers the Fourier modules of file format 1.21: dft and idft (exact
+     transforms of any length), ifft (inverse of fft) and the normalization
+     attribute shared by all four with each of its values - fft with
+     backward, ifft with forward, dft with ortho, idft with none - plus an
+     fft without the attribute, which keeps its pre-1.21 (unscaled)
+     behaviour. The buffer of 12 samples is deliberately not a power of two
+     for the dft/idft pair. -->
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>Corpus: Fourier transforms</title>
+    <category>Corpus</category>
+    <description>Fixture for fft, ifft, dft and idft with the normalization attribute.</description>
+    <data-containers>
+        <container size="16" init="1,0,-1,0,1,0,-1,0,1,0,-1,0,1,0,-1,0">signal16</container>
+        <container size="16">spectrumRe</container>
+        <container size="16">spectrumIm</container>
+        <container size="16">spectrumPlainRe</container>
+        <container size="16">spectrumPlainIm</container>
+        <container size="16">signalBack</container>
+        <container size="12" init="0,1,2,3,4,5,6,5,4,3,2,1">signal12</container>
+        <container size="12">dftRe</container>
+        <container size="12">dftIm</container>
+        <container size="12">signal12Back</container>
+        <container size="12">signal12BackIm</container>
+    </data-containers>
+    <analysis>
+        <fft normalization="backward">
+            <input as="re">signal16</input>
+            <output as="re">spectrumRe</output>
+            <output as="im">spectrumIm</output>
+        </fft>
+        <fft>
+            <input as="re">signal16</input>
+            <output as="re">spectrumPlainRe</output>
+            <output as="im">spectrumPlainIm</output>
+        </fft>
+        <ifft normalization="forward">
+            <input as="re">spectrumRe</input>
+            <input as="im">spectrumIm</input>
+            <output as="re">signalBack</output>
+        </ifft>
+        <dft normalization="ortho">
+            <input as="re">signal12</input>
+            <output as="re">dftRe</output>
+            <output as="im">dftIm</output>
+        </dft>
+        <idft normalization="none">
+            <input as="re">dftRe</input>
+            <input as="im">dftIm</input>
+            <output as="re">signal12Back</output>
+            <output as="im">signal12BackIm</output>
+        </idft>
+    </analysis>
+    <views>
+        <view label="Fourier">
+            <graph label="Spectrum (fft)" labelX="bin" labelY="Re">
+                <input axis="y">spectrumRe</input>
+            </graph>
+            <graph label="Signal back (ifft)" labelX="sample" labelY="value">
+                <input axis="y">signalBack</input>
+            </graph>
+            <graph label="Spectrum (dft, 12 samples)" labelX="bin" labelY="Re">
+                <input axis="y">dftRe</input>
+            </graph>
+            <graph label="Signal back (idft)" labelX="sample" labelY="value">
+                <input axis="y">signal12Back</input>
+            </graph>
+        </view>
+    </views>
+</phyphox>

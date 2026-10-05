@@ -1,0 +1,20 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: ifft/real-spectrum-re-only</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/ifft.yml - do not edit.</description>
+    <data-containers>
+        <container size="8" init="0.0,7.267471740958731e-17,4.0,-3.2904645469127765e-16,0.0,2.3617750313732183e-15,4.0,9.345669101455923e-16">re</container>
+        <container size="8">outre</container>
+    </data-containers>
+    <analysis>
+        <ifft>
+            <input as="re">re</input>
+            <output as="re">outre</output>
+        </ifft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

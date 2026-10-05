@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: ifft/normalization-forward</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/ifft.yml - do not edit.</description>
+    <data-containers>
+        <container size="4" init="10.0,-2.000000000000001,-2.0,-1.9999999999999982">re</container>
+        <container size="4" init="0.0,1.9999999999999996,1.9999999999999991,-2.000000000000001">im</container>
+        <container size="4">outre</container>
+        <container size="4">outim</container>
+    </data-containers>
+    <analysis>
+        <ifft normalization="forward">
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </ifft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

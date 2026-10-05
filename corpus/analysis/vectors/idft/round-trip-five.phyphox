@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: idft/round-trip-five</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/idft.yml - do not edit.</description>
+    <data-containers>
+        <container size="5" init="5.0,0.5093473736237117,1.0395961100811357,2.57843787866876,0.872618637626394">re</container>
+        <container size="5" init="1.0,4.170231514214941,-4.584474801638036,1.8484068241382463,-2.4341635367151513">im</container>
+        <container size="5">outre</container>
+        <container size="5">outim</container>
+    </data-containers>
+    <analysis>
+        <idft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </idft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

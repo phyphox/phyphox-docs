@@ -287,28 +287,61 @@ def crosscorrelation(in1, in2):         # crosscorrelationAM (Java path)
     return out
 
 
-def fft(re, im=None):                   # fftAM - unnormalized forward DFT
-    """Returns (re_out, im_out), the full complex spectrum, kernel
-    e^(-2*pi*i*k*n/N), no 1/N scaling. Golden vectors use power-of-two
-    lengths only (fft-non-power-of-two-input is platform-defined)."""
+def _fourier(re, im, sign, scale):
+    """Direct complex DFT, kernel e^(sign*2*pi*i*k*n/N), every bin scaled by
+    `scale`(N). The shared core of the four Fourier modules (spec/rules.yml,
+    fourier-transform-conventions)."""
     if im is not None:
         n = min(len(re), len(im))
     else:
         n = len(re)
         im = [0.0] * n
-    if n < 2:
+    if n == 0:
         return [], []
+    s = scale(n)
     re_out, im_out = [], []
     for k in range(n):
         sr = si = 0.0
         for j in range(n):
-            ang = -2.0 * math.pi * k * j / n
-            c, s = math.cos(ang), math.sin(ang)
-            sr += re[j] * c - im[j] * s
-            si += re[j] * s + im[j] * c
-        re_out.append(sr)
-        im_out.append(si)
+            ang = sign * 2.0 * math.pi * k * j / n
+            c, sn = math.cos(ang), math.sin(ang)
+            sr += re[j] * c - im[j] * sn
+            si += re[j] * sn + im[j] * c
+        re_out.append(s * sr)
+        im_out.append(s * si)
     return re_out, im_out
+
+
+# normalization -> (forward factor, inverse factor), each a function of N
+_NORMALIZATION = {
+    "backward": (lambda n: 1.0, lambda n: 1.0 / n),
+    "forward": (lambda n: 1.0 / n, lambda n: 1.0),
+    "ortho": (lambda n: 1.0 / math.sqrt(n), lambda n: 1.0 / math.sqrt(n)),
+    "none": (lambda n: 1.0, lambda n: 1.0),
+}
+
+
+def dft(re, im=None, normalization="backward"):   # exact forward DFT, any N
+    """Returns (re_out, im_out), the full complex spectrum of exactly the
+    input length for every N >= 1 (empty for empty input)."""
+    return _fourier(re, im, -1.0, _NORMALIZATION[normalization][0])
+
+
+def idft(re, im=None, normalization="backward"):  # exact inverse DFT, any N
+    """Inverse of dft: opposite kernel sign, 1/N under the default."""
+    return _fourier(re, im, +1.0, _NORMALIZATION[normalization][1])
+
+
+def fft(re, im=None, normalization="backward"):   # fftAM
+    """Same result as dft - golden vectors use power-of-two lengths of at
+    least two only (fft-non-power-of-two-input is platform-defined, a single
+    sample is fft-single-sample-input)."""
+    return dft(re, im, normalization)
+
+
+def ifft(re, im=None, normalization="backward"):
+    """Same result as idft, under the same length restriction as fft."""
+    return idft(re, im, normalization)
 
 
 def gausssmooth(y, sigma=3.0):          # gaussSmoothAM

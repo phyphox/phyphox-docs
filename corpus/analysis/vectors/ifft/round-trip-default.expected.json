@@ -1,0 +1,33 @@
+{
+ "case": "round-trip-default",
+ "cycles": 1,
+ "default_tolerance": {
+  "abs": "1e-05",
+  "rel": 0.0001
+ },
+ "expect": [
+  {
+   "after_cycle": 1,
+   "buffers": {
+    "outim": {
+     "values": [
+      0.49999999999999944,
+      -0.5000000000000003,
+      0.49999999999999994,
+      -0.49999999999999967
+     ]
+    },
+    "outre": {
+     "values": [
+      1.0000000000000002,
+      2.0,
+      2.9999999999999996,
+      4.0
+     ]
+    }
+   }
+  }
+ ],
+ "expected_source": "reference",
+ "module": "ifft"
+}

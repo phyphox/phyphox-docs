@@ -67,25 +67,50 @@
   status: decided
   permanent: true
   canonical: >-
-    fft uses the fastest transform each platform offers, so only a
+    fft and ifft use the fastest transform each platform offers, so only a
     power-of-two number of input samples is guaranteed to give identical
-    results on both platforms - an experiment that needs a portable FFT must
-    provide that. Any other length is
-    implementation-defined. For exact transforms of arbitrary length a
-    separate, slower dft module is planned; until it exists, non-power-of-two
-    input is simply outside the guaranteed contract.
+    results on both platforms - an experiment that needs a portable fast
+    transform must provide that. Any other length is implementation-defined.
+    The exact transforms of arbitrary length are the dft and idft modules
+    (file format 1.21), which are slower but return exactly as many values
+    as they are given on every platform; an experiment with a
+    non-power-of-two length uses those.
   affects:
     android: >-
       FFTW transforms the input length directly, and the Java fallback
       zero-pads internally but truncates back, so the output length always
       equals the input length (analysis.cpp fftw3complex, Analysis.java
-      fftAM).
+      fftAM). ifft is specified under the same contract and not yet
+      implemented.
     ios: >-
       vDSP_DFT only accepts lengths of the form f*2^n with f in {1, 3, 5,
       15}, so other inputs are zero-padded to the next supported length and
       the padded, longer spectrum is returned (FFTAnalysis.swift,
-      nextFFTSize).
+      nextFFTSize). ifft is specified under the same contract and not yet
+      implemented.
   summary: >-
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input
-    gives identical results on both.
+    gives identical results on both. This holds for fft and for its inverse
+    ifft alike; dft and idft have no such restriction.
+
+- id: fft-single-sample-input
+  title: FFT of a single sample
+  area: file-format
+  status: open
+  affects:
+    android: >-
+      Both the native path and the Java fallback return without writing
+      anything when fewer than two samples are given (Analysis.java fftAM,
+      `if (size < 2) return;`), so one input sample yields empty outputs.
+    ios: >-
+      nextFFTSize(1) is 1 and vDSP_DFT_zop_CreateSetupD accepts a length of
+      1 (FFTAnalysis.swift, the comment on the setup call), so one input
+      sample yields one output sample equal to the input - the exact
+      transform of length one.
+  summary: >-
+    One is a power of two, so the contract of fft-non-power-of-two-input
+    promises identical results for a single input sample, yet Android writes
+    nothing and iOS writes the sample back. Found 2026-10-05 while specifying
+    dft, whose exact transform of length one is the identity. Until decided,
+    an experiment should not feed fft (or ifft) a single sample.

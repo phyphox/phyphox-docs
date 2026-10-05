@@ -118,7 +118,7 @@ elements:
       agreement: agreed
       rules: [output-component-validation]
     summary: Container for the analysis modules, executed in document order.
-    children: [abs, acos, add, append, asin, atan, atan2, autocorrelation, average, binning, butterworth, const, cos, cosh, count, crosscorrelation, differentiate, divide, eventstream, fft, first, formula, gausssmooth, gcd, if, imagedecode, info, integrate, interpolate, lcm, loess, log, map, match, max, min, movingaverage, multiply, periodicity, power, ramp, rangefilter, reduce, round, sin, sinh, sort, split, subrange, subtract, tan, tanh, threshold, timer]
+    children: [abs, acos, add, append, asin, atan, atan2, autocorrelation, average, binning, butterworth, const, cos, cosh, count, crosscorrelation, dft, differentiate, divide, eventstream, fft, first, formula, gausssmooth, gcd, idft, if, ifft, imagedecode, info, integrate, interpolate, lcm, loess, log, map, match, max, min, movingaverage, multiply, periodicity, power, ramp, rangefilter, reduce, round, sin, sinh, sort, split, subrange, subtract, tan, tanh, threshold, timer]
     attributes:
       - name: sleep
         type: float
@@ -690,6 +690,78 @@ elements:
         min: 1
         max: 1
 
+  - name: dft
+    parent: analysis
+    since: "1.21"
+    summary: >-
+      Discrete Fourier transform of a complex input of any length, written as
+      complex output of exactly that length.
+    remark: >-
+      The exact transform for arbitrary input lengths: N input samples give
+      N output bins on every platform, whatever N is, at the cost of a slower
+      algorithm than fft for lengths that are not a power of two. Same slots,
+      same kernel and same normalization attribute as fft; see "Fourier
+      transforms" on the page for the conventions. Nothing in it is
+      implementation-defined.
+    children: [input, output]
+    attributes:
+      - &fourier_normalization
+        name: normalization
+        since: "1.21"
+        type: enum
+        values: [backward, forward, ortho, none]
+        default: backward
+        summary: >-
+          Which of the two transform directions carries the 1/N factor, N
+          being the transform length. The same value on a forward module and
+          on the matching inverse module makes the round trip return the
+          input (except for `none`, which returns N times the input). The
+          names are those of NumPy and SciPy, and the default is the
+          convention of NumPy, SciPy, MATLAB and FFTW.
+        value_notes:
+          backward: >-
+            The forward transform (fft, dft) is a plain sum, the inverse
+            (ifft, idft) is divided by N. The default, and for the forward
+            modules identical to the unnormalized result fft has always
+            produced.
+          forward: >-
+            The forward transform is divided by N, the inverse is a plain
+            sum. A bin of the forward transform then holds the amplitude
+            of its frequency component directly (half of it, for a real
+            signal, in each of the two mirrored bins).
+          ortho: >-
+            Both directions are divided by the square root of N, which
+            makes each transform unitary: the sum of the squared magnitudes
+            is the same before and after (Parseval).
+          none: >-
+            No factor in either direction. For the forward modules the same
+            as backward, for the inverse modules the same as forward; spelled
+            out for an experiment that applies its own scaling.
+        agreement: planned
+        rules: [fourier-transform-conventions, enum-invalid-value, enum-case-insensitive]
+    inputs:
+      - name: re
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: im
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+    outputs:
+      - name: re
+        as_required: false
+        min: 0
+        max: 1
+      - name: im
+        as_required: true
+        min: 0
+        max: 1
+
   - name: differentiate
     parent: analysis
     summary: >-
@@ -846,8 +918,15 @@ elements:
     summary: >-
       This module will perform a fast Fourier transform of a complex input
       and will write the complex result to the output buffers.
+    remark: >-
+      The forward transform, guaranteed to give identical results on both
+      platforms for a power-of-two number of input samples only; dft is the
+      exact transform for any other length. See "Fourier transforms" on the
+      page for the kernel and the normalization conventions shared by fft,
+      ifft, dft and idft.
     children: [input, output]
-    attributes: []
+    attributes:
+      - *fourier_normalization
     inputs:
       - name: re
         as_required: false
@@ -970,6 +1049,44 @@ elements:
         min: 1
         max: 1
 
+  - name: idft
+    parent: analysis
+    since: "1.21"
+    summary: >-
+      Inverse discrete Fourier transform of a complex spectrum of any length,
+      written as complex output of exactly that length.
+    remark: >-
+      The inverse of dft, and the exact inverse transform for arbitrary
+      lengths: N input bins give N output samples on every platform. With the
+      default normalization the result is divided by N, so idft after dft
+      returns the input. See "Fourier transforms" on the page for the
+      conventions.
+    children: [input, output]
+    attributes:
+      - *fourier_normalization
+    inputs:
+      - name: re
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: im
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+    outputs:
+      - name: re
+        as_required: false
+        min: 0
+        max: 1
+      - name: im
+        as_required: true
+        min: 0
+        max: 1
+
   - name: if
     parent: analysis
     since: "1.3"
@@ -1027,6 +1144,45 @@ elements:
       - name: result
         as_required: false
         min: 1
+        max: 1
+
+  - name: ifft
+    parent: analysis
+    since: "1.21"
+    summary: >-
+      Inverse fast Fourier transform of a complex spectrum, with the same
+      power-of-two guarantee as fft.
+    remark: >-
+      The inverse of fft: the kernel has the opposite sign, and with the
+      default normalization the result is divided by N, so ifft after fft
+      returns the input. Like fft it is only guaranteed to produce identical
+      results on both platforms for a power-of-two number of input samples;
+      use idft for other lengths. See "Fourier transforms" on the page for
+      the conventions.
+    children: [input, output]
+    attributes:
+      - *fourier_normalization
+    inputs:
+      - name: re
+        as_required: false
+        min: 1
+        max: 1
+        allows_value: false
+        allows_empty: false
+      - name: im
+        as_required: true
+        min: 0
+        max: 1
+        allows_value: false
+        allows_empty: false
+    outputs:
+      - name: re
+        as_required: false
+        min: 0
+        max: 1
+      - name: im
+        as_required: true
+        min: 0
         max: 1
 
   - name: imagedecode
