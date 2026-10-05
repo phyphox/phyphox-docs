@@ -341,6 +341,20 @@ def scenes():
     <value label="" unit="%" size="2" precision="0" align="center"><input>percent</input></value>
 </stack>
 """),
+        dict(id="drawing", page="drawing", containers={"percent": [72]}, view="""
+<stack>
+    <geometry shape="circle" radius="0.48" color="202020" lineColor="ff7e22" lineWidth="0.01" />
+    <geometry shape="arc" radius="0.45" innerRadius="0.4" startAngle="1.57" sweepAngle="0.79" color="fe005d" />
+    <scale shape="circular" min="0" max="100" ticStep="10" minorTics="4"
+           radius="0.42" ticLength="-0.04" minorTicLength="-0.02" valueDistance="-0.11" size="0.8"
+           label="Load" unit="%" labelPositionY="0.72" />
+    <transform originX="0.5" originY="0.5">
+        <input as="rotate" min="0" max="100" mapMin="-2.3562" mapMax="2.3562" clamp="true">percent</input>
+        <geometry shape="line" startX="0.5" startY="0.5" endX="0.5" endY="0.12" lineColor="ff7e22" lineWidth="0.015" />
+    </transform>
+    <geometry shape="circle" radius="0.04" color="ff7e22" />
+</stack>
+"""),
     ]
 
 

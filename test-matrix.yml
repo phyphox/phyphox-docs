@@ -877,7 +877,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Rendering the "Drawing" view of corpus/generated/view-drawing.phyphox
       (docs/file-format/views/drawing.md, specified 2026-10-05): a geometry
@@ -893,7 +893,7 @@ tests:
     area: views
     tier: T1
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       Rendering the scales of corpus/generated/view-drawing.phyphox: a
       linear scale runs from start to end with tics on the positive side
@@ -916,7 +916,7 @@ tests:
     area: ui
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       What a scale with a unit reference shows under the unit conversion,
       checked without rendering on corpus/generated/view-drawing.phyphox:

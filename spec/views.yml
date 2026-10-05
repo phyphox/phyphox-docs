@@ -1552,8 +1552,11 @@ elements:
   # --------------------------------------------------------- drawing elements --
   # geometry and scale: static drawings for gauges built as stacks. File
   # format 1.21, specified 2026-10-05 ahead of the implementations
-  # (docs/file-format/views/drawing.md is the design); every attribute is
-  # `planned` until both apps carry it. The coordinate conventions - positions
+  # (docs/file-format/views/drawing.md is the design) and implemented from it
+  # the same day on Android, iOS and in the web interface; the editor follows.
+  # Compared attribute by attribute against both parsers 2026-10-05 (Android
+  # PhyphoxFile.java, iOS DrawingViewElementHandlers.swift via
+  # tools/spec_vs_ios.py). The coordinate conventions - positions
   # as fractions of the element's box, lengths as fractions of its width,
   # angles in radians clockwise from twelve o'clock - are shared by the two
   # elements and stated once on the page under "Drawing coordinates".
@@ -1593,7 +1596,7 @@ elements:
             radius, from startAngle over sweepAngle; with innerRadius 0 a
             pie slice, with a full sweep a ring.
         summary: What is drawn.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: aspectRatio
         type: float
@@ -1601,92 +1604,92 @@ elements:
         summary: >-
           Width divided by height of the element's box; the box takes the
           full width.
-        agreement: planned
+        agreement: agreed
       - name: color
         type: color
         summary: >-
           Fill of an area shape, or the colour of a line without lineColor.
           Without it an area shape has no fill.
         rules: [color-invalid-value]
-        agreement: planned
+        agreement: agreed
       - name: lineColor
         type: color
         summary: >-
           Colour of the outline of an area shape, or of a line. Without it
           an area shape has no outline.
         rules: [color-invalid-value]
-        agreement: planned
+        agreement: agreed
       - name: lineWidth
         type: float
         default: 0.01
         summary: >-
           Width of the outline or of a line, as a fraction of the element's
           width (not relative to a default width like the graph's).
-        agreement: planned
+        agreement: agreed
       - name: left
         type: float
         default: 0
         summary: >-
           rectangle: left edge, as a fraction of the width from the left.
-        agreement: planned
+        agreement: agreed
       - name: top
         type: float
         default: 0
         summary: >-
           rectangle: top edge, as a fraction of the height from the top.
-        agreement: planned
+        agreement: agreed
       - name: right
         type: float
         default: 1
         summary: >-
           rectangle: right edge, as a fraction of the width from the left.
-        agreement: planned
+        agreement: agreed
       - name: bottom
         type: float
         default: 1
         summary: >-
           rectangle: bottom edge, as a fraction of the height from the top.
-        agreement: planned
+        agreement: agreed
       - name: cornerRadius
         type: float
         default: 0
         summary: >-
           rectangle: radius of the rounded corners, as a fraction of the
           width; 0 is a sharp corner, half the shorter side a stadium.
-        agreement: planned
+        agreement: agreed
       - name: centerX
         type: float
         default: 0.5
         summary: >-
           circle, arc: horizontal centre, as a fraction of the width.
-        agreement: planned
+        agreement: agreed
       - name: centerY
         type: float
         default: 0.5
         summary: >-
           circle, arc: vertical centre, as a fraction of the height.
-        agreement: planned
+        agreement: agreed
       - name: radius
         type: float
         default: 0.5
         summary: >-
           circle: the radius; arc: the outer radius. A fraction of the
           width.
-        agreement: planned
+        agreement: agreed
       - name: innerRadius
         type: float
         default: 0
         summary: >-
           arc: the inner radius as a fraction of the width; 0 fills to the
           centre.
-        agreement: planned
+        agreement: agreed
       - name: startAngle
         type: float
         default: 0
         summary: >-
           arc: where the segment begins, in radians clockwise from twelve
           o'clock.
-        agreement: planned
+        agreement: agreed
       - name: sweepAngle
         type: float
         default: 6.2832
@@ -1694,27 +1697,27 @@ elements:
           arc: how far the segment extends from startAngle, in radians;
           positive clockwise, negative counter-clockwise. The default is a
           full turn.
-        agreement: planned
+        agreement: agreed
       - name: startX
         type: float
         default: 0
         summary: "line: horizontal start, as a fraction of the width."
-        agreement: planned
+        agreement: agreed
       - name: startY
         type: float
         default: 0.5
         summary: "line: vertical start, as a fraction of the height."
-        agreement: planned
+        agreement: agreed
       - name: endX
         type: float
         default: 1
         summary: "line: horizontal end, as a fraction of the width."
-        agreement: planned
+        agreement: agreed
       - name: endY
         type: float
         default: 0.5
         summary: "line: vertical end, as a fraction of the height."
-        agreement: planned
+        agreement: agreed
 
   - name: scale
     parent: [view, vertical, horizontal, grid, stack, transform]
@@ -1764,7 +1767,7 @@ elements:
             An arc around centerX/centerY of radius from startAngle (min)
             over sweepAngle (max), clockwise for a positive sweep.
         summary: Straight or circular.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: aspectRatio
         type: float
@@ -1772,17 +1775,17 @@ elements:
         summary: >-
           Width divided by height of the element's box; the box takes the
           full width.
-        agreement: planned
+        agreement: agreed
       - name: min
         type: float
         default: 0
         summary: Value at the start of the baseline, in the experiment's unit.
-        agreement: planned
+        agreement: agreed
       - name: max
         type: float
         default: 1
         summary: Value at the end of the baseline, in the experiment's unit.
-        agreement: planned
+        agreement: agreed
       - name: unit
         type: unit
         translatable: true
@@ -1790,77 +1793,77 @@ elements:
           Unit of the values, appended to the label in parentheses. A unit
           reference makes the values convertible.
         rules: [unit-reference]
-        agreement: planned
+        agreement: agreed
       - name: color
         type: color
         summary: >-
           Colour of the baseline, the tics and all text. Defaults to the
           text colour of the current theme.
         rules: [color-invalid-value]
-        agreement: planned
+        agreement: agreed
       - name: size
         type: float
         default: 1
         summary: >-
           Size of the values and the label relative to the default text
           size, like the value element's size.
-        agreement: planned
+        agreement: agreed
       - name: lineWidth
         type: float
         default: 0.005
         summary: >-
           Width of the baseline and the tics, as a fraction of the element's
           width; 0 draws no baseline.
-        agreement: planned
+        agreement: agreed
       - name: ticStep
         type: float
         default: 0
         summary: >-
           Distance between major tics in the experiment's unit, laid out
           from min; 0 chooses the step automatically, like a graph axis.
-        agreement: planned
+        agreement: agreed
       - name: ticLength
         type: float
         default: 0.03
         summary: >-
           Length of the major tics from the baseline, as a fraction of the
           width; negative draws them on the other side, 0 draws none.
-        agreement: planned
+        agreement: agreed
       - name: minorTics
         type: integer
         default: 0
         summary: >-
           Number of minor tics between two major tics; 4 divides a step into
           five.
-        agreement: planned
+        agreement: agreed
       - name: minorTicLength
         type: float
         default: 0.015
         summary: >-
           Length of the minor tics, as a fraction of the width, signed like
           ticLength.
-        agreement: planned
+        agreement: agreed
       - name: valueEvery
         type: integer
         default: 1
         summary: >-
           Show the value at every n-th major tic, counted from min; 0 shows
           no values.
-        agreement: planned
+        agreement: agreed
       - name: valueDistance
         type: float
         default: 0.08
         summary: >-
           Distance from the baseline to the centre of a value text, as a
           fraction of the width, signed like ticLength.
-        agreement: planned
+        agreement: agreed
       - name: precision
         type: integer
         summary: >-
           Decimals of the values. Without it as many as the tic step needs.
           With a converted unit the precision rule of the units page
           applies.
-        agreement: planned
+        agreement: agreed
       - name: valueOrientation
         type: enum
         values: [upright, tangential, radial]
@@ -1877,69 +1880,69 @@ elements:
             the centre; on a linear scale it reads from the baseline towards
             the tic side.
         summary: How the values at the tics are turned.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
       - name: labelPositionX
         type: float
         default: 0.5
         summary: >-
           Horizontal centre of the label text, as a fraction of the width.
-        agreement: planned
+        agreement: agreed
       - name: labelPositionY
         type: float
         default: 0.5
         summary: >-
           Vertical centre of the label text, as a fraction of the height.
-        agreement: planned
+        agreement: agreed
       - name: startX
         type: float
         default: 0.1
         summary: "linear: horizontal position of min, as a fraction of the width."
-        agreement: planned
+        agreement: agreed
       - name: startY
         type: float
         default: 0.5
         summary: "linear: vertical position of min, as a fraction of the height."
-        agreement: planned
+        agreement: agreed
       - name: endX
         type: float
         default: 0.9
         summary: "linear: horizontal position of max, as a fraction of the width."
-        agreement: planned
+        agreement: agreed
       - name: endY
         type: float
         default: 0.5
         summary: "linear: vertical position of max, as a fraction of the height."
-        agreement: planned
+        agreement: agreed
       - name: centerX
         type: float
         default: 0.5
         summary: "circular: horizontal centre, as a fraction of the width."
-        agreement: planned
+        agreement: agreed
       - name: centerY
         type: float
         default: 0.5
         summary: "circular: vertical centre, as a fraction of the height."
-        agreement: planned
+        agreement: agreed
       - name: radius
         type: float
         default: 0.4
         summary: "circular: radius of the baseline, as a fraction of the width."
-        agreement: planned
+        agreement: agreed
       - name: startAngle
         type: float
         default: -2.3562
         summary: >-
           circular: angle of min, in radians clockwise from twelve o'clock.
           The default is -135°.
-        agreement: planned
+        agreement: agreed
       - name: sweepAngle
         type: float
         default: 4.7124
         summary: >-
           circular: angle from min to max, in radians; positive clockwise.
           The default is 270°, so min and max sit symmetric about the bottom.
-        agreement: planned
+        agreement: agreed
 
   - name: input
     parent: scale
@@ -1966,7 +1969,7 @@ elements:
           min: The value at the start of the baseline.
           max: The value at the end of the baseline.
         summary: Which end of the range the container drives.
-        agreement: planned
+        agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
 
   # ------------------------------------------------------------- camera-gui --

@@ -24,6 +24,16 @@ handled:
     as the input block's. Keys are therefore file-qualified.
   * **childHandlers maps names to variables, not classes.** They have to be
     resolved through the `let x = SomeHandler()` bindings in the same class.
+  * **The view elements are dispatched by a shared container, not per class.**
+    Since the view groups (2026-09-26) a view and every group hold a
+    `ViewElementContainerHandler(childSet: .all|.stack|.transform)` whose one
+    `switch` writes `inner = SomeHandler()` per name, with `guard childSet ==
+    .x` lines restricting a name to one child set; a transform additionally
+    routes "input" inline (`if elementName.lowercased() == "input"`). The
+    walk resolves a class's children through the child set it constructs
+    (a ternary on `kind` means: the set named like the element, else .all).
+    Before this was handled the walk stopped at <view> and reported no gaps
+    for any view element - which is how geometry and scale went unchecked.
 
 Anything iOS declares but never reads is listed in DECLARED_BUT_UNREAD rather
 than modelled: it is in the source, but it is not part of the format.
@@ -51,6 +61,13 @@ DECLARED_BUT_UNREAD = {
     ("phyphox", "events"): {"experimentTime", "systemTime"},  # copy of its child's enum
     ("phyphox", "link"): {"translation"},     # declared only to reject it with a clear
                                               # error: allowed on translation/link only
+    # one handler class serves vertical, horizontal and stack; its enum carries
+    # spacing, which the stack branch sets to 0 without reading the attribute
+    # (ViewGroupElementHandlers.swift, GroupViewElementHandler.endElement)
+    ("view", "stack"): {"spacing"},
+    ("vertical", "stack"): {"spacing"},
+    ("horizontal", "stack"): {"spacing"},
+    ("grid", "stack"): {"spacing"},
 }
 
 # Elements iOS reaches through a computed childHandler rather than a literal
@@ -61,7 +78,8 @@ DECLARED_BUT_UNREAD = {
 
 def class_bodies(src):
     """Yield (class_name, body) with bodies delimited by brace matching."""
-    for m in re.finditer(r'class (\w+)\s*:[^{]*\{', src):
+    # a class may name no protocol at all (ViewElementContainerHandler)
+    for m in re.finditer(r'class (\w+)\s*(?::[^{]*)?\{', src):
         depth, i = 1, m.end()
         while i < len(src) and depth:
             if src[i] == "{":
@@ -95,8 +113,48 @@ def scan(ios_root):
                         kids[name] = (fn, binding.get(var, var))
                 for cm in re.finditer(r'case "([\w\-]+)":\s*\n?\s*handler = (\w+)', body):
                     kids[cm.group(1)] = (fn, binding.get(cm.group(2), cm.group(2)))
-                handlers[f"{fn}::{cls}"] = {"attrs": sorted(set(attrs)), "children": kids}
+                # an inline route: if elementName.lowercased() == "input" { return inputHandler }
+                for im in re.finditer(r'if elementName(?:\.lowercased\(\))? == "([\w\-]+)"\s*\{\s*return (\w+)',
+                                      body):
+                    kids[im.group(1)] = (fn, binding.get(im.group(2), im.group(2)))
+                # the shared view container: one switch, `inner = X()` per name,
+                # `guard childSet == .x` restricting a name to one child set
+                sets = {}
+                for sm in re.finditer(r'case "([\w\-]+)":(.*?)(?=\n\s*case "|\n\s*default:)',
+                                      body, re.S):
+                    name, block = sm.group(1), sm.group(2)
+                    im = re.search(r'inner = (\w+)\(', block)
+                    if not im:
+                        continue
+                    g = re.search(r'guard childSet == \.(\w+)', block)
+                    sets.setdefault(name, (fn, im.group(1), g.group(1) if g else None))
+                # which child sets this class constructs: `ViewElementContainerHandler(childSet: .x` or a
+                # ternary `kind == .stack ? .stack : .all`
+                child_sets = re.findall(r'ViewElementContainerHandler\(childSet:\s*([^,)]+)', body)
+                handlers[f"{fn}::{cls}"] = {"attrs": sorted(set(attrs)), "children": kids,
+                                            "switch": sets, "child_sets": child_sets}
     return handlers
+
+
+def container_children(handlers, pkey, pname):
+    """Children a class reaches through the shared view container, if any."""
+    entry = handlers.get(pkey, {})
+    exprs = entry.get("child_sets") or []
+    if not exprs:
+        return {}
+    chosen = set()
+    for expr in exprs:
+        names = re.findall(r'\.(\w+)', expr)
+        if len(names) == 1:
+            chosen.add(names[0])
+        else:  # a ternary: the set named like the element, else .all
+            chosen.add(pname if pname in names else "all")
+    switch = next((h["switch"] for h in handlers.values() if h.get("switch")), {})
+    kids = {}
+    for name, (fn, cls, guard) in switch.items():
+        if any(guard is None or guard == cs for cs in chosen):
+            kids[name] = (fn, cls)
+    return kids
 
 
 def walk(handlers):
@@ -112,7 +170,9 @@ def walk(handlers):
         if (pname, pkey) in seen:
             continue
         seen.add((pname, pkey))
-        for cname, (fn, ccls) in (handlers.get(pkey, {}).get("children") or {}).items():
+        children = dict(container_children(handlers, pkey, pname))
+        children.update(handlers.get(pkey, {}).get("children") or {})
+        for cname, (fn, ccls) in children.items():
             ckey = resolve(fn, ccls)
             if ckey:
                 pairs[(pname, cname)] = ckey

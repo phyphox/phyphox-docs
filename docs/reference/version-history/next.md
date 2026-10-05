@@ -54,7 +54,8 @@ interface and in the editor from that specification:
 - **`spacing`** on vertical, horizontal and grid inserts a gap between the children, in text
   line heights (see [Sizing](../../file-format/views/groups.md#sizing)).
 
-Specified 2026-10-05 ahead of the implementations:
+Specified 2026-10-05 ahead of the implementations and implemented from that specification the
+same day on both platforms and in the remote interface:
 
 - **Drawing elements:** [geometry](../../file-format/views/drawing.md#view-element-geometry)
   draws a rectangle, circle, line or ring segment with a fill and an outline, and
