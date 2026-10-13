@@ -287,6 +287,14 @@
     - value@align
     - value@verticalLayout
     - vertical@spacing
+- file: generated/view-image-mode-src.phyphox
+  version: "1.21"
+  adds:
+    - image@darkFilter
+    - image@darkSrc
+    - image@lightFilter
+    - image@lightSrc
+    - image@scale
 - file: generated/views-details.phyphox
   version: "1.20"
   adds:

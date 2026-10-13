@@ -9,6 +9,11 @@ transfers carry. This script builds each form deterministically:
 
     two-experiments.zip   container-a + container-b
     with-resource.zip     with-resource.phyphox + res/pic.png
+    mode-resources.zip    mode-resources.phyphox + res/plain.png,
+                          res/light.png and res/dark.png: one-pixel PNGs
+                          in grey, red and blue (MODE_COLORS below), the
+                          last two referenced only through the image
+                          element's lightSrc and darkSrc (file format 1.21)
     traversal.zip         a normal entry plus ../evil.phyphox - the
                           handlers must REJECT the traversal entry (a
                           security pin; Android's ZipIntentHandler guard)
@@ -59,6 +64,26 @@ def make_png():
            + b"\x00" + bytes([0, 0, 255, 255, 255, 255]))
     return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr)
             + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+
+
+def make_solid_png(rgb):
+    """1x1 opaque RGB PNG of one colour."""
+    def chunk(tag, data):
+        c = struct.pack(">I", len(data)) + tag + data
+        return c + struct.pack(">I", zlib.crc32(tag + data) & 0xffffffff)
+    ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+    raw = b"\x00" + bytes(rgb)
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr)
+            + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
+
+
+# The images of mode-resources.zip: distinct colours, so a test can tell
+# from the pixel which file the image element chose in which mode.
+MODE_COLORS = [
+    ("res/plain.png", (128, 128, 128)),
+    ("res/light.png", (255, 0, 0)),
+    ("res/dark.png", (0, 0, 255)),
+]
 
 
 # The data of saved-state.zip, keyed by container name in data-containers
@@ -121,6 +146,11 @@ def build(out_dir=CDIR):
         zwrite(z, "with-resource.phyphox", res)
         zwrite(z, "res/pic.png", png)
 
+    with zipfile.ZipFile(os.path.join(out_dir, "mode-resources.zip"), "w") as z:
+        zwrite(z, "mode-resources.phyphox", read_src("mode-resources.phyphox"))
+        for name, rgb in MODE_COLORS:
+            zwrite(z, name, make_solid_png(rgb))
+
     with zipfile.ZipFile(os.path.join(out_dir, "traversal.zip"), "w") as z:
         zwrite(z, "container-a.phyphox", a)
         zwrite(z, "../evil.phyphox", b)
@@ -163,6 +193,14 @@ def check():
             elif (z.read("with-resource.phyphox") != read_src("with-resource.phyphox")
                   or z.read("res/pic.png") != make_png()):
                 problems.append("with-resource.zip: stale content")
+        with zipfile.ZipFile(os.path.join(CDIR, "mode-resources.zip")) as z:
+            if sorted(z.namelist()) != sorted(["mode-resources.phyphox"]
+                                              + [n for n, _c in MODE_COLORS]):
+                problems.append("mode-resources.zip: wrong entry set")
+            elif (z.read("mode-resources.phyphox") != read_src("mode-resources.phyphox")
+                  or any(z.read(n) != make_solid_png(c) for n, c in MODE_COLORS)):
+                problems.append("mode-resources.zip: stale content - run "
+                                "tools/make_containers.py")
         with zipfile.ZipFile(os.path.join(CDIR, "traversal.zip")) as z:
             if "../evil.phyphox" not in z.namelist():
                 problems.append("traversal.zip lost its traversal entry")

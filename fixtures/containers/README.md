@@ -32,6 +32,23 @@ not a lenient unzip):
   justify it; elsewhere a file nobody can inspect or edit is the wrong
   answer), so a test opening it as a local file asserts the REFUSAL.
 
+## `view-image-mode-src` (T0)
+
+`mode-resources.zip` (file format 1.21, rule `image-mode-src` in
+`spec/rules.yml`) holds three one-pixel images in distinguishable
+colours - `plain.png` grey (128, 128, 128), `light.png` red (255, 0, 0),
+`dark.png` blue (0, 0, 255) - and an experiment whose image elements
+choose between them by the interface mode. `light.png` and `dark.png`
+are referenced only through `lightSrc` and `darkSrc`. Through the real
+intake route:
+
+- the experiment's resource list holds all three names (which is what
+  saving to the collection copies, a saved state writes into `res/`,
+  and the remote interface's `/res` serves);
+- in light mode the first element shows red, the second grey, the third
+  grey; in dark mode the first shows blue, the second blue, the third
+  the inverted blue (255, 255, 0) - `darkFilter` applies to `darkSrc`.
+
 ## `saved-state-load` (T0)
 
 `saved-state.zip` is the saved-state container of `docs/saved-states.md`

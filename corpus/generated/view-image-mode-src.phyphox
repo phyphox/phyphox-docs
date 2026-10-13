@@ -1,0 +1,23 @@
+<!-- Covers the image lightSrc= and darkSrc= attributes (file format 1.21,
+     rule image-mode-src): both alternatives, each one alone, and an
+     alternative combined with the filter of its mode, which then applies to
+     the alternative. The files are not part of the corpus - a missing image
+     shows "image not available" and must not keep the file from loading.
+     fixtures/containers/mode-resources.zip carries the same elements with
+     real images. -->
+<phyphox version="1.21">
+    <title>Image per interface mode</title>
+    <category>Corpus</category>
+    <description>Fixture for the lightSrc and darkSrc attributes of the image element.</description>
+    <data-containers>
+    </data-containers>
+    <views>
+        <view label="Images">
+            <image src="plain.png" lightSrc="light.png" darkSrc="dark.png" />
+            <image src="plain.png" darkSrc="dark.png" scale="0.5" />
+            <image src="plain.png" lightSrc="light.png" scale="0.5" />
+            <image src="plain.png" darkSrc="dark.png" darkFilter="invert" lightFilter="invert" />
+            <image src="plain.png" lightSrc="" darkSrc="" />
+        </view>
+    </views>
+</phyphox>

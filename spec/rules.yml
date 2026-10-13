@@ -611,6 +611,78 @@ rules:
       with every attribute value, and corpus/invalid/fourier-unknown-
       normalization.phyphox pins the enum rule.
 
+  - id: image-mode-src
+    decided: 2026-10-14
+    summary: >-
+      image@lightSrc and image@darkSrc (file format 1.21) replace src while
+      the interface is in light or dark mode; every file they name is a
+      resource of the experiment.
+    rule: >-
+      The image element takes two optional attributes besides src, lightSrc
+      and darkSrc, each naming a file resolved exactly like src. While the
+      interface is in light mode the element shows lightSrc if it is given
+      and not empty, otherwise src; in dark mode darkSrc, otherwise src. src
+      stays required, so an author who needs a different picture in one mode
+      only names that one. The filter of the active mode (lightFilter,
+      darkFilter) applies to whichever image is shown, as it applied to src
+      before. A named file that cannot be opened or decoded shows the
+      element's "image not available" state, exactly as a missing src does;
+      there is no fallback from an alternative to src, so a broken reference
+      is visible in the mode it affects instead of hiding behind the other
+      picture. The mode is the one the app's interface is in (its own design
+      setting, or the system's when the app follows the system), and the
+      element follows a change of it while the experiment is open, as the
+      filters already do. The element's box follows the image shown, so two
+      pictures of different aspect ratio change the layout with the mode;
+      authors are advised to give both the same pixel dimensions, which is
+      what keeps a stack or a fixed plot area aligned in both modes. The web
+      interface chooses by its own light/dark switch, the one that already
+      selects the filter there, and swaps the image when the user toggles
+      it. Every file named by src, lightSrc or darkSrc is a resource of the
+      experiment: it is copied into the per-experiment resource folder when
+      the experiment is saved to the collection, written into the res/
+      folder of a saved state, served by the remote interface's /res
+      endpoint, and listed wherever an app derives the resource list of a
+      shipped experiment.
+    rationale: >-
+      An inverted picture is a crude dark variant: it turns colours into
+      their complements, and a photograph or a coloured diagram does not
+      survive it. A separate file per mode lets an author ship a proper dark
+      version. Keeping src required and treating the alternatives as
+      overrides mirrors the lightFilter/darkFilter pair and keeps the common
+      case - one picture, adjusted in one mode - a single extra attribute.
+    applies_to: "image@lightSrc and image@darkSrc"
+    state:
+      android: >-
+        Not implemented (2026-10-14). The image element is parsed in
+        PhyphoxFile.java (case "image", which adds src to
+        experiment.resources) and drawn by ExperimentView/ImageElement.java
+        (createView, Helper.isDarkTheme; getViewHTML emits the web
+        interface's snippet); AssetExperimentLoader.java collects the src of
+        shipped experiments separately.
+      ios: >-
+        Not implemented (2026-10-14). The
+        element is parsed by ImageViewElementHandler.swift and carried by
+        ImageViewDescriptor.swift (whose resources list feeds
+        Experiment.resources), drawn by ExperimentImageView.swift (applyFilter,
+        traitCollectionDidChange).
+      webinterface: >-
+        Not implemented (2026-10-14); to be changed from the Android
+        side, iOS then emits the same image snippet. The bright
+        mode switch selects the filter through the lightFilter_*/darkFilter_*
+        classes in style.css; nothing swaps the image yet.
+      editor: >-
+        Not implemented (2026-10-14). The
+        image block (src/blocks/view/image.js) offers src, scale and the two
+        filters; referencedResourceNames in src/resources/resourcesPanel.ts
+        reads src only.
+    check: >-
+      corpus/generated/view-image-mode-src.phyphox exercises both attributes
+      for the corpus runners and the validators; the container fixture
+      fixtures/containers/mode-resources.zip carries three distinguishable
+      images, two of them referenced only through lightSrc and darkSrc, for
+      test-matrix row view-image-mode-src.
+
 
 
 # The "one-sided attributes" question, which the input probe expected to be a

@@ -1504,7 +1504,9 @@ elements:
           delivered in a `res` folder inside the zip the experiment
           comes in, and the app copies them into a per-experiment folder
           when the experiment is saved - see "Bundling images" in
-          transferring experiments.
+          transferring experiments. If lightSrc or darkSrc is given, that
+          file is shown instead while the interface is in the respective
+          mode, and src is shown in the other one.
         type: string
         required: true
         summary: >-
@@ -1529,7 +1531,8 @@ elements:
           A filter that should be applied to the image if the
           interface of phyphox is in dark mode. Currently, there are
           two options: **none** leaves the image as is. **invert**
-          inverts the colors of the image.
+          inverts the colors of the image. The filter applies to the
+          image shown in dark mode, which is darkSrc if that is given.
         type: enum
         values: [none, invert]
         default: none
@@ -1541,13 +1544,46 @@ elements:
           A filter that should be applied to the image if the
           interface of phyphox is in light mode. Currently, there
           are two options: **none** leaves the image as is.
-          **invert** inverts the colors of the image.
+          **invert** inverts the colors of the image. The filter applies
+          to the image shown in light mode, which is lightSrc if that is
+          given.
         type: enum
         values: [none, invert]
         default: none
         summary: Filter applied when the app is in light mode.
         agreement: agreed
         rules: [enum-invalid-value, enum-case-insensitive]
+      - name: lightSrc
+        description: >-
+          The file name of an image that is shown instead of src while the
+          interface of phyphox is in light mode, resolved like src. Without
+          it, or if it is empty, src is shown in light mode as well. The
+          lightFilter still applies, now to this image. If the file cannot
+          be opened, the element shows that the image is not available, as
+          for a missing src - it does not fall back to src.
+        since: "1.21"
+        type: string
+        summary: Image shown instead of src while the app is in light mode.
+        agreement: planned
+        rules: [image-mode-src]
+        note: >-
+          Specified ahead of the implementations (2026-10-14): file format
+          1.21 is the next version and neither app parses the attribute yet.
+          The rule image-mode-src in rules.yml records the decided behaviour
+          and the per-platform state, the web interface included.
+      - name: darkSrc
+        description: >-
+          The file name of an image that is shown instead of src while the
+          interface of phyphox is in dark mode, resolved like src. Without
+          it, or if it is empty, src is shown in dark mode as well. The
+          darkFilter still applies, now to this image. If the file cannot
+          be opened, the element shows that the image is not available, as
+          for a missing src - it does not fall back to src.
+        since: "1.21"
+        type: string
+        summary: Image shown instead of src while the app is in dark mode.
+        agreement: planned
+        rules: [image-mode-src]
 
   # --------------------------------------------------------- drawing elements --
   # geometry and scale: static drawings for gauges built as stacks. File

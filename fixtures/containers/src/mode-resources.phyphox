@@ -1,0 +1,16 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>Container fixture with mode images</title>
+    <category>Container fixtures</category>
+    <description>Images chosen by the interface mode (lightSrc, darkSrc): plain.png is grey, light.png red and dark.png blue, each a single pixel. light.png and dark.png are referenced only through lightSrc and darkSrc, so saving to the collection must extract them as well.</description>
+    <data-containers>
+        <container size="1" init="0">unused</container>
+    </data-containers>
+    <views>
+        <view label="Pictures">
+            <image src="plain.png" lightSrc="light.png" darkSrc="dark.png" />
+            <image src="plain.png" darkSrc="dark.png" />
+            <image src="plain.png" darkSrc="dark.png" darkFilter="invert" />
+            <value label="unused"><input>unused</input></value>
+        </view>
+    </views>
+</phyphox>

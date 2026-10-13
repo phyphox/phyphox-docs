@@ -1116,3 +1116,24 @@ tests:
       place the name criterion is applied - device resolution, the scan
       dialog's filter, and the lookup of shipped experiments for a scanned
       device - so the test exercises the shared matcher, not three copies.
+
+  # --- Image per interface mode (file format 1.21, specified 2026-10-14
+  # ahead of the implementations; spec/rules.yml image-mode-src)
+
+  - id: view-image-mode-src
+    area: views
+    tier: T0
+    platforms: [android, ios]
+    status: planned
+    description: >-
+      The lightSrc and darkSrc attributes of the image element, on
+      fixtures/containers/mode-resources.zip through the real intake route
+      (see fixtures/containers/README.md): the resource list holds src,
+      lightSrc and darkSrc, so the two files referenced only by the
+      alternatives are served by /res and copied with the experiment; with
+      the interface forced to light mode the elements show red, grey and
+      grey, forced to dark mode blue, blue and the inverted blue - the
+      filter of the active mode applies to the alternative. A named file
+      that does not exist shows the element's "image not available" state
+      instead of falling back to src (corpus/generated/
+      view-image-mode-src.phyphox, which has no images, loads regardless).

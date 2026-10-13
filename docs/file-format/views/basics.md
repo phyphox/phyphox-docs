@@ -60,3 +60,13 @@ Display an image with the file name RESOURCE. Typically, RESOURCE is a png or jp
 
 {{spec:views/view/image}}
 
+### Images for light and dark mode
+
+A diagram drawn for a white background is often unreadable on the dark interface of phyphox, and the other way round. For simple line drawings, *darkFilter* or *lightFilter* set to `invert` is enough. A photograph or a coloured diagram does not survive inverting, though, so since file format 1.21 an image element can name a separate file for each mode: *lightSrc* is shown instead of *src* while the interface is in light mode, *darkSrc* while it is in dark mode. *src* remains required and is shown in every mode that has no file of its own, so a picture that only needs a dark version gets one extra attribute:
+
+```xml
+<image src="circuit.png" darkSrc="circuit-dark.png" />
+```
+
+The filter of the active mode still applies, now to the alternative file, so a dedicated dark version normally comes without a *darkFilter*. Each file is bundled in the `res` folder like *src* (see [Bundling images](../../transferring-experiments.md#bundling-images)). If one of them is missing, the element shows that the image is not available in that mode; it does not fall back to *src*. The element follows a change of the mode while the experiment is open, and its height follows the image that is shown, so give both versions the same pixel dimensions - otherwise the layout shifts when the mode changes, and a [stack](groups.md#view-element-stack) or a graph aligned with the image no longer lines up. The remote interface chooses by its own light/dark switch.
+
