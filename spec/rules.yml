@@ -654,12 +654,16 @@ rules:
     applies_to: "image@lightSrc and image@darkSrc"
     state:
       android: >-
-        Not implemented (2026-10-14). The image element is parsed in
-        PhyphoxFile.java (case "image", which adds src to
-        experiment.resources) and drawn by ExperimentView/ImageElement.java
-        (createView, Helper.isDarkTheme; getViewHTML emits the web
-        interface's snippet); AssetExperimentLoader.java collects the src of
-        shipped experiments separately.
+        Implemented on development (2026-10-14). PhyphoxFile.java (case
+        "image") reads lightSrc and darkSrc, empty as absent, and adds each
+        to experiment.resources next to src, which feeds the copy on saving
+        to the collection, SavedState's res/ and the /res allowlist;
+        AssetExperimentLoader.java collects all three for shipped and
+        zipped experiments. ExperimentView/ImageElement.java (srcForMode)
+        picks the file by Helper.isDarkTheme in createView, with no fallback
+        to src, and rebuilds it when the activity is recreated for a mode
+        change; getViewHTML emits the data-light-src/data-dark-src snippet.
+        Test: ImageModeSrcTest (T0) on fixtures/containers/mode-resources.zip.
       ios: >-
         Not implemented (2026-10-14). The
         element is parsed by ImageViewElementHandler.swift and carried by
@@ -667,10 +671,15 @@ rules:
         Experiment.resources), drawn by ExperimentImageView.swift (applyFilter,
         traitCollectionDidChange).
       webinterface: >-
-        Not implemented (2026-10-14); to be changed from the Android
-        side, iOS then emits the same image snippet. The bright
-        mode switch selects the filter through the lightFilter_*/darkFilter_*
-        classes in style.css; nothing swaps the image yet.
+        Implemented on development (2026-10-14). The image snippet carries
+        data-light-src and data-dark-src, both resolved to src where the
+        alternative is absent (readme.md, "Image elements"); modeImageHTML
+        in index.html sets the src of the bright mode in an inert template
+        before the markup is inserted, and toggleBrightMode rebuilds the
+        views. Markup without the attributes is used unchanged. Test: the
+        image test in test/webinterface.test.js on the Groups view of the
+        mock (mirrored in test/fixtures/webgroups.phyphox). iOS does not
+        emit the attributes yet.
       editor: >-
         Conforms as of main (703ba0b, 2026-10-14): the image block's
         settings (src/blocks/view/image.js) carry lightSrc and darkSrc as
