@@ -672,10 +672,13 @@ rules:
         mode switch selects the filter through the lightFilter_*/darkFilter_*
         classes in style.css; nothing swaps the image yet.
       editor: >-
-        Not implemented (2026-10-14). The
-        image block (src/blocks/view/image.js) offers src, scale and the two
-        filters; referencedResourceNames in src/resources/resourcesPanel.ts
-        reads src only.
+        Conforms as of main (703ba0b, 2026-10-14): the image block's
+        settings (src/blocks/view/image.js) carry lightSrc and darkSrc as
+        text fields with resource pickers next to the filters, written only
+        when not empty and read back on load; referencedResourceNames in
+        src/resources/resourcesPanel.ts derives resources from src, lightSrc
+        and darkSrc, and the zip container bundles them.
+        view-image-mode-src.phyphox round-trips clean.
     check: >-
       corpus/generated/view-image-mode-src.phyphox exercises both attributes
       for the corpus runners and the validators; the container fixture
