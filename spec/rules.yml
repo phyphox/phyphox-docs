@@ -679,8 +679,7 @@ rules:
         generateViewHTMLWithID emits the data-light-src/data-dark-src
         snippet. Test: ImageModeSrcTests in DeserializerTests.swift (T0) on
         fixtures/containers/mode-resources.zip. The phyphox-webinterface
-        submodule pointer still has to be bumped to the commit carrying
-        modeImageHTML.
+        submodule points at 752939f, which carries modeImageHTML.
       webinterface: >-
         Implemented on development (2026-10-14). The image snippet carries
         data-light-src and data-dark-src, both resolved to src where the
