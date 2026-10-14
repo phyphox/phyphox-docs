@@ -1118,13 +1118,14 @@ tests:
       device - so the test exercises the shared matcher, not three copies.
 
   # --- Image per interface mode (file format 1.21, specified 2026-10-14
-  # ahead of the implementations; spec/rules.yml image-mode-src)
+  # ahead of the implementations and implemented the same day;
+  # spec/rules.yml image-mode-src)
 
   - id: view-image-mode-src
     area: views
     tier: T0
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The lightSrc and darkSrc attributes of the image element, on
       fixtures/containers/mode-resources.zip through the real intake route

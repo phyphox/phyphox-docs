@@ -1564,13 +1564,16 @@ elements:
         since: "1.21"
         type: string
         summary: Image shown instead of src while the app is in light mode.
-        agreement: planned
+        agreement: agreed
         rules: [image-mode-src]
         note: >-
-          Specified ahead of the implementations (2026-10-14): file format
-          1.21 is the next version and neither app parses the attribute yet.
-          The rule image-mode-src in rules.yml records the decided behaviour
-          and the per-platform state, the web interface included.
+          Specified ahead of the implementations on 2026-10-14 and
+          implemented from that specification the same day on Android
+          (060faeb2), iOS, in the web interface (752939f) and in the editor
+          (703ba0b); "agreed" records that both apps were built to this spec
+          and carry the matrix row view-image-mode-src, not that two prior
+          parsers were compared. The rule image-mode-src records the state
+          of each implementation.
       - name: darkSrc
         description: >-
           The file name of an image that is shown instead of src while the
@@ -1582,7 +1585,7 @@ elements:
         since: "1.21"
         type: string
         summary: Image shown instead of src while the app is in dark mode.
-        agreement: planned
+        agreement: agreed
         rules: [image-mode-src]
 
   # --------------------------------------------------------- drawing elements --
