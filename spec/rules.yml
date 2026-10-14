@@ -665,11 +665,22 @@ rules:
         change; getViewHTML emits the data-light-src/data-dark-src snippet.
         Test: ImageModeSrcTest (T0) on fixtures/containers/mode-resources.zip.
       ios: >-
-        Not implemented (2026-10-14). The
-        element is parsed by ImageViewElementHandler.swift and carried by
-        ImageViewDescriptor.swift (whose resources list feeds
-        Experiment.resources), drawn by ExperimentImageView.swift (applyFilter,
-        traitCollectionDidChange).
+        Implemented on development (2026-10-14).
+        ImageViewElementHandler.swift reads lightSrc and darkSrc, empty as
+        absent; ImageViewDescriptor.swift lists src, lightSrc and darkSrc
+        once each in resources, which feeds Experiment.resources and so the
+        copy on saving to the collection, a saved state's res/ and the /res
+        allowlist, and its src(dark:) picks the file of a mode.
+        ExperimentImageView.swift (applyMode, called from init and
+        traitCollectionDidChange) decides the mode as the filters do, loads
+        the file of that mode with no fallback to src, and on a change of
+        file swaps in the image or the "Image not available" view and asks
+        its row and enclosing groups to lay out again (onResize).
+        generateViewHTMLWithID emits the data-light-src/data-dark-src
+        snippet. Test: ImageModeSrcTests in DeserializerTests.swift (T0) on
+        fixtures/containers/mode-resources.zip. The phyphox-webinterface
+        submodule pointer still has to be bumped to the commit carrying
+        modeImageHTML.
       webinterface: >-
         Implemented on development (2026-10-14). The image snippet carries
         data-light-src and data-dark-src, both resolved to src where the
@@ -678,8 +689,7 @@ rules:
         before the markup is inserted, and toggleBrightMode rebuilds the
         views. Markup without the attributes is used unchanged. Test: the
         image test in test/webinterface.test.js on the Groups view of the
-        mock (mirrored in test/fixtures/webgroups.phyphox). iOS does not
-        emit the attributes yet.
+        mock (mirrored in test/fixtures/webgroups.phyphox).
       editor: >-
         Conforms as of main (703ba0b, 2026-10-14): the image block's
         settings (src/blocks/view/image.js) carry lightSrc and darkSrc as
