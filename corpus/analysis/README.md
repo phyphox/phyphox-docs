@@ -75,7 +75,9 @@ are left out:
 - `fft` and `ifft` with non-power-of-two input (`fft-non-power-of-two-input`,
   permanent) — power-of-two lengths only. A single sample IS pinned (the
   identity, ruled 2026-10-05). `dft` and `idft` have no such restriction
-  and are pinned at odd lengths too. The Fourier and
+  and are pinned at odd lengths too, and at the lengths where a fast
+  implementation changes algorithm (`fast-path-<N>`, N = 6 to 1000: f·2^n
+  natively, Bluestein or Rader elsewhere). The Fourier and
   crosscorrelation tolerances are widened to cover Android's float32
   native path, and gausssmooth's for iOS's single-precision vImage path.
 - The `info` module — every output is live device state; no vector

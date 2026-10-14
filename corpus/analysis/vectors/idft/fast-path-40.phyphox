@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: idft/fast-path-40</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/idft.yml - do not edit.</description>
+    <data-containers>
+        <container size="40" init="-0.801331,0.817495,0.974988,-1.378277,-0.512764,-0.53515,0.869358,0.824454,-1.422775,-0.298137,-0.287926,0.874895,0.668093,-1.424065,-0.054566,-0.068427,0.836656,0.516035,-1.379276,0.209354,0.115881,0.75924,0.378211,-1.287696,0.484074,0.259176,0.649083,0.263882,-1.150804,0.75954,0.357557,0.514151,0.181213,-0.9722,1.025662,0.409229,0.363573,-1.883117,-0.757439,1.272789">re</container>
+        <container size="40" init="0.5,0.382421,0.084984,-0.252423,-0.471111,-0.468228,-0.24513,0.093256,0.387783,0.499929,0.376951,0.076687,-0.259644,-0.473861,-0.465213,-0.237768,0.101502,0.393035,0.499717,0.371375,0.068369,-0.266792,-0.476476,-0.462066,-0.230339,0.10972,0.398176,0.499364,0.365693,0.060031,-0.273865,-0.478957,-0.458789,-0.222845,0.117907,0.403205,0.498869,0.359908,0.051676,-0.28086">im</container>
+        <container size="40">outre</container>
+        <container size="40">outim</container>
+    </data-containers>
+    <analysis>
+        <idft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </idft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

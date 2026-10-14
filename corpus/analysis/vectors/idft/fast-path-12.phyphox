@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: idft/fast-path-12</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/idft.yml - do not edit.</description>
+    <data-containers>
+        <container size="12" init="-0.801331,0.817495,0.974988,-1.378277,-0.512764,-0.53515,0.869358,0.824454,-1.422775,-0.298137,-0.287926,0.874895">re</container>
+        <container size="12" init="0.5,0.382421,0.084984,-0.252423,-0.471111,-0.468228,-0.24513,0.093256,0.387783,0.499929,0.376951,0.076687">im</container>
+        <container size="12">outre</container>
+        <container size="12">outim</container>
+    </data-containers>
+    <analysis>
+        <idft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </idft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

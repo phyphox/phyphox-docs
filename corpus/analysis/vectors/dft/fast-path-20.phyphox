@@ -1,0 +1,24 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.21" locale="en">
+    <title>golden vector: dft/fast-path-20</title>
+    <category>Analysis golden vectors</category>
+    <description>Generated from corpus/analysis/cases/dft.yml - do not edit.</description>
+    <data-containers>
+        <container size="20" init="-0.801331,0.817495,0.974988,-1.378277,-0.512764,-0.53515,0.869358,0.824454,-1.422775,-0.298137,-0.287926,0.874895,0.668093,-1.424065,-0.054566,-0.068427,0.836656,0.516035,-1.379276,0.209354">re</container>
+        <container size="20" init="0.5,0.382421,0.084984,-0.252423,-0.471111,-0.468228,-0.24513,0.093256,0.387783,0.499929,0.376951,0.076687,-0.259644,-0.473861,-0.465213,-0.237768,0.101502,0.393035,0.499717,0.371375">im</container>
+        <container size="20">outre</container>
+        <container size="20">outim</container>
+    </data-containers>
+    <analysis>
+        <dft>
+            <input as="re">re</input>
+            <input as="im">im</input>
+            <output as="re">outre</output>
+            <output as="im">outim</output>
+        </dft>
+    </analysis>
+    <views>
+        <view label="golden vector">
+            <separator />
+        </view>
+    </views>
+</phyphox>

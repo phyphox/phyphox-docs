@@ -303,7 +303,8 @@ def _fourier(re, im, sign, scale):
     for k in range(n):
         sr = si = 0.0
         for j in range(n):
-            ang = sign * 2.0 * math.pi * k * j / n
+            # (k*j) mod N keeps the angle small, and so exact, at large N
+            ang = sign * 2.0 * math.pi * ((k * j) % n) / n
             c, sn = math.cos(ang), math.sin(ang)
             sr += re[j] * c - im[j] * sn
             si += re[j] * sn + im[j] * c
