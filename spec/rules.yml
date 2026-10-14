@@ -483,7 +483,6 @@ rules:
       previously connected device rather than a shortened advertised one;
       an author who sees a device under a shortened name should match that.
     applies_to: "bluetooth@nameRegex in the input and the output block"
-    inconsistency: ble-name-whitespace
     state:
       android: >-
         Conforms as of the development branch (24a3e752, 2026-10-05; the
@@ -499,7 +498,9 @@ rules:
         from the shipped files. Test BluetoothNameFilterTest carries the
         ble-name-regex-match tag.
       ios: >-
-        Conforms as of the development branch (a8e25dbb, 2026-10-05):
+        Conforms as of the development branch (a8e25dbb, 2026-10-05; the
+        whitespace stripping, decided 2026-10-14, in
+        BluetoothNameFilter.matches, which every match site goes through):
         BluetoothNameFilter (Experiments/BluetoothNameFilter.swift)
         compiles the pattern once at parse time with NSRegularExpression
         as ^(?:...)$, so alternatives backtrack to the whole name like
@@ -507,7 +508,6 @@ rules:
         in BluetoothScan and in ExperimentManager's shipped-experiment
         lookup. A pattern that does not compile is an ElementHandlerError.
         Test BluetoothNameFilterTests carries the ble-name-regex-match tag.
-        Does not strip whitespace yet (ble-name-whitespace).
       editor: >-
         Conforms as of main (8fa26a2, 2026-10-05): both bluetooth blocks
         carry a "device name (regular expression)" field

@@ -80,8 +80,6 @@ The apps use the regular expression engine of their platform (`java.util.regex` 
 
 Both forms see the name with leading and trailing whitespace removed, as some devices pad their names: the phyphox:m advertises `phyphox:m 131` followed by a line break, and `nameRegex="phyphox:m( \d+)?"` matches it without having to allow for that. Whitespace inside the name is part of it.
 
-{{inconsistency:ble-name-whitespace}}
-
 ### BLE as input
 
 If data should be read from a BLE device and displayed in phyphox, the device should be defined within the input block of the phyphox file.
