@@ -1108,7 +1108,9 @@ tests:
       test without a radio: the whole device name has to match
       (nameRegex="phyphox:m" accepts phyphox:m and refuses phyphox:mini and
       Xphyphox:m; "phyphox:m.*" accepts both phyphox names; "phyphox:(m|mini)"
-      refuses phyphox:max), matching is case-sensitive, name and nameRegex
+      refuses phyphox:max), the name is matched with surrounding whitespace
+      stripped ("phyphox:m 131" plus a trailing newline matches
+      "phyphox:m( \d+)?"), matching is case-sensitive, name and nameRegex
       given together both have to hold, and a file whose nameRegex does not
       compile is refused by the real loading path (the corpus fixture
       invalid/bluetooth-name-regex-invalid covers the last point through

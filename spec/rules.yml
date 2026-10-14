@@ -464,7 +464,12 @@ rules:
       applies: when the experiment resolves its device, in the filter of the
       scan dialog, and when the app looks for shipped experiments that fit a
       scanned device. nameRegex may be combined with name and uuid; every
-      criterion given has to hold. A value that does not compile as a
+      criterion given has to hold. Both name criteria see the device name
+      with leading and trailing whitespace stripped (spaces, tabs, line
+      breaks): devices pad their names - the phyphox:m advertises
+      "phyphox:m 131" followed by a newline - and a pattern would otherwise
+      have to allow for that in every file. Whitespace inside the name is
+      part of it. A value that does not compile as a
       regular expression is an error and the parser refuses the file, like
       an invalid enum value (enum-invalid-value): the file would silently
       match nothing otherwise. The implementations use their platform's
@@ -478,9 +483,12 @@ rules:
       previously connected device rather than a shortened advertised one;
       an author who sees a device under a shortened name should match that.
     applies_to: "bluetooth@nameRegex in the input and the output block"
+    inconsistency: ble-name-whitespace
     state:
       android: >-
-        Conforms as of the development branch (24a3e752, 2026-10-05):
+        Conforms as of the development branch (24a3e752, 2026-10-05; the
+        whitespace stripping, decided 2026-10-14, in
+        BluetoothNameFilter.matches, which every match site goes through):
         BluetoothNameFilter.kt holds name and nameRegex (compiled once in
         PhyphoxFile.parseBluetoothNameFilter, a PatternSyntaxException is
         the usual phyphoxFileException) and replaces the name string in
@@ -499,6 +507,7 @@ rules:
         in BluetoothScan and in ExperimentManager's shipped-experiment
         lookup. A pattern that does not compile is an ElementHandlerError.
         Test BluetoothNameFilterTests carries the ble-name-regex-match tag.
+        Does not strip whitespace yet (ble-name-whitespace).
       editor: >-
         Conforms as of main (8fa26a2, 2026-10-05): both bluetooth blocks
         carry a "device name (regular expression)" field

@@ -78,6 +78,10 @@ Both forms are case-sensitive, both apply wherever the name is matched (when the
 
 The apps use the regular expression engine of their platform (`java.util.regex` on Android, `NSRegularExpression` on iOS). Only the syntax both engines share is guaranteed, which covers everything a device name needs: literal characters, backslash escapes for special characters (`\.`, `\(`), character classes in brackets (`[0-9]`, `[A-Za-z_-]`) and the shorthands `\d`, `\w` and `\s`, the dot for any character, the quantifiers `*`, `+`, `?` and `{m,n}`, alternation with `|`, groups in parentheses, and the anchors `^` and `$` (redundant, as the whole name has to match anyway). The name that is matched is the one the Bluetooth stack reports, which for a device that was connected before may be its full name rather than the shortened one it advertises.
 
+Both forms see the name with leading and trailing whitespace removed, as some devices pad their names: the phyphox:m advertises `phyphox:m 131` followed by a line break, and `nameRegex="phyphox:m( \d+)?"` matches it without having to allow for that. Whitespace inside the name is part of it.
+
+{{inconsistency:ble-name-whitespace}}
+
 ### BLE as input
 
 If data should be read from a BLE device and displayed in phyphox, the device should be defined within the input block of the phyphox file.
