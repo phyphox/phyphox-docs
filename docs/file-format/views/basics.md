@@ -56,7 +56,7 @@ The *unit* is either a [unit reference](../units.md#unit-references) such as `@m
 ![An info element above an image of a pendulum](../../assets/screenshots/views/image-dark.png#only-dark){ .view-shot .on-glb }
 </figure>
 
-Display an image with the file name RESOURCE. Typically, RESOURCE is a png or jpg image (these are natively supported on both iOS and Android; we hope for SVG support on iOS eventually) that is placed in the resource folder "res" in a zip file along with the experiment XML file. So, for example, instead of sharing experiment.phyphox you would share a zip file that contains experiment.phyphox together with a folder called "res" that contains an image "demo.jpg". The image element would then set RESOURCE to "demo.jpg" (not res/demo.jpg), i.e. `<image src="demo.jpg" />`.
+Display an image with the file name RESOURCE. RESOURCE should be a PNG or JPEG image, the formats both apps can display. SVG is not supported on either platform; for a drawing that should stay sharp at any size, see the [drawing elements](drawing.md). The image is placed in the resource folder "res" in a zip file along with the experiment XML file. So, for example, instead of sharing experiment.phyphox you would share a zip file that contains experiment.phyphox together with a folder called "res" that contains an image "demo.jpg". The image element would then set RESOURCE to "demo.jpg" (not res/demo.jpg), i.e. `<image src="demo.jpg" />`.
 
 {{spec:views/view/image}}
 
