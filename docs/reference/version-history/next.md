@@ -64,7 +64,7 @@ In development. This page collects the changes of the release that is currently 
 - Fix: the microphone's rate was missing until recording started, distorting the history of a loaded audio spectrum
 - Fix: hint bubbles were hidden behind the navigation bar
 - Fix: an unknown `[[…]]` placeholder was shown as "common_…" instead of verbatim
-- Fix: the pixel positions of spectroscopy ran against the preview with the back camera (and in landscape with the front camera); they now follow the preview as on Android. Spectroscopy calibrations made on iOS before this version need to be redone.
+- Fix: the pixel positions of spectroscopy ran against the preview with the back camera (and in landscape with the front camera); they now follow the preview as on Android.
 
 ## File format update to version 1.21
 
