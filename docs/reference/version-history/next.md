@@ -19,12 +19,14 @@ In development. This page collects the changes of the release that is currently 
 - Empty graphs explain themselves ("No data", "No valid data", "No data in range" with an arrow towards the data) and constant values get a small range instead of an empty plot (see [Graph: axis ranges and empty plots](../../file-format/views/graph.md#axis-ranges-and-empty-plots))
 - Calibrated/uncalibrated switch in the experiment menu for every sensor that the device offers in both versions (previously magnetometer and gyroscope on Android, magnetometer only on iOS)
 - Camera controls in full-screen landscape stand in compact columns beside the preview
+- Spectroscopy starts in portrait orientation; landscape remains available via the orientation button
 - Fix: graph headroom is only added at axis ends determined by the data; fixed, zoomed and followed ranges are shown exactly as set
 - Fix: tic labels on the plot border were clipped or collided with the other axis
 - Fix: a looped audio output restarted after every analysis cycle (Android), an unfinished one-shot output was not restarted by a new trigger (iOS) (see [Output module: audio](../../file-format/output.md#output-module-audio))
 - Fix: input elements (edit, toggle, dropdown, slider) replace a NaN in their data container with their default
 - Fix: HTTP network connections could lose a response when two requests finished close together
 - Fix: images with a space, & or + in their file name did not load in the remote interface
+- Fix: an experiment that could not be downloaded (no internet, unreachable server, deleted link) showed a technical error message that described the http fallback instead of the actual request; the message now names the cause and offers "Try again"
 - Fix: typos in experiment texts
 
 ## Changes on Android
@@ -62,7 +64,6 @@ In development. This page collects the changes of the release that is currently 
 - Fix: the microphone's rate was missing until recording started, distorting the history of a loaded audio spectrum
 - Fix: hint bubbles were hidden behind the navigation bar
 - Fix: an unknown `[[…]]` placeholder was shown as "common_…" instead of verbatim
-- Fix: an experiment that could not be downloaded (no internet, unreachable server, deleted link) showed a technical error naming an http:// address; the message now names the cause
 
 ## File format update to version 1.21
 
