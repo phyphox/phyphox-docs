@@ -62,6 +62,7 @@ In development. This page collects the changes of the release that is currently 
 - Fix: the microphone's rate was missing until recording started, distorting the history of a loaded audio spectrum
 - Fix: hint bubbles were hidden behind the navigation bar
 - Fix: an unknown `[[…]]` placeholder was shown as "common_…" instead of verbatim
+- Fix: an experiment that could not be downloaded (no internet, unreachable server, deleted link) showed a technical error naming an http:// address; the message now names the cause
 
 ## File format update to version 1.21
 
