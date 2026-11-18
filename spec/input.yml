@@ -1124,6 +1124,12 @@ elements:
             value of each belongs to the i-th position. The positions are absolute
             pixel indices along the dispersion axis of the camera image, so
             a calibration stays valid when the user moves the selected area.
+            They ascend in the direction the preview shows, for the back and
+            the front camera alike: towards the right of the preview when
+            the phone is held in portrait orientation to the spectrum, and
+            towards the top of the phone when it is held in landscape
+            orientation. The interface orientation of the app does not
+            change this.
         # A "wavelength" component existed here as part of a superseded
         # calibration draft. It never shipped in any release or beta - the
         # data picker replaced it - and was removed from the format on
