@@ -469,6 +469,11 @@ def main():
                          "phyphox:m,phyphox:mini (overrides ble_sensors in "
                          "lab.yml) - for the second host's pass, since the "
                          "sensors may only be in one host's lab.yml at a time")
+    ap.add_argument("--sensor-start-delay", type=float, default=8.0,
+                    help="ble-sensors: seconds after launch before the first "
+                         "start request. An earlier one is refused while the "
+                         "sensor is still reconnecting, and Android shows "
+                         "the refusal as a dialog")
     ap.add_argument("--sensor-connect-timeout", type=float, default=60.0,
                     help="ble-sensors: seconds from the experiment's launch "
                          "until it must have connected and started")

@@ -234,7 +234,7 @@ def _finite(vs):
     return [v for v in vs if isinstance(v, (int, float)) and math.isfinite(v)]
 
 
-def _start_when_connected(base, timeout, first_delay=3.0, interval=4.0):
+def _start_when_connected(base, timeout, first_delay=8.0, interval=4.0):
     """Both apps refuse to start an experiment whose <bluetooth> blocks
     have not connected, and answer {"result": false} until they have. So
     asking repeatedly is the connect wait here - unlike the board bench,
@@ -246,10 +246,15 @@ def _start_when_connected(base, timeout, first_delay=3.0, interval=4.0):
     device, the experiment cannot be started ... retry"), which stays on
     screen over the measurement that then starts fine - harmless to the
     data, but on the first smoke run (Pixel 9 Pro, 2026-11-19) it was all
-    the operator could see and read as a failed connection. The connect
-    itself took about 2 s there; so wait first_delay before the first ask
-    and then interval between asks, and a normal connect raises no dialog
-    at all. A slow one still may - stop_app clears it afterwards."""
+    the operator could see and read as a failed connection.
+
+    Why the connect is slow: stop_app force-stops the previous app, which
+    drops the link without a disconnect, so the sensor only notices after
+    its link supervision timeout (about 4 s) and only then advertises
+    again. Measured on the second smoke run: the connect came 4-7 s after
+    the API answered, every one of 14 experiments. So the first ask waits
+    first_delay (--sensor-start-delay, 8 s) and a normal connect raises no
+    dialog at all. A slower one still may - stop_app clears it afterwards."""
     t0 = time.time()
     time.sleep(first_delay)
     while time.time() - t0 < timeout:
@@ -315,7 +320,7 @@ def run_one(dev, e, args):
         if wait_api(dev.base, args.api_wait) is None:
             return ["remote API not reachable"], [], det
         took = _start_when_connected(dev.base, args.sensor_connect_timeout,
-                                     first_delay=getattr(args, "start_delay", 3.0))
+                                     first_delay=getattr(args, "sensor_start_delay", 8.0))
         if took is None:
             seen = ("a matching sensor was on the air (host scan), so the "
                     "app did not take it" if _SCAN not in (None, _UNSCANNED)
@@ -407,6 +412,14 @@ def run_suite(dev, platform, args):
         print(f"   {key}", flush=True)
         f, w, d = run_one(dev, e, args)
         details[key] = d
+        # One line per experiment as it finishes: a ten-minute suite whose
+        # verdicts only appear at the end cannot be watched.
+        rate = (f", {d['achieved_rate']:g} Hz" if "achieved_rate" in d else "")
+        print(f"      {'FAIL' if f else 'ok'}{rate}"
+              + (f" (connected after {d['connect_s']:g} s)"
+                 if "connect_s" in d else "")
+              + "".join(f"\n        ! {x}" for x in f)
+              + "".join(f"\n        ~ {x}" for x in w), flush=True)
         findings += [f"{key}: {x}" for x in f]
         warnings += [f"{key}: {x}" for x in w]
     return {"passed": not findings, "findings": findings,
