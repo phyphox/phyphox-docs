@@ -2212,6 +2212,15 @@ def record_baselines(devices, args):
               "phone that runs the reference release")
         return 1
     dev_id, _entry, dev = devices[0]
+    # The operator switching remote access on is the "loaded AND connected"
+    # signal below. prepare() sets debug.phyphox.remote on every Android
+    # phone, and a reference build that honours it (1.3.0 does) then serves
+    # the API the moment the experiment loads - before the BLE link is up -
+    # so clear/start went out too early: the app refused with its
+    # not-connected dialog and the baseline held under a second of data
+    # (2026-11-19, the Arduino 2.0.0 re-record). Clear it again here.
+    if getattr(dev, "platform", None) == "android":
+        sh(dev.adb + ["shell", "setprop", "debug.phyphox.remote", "''"])
 
 
     scenarios = [s for s in order_scenarios(cfg["scenarios"])
