@@ -238,11 +238,15 @@ scenarios:
     expect:
       kind: board_serial
       # Nothing reaches this board until a view element changes: it takes
-      # its interval from an edit/slider on channel 1 (CB1 in the
-      # generated XML), so the host writes one. 300 ms is inside the
-      # slider's 50..1000 range.
+      # its interval from an edit/slider on channel 1, so the host writes
+      # one. 300 ms is inside the slider's 50..1000 range. The buffer is
+      # `in1` since library 2.0.0 (`bufIn` in src/core/Serializer.cpp);
+      # 1.x called it CB1, and writing CB1 to a 2.0 board goes nowhere -
+      # the scenario then fails as "the phone->board direction did not
+      # arrive" (iPhone 14 Pro, 2026-11-19). The MicroPython library
+      # still says CB1, so its scenario below is right as it stands.
       trigger:
-        set: {buffer: CB1, value: 300}
+        set: {buffer: in1, value: 300}
       # getDataFromSmartphone.ino:107-112.
       contains_any: ["interval: 300", "Mode: ", "LED state: "]
     why: The write direction from a view element rather than a sensor.

@@ -39,6 +39,17 @@ dimmed to its minimum because staying awake means staying lit - the old
 phones already lose against USB power) and both settings are restored
 afterwards; iOS devices stay awake on USB by themselves.
 
+**A USB reconnect is survived, and reported.** adb drops a device's
+forwards and reverses when the device goes away, and on an overloaded
+hub a phone reconnects more often than anyone notices. Before
+2026-11-19 every later request then went nowhere: the Pixel 11 lost its
+forward after four experiments of a sweep, and that run needed a
+watchdog script re-creating forwards every 2 s. The driver now checks
+the forward (and the fixture reverse) before every launch, re-creates
+it when it is gone, and puts a warning in the report saying how often -
+a phone that keeps dropping off the hub is a cable or a hub, and worth
+seeing before it costs a run.
+
 **An iOS phone releases the board only when its app is stopped.** The ble
 suite walks one board past every phone in a scenario's scope, and a
 peripheral serving one central at a time is invisible to the others while
@@ -65,9 +76,26 @@ BY HAND once per app install - there is no simctl privacy on a real
 device, devicectl offers nothing, and -phyphoxAutoConfirm deliberately
 touches no system dialog. The first record run raises Motion & Fitness
 and Location, the first audio run Microphone, the first experiments
-sweep Camera; tap them as they come and every later run is dialog-free
-until the app is reinstalled. (Android needs none of this: the driver
-pre-grants via pm grant.)
+sweep Camera; the audio suite also raises **"find devices on local
+networks"**, because its fixture is served from the host's LAN address.
+Tap them as they come and every later run is dialog-free until the app
+is reinstalled. (Android needs none of this: the driver pre-grants via
+pm grant - including, since 2026-11-19, the Android 12+ nearby-devices
+pair `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT`, whose dialog otherwise sits
+over the app on a fresh install and fails the audio suite as "remote
+API not reachable", as it did on the Pixel 11.)
+
+**A device below iOS 17 needs its developer disk image after every
+reboot**, or every launch fails as "remote API not reachable" - the
+iPhone 8 on iOS 16. The driver mounts it in `IOSDevice.prepare` and
+prints a `!!` line if that fails. It does so through the
+pymobiledevice3 library with its own image directory
+(`~/.cache/phyphox-lab/DeveloperDiskImages.app`), not through
+`pymobiledevice3 mounter auto-mount`: on the MacBook with Xcode 27 the
+CLI tries to store the image inside `/Applications/Xcode.app/.../
+DeviceSupport`, which does not exist and is not writable, and its
+`--xcode` option rejects a plain directory. The image is downloaded
+from pymobiledevice3's repository the first time.
 
 ## The ble suite follows the boards; it does not split
 
@@ -80,8 +108,10 @@ drives the phones**, and an iOS pass means physically moving the ESP32 to
 the MacBook.
 
 What that host then needs, beyond the Xcode tooling the other suites use:
-`arduino-cli` with the `esp32:esp32` core, `mpremote`, `esptool`, an ESP32
-MicroPython image, and `pyserial` plus `bleak` in its venv. `board_check.py` additionally needs Bluetooth
+`adb` even on the MacBook as soon as an Android phone is on it
+(`brew install --cask android-platform-tools`), `arduino-cli` with the
+`esp32:esp32` core (see below for the version), `mpremote`, `esptool`, an
+ESP32 MicroPython image, and `pyserial` plus `bleak` in its venv. `board_check.py` additionally needs Bluetooth
 permission for the terminal it runs from on macOS, which the OS asks for
 once.
 
@@ -143,6 +173,18 @@ on PATH, `esptool` (either the v4 `esptool.py` or the v5 `esptool`), an
 ESP32 MicroPython image passed as `--micropython-firmware`, and the
 `pyserial` module in the venv the driver runs from.
 
+**The `esp32:esp32` core must be at least the version the Arduino
+library's CI pins** (3.3.13 at the 2.0.0 release). With the MacBook's old
+3.3.2 every Arduino scenario failed to compile on 2026-11-18. The default
+board index stops at 3.3.12, so install it from Espressif's own:
+
+    arduino-cli core install esp32:esp32@3.3.13 \
+        --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+The suite reads the pin from `phyphox-arduino/.github/workflows/` and
+refuses to start on an older core, with that command in the message - a
+bump there needs no change here.
+
 **pyserial is not optional for the MicroPython scenarios on macOS.**
 Opening a serial port asserts DTR and RTS, which on an ESP32 are the
 reset and boot-mode lines, so the open reboots the board: mpremote then
@@ -199,11 +241,19 @@ stopped accepting uploads on 2026-08-28 - not from this driver, not from
 the Arduino IDE, not from a second PC - and the maintainer retired it
 rather than replacing it, because the split it forced is the right one:
 
-- **this suite is a RELEASE gate**: does the app still talk to boards?
-  One board answers that, across every phone in the lab.
-- **the library gets its own tests**, with many boards and a single
-  phone, living with `phyphox-arduino` and built when that library is
-  next worked on.
+- **this suite is a RELEASE gate for the app**: does the app still talk
+  to boards? One board answers that, across every phone in the lab.
+- **the library has its own tests**, with many boards and a single
+  phone, living with `phyphox-arduino` (`tools/bench/`: `bench.py`
+  plays the phone from the host's Bluetooth adapter, `examples.py`
+  sweeps the examples). They were built for the 2.0 rewrite and gated
+  its release; library 2.0.0 is the released one since 2026-11.
+
+The two are independent and test different things. What connects them
+is that this suite flashes the library's examples as its stimulus, so a
+library release changes what the boards serve - which is why the
+baselines record the library version (see "Baselines are recorded by
+hand" below).
 
 The driver keeps its per-board machinery - the library test is where it
 will be wanted, and it degrades to one board correctly. Adding a board
@@ -274,11 +324,13 @@ the device offers it - because **a peripheral may want either, and which
 one is a property of that implementation**. Subscribing is the original
 trigger and still the default; the control characteristic came later
 (maintainer, 2026-08-28) for stacks that offered no callback on
-subscription. It does not split by library: inside phyphox-arduino the
-ESP32 and NRF52 transfer on the subscription (`phyphoxBLE_ESP32.cpp`,
+subscription. It does not split by library: inside phyphox-arduino 1.x
+the ESP32 and NRF52 transferred on the subscription (`phyphoxBLE_ESP32.cpp`,
 `onSubscribe` -> `startTask`) while the NINA-B31, Nano 33 IoT and STM32
-carry a control characteristic (`phyphoxBLE_NanoIOT.cpp`,
-`controlCharacteristicWritten`), and phyphox-micropython waits for the
+carried a control characteristic (`phyphoxBLE_NanoIOT.cpp`,
+`controlCharacteristicWritten`); 2.0 has one server for every board that
+starts a transfer on either (`src/core/Server.cpp`, `onSubscribe` and
+`onWrite`), and phyphox-micropython waits for the
 write (`phyphoxBLE.py`, `_IRQ_GATTS_WRITE`). Both apps do both and say so
 in a comment (`BluetoothExperimentLoader.kt`, `BluetoothScan.swift`);
 nothing in the documentation does, which is worth fixing whenever the BLE
@@ -290,13 +342,15 @@ question in five minutes after a lot of peripheral-side guesswork did not.
 An 8/8 there against a phone that fails half its connects puts the fault on
 the phone; a board that starves here was never the app's fault at all.
 
-Do not judge a board by what the Arduino library reports about itself.
-`PhyphoxBLE::isSubscribed` is never cleared on disconnect, `write()`
-notifies without consulting it, and the 0x2902 descriptor keeps its last
-value after every client is gone - the board will happily print
+Do not judge a 1.x board by what the Arduino library reports about
+itself. There `PhyphoxBLE::isSubscribed` is never cleared on disconnect,
+`write()` notifies without consulting it, and the 0x2902 descriptor keeps
+its last value after every client is gone - the board will happily print
 `connected=0 cccd=0x0100`. Only `getConnectedCount()` and the descriptor
 WRITE CALLBACKS are current; everything else is bookkeeping, and it misled
-this session twice before the maintainer called it.
+this session twice before the maintainer called it. (2.0 clears the
+subscription on disconnect, `Server::onDisconnect`; boards running 1.x
+will be in the field for years, so the warning stands for them.)
 
 One mpremote trap, met during bring-up and worked around in `ble.py`:
 `mpremote fs cp -r <dir> :` recreates the SOURCE PATH on the board, so an
@@ -326,6 +380,16 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   tools/t1_experiments.py per device - open, run, stop, all six export
   formats validated. Bluetooth experiments stay load-phase only (their
   data plane is the phase-6 board lab).
+
+  An experiment whose remote API never answers is provisionally "not
+  loadable" - the app declines what the phone cannot run, depth on a
+  phone without depth hardware. Since 2026-11-19 that verdict is
+  checked: the sweep relaunches the last experiment that DID answer in
+  this run, and if that one no longer answers either, the connection
+  was lost and the experiment gets a finding instead. Before, a USB
+  reconnect after four experiments recorded the other 36 as declined
+  with an empty errors list, and the device was red only because an
+  unrelated experiment happened to fail.
 - `ble` (`ble-compat-arduino`, `ble-compat-micropython`): the board bench,
   and the one suite that inverts the loop - it flashes a board, then runs
   every phone in that scenario's scope against it, because a flash costs
@@ -616,6 +680,27 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   connects the phone and switches remote access on, and then measures and
   writes `fixtures/ble/baselines/` itself. Ten scenarios, ten pauses,
   once per reference release.
+
+  **And once more after a library release.** A baseline pins the
+  experiment the BOARD serves, which is the library's output, so a
+  library that renames its buffers outdates every baseline without any
+  app changing. That is the state of the seven `arduino-*` baselines
+  today: they were recorded 2026-08-28 with library 1.x, which declared
+  five empty containers `CB1`-`CB5`; 2.0.0 names a channel's input
+  `in<k>` (also `last<k>`, `send<k>`) and declares nothing unused. Until
+  they are re-recorded, `arduino/CreateExperiment` and
+  `arduino/multigraph` fail with "gone: CB1, CB2, CB3, CB4, CB5". The
+  maintainer's call (2026-11-19) is to keep the comparison strict and
+  re-record them with library 2.0.0 against the **1.3.0 build** under
+  release test - `--record-ble-baseline --ble-scenario arduino/<example>`
+  for each, by hand. The MicroPython baselines are unaffected; that
+  library still says `CB1`.
+
+  Since then every new baseline carries `library: {version, commit}`,
+  and a changed buffer set names both library versions in its finding,
+  so the next library release explains its own red scenarios. The
+  scenario stimulus that writes a buffer (`arduino/getDataFromSmartphone`)
+  has to follow such a rename too: it writes `in1` since 2026-11-19.
 - `languages` (`device-languages`): runs when the host entry names built
   artifacts - the apk's `aapt dump badging` locales / the ipa's .lproj
   set against languages.yml. This is the release gate that makes a

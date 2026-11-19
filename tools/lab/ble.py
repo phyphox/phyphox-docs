@@ -113,6 +113,40 @@ def load_baseline(scenario):
         return json.load(f)
 
 
+def library_version(scenario, cfg=None):
+    """The version of the library checkout a scenario flashes from, as
+    {"version": ..., "commit": ...} (either may be None).
+
+    Recorded in every baseline since 2026-11-19, because a baseline pins
+    the experiment the BOARD serves, and that is the library's output as
+    much as the app's reading of it. The seven Arduino baselines were
+    recorded with library 1.x; the 2.0.0 release renamed the buffers
+    (1.x declared five empty CB1-CB5, 2.0 names a channel's input
+    `in<k>` and declares nothing unused), and every structure scenario
+    failed with "gone: CB1, ..." without a word about why. The version
+    lets the finding say it.
+    """
+    cfg = cfg or load_scenarios()
+    lib = cfg["libraries"][scenario["library"]]
+    repo = os.path.normpath(os.path.join(ROOT, "..",
+                                         os.path.basename(lib["repository"])))
+    version = None
+    for name, pattern in (("library.properties", r"^version\s*=\s*(\S+)"),
+                          ("pyproject.toml", r'^version\s*=\s*"([^"]+)"'),
+                          ("setup.cfg", r"^version\s*=\s*(\S+)")):
+        try:
+            with open(os.path.join(repo, name), encoding="utf-8") as f:
+                m = re.search(pattern, f.read(), re.M)
+        except OSError:
+            continue
+        if m:
+            version = m.group(1)
+            break
+    r = sh(["git", "-C", repo, "rev-parse", "--short", "HEAD"], timeout=10)
+    commit = ((r.stdout or "").strip() or None) if r.returncode == 0 else None
+    return {"version": version, "commit": commit}
+
+
 # ------------------------------------------------------------------ flashing
 
 # A complete local name has to fit an advertising payload: 31 bytes, less
@@ -751,6 +785,8 @@ def connect_phone(dev, scenario, args, advertised=None):
         # later scenario "connected" to a phone still holding the wrong
         # experiment - and the leftover transfer file was captured four
         # times under four different names.
+        # And put back a forward a USB reconnect may have taken.
+        dev.ensure_forwards()
         sh(dev.adb + ["shell", "am", "force-stop", ANDROID_PACKAGE])
         sh(dev.adb + ["shell", "run-as", ANDROID_PACKAGE,
                       "rm", "-f", TRANSFER_FILE])
@@ -1190,10 +1226,26 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
     was, now = set(baseline.get("buffer_names") or []), set(buffers)
     if was and was != now:
         gone, new = sorted(was - now), sorted(now - was)
+        # The buffer names are the library's output, so a changed set
+        # after a library release is the baseline being out of date, not
+        # the app. Say which library each side ran, so the reader does not
+        # have to work that out from "gone: CB1, ..." (2026-11-19, the
+        # first run against Arduino library 2.0.0).
+        then = (baseline.get("library") or {}).get("version")
+        current = library_version(scenario).get("version")
+        hint = ""
+        if then != current:
+            hint = (f" - the baseline was recorded with "
+                    f"{scenario['library']} library {then or 'an unrecorded version'}"
+                    f", the board now runs {current or 'an unknown version'}:"
+                    f" if the library renamed its buffers, re-record the "
+                    f"baseline (tools/lab/README.md, 'Baselines are "
+                    f"recorded by hand')")
         findings.append(
             "the experiment's buffers changed since the baseline"
             + (f" - gone: {', '.join(gone)}" if gone else "")
-            + (f" - new: {', '.join(new)}" if new else ""))
+            + (f" - new: {', '.join(new)}" if new else "")
+            + hint)
     # Only buffers that were carrying a STREAM. A buffer holding exactly
     # one value on the reference release is a view element's initial
     # value, not data from the board - CB1 in micropython/createExperiment
@@ -1210,6 +1262,7 @@ def assert_scenario(dev, scenario, baseline, args, board_port):
             findings.append(f"buffer {name} carried {count} value(s) on the "
                             f"reference release and none now")
     det["baseline"] = {"app": (baseline.get("app") or {}).get("version"),
+                       "library": (baseline.get("library") or {}).get("version"),
                        "recorded": baseline.get("recorded")}
     return findings, det
 
@@ -1610,10 +1663,60 @@ def missing_tools(scenarios, args):
                 "the port resets the ESP32 and mpremote talks into the boot "
                 "log, so steady_port() holds the port open around it "
                 "(pip install pyserial for the interpreter running this)")
-    return [(f"{t} is not installed - {why}" if t == "pyserial"
-             else f"{t} is not on PATH - {why}")
-            for t, why in need.items()
-            if t in ("esptool", "pyserial") or not _shutil.which(t)]
+    out = [(f"{t} is not installed - {why}" if t == "pyserial"
+            else f"{t} is not on PATH - {why}")
+           for t, why in need.items()
+           if t in ("esptool", "pyserial") or not _shutil.which(t)]
+    if "arduino" in libs and _shutil.which("arduino-cli"):
+        out += esp32_core_findings()
+    return out
+
+
+# The arduino-esp32 core the library's own CI compiles with is the one this
+# suite needs at least: an older core does not build the 2.0 library at all
+# (every Arduino scenario failed to compile with 3.3.2 on the MacBook,
+# 2026-11-18). Read from the library's workflow rather than restated here,
+# so a bump there needs no change in this repository.
+ESP32_CORE_PIN = re.compile(r'"name"\s*:\s*"esp32:esp32"\s*,\s*'
+                            r'"version"\s*:\s*"([0-9.]+)"')
+ESP32_INDEX = "https://espressif.github.io/arduino-esp32/package_esp32_index.json"
+
+
+def _version_tuple(v):
+    return tuple(int(x) for x in re.findall(r"\d+", v or ""))
+
+
+def esp32_core_findings():
+    """[] when the installed esp32:esp32 core is at least the version the
+    Arduino library's CI pins, else one line saying what to install."""
+    cfg = load_scenarios()
+    lib = cfg["libraries"]["arduino"]
+    repo = os.path.normpath(os.path.join(ROOT, "..",
+                                         os.path.basename(lib["repository"])))
+    pins = []
+    for wf in glob.glob(os.path.join(repo, ".github", "workflows", "*.yml")):
+        try:
+            with open(wf, encoding="utf-8") as f:
+                pins += ESP32_CORE_PIN.findall(f.read())
+        except OSError:
+            pass
+    if not pins:
+        return []          # nothing pinned: nothing to hold the host to
+    want = max(pins, key=_version_tuple)
+    r = sh(["arduino-cli", "core", "list", "--format", "json"], timeout=60)
+    try:
+        platforms = json.loads(r.stdout or "{}").get("platforms") or []
+    except ValueError:
+        return []          # an arduino-cli we cannot read: let compile tell
+    have = next((p.get("installed_version") or p.get("installed")
+                 for p in platforms if p.get("id") == "esp32:esp32"), None)
+    if have and _version_tuple(have) >= _version_tuple(want):
+        return []
+    return [f"the esp32:esp32 core is {have or 'not installed'}, the Arduino "
+            f"library's CI builds with {want} - an older core does not "
+            f"compile it. arduino-cli core install esp32:esp32@{want} "
+            f"--additional-urls {ESP32_INDEX} (the default index may not "
+            f"carry it yet)"]
 
 
 def run_suite(devices, args):
@@ -1975,7 +2078,11 @@ def record_baselines(devices, args):
     So the tool flashes, waits for a human to connect the phone and turn
     remote access on, and then does the measuring and the writing itself.
     Ten scenarios is ten pauses; this happens once per reference release,
-    not per run.
+    not per run - and once more whenever a LIBRARY release changes what
+    the boards serve (each baseline records the library version it was
+    made with). The Arduino 2.0.0 re-record is the first of those; the
+    maintainer's call (2026-11-19) is to make it against the 1.3.0 build
+    under test, see tools/lab/README.md.
 
     The wait is for the REMOTE API, not for a keypress: switching remote
     access on is the operator's last step and is precisely what makes the
@@ -2066,6 +2173,7 @@ def record_baselines(devices, args):
             "app": {"version": meta.get("version"),
                     "build": meta.get("build"),
                     "fileFormat": meta.get("fileFormat")},
+            "library": library_version(scenario, cfg),
             "seconds": args.seconds,
             "title": config.get("title"),
             "buffer_names": buffers,

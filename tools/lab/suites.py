@@ -246,12 +246,26 @@ def run_experiments_suite(dev, args):
         # device, and the forward this handle already established
         cmd += ["--ios-target", "device"]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
-    findings = []
+    findings, warnings = [], []
     if r.returncode != 0:
         findings = [ln.strip() for ln in r.stdout.splitlines()
                     if ln.strip().startswith("!")] or ["experiments run failed"]
+    # The sweep runs in its own process with its own device handle, so a
+    # forward it had to put back is only in its results file.
+    try:
+        with open(out) as f:
+            restored = [x["experiment"] for x in json.load(f).get("results", [])
+                        if x.get("forward_restored")]
+    except (OSError, ValueError):
+        restored = []
+    if restored:
+        warnings.append(f"the adb forward was lost and re-created "
+                        f"{len(restored)} time(s) during the sweep (USB "
+                        f"reconnects - check cable and hub), before "
+                        f"{', '.join(restored[:5])}"
+                        + (" ..." if len(restored) > 5 else ""))
     return {"passed": r.returncode == 0, "findings": findings,
-            "details": {"results_file": out}}
+            "warnings": warnings, "details": {"results_file": out}}
 
 
 # --- languages: the T2 release check against BUILT ARTIFACTS -------------

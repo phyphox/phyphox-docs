@@ -21,9 +21,11 @@ Preconditions:
   - Android: adb in PATH, the device/emulator connected; the driver sets
     up `adb forward tcp:<port> tcp:8080` itself and pre-grants the
     runtime permissions an unattended run cannot confirm (RECORD_AUDIO,
-    CAMERA, fine/coarse location) - without them every audio, camera,
-    GPS and depth experiment hangs in the permission dialog and reports
-    "remote API not reachable". With --emulator it injects sensor values
+    CAMERA, fine/coarse location, and since 2026-11-19 the Android 12+
+    nearby-devices pair BLUETOOTH_SCAN/BLUETOOTH_CONNECT) - without them
+    every audio, camera, GPS and depth experiment hangs in the permission
+    dialog and reports "remote API not reachable". The forward is checked
+    again before every launch and re-created if a USB reconnect took it. With --emulator it injects sensor values
     through the emulator console (adb emu) so the real sensor pipeline
     produces data.
   - iOS (macOS host only): the app installed on a booted simulator;
@@ -138,29 +140,24 @@ def wait_api(base, seconds, probe_timeout=2):
 
 
 
-def _claim_host_port(adb_serial_cmd, port):
-    """Evict any existing forward of this HOST port before binding it:
-    adb does not rebind a port owned by another device, so a stale
-    forward silently routes the driver to the wrong phone (cost a lab
-    run: host 8080 still pointed at the Pixel 3 while the Pixel 9 Pro
-    was being tested)."""
-    r = sh(["adb", "forward", "--list"])
-    for line in (r.stdout or "").splitlines():
-        parts = line.split()
-        if len(parts) >= 3 and parts[1] == f"tcp:{port}":
-            sh(["adb", "-s", parts[0], "forward", "--remove", f"tcp:{port}"])
-    sh(adb_serial_cmd + ["forward", f"tcp:{port}", "tcp:8080"])
+# The port claim, the reconnect check and the permission list are the lab
+# driver's - one copy, so a fix to either reaches both. The lab's
+# experiments suite runs THIS script, so a forward check that lived only
+# in lab/device.py would not have covered the sweep where a USB
+# reconnect was first seen (2026-11-18).
+from lab.device import (ANDROID_PERMISSIONS, _claim_host_port,  # noqa: E402
+                        ensure_forward)
 
 
 class Android:
     def __init__(self, serial, port):
         self.adb = ["adb"] + (["-s", serial] if serial else [])
+        self.serial = serial
         self.port = port
         _claim_host_port(self.adb, port)
         # runtime permissions an unattended run cannot confirm; failures
         # are ignored (a permission not declared cannot be granted)
-        for perm in ("RECORD_AUDIO", "CAMERA", "ACCESS_FINE_LOCATION",
-                     "ACCESS_COARSE_LOCATION"):
+        for perm in ANDROID_PERMISSIONS:
             sh(self.adb + ["shell", "pm", "grant", ANDROID_BUNDLE,
                            f"android.permission.{perm}"])
         # the remote-enable switch: a debug.* property is writable only by
@@ -176,6 +173,15 @@ class Android:
     def cleanup(self):
         sh(self.adb + ["shell", "setprop", "debug.phyphox.remote", "''"])
         sh(self.adb + ["shell", "setprop", "debug.phyphox.autoConfirm", "''"])
+
+    def ensure_forward(self):
+        """True if the forward was gone and had to be re-created (a USB
+        reconnect). Needs a serial: without one there is no telling
+        which line of `adb forward --list` is this device's, and the
+        single-emulator CI case that omits it never reconnects."""
+        if not self.serial:
+            return False
+        return ensure_forward(self.adb, self.serial, self.port)
 
     def launch(self, asset_path):
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
@@ -321,6 +327,8 @@ def run_experiment(dev, base, rel, path, args):
     # redundant simctl terminate was seen hanging >30 s on a wedged
     # simulator.
     if args.platform == "android":
+        if dev.ensure_forward():
+            result["forward_restored"] = True
         dev.stop_app()
     if not dev.launch(rel):
         result["errors"].append("launch failed")
@@ -559,11 +567,44 @@ def main():
     return 1 if hard_failures else 0
 
 
+def control_answers(dev, base, control, args):
+    """Does an experiment that reached the remote API earlier in this run
+    still reach it? The check behind every "not loadable" verdict.
+
+    "The app declined it" and "the host can no longer reach the app" look
+    identical from here - no API either way. The run-wide reclassification
+    in main() only catches the second when NOTHING got through, so a
+    connection lost mid-sweep slipped past it: on 2026-11-18 a USB
+    reconnect dropped the Pixel 11's adb forward after four experiments,
+    and the other 36 were recorded as declined, with an empty errors list
+    each. Relaunching an experiment this very run has seen answering
+    separates the two: if it answers, the decline is real."""
+    if args.platform == "android":
+        dev.stop_app()
+    if not dev.launch(control):
+        return False
+    return wait_api(base, args.api_wait, probe_timeout=10) is not None
+
+
 def run_all(dev, base, collection, experiments, args, results):
+    control = None   # the last experiment that reached the remote API
     for rel in experiments:
         print(f"== {rel}")
         r = run_experiment(dev, base, rel, os.path.join(collection, rel), args)
         results.append(r)
+        if r.get("forward_restored"):
+            print("   ~ the adb forward was gone and has been re-created "
+                  "- the phone reconnected")
+        if r.get("remote"):
+            control = rel
+        elif r.get("not_loadable") and control:
+            if not control_answers(dev, base, control, args):
+                r.pop("not_loadable")
+                r["errors"].append(
+                    f"remote API not reachable, and {control}, which reached "
+                    f"it earlier in this run, no longer does either - the "
+                    f"connection to the app was lost (port forward, USB, "
+                    f"app gone), so this is not a decline")
         if r.get("skipped"):
             print(f"   - skipped: {r['skipped']}")
             continue

@@ -25,9 +25,14 @@
 # releases plus the newly completed Korean and Tamil. (Android's
 # build.gradle comment still listing ta as testing-only is stale;
 # bn, gu, kn and or remain testing-only.)
+#
+# az (Azerbaijani) added 2026-11-19 for 1.3.0 on the maintainer's call:
+# both apps enable it (Android `locales` in app/build.gradle, iOS
+# knownRegions), and the T2 gate failed the 1.3.0 .ipa without it.
 
 languages:
   - en
+  - az
   - cs
   - de
   - el

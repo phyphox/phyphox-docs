@@ -289,7 +289,21 @@ def _one_suite(suite, dev_id, dev, args):
     finally:
         if _TEE is not None:
             _TEE.unregister()
+    _note_restored(dev, r)
     return r, [ln for ln in buf.getvalue().splitlines() if ln.strip()]
+
+
+def _note_restored(dev, r):
+    """Forwards the device handle had to re-create during the suite (a
+    USB reconnect, see device.ensure_forward), as a warning: the run
+    survived it, but a phone that keeps dropping off the hub is worth
+    seeing before it costs a run."""
+    take = getattr(dev, "take_restored", None)
+    restored = take() if take else []
+    if restored and r is not None:
+        r.setdefault("warnings", []).append(
+            f"re-created after a USB reconnect: {', '.join(restored)} - "
+            f"check cable and hub")
 
 
 def _run_suite(suite, devices, args, jobs):
@@ -652,7 +666,9 @@ def main():
                                  "findings": [f"the ble suite crashed: "
                                               f"{type(e).__name__}: {e}"]}
                         for dev_id, _entry, _dev in devices}
+                handles = {d_id: d for d_id, _e, d in devices}
                 for dev_id, r in per_device.items():
+                    _note_restored(handles.get(dev_id), r)
                     report["devices"][dev_id]["ble"] = r
                     state = verdict(r.get("passed"))
                     print(f"\n== ble @ {dev_id}: {state}"

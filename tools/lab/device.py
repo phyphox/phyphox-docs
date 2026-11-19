@@ -21,6 +21,17 @@ import urllib.request
 ANDROID_BUNDLE = "de.rwth_aachen.phyphox"
 IOS_BUNDLE = "de.rwth-aachen.physics.phyphox"
 
+# The runtime permissions an unattended run cannot confirm, pre-granted
+# with `pm grant`. A permission the device does not know (BLUETOOTH_SCAN
+# below Android 12) or the app does not declare simply fails to grant,
+# which is harmless. The two nearby-devices permissions were added
+# 2026-11-19: on a freshly installed Pixel 11 (Android 17) phyphox asks
+# for them at start, the dialog sat over the app, and the audio suite
+# failed as "remote API not reachable".
+ANDROID_PERMISSIONS = ("RECORD_AUDIO", "CAMERA", "ACCESS_FINE_LOCATION",
+                       "ACCESS_COARSE_LOCATION", "BLUETOOTH_SCAN",
+                       "BLUETOOTH_CONNECT")
+
 
 def sh(cmd, timeout=30, retries=1, cwd=None):
     """One visible retry on timeout by default, then a failed stand-in
@@ -92,6 +103,43 @@ def _claim_host_port(adb_serial_cmd, port):
     sh(adb_serial_cmd + ["forward", f"tcp:{port}", "tcp:8080"])
 
 
+def ensure_forward(adb_serial_cmd, serial, port):
+    """Re-create this phone's host-port forward if it is gone. Returns
+    True when it had to, so the caller can say so.
+
+    adb drops a device's forwards and reverses when the device goes away,
+    and a USB reconnect is a device going away: on an overloaded hub on
+    2026-11-18 the Pixel 11 reconnected mid-sweep and every later request
+    went to a port nothing was listening on - 36 of 40 experiments
+    recorded as "not loadable", with no finding at all. That run needed a
+    watchdog script re-creating forwards every 2 s. Checking before each
+    launch costs one `adb forward --list` and makes it unnecessary.
+
+    A phone that is offline at this moment is waited for (briefly) first:
+    re-creating a forward for a device adb cannot see fails just the same.
+    """
+    def present():
+        r = sh(["adb", "forward", "--list"])
+        return any(ln.split()[:2] == [serial, f"tcp:{port}"]
+                   for ln in (r.stdout or "").splitlines())
+    if present():
+        return False
+    sh(adb_serial_cmd + ["wait-for-device"], timeout=60, retries=0)
+    _claim_host_port(adb_serial_cmd, port)
+    return True
+
+
+def ensure_reverse(adb_serial_cmd, port):
+    """The same for an `adb reverse` (the audio fixture server). Returns
+    True when it had to re-create it."""
+    r = sh(adb_serial_cmd + ["reverse", "--list"])
+    if any(f"tcp:{port}" in ln.split()[1:2]
+           for ln in (r.stdout or "").splitlines()):
+        return False
+    sh(adb_serial_cmd + ["reverse", f"tcp:{port}", f"tcp:{port}"])
+    return True
+
+
 class AndroidDevice:
     platform = "android"
 
@@ -102,6 +150,8 @@ class AndroidDevice:
 
     def prepare(self, fixture_port=None):
         _claim_host_port(self.adb, self.port)
+        self.fixture_port = fixture_port
+        self.restored = []      # forwards found missing and re-created
         self._keep_awake()
         if fixture_port:
             # the phone reaches the host's fixture server at 127.0.0.1
@@ -109,10 +159,25 @@ class AndroidDevice:
                            f"tcp:{fixture_port}"])
         for prop in ("remote", "autoConfirm"):
             sh(self.adb + ["shell", "setprop", f"debug.phyphox.{prop}", "1"])
-        for perm in ("RECORD_AUDIO", "CAMERA", "ACCESS_FINE_LOCATION",
-                     "ACCESS_COARSE_LOCATION"):
+        for perm in ANDROID_PERMISSIONS:
             sh(self.adb + ["shell", "pm", "grant", ANDROID_BUNDLE,
                            f"android.permission.{perm}"])
+
+    def ensure_forwards(self):
+        """Called before every launch: put back what a USB reconnect took
+        (see ensure_forward). Each restore is remembered, and the suite
+        reports it as a warning - a phone that keeps reconnecting is a
+        bench problem worth seeing even when the run survives it."""
+        if ensure_forward(self.adb, self.serial, self.port):
+            self.restored.append(f"adb forward tcp:{self.port}")
+        fixture_port = getattr(self, "fixture_port", None)
+        if fixture_port and ensure_reverse(self.adb, fixture_port):
+            self.restored.append(f"adb reverse tcp:{fixture_port}")
+
+    def take_restored(self):
+        """The restores since the last call, clearing the list."""
+        out, self.restored = getattr(self, "restored", []), []
+        return out
 
     def cleanup(self):
         for prop in ("remote", "autoConfirm"):
@@ -157,6 +222,7 @@ class AndroidDevice:
         # digit or two off - the mode and the stayon flag restore exactly
 
     def launch(self, asset_path):
+        self.ensure_forwards()
         self.stop_app()
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
         r = sh(self.adb + ["shell", "am", "start", "-W", "-a",
@@ -171,6 +237,7 @@ class AndroidDevice:
 
     def open_url(self, phyphox_url):
         """Open a phyphox:// URL (e.g. a fixture served by run.py)."""
+        self.ensure_forwards()
         self.stop_app()
         r = sh(self.adb + ["shell", "am", "start", "-W", "-a",
                            "android.intent.action.VIEW", "-d", phyphox_url])
@@ -204,11 +271,68 @@ class IOSDevice:
             raise SystemExit(
                 "pymobiledevice3 is not installed for this Python "
                 f"({sys.executable}) - pip install pymobiledevice3")
+        self.ddi = self._mount_developer_image()
+        if self.ddi.startswith("FAILED"):
+            print(f"   !! {self.udid}: developer disk image: {self.ddi}",
+                  flush=True)
         self._forward = subprocess.Popen(
             [sys.executable, "-m", "pymobiledevice3", "usbmux", "forward",
              str(self.port), "80", "--serial", self.udid],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(1)
+
+    # Where the classic developer disk images are kept. Any writable
+    # directory will do, but pymobiledevice3 treats it as an Xcode bundle
+    # and builds Contents/Developer/... underneath, so it is named like one.
+    DDI_CACHE = os.path.expanduser("~/.cache/phyphox-lab/DeveloperDiskImages.app")
+
+    def _mount_developer_image(self):
+        """Mount the developer disk image on a device below iOS 17, which
+        loses it at every reboot - and without it every launch fails, as
+        "remote API not reachable" (the iPhone 8 on iOS 16, 2026-11-19).
+        iOS 17+ uses a personalized image that devicectl mounts itself.
+
+        Not `pymobiledevice3 mounter auto-mount`: on the MacBook with
+        Xcode 27 it tries to store the image inside
+        /Applications/Xcode.app/.../DeviceSupport, which does not exist
+        and is not writable, and its --xcode option rejects a plain
+        directory. The library call with our own cache directory is what
+        worked by hand. The image is downloaded from pymobiledevice3's
+        repository the first time and reused after that.
+
+        Both API generations are handled - older pymobiledevice3 releases
+        are synchronous, current ones (11.x) are async. Returns a short
+        status for the log; never raises, because a launch that then fails
+        says the same thing with more context.
+        """
+        import asyncio
+        import inspect
+
+        async def mount():
+            from pymobiledevice3.lockdown import create_using_usbmux
+            from pymobiledevice3.services.mobile_image_mounter import \
+                auto_mount_developer
+            lockdown = create_using_usbmux(serial=self.udid)
+            if inspect.isawaitable(lockdown):
+                lockdown = await lockdown
+            version = str(lockdown.product_version)
+            if int(version.split(".")[0]) >= 17:
+                return f"not needed (iOS {version})"
+            os.makedirs(self.DDI_CACHE, exist_ok=True)
+            try:
+                r = auto_mount_developer(lockdown, xcode=self.DDI_CACHE)
+                if inspect.isawaitable(r):
+                    await r
+            except Exception as e:
+                if type(e).__name__ == "AlreadyMountedError":
+                    return f"already mounted (iOS {version})"
+                raise
+            return f"mounted (iOS {version})"
+
+        try:
+            return asyncio.run(mount())
+        except Exception as e:
+            return f"FAILED: {type(e).__name__}: {e}"
 
     def cleanup(self):
         if self._forward:
