@@ -1,0 +1,98 @@
+device: pixel-11
+recorded: hand-finish this file into devices/pixel-11.yml - see README
+experiments:
+  accelerometer.phyphox:
+  - accX
+  - accY
+  - accZ
+  - acc
+  - acc_time
+  gyroscope.phyphox:
+  - gyrX
+  - gyrY
+  - gyrZ
+  - gyr
+  - gyr_time
+  magnetometer.phyphox:
+  - mag_time
+  - magX
+  - magY
+  - magZ
+  - mag
+  - magAccuracy
+  - magCount
+  - magFrom
+  - recentMagT
+  - recentMagX
+  - recentMagY
+  - recentMagZ
+  - magTMin
+  - windowMagT
+  - windowMagX
+  - windowMagY
+  - windowMagZ
+  - smoothMagX
+  - smoothMagY
+  - smoothMagZ
+  - acc_time
+  - accX
+  - accY
+  - accZ
+  - accTMin
+  - windowAccT
+  - windowAccX
+  - windowAccY
+  - windowAccZ
+  - smoothAccX
+  - smoothAccY
+  - smoothAccZ
+  - tiltCorrection
+  - headingFlat
+  - headingTilt
+  - headingRaw
+  - heading
+  pressure.phyphox:
+  - pressure
+  - p_time
+  light.phyphox:
+  - illum
+  - illum_time
+  gps.phyphox:
+  - lat
+  - lon
+  - z
+  - zwgs84
+  - v
+  - dir
+  - accuracy
+  - zAccuracy
+  - t
+  - status
+  - satellites
+  - countT
+  - d
+  - dist
+  - dnew
+  - countUpdated
+  - countUpdated+1
+  - subLat
+  - subLon
+  - dLat
+  - dLon
+  - startLat
+  - startLon
+  - diststart
+  - speedRange
+  - speedFraction
+meta_sensors:
+- accelerometer
+- attitude
+- gravity
+- gyroscope
+- humidity
+- light
+- linear_acceleration
+- magnetic_field
+- pressure
+- proximity
+- temperature
