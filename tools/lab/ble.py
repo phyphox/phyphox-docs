@@ -1672,11 +1672,14 @@ def missing_tools(scenarios, args):
     return out
 
 
-# The arduino-esp32 core the library's own CI compiles with is the one this
-# suite needs at least: an older core does not build the 2.0 library at all
+# The oldest arduino-esp32 core the library's own CI compiles with is the
+# floor for this suite: an older core does not build the 2.0 library at all
 # (every Arduino scenario failed to compile with 3.3.2 on the MacBook,
-# 2026-11-18). Read from the library's workflow rather than restated here,
-# so a bump there needs no change in this repository.
+# 2026-11-18). The OLDEST pin, not the newest: the library carries one
+# transport per core major version and CI pins both lines (3.3.13 and a
+# 4.x), so holding the bench to the newest would refuse a 3.x core the
+# library fully supports. Read from the library's workflows rather than
+# restated here, so a bump there needs no change in this repository.
 ESP32_CORE_PIN = re.compile(r'"name"\s*:\s*"esp32:esp32"\s*,\s*'
                             r'"version"\s*:\s*"([0-9.]+)"')
 ESP32_INDEX = "https://espressif.github.io/arduino-esp32/package_esp32_index.json"
@@ -1687,8 +1690,10 @@ def _version_tuple(v):
 
 
 def esp32_core_findings():
-    """[] when the installed esp32:esp32 core is at least the version the
-    Arduino library's CI pins, else one line saying what to install."""
+    """[] when the installed esp32:esp32 core is at least the oldest
+    version the Arduino library's CI pins, else one line saying what to
+    install. Pre-release pins (4.0.0-RC1) are not matched and so never
+    become the floor."""
     cfg = load_scenarios()
     lib = cfg["libraries"]["arduino"]
     repo = os.path.normpath(os.path.join(ROOT, "..",
@@ -1702,7 +1707,7 @@ def esp32_core_findings():
             pass
     if not pins:
         return []          # nothing pinned: nothing to hold the host to
-    want = max(pins, key=_version_tuple)
+    want = min(pins, key=_version_tuple)
     r = sh(["arduino-cli", "core", "list", "--format", "json"], timeout=60)
     try:
         platforms = json.loads(r.stdout or "{}").get("platforms") or []
@@ -1712,9 +1717,9 @@ def esp32_core_findings():
                  for p in platforms if p.get("id") == "esp32:esp32"), None)
     if have and _version_tuple(have) >= _version_tuple(want):
         return []
-    return [f"the esp32:esp32 core is {have or 'not installed'}, the Arduino "
-            f"library's CI builds with {want} - an older core does not "
-            f"compile it. arduino-cli core install esp32:esp32@{want} "
+    return [f"the esp32:esp32 core is {have or 'not installed'}, the oldest "
+            f"the Arduino library's CI builds with is {want} - an older core "
+            f"does not compile it. arduino-cli core install esp32:esp32@{want} "
             f"--additional-urls {ESP32_INDEX} (the default index may not "
             f"carry it yet)"]
 

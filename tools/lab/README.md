@@ -173,16 +173,17 @@ on PATH, `esptool` (either the v4 `esptool.py` or the v5 `esptool`), an
 ESP32 MicroPython image passed as `--micropython-firmware`, and the
 `pyserial` module in the venv the driver runs from.
 
-**The `esp32:esp32` core must be at least the version the Arduino
-library's CI pins** (3.3.13 at the 2.0.0 release). With the MacBook's old
+**The `esp32:esp32` core must be at least the oldest version the
+Arduino library's CI pins** (3.3.13 at the 2.0.0 release; CI also
+compiles a 4.x line, since the library has a transport for each). With the MacBook's old
 3.3.2 every Arduino scenario failed to compile on 2026-11-18. The default
 board index stops at 3.3.12, so install it from Espressif's own:
 
     arduino-cli core install esp32:esp32@3.3.13 \
         --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
-The suite reads the pin from `phyphox-arduino/.github/workflows/` and
-refuses to start on an older core, with that command in the message - a
+The suite reads the pins from `phyphox-arduino/.github/workflows/` and
+refuses to start on a core older than the oldest of them, with that command in the message - a
 bump there needs no change here.
 
 **pyserial is not optional for the MicroPython scenarios on macOS.**
