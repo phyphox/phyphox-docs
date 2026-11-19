@@ -188,6 +188,7 @@ def on_config(config, **kwargs):
     _check_validators()
     _check_conversion_values()
     _check_test_matrix()
+    _check_lab_collection_refs()
     _check_analysis_vectors()
     _check_languages()
     _check_containers()
@@ -341,6 +342,56 @@ def _check_test_matrix():
     if problems:
         raise ValueError("test matrix is out of step:\n"
                          + "\n".join(f"  {p}" for p in problems))
+
+
+def _check_lab_collection_refs():
+    """The device lab's hand-written references into the shipped
+    collection must still match it.
+
+    Most of the lab needs no list - the experiments suite walks the
+    collection, so an added experiment is swept and a removed one simply
+    is not. Two places name files by hand, and both would go stale in
+    silence: fixtures/ble/sensors.yml (the phyphox:m/mini experiments - a
+    new one would never be tested) and the per-device sensor manifests in
+    tools/lab/devices/ (a renamed accelerometer.phyphox would only show as
+    a launch failure on release day). Checked against each app checkout
+    found next to this repository, like the shipped-collection checks
+    above, so a change is noticed with the submodule bump.
+    """
+    _ensure_path()
+    import glob
+    import yaml
+    from lab import ble_sensors
+    problems = []
+    checkouts = {
+        "phyphox-android": ble_sensors.COLLECTION,
+        "phyphox-ios": ble_sensors.IOS_COLLECTION,
+    }
+    manifests = sorted(glob.glob(os.path.join(ROOT, "tools", "lab", "devices",
+                                              "*.yml")))
+    for repo, collection in checkouts.items():
+        if not os.path.isdir(collection):
+            continue
+        for p in (ble_sensors.coverage_findings(collection)
+                  + ble_sensors.fixture_findings(ble_sensors.load_fixture(),
+                                                 collection)):
+            problems.append(f"{repo}: {p}")
+        for m in manifests:
+            if m.endswith(".skeleton.yml"):
+                continue
+            with open(m, encoding="utf-8") as f:
+                doc = yaml.safe_load(f) or {}
+            refs = [s.get("experiment") for s in (doc.get("sensors") or {}).values()]
+            refs.append((doc.get("gps") or {}).get("experiment"))
+            for ref in refs:
+                if ref and not os.path.exists(os.path.join(collection, ref)):
+                    problems.append(f"{repo}: tools/lab/devices/"
+                                    f"{os.path.basename(m)} names {ref}, which "
+                                    f"the collection no longer ships")
+    if problems:
+        raise ValueError("the lab's references into the shipped collection "
+                         "are out of step:\n"
+                         + "\n".join(f"  {p}" for p in sorted(set(problems))))
 
 
 def _check_spec_against_docs():

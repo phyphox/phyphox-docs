@@ -42,6 +42,15 @@
 #              from the first green run rather than guessed from the
 #              config bytes.
 #
+# The list must cover the collection: every shipped experiment whose
+# <bluetooth> filter would take a phyphox:m or phyphox:mini (or whose file
+# is named phyphox_m*) is either under `experiments` or under `excluded`
+# with a reason, and nothing is listed that is no longer shipped. The docs
+# build checks this against each app checkout it finds next to it, and so
+# does the suite before it runs - so a new, removed, renamed or merged
+# experiment fails the next build after the submodule bump, naming the
+# file, rather than going untested.
+#
 # Units are those the experiment's own views show (m/s², °/s, µT, hPa,
 # °C, %, ppm, mm, lx).
 
@@ -193,3 +202,9 @@ experiments:
       - range: [temperature, 5, 40]
       - range: [humidity, 5, 95]
       - range: [pressure, 850, 1100]
+
+# Shipped for our sensors, deliberately not run - each with its reason.
+# (None yet.) Shape:
+#   - file: bluetooth/phyphox_mini_Something.phyphox
+#     reason: needs the sensor moved by hand
+excluded: []

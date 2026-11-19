@@ -497,11 +497,22 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   `--suites ble-sensors --platform ios --ble-sensors
   phyphox:m,phyphox:mini`.
 
-  The fixture is checked against the collection before anything runs:
-  every buffer it names must still be a container in the shipped file, or
-  the suite fails at once naming the file. An experiment reworked in
-  `phyphox-experiments` otherwise turns into "no data in temperature" on
-  every phone.
+  The fixture is checked against the collection, by the suite before
+  anything runs AND by every docs build (against each app checkout next to
+  this repository):
+  - every shipped experiment whose filter would take a phyphox:m or
+    phyphox:mini must be listed, under `experiments` or under `excluded`
+    with a reason, and nothing may be listed that is no longer shipped. A
+    new experiment would otherwise never be tested, and merging the
+    Android and iOS acceleration variants would only show on release day;
+  - every buffer it names must still be a container in the shipped file.
+    An experiment reworked in `phyphox-experiments` otherwise turns into
+    "no data in temperature" on every phone.
+
+  The rest of the lab needs no such list - the experiments suite walks the
+  whole collection, so added experiments are swept and removed ones are
+  not. The one other hand-written reference, the experiment file named per
+  sensor in `devices/*.yml`, gets the same docs-build check.
 
   Budget: 17 experiments at 15-40 s each plus connect and launch, about
   12 minutes per phone.

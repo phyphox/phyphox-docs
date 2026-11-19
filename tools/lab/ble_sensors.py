@@ -32,6 +32,7 @@ no data, or data that stopped arriving FAILS; a value outside its
 plausibility window only WARNS.
 """
 
+import glob
 import json
 import math
 import os
@@ -58,9 +59,76 @@ COLLECTION = os.path.normpath(os.path.join(
 DEFAULT_SECONDS = 16
 
 
-def load_fixture():
+# The other shipped collection checkout. The two submodules can point at
+# different commits, so the docs build checks each one it finds.
+IOS_COLLECTION = os.path.normpath(os.path.join(
+    ROOT, "..", "phyphox-ios", "phyphox-experiments"))
+
+# Names our sensors advertise, in the shapes seen on the bench: bare, with
+# a unit number, and with the trailing newline the mini sends. Used only to
+# ask "would this shipped experiment take one of ours?".
+OUR_NAMES = ["phyphox:m", "phyphox:m 131", "phyphox:mini", "phyphox:mini A48\n"]
+
+
+def load_fixture(full=False):
     with open(FIXTURE, encoding="utf-8") as f:
-        return yaml.safe_load(f)["experiments"]
+        doc = yaml.safe_load(f)
+    return doc if full else doc["experiments"]
+
+
+def ours(path):
+    """Whether a shipped experiment is one for our own sensors: its
+    <bluetooth> filter would take a phyphox:m or phyphox:mini, or its file
+    is named like one (a filter by service UUID alone would not show in
+    the name test)."""
+    if os.path.basename(path).startswith("phyphox_m"):
+        return True
+    try:
+        root = ET.parse(path).getroot()
+    except ET.ParseError:
+        return False
+    for bt in root.iter("bluetooth"):
+        name, regex = bt.get("name"), bt.get("nameRegex")
+        if (name or regex) and any(matches(n, name, regex) for n in OUR_NAMES):
+            return True
+    return False
+
+
+def coverage_findings(collection=COLLECTION):
+    """Every shipped experiment for our sensors must be in the fixture,
+    either run (`experiments`) or deliberately left out (`excluded`, with a
+    reason) - and nothing may be listed that is no longer shipped. The
+    fixture is a hand-written list, and a hand-written list goes stale
+    silently: a new experiment would simply never be tested, and two
+    files merged into one would fail as "not in the collection" only at
+    the next release run. Run by the suite AND by the docs build, so a
+    collection change is noticed when the submodule is bumped, not on
+    release day."""
+    doc = load_fixture(full=True)
+    listed = {e["file"] for e in doc.get("experiments") or []}
+    excluded = {e["file"] for e in doc.get("excluded") or []}
+    out = []
+    for e in doc.get("excluded") or []:
+        if not (e.get("reason") or "").strip():
+            out.append(f"{e['file']}: excluded without a reason")
+    for f in sorted(listed & excluded):
+        out.append(f"{f}: both run and excluded")
+    if not os.path.isdir(collection):
+        return out
+    shipped = set()
+    for path in sorted(glob.glob(os.path.join(collection, "**", "*.phyphox"),
+                                 recursive=True)):
+        rel = os.path.relpath(path, collection).replace(os.sep, "/")
+        if ours(path):
+            shipped.add(rel)
+    for f in sorted(shipped - listed - excluded):
+        out.append(f"{f}: shipped for phyphox:m/mini but not in "
+                   f"fixtures/ble/sensors.yml - add it to `experiments`, or "
+                   f"to `excluded` with the reason")
+    for f in sorted((listed | excluded) - shipped):
+        out.append(f"{f}: in fixtures/ble/sensors.yml but no longer shipped "
+                   f"(removed, renamed or merged) - update the fixture")
+    return out
 
 
 def _filters(path):
@@ -299,7 +367,7 @@ def run_suite(dev, platform, args):
     experiments = load_fixture()
     findings, warnings, details = [], [], {}
     bench = set(getattr(args, "ble_sensors", None) or [])
-    drift = fixture_findings(experiments)
+    drift = coverage_findings() + fixture_findings(experiments)
     if drift:
         # The fixture no longer describes the collection: every result
         # below would be about the wrong buffers.
