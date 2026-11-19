@@ -227,9 +227,17 @@ class AndroidDevice:
         filter matches instead of waiting in the scan dialog for a pick
         (the ble-sensors suite). Set or cleared on EVERY launch: a debug.*
         property is sticky until reboot, and one left set would change
-        what the next suite's Bluetooth experiments do."""
+        what the next suite's Bluetooth experiments do.
+
+        remote and autoConfirm are set again on every launch too: prepare()
+        sets them once per device, but the experiments suite shells out to
+        t1_experiments.py, whose cleanup() clears both, so a suite running
+        after it in the same run (ble-sensors) launched without remote
+        access and never got past "remote API not reachable" (2026-11-19)."""
         self.ensure_forwards()
         self.stop_app()
+        for prop in ("remote", "autoConfirm"):
+            sh(self.adb + ["shell", "setprop", f"debug.phyphox.{prop}", "1"])
         sh(self.adb + ["shell", "setprop", "debug.phyphox.bleAutoConnect",
                        "1" if ble_auto_connect else "''"])
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
