@@ -286,6 +286,9 @@ def _one_suite(suite, dev_id, dev, args):
             r = suites.run_audio_suite(dev, args)
         elif suite == "experiments":
             r = suites.run_experiments_suite(dev, args)
+        elif suite == "ble-sensors":
+            from lab import ble_sensors
+            r = ble_sensors.run_suite(dev, dev.platform, args)
     finally:
         if _TEE is not None:
             _TEE.unregister()
@@ -429,7 +432,9 @@ def main():
     ap.add_argument("--suites", default=None,
                     help="languages runs only when the host entry names "
                          "artifacts; ble needs --board-port and is not in "
-                         "the default set because it wants the bench")
+                         "the default set because it wants the bench; "
+                         "ble-sensors runs the shipped experiments for "
+                         "phyphox:m/mini (lab.yml: ble_sensors)")
     ap.add_argument("--force-bench", action="store_true",
                     help="take the bench lock even though another run holds "
                          "it. Only when you know that run is gone")
@@ -457,6 +462,14 @@ def main():
                          "and read the diff")
     ap.add_argument("--seconds", type=float, default=10.0)
     ap.add_argument("--api-wait", type=float, default=15.0)
+    ap.add_argument("--ble-sensors", metavar="KINDS",
+                    help="ble-sensors: the sensor kinds at this host, e.g. "
+                         "phyphox:m,phyphox:mini (overrides ble_sensors in "
+                         "lab.yml) - for the second host's pass, since the "
+                         "sensors may only be in one host's lab.yml at a time")
+    ap.add_argument("--sensor-connect-timeout", type=float, default=60.0,
+                    help="ble-sensors: seconds from the experiment's launch "
+                         "until it must have connected and started")
     ap.add_argument("--audio-floor", type=float, default=1.0)
     ap.add_argument("--fixture-port", type=int, default=8113)
     ap.add_argument("--jobs", type=int, default=1,
@@ -559,6 +572,14 @@ def main():
                       ("esp32_core", "esp32_core")):
         if host_cfg.get(key) and not getattr(args, dest):
             setattr(args, dest, host_cfg[key])
+    # Which of our own sensors sit at this host - kinds, not names: the
+    # suite takes any unit its experiment's filter matches (see
+    # tools/lab/ble_sensors.py).
+    if args.ble_sensors:
+        args.ble_sensors = [k.strip() for k in args.ble_sensors.split(",")
+                            if k.strip()]
+    else:
+        args.ble_sensors = list(host_cfg.get("ble_sensors") or [])
     if args.esp32_core is not None:
         args.esp32_core = str(args.esp32_core)   # YAML may read 4.0 as a float
     # A second arduino-cli install for the release run's core, next to the
@@ -595,6 +616,11 @@ def main():
         # NOT `suites`: that name is the imported module, and shadowing it
         # here made the languages gate call a list.
         wanted_suites = ["sensors", "audio", "experiments"]
+        if args.ble_sensors:
+            # release-safe switches only, so it belongs with the release
+            # candidate rather than with the debug build the board bench
+            # needs
+            wanted_suites.append("ble-sensors")
         if args.board_ports:
             wanted_suites.append("ble")
         args.suites = ",".join(wanted_suites)
@@ -621,6 +647,14 @@ def main():
         if not host_cfg.get("artifacts"):
             print("   !! no artifacts for this host, so the languages gate is "
                   "NOT part of this run - see lab.yml.example.", flush=True)
+        if not args.ble_sensors:
+            print("   !! no ble_sensors for this host, so the shipped "
+                  "phyphox:m/mini experiments are NOT part of this run. "
+                  "They belong in ONE host's lab.yml; this host's phones "
+                  "get their pass afterwards with\n"
+                  "        --suites ble-sensors --ble-sensors "
+                  "phyphox:m,phyphox:mini",
+                  flush=True)
     if args.suites is None:
         args.suites = "sensors,audio,experiments"
     os.makedirs(args.out_dir, exist_ok=True)
@@ -716,7 +750,9 @@ def main():
             # N phones at once also draw N times the USB power.
             # audio shares a room, ble shares the radio and a flashing
             # cycle - both are serial whatever --jobs says
-            jobs = 1 if suite in ("audio", "ble") else max(1, args.jobs)
+            # ble-sensors too: the sensors serve one phone at a time
+            jobs = (1 if suite in ("audio", "ble", "ble-sensors")
+                    else max(1, args.jobs))
             if jobs > 1:
                 print(f"== {suite}: {len(devices)} device(s), "
                       f"{jobs} at a time")

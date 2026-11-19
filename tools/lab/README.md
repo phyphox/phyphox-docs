@@ -431,8 +431,8 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   over http (adb reverse on Android, the host's LAN address for iOS).
 - `experiments` (`device-experiments`): the full shipped matrix through
   tools/t1_experiments.py per device - open, run, stop, all six export
-  formats validated. Bluetooth experiments stay load-phase only (their
-  data plane is the phase-6 board lab).
+  formats validated. Bluetooth experiments stay load-phase only here;
+  the ones for our own sensors get their data plane in `ble-sensors`.
 
   An experiment whose remote API never answers is provisionally "not
   loadable" - the app declines what the phone cannot run, depth on a
@@ -443,6 +443,68 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   reconnect after four experiments recorded the other 36 as declined
   with an empty errors list, and the device was red only because an
   unrelated experiment happened to fail.
+- `ble-sensors` (`ble-shipped-sensors`): the shipped Bluetooth
+  experiments for our own sensors, phyphox:m and phyphox:mini - all 17 of
+  them (the 15 every phone runs, plus "Acceleration Android" and
+  "Acceleration iOS", which the collection ships per platform and which
+  run on the platform their title names). Each is opened from the app's
+  own collection (`phyphox://asset=`), connects to the first unit its own
+  `<bluetooth>` filter matches, is started over the remote API, and the
+  buffers its views show are checked: the time buffer of every data stream
+  must have data and still be moving at the end of the window (FAIL), and
+  the values must be plausible for a sensor lying still - about 1 g, gyro
+  near zero, room temperature, 850-1100 hPa, CO₂ 350-5000 ppm (WARN, the
+  sensors-suite rule). `achieved_rate` and the connect time are recorded
+  per experiment; `rate:` in the fixture turns a rate into a FAIL once the
+  first green run has shown what to expect. Definitions in
+  `fixtures/ble/sensors.yml`.
+
+  **Any matching unit is taken, by design** (maintainer 2026-11-19). The
+  sensors are lent out for workshops, renamed and swapped, and every
+  phyphox:m is as good a subject as any other - so neither the fixture nor
+  `lab.yml` names a unit. `lab.yml` says which KINDS of sensor sit at a
+  host (`ble_sensors: [phyphox:m, phyphox:mini]`); an experiment for a
+  kind not listed is skipped with a warning, so a bench with only a mini
+  still runs the mini's experiments. A mini advertises as e.g.
+  `phyphox:mini A48` with a trailing newline - the experiments' filters
+  (a substring for the mini, `phyphox:m( \d+)?` for the m) cope with that
+  by design, see the BLE device matching docs.
+
+  **The device pick is the one step an unattended run cannot do**, and
+  each app needs a switch for it: `debug.phyphox.bleAutoConnect` on
+  Android (set per launch by `AndroidDevice.launch`, cleared with the
+  others at the end) and `-phyphoxBleAutoConnect` on iOS. Both make every
+  `<bluetooth>` block behave as `autoConnect="true"`, which both apps
+  already implement. Neither needs the instrumentation APK, so unlike the
+  board bench this suite runs against the release candidate and is part
+  of `--release` wherever `ble_sensors` is set. A build without the switch
+  sits in the scan dialog and fails every experiment with "never
+  connected and started ... Does this build carry the bleAutoConnect
+  switch?".
+
+  Serial like `ble`: a sensor serves one phone at a time, so the app is
+  stopped after every experiment and the next phone finds it advertising
+  again. Before the first experiment the host scans for 12 s from its own
+  adapter (`bleak`, as `board_check.py` uses it); an experiment whose
+  filter matches nothing on the air fails at once with "is the phyphox:m
+  switched on and charged?" instead of costing a 60 s connect timeout on
+  every phone. A host that cannot scan says so and lets every experiment
+  try. **`ble_sensors` belongs in one host's `lab.yml` only**: with any
+  unit acceptable, two hosts running the suite at once would take turns
+  at the same sensor and fail each other's experiments, and the two
+  hosts' release runs do run at the same time. The other host's phones
+  get their pass afterwards, with the kinds given on the command line:
+  `--suites ble-sensors --platform ios --ble-sensors
+  phyphox:m,phyphox:mini`.
+
+  The fixture is checked against the collection before anything runs:
+  every buffer it names must still be a container in the shipped file, or
+  the suite fails at once naming the file. An experiment reworked in
+  `phyphox-experiments` otherwise turns into "no data in temperature" on
+  every phone.
+
+  Budget: 17 experiments at 15-40 s each plus connect and launch, about
+  12 minutes per phone.
 - `ble` (`ble-compat-arduino`, `ble-compat-micropython`): the board bench,
   and the one suite that inverts the loop - it flashes a board, then runs
   every phone in that scenario's scope against it, because a flash costs

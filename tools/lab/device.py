@@ -180,7 +180,7 @@ class AndroidDevice:
         return out
 
     def cleanup(self):
-        for prop in ("remote", "autoConfirm"):
+        for prop in ("remote", "autoConfirm", "bleAutoConnect"):
             sh(self.adb + ["shell", "setprop", f"debug.phyphox.{prop}", "''"])
         self._restore_awake()
 
@@ -221,9 +221,17 @@ class AndroidDevice:
         # re-owns screen_brightness, so that one value may come back a
         # digit or two off - the mode and the stayon flag restore exactly
 
-    def launch(self, asset_path):
+    def launch(self, asset_path, ble_auto_connect=False):
+        """ble_auto_connect: every <bluetooth> block of the experiment
+        behaves as autoConnect="true" - the app takes the first device its
+        filter matches instead of waiting in the scan dialog for a pick
+        (the ble-sensors suite). Set or cleared on EVERY launch: a debug.*
+        property is sticky until reboot, and one left set would change
+        what the next suite's Bluetooth experiments do."""
         self.ensure_forwards()
         self.stop_app()
+        sh(self.adb + ["shell", "setprop", "debug.phyphox.bleAutoConnect",
+                       "1" if ble_auto_connect else "''"])
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
         r = sh(self.adb + ["shell", "am", "start", "-W", "-a",
                            "android.intent.action.VIEW", "-d", url])
@@ -338,9 +346,13 @@ class IOSDevice:
         if self._forward:
             self._forward.terminate()
 
-    def launch(self, asset_path):
+    def launch(self, asset_path, ble_auto_connect=False):
+        """ble_auto_connect: see AndroidDevice.launch. A launch argument
+        here, so it lasts exactly one launch by construction."""
         url = "phyphox://asset=" + urllib.parse.quote(asset_path, safe="")
-        return self._launch_args(["-phyphoxUrl", url])
+        return self._launch_args(["-phyphoxUrl", url]
+                                 + (["-phyphoxBleAutoConnect"]
+                                    if ble_auto_connect else []))
 
     def _launch_args(self, extra, console_path=None):
         args = extra + ["-phyphoxRemote", "-phyphoxRemotePort", "80",

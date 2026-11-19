@@ -46,6 +46,12 @@ hosts:
       # USB-native: the node can move after an upload, and the suite looks
       # the board up by its USB id, so this only has to be roughly right
       nano33ble: /dev/ttyACM0
+    # Our own sensors at this host, for the ble-sensors suite: KINDS, not
+    # unit names - the suite takes whichever unit the experiment's filter
+    # matches. Leave out a kind that is not here. On ONE host only: two
+    # hosts running it at once fight over the same unit. The other host's
+    # phones get their pass afterwards with --ble-sensors (see RELEASE.md).
+    ble_sensors: [phyphox:m, phyphox:mini]
     # The ESP32 core the release run builds with, and the arduino-cli
     # install that has it (see "Which ESP32 core a release run uses" in
     # README.md). The suite refuses to start on any other esp32 core.

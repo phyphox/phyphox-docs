@@ -1,0 +1,195 @@
+# The shipped Bluetooth experiments the ble-sensors suite runs against
+# our own sensors, phyphox:m and phyphox:mini (test-matrix row
+# ble-shipped-sensors, tools/lab/ble_sensors.py).
+#
+# Unlike fixtures/ble/scenarios.yml nothing here is flashed: the device is
+# the sensor as it ships, the experiment is the app's own bundled copy,
+# opened with phyphox://asset=, and the app connects to the first device
+# its own <bluetooth> filter matches (the bleAutoConnect switch, see the
+# README). Which unit that is does not matter (maintainer 2026-11-19): the
+# units get renamed and swapped in workshops, and any phyphox:m is as good
+# as any other. So no name is pinned here; `device` only says which kind
+# of sensor an experiment needs, matched against `ble_sensors` in
+# lab.yml, so a bench without a phyphox:mini skips the mini's experiments
+# with a warning instead of timing out on every phone.
+#
+# Every experiment runs on every phone (maintainer 2026-11-19), except the
+# two that the collection itself ships per platform - see `platforms`.
+#
+# Per experiment:
+#   file       path inside the experiment collection
+#   device     the sensor kind it needs (phyphox:m / phyphox:mini)
+#   seconds    measurement window (default 16); the slow environmental
+#              sensors get longer, so both halves see a sample
+#   time       the time buffers the views plot, one per data stream from
+#              the device. Liveness: each one has data, and its last value
+#              moved on between the reads at half time and at the end -
+#              data kept arriving, not one burst after the connect. The
+#              DISPLAYED buffers on purpose: the raw <bluetooth> outputs
+#              are usually consumed by the analysis (keep defaults to
+#              false) and read back empty.
+#   values     buffers that must hold finite data (FAIL if empty)
+#   checks     plausibility, WARN only (maintainer 2026-11-19, the same
+#              rule as the sensors suite): a sensor on a desk next to a
+#              window, a magnet or a warm laptop is the bench, not a
+#              phyphox bug.
+#                range:     [buffer, lo, hi]   mean of the buffer
+#                magnitude: [[x, y, z], lo, hi] mean of |v|
+#                near0:     [[x, y, z], tol]   mean of each axis within ±tol
+#   rate       optional {expect: Hz, tol: fraction} on the first time
+#              buffer - FAILS outside. Not set yet anywhere: the report
+#              records achieved_rate per phone, and expectations are taken
+#              from the first green run rather than guessed from the
+#              config bytes.
+#
+# Units are those the experiment's own views show (m/s², °/s, µT, hPa,
+# °C, %, ppm, mm, lx).
+
+experiments:
+
+  # ---------------------------------------------------------- phyphox:m --
+  - file: bluetooth/phyphox_m_bmp581.phyphox
+    device: phyphox:m
+    time: [time]
+    values: [pressure, temperature]
+    checks:
+      - range: [pressure, 850, 1100]
+      - range: [temperature, 5, 40]
+
+  - file: bluetooth/phyphox_m_IMU_bmi323_float_format.phyphox
+    device: phyphox:m
+    time: [time]
+    values: [acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z]
+    checks:
+      - magnitude: [[acc_x, acc_y, acc_z], 9.31, 10.31]
+      - near0: [[gyr_x, gyr_y, gyr_z], 3]
+
+  - file: bluetooth/phyphox_m_IMU_bmi323_int_format.phyphox
+    device: phyphox:m
+    time: [gyr_time]
+    values: [acc_x_SI, acc_y_SI, acc_z_SI, gyr_x_SI, gyr_y_SI, gyr_z_SI]
+    checks:
+      - magnitude: [[acc_x_SI, acc_y_SI, acc_z_SI], 9.31, 10.31]
+      - near0: [[gyr_x_SI, gyr_y_SI, gyr_z_SI], 3]
+
+  - file: bluetooth/phyphox_m_MLX_500Hz.phyphox
+    device: phyphox:m
+    time: [time]
+    values: [magX, magY, magZ]
+    checks:
+      - magnitude: [[magX, magY, magZ], 15, 75]
+
+  - file: bluetooth/phyphox_m_SHTC3_configurable.phyphox
+    device: phyphox:m
+    seconds: 30
+    time: [time]
+    values: [temperature, humidity]
+    checks:
+      - range: [temperature, 5, 40]
+      - range: [humidity, 5, 95]
+
+  - file: bluetooth/phyphox_m_VL53L4.phyphox
+    device: phyphox:m
+    time: [time]
+    values: [distance]
+    checks:
+      # lying face up it measures the ceiling, or reports out of range
+      - range: [distance, 1, 6000]
+
+  - file: bluetooth/phyphox_m_licht_distanz.phyphox
+    device: phyphox:m
+    time: [time]
+    values: [light, distance]
+    checks:
+      - range: [light, 0, 100000]
+
+  - file: bluetooth/phyphox_m_light_veml6030.phyphox
+    device: phyphox:m
+    time: [time]
+    values: [light, white_light]
+    checks:
+      - range: [light, 0, 100000]
+
+  # ------------------------------------------------------- phyphox:mini --
+  - file: bluetooth/phyphox_mini_BMP581_Pressure.phyphox
+    device: phyphox:mini
+    time: [time]
+    values: [pressure, temperature]
+    checks:
+      - range: [pressure, 850, 1100]
+      - range: [temperature, 5, 40]
+
+  # A guided procedure (turn the sensor over, wait, turn back) - the
+  # result values need a person. What runs unattended is the data path:
+  # both streams arrive, and the gyroscope reads near zero at rest.
+  - file: bluetooth/phyphox_mini_Earth_Rotation_LSM6DSR.phyphox
+    device: phyphox:mini
+    time: [gyr_t]
+    values: [gyr_x, gyr_y, gyr_z, acc_z]
+    checks:
+      - near0: [[gyr_x, gyr_y, gyr_z], 3]
+
+  - file: bluetooth/phyphox_mini_HDC_Temperature_Humidity.phyphox
+    device: phyphox:mini
+    seconds: 30
+    time: [time]
+    values: [temperature, humidity]
+    checks:
+      - range: [temperature, 5, 40]
+      - range: [humidity, 5, 95]
+
+  - file: bluetooth/phyphox_mini_IMU_lsm6dsr_float.phyphox
+    device: phyphox:mini
+    time: [acc_timestamps, gyr_timestamps]
+    values: [acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z]
+    checks:
+      - magnitude: [[acc_x, acc_y, acc_z], 9.31, 10.31]
+      - near0: [[gyr_x, gyr_y, gyr_z], 3]
+
+  # The collection ships this one twice, titled "Acceleration Android" and
+  # "Acceleration iOS", with different sensor configurations - so each
+  # runs on the platform its title names. Remove `platforms` to run both
+  # everywhere.
+  - file: bluetooth/phyphox_mini_IMU_lsm6dsr_int.phyphox
+    device: phyphox:mini
+    platforms: [android]
+    time: [acc_time]
+    values: [acc_x_SI, acc_y_SI, acc_z_SI]
+    checks:
+      - magnitude: [[acc_x_SI, acc_y_SI, acc_z_SI], 9.31, 10.31]
+
+  - file: bluetooth/phyphox_mini_IMU_lsm6dsr_int_ios.phyphox
+    device: phyphox:mini
+    platforms: [ios]
+    time: [acc_time]
+    values: [acc_x_SI, acc_y_SI, acc_z_SI]
+    checks:
+      - magnitude: [[acc_x_SI, acc_y_SI, acc_z_SI], 9.31, 10.31]
+
+  - file: bluetooth/phyphox_mini_IMU_lsm6dsr_int_FFT.phyphox
+    device: phyphox:mini
+    time: [acc_time]
+    values: [acc_x_SI, acc_y_SI, acc_z_SI, fft_mag]
+    checks:
+      - magnitude: [[acc_x_SI, acc_y_SI, acc_z_SI], 9.31, 10.31]
+
+  - file: bluetooth/phyphox_mini_STCC4.phyphox
+    device: phyphox:mini
+    seconds: 40
+    time: [co2_time, hdc_time]
+    values: [co2, temperature, humidity]
+    checks:
+      - range: [co2, 350, 5000]
+      - range: [temperature, 5, 40]
+      - range: [humidity, 5, 95]
+
+  - file: bluetooth/phyphox_mini_Temp_Humidity_Pressure_Co2.phyphox
+    device: phyphox:mini
+    seconds: 40
+    time: [co2_time, hdc_time, bmp_time]
+    values: [co2, temperature, humidity, pressure]
+    checks:
+      - range: [co2, 350, 5000]
+      - range: [temperature, 5, 40]
+      - range: [humidity, 5, 95]
+      - range: [pressure, 850, 1100]

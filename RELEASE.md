@@ -29,6 +29,11 @@ T3, which need hardware and a person.
       micropython_firmware: /path/to/ESP32_GENERIC-<version>.bin
 
   `--board-port esp32=… --micropython-firmware …` still override, for a board that has moved.
+- **phyphox:m and phyphox:mini switched on, charged and next to the Linux host** — the
+  `ble-sensors` suite runs the shipped experiments for them on every phone. Any unit will do; the
+  suite takes whichever one the experiment's own filter matches, so names do not matter. Only the
+  host whose `lab.yml` has `ble_sensors:` runs it as part of `--release` (see below for the other
+  host's phones).
 - Phones in developer mode and unlocked. On iOS, the system permission prompts have to be accepted
   by hand once per install — no automation can dismiss them.
 - The bench free: the lab takes an advisory lock (`.bench-lock-<hostname>` in the working root) and
@@ -56,6 +61,20 @@ invocation:
 python3 tools/lab/run.py --config lab.yml --host linuxbox --release --out lab-results
 python3 tools/lab/run.py --config lab.yml --host macbook  --release --out lab-results
 ```
+
+### Our own sensors on the other host's phones
+
+`ble-sensors` sits in one host's `lab.yml` only, because the two release runs go at the same time
+and, with any unit acceptable, two hosts would fight over the same sensor. So once the Linux host's
+run is done, give the MacBook's iPhones their pass, with the sensors still on:
+
+```bash
+python3 tools/lab/run.py --config lab.yml --host macbook --platform ios \
+    --suites ble-sensors --ble-sensors phyphox:m,phyphox:mini --out lab-results
+```
+
+It runs against the release candidate like the rest — the app switch it needs ships in release
+builds — and writes `macbook-ble-sensors.json` next to the others for the merge.
 
 ### Running the BLE suite separately
 
