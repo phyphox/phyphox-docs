@@ -1679,7 +1679,7 @@ def missing_tools(scenarios, args):
            if t in ("esptool", "pyserial") or not _shutil.which(t)]
     if "arduino" in libs and _shutil.which("arduino-cli"):
         out += core_findings(scenarios, args)
-        out += esp32_core_findings()
+        out += esp32_core_findings(scenarios, args)
     return out
 
 
@@ -1753,11 +1753,31 @@ def _version_tuple(v):
     return tuple(int(x) for x in re.findall(r"\d+", v or ""))
 
 
-def esp32_core_findings():
+def esp32_core_findings(scenarios=None, args=None):
     """[] when the installed esp32:esp32 core is at least the oldest
     version the Arduino library's CI pins, else one line saying what to
     install. Pre-release pins (4.0.0-RC1) are not matched and so never
-    become the floor."""
+    become the floor.
+
+    With args.esp32_core (lab.yml: esp32_core) the run names the exact
+    version it must build with, and anything else is refused - for a bench
+    that flashes the ESP32 at all. The floor only says what compiles; which
+    of the two supported lines a release run tests is a decision, and a
+    host left on the other line would otherwise pass on a transport nobody
+    meant to test (the 1.3.0 release run: 4.0.0, maintainer 2026-11-19)."""
+    required = getattr(args, "esp32_core", None) if args else None
+    if required:
+        uses_esp32 = scenarios is None or "esp32" in bench_cores(scenarios, args)
+        if uses_esp32:
+            have = (installed_cores() or {}).get("esp32:esp32")
+            if have != required:
+                where = os.environ.get("ARDUINO_CONFIG_FILE") or "the default arduino-cli config"
+                return [f"this run is set to build the ESP32 with esp32:esp32 "
+                        f"{required} (esp32_core in lab.yml), but {where} has "
+                        f"{have or 'no esp32:esp32 core'} - arduino-cli core "
+                        f"install esp32:esp32@{required} --additional-urls "
+                        f"{ESP32_INDEX}, into the config the run uses "
+                        f"(arduino_config in lab.yml)"]
     cfg = load_scenarios()
     lib = cfg["libraries"]["arduino"]
     repo = os.path.normpath(os.path.join(ROOT, "..",

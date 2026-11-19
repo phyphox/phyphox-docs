@@ -407,6 +407,13 @@ def main():
                          "so the suite reflashes it before the MicroPython "
                          "ones - only when the board is not already running "
                          "MicroPython")
+    ap.add_argument("--esp32-core", metavar="VERSION",
+                    help="ble suite: the esp32:esp32 core this run must "
+                         "build with (lab.yml: esp32_core). The suite "
+                         "refuses to start on any other installed version, "
+                         "because 3.x and 4.x run different transports of "
+                         "the library and a release run should not be on "
+                         "whichever one the host happens to have")
     ap.add_argument("--connect-timeout", type=float, default=180.0,
                     help="ble suite: seconds for the phone's scan-and-connect "
                          "test")
@@ -548,9 +555,30 @@ def main():
     # serial port and a firmware path - exactly the kind of thing that is
     # got wrong at the end of a long day.
     for key, dest in (("boards", "board_ports"),
-                      ("micropython_firmware", "micropython_firmware")):
+                      ("micropython_firmware", "micropython_firmware"),
+                      ("esp32_core", "esp32_core")):
         if host_cfg.get(key) and not getattr(args, dest):
             setattr(args, dest, host_cfg[key])
+    if args.esp32_core is not None:
+        args.esp32_core = str(args.esp32_core)   # YAML may read 4.0 as a float
+    # A second arduino-cli install for the release run's core, next to the
+    # one the host uses otherwise (the library session keeps 3.x as the
+    # default and 4.x under its own config). Set for the whole process, so
+    # every arduino-cli call of the suite inherits it - compile, upload,
+    # board list and the core checks alike. An ARDUINO_CONFIG_FILE already
+    # in the environment wins: it was set on purpose for this one run.
+    if host_cfg.get("arduino_config"):
+        conf = os.path.expanduser(str(host_cfg["arduino_config"]))
+        if os.environ.get("ARDUINO_CONFIG_FILE"):
+            if os.path.abspath(os.environ["ARDUINO_CONFIG_FILE"]) != os.path.abspath(conf):
+                print(f"   ARDUINO_CONFIG_FILE={os.environ['ARDUINO_CONFIG_FILE']} "
+                      f"from the environment, not lab.yml's {conf}", flush=True)
+        elif not os.path.isfile(conf):
+            sys.exit(f"lab.yml: arduino_config {conf} does not exist - see "
+                     f"\"Which ESP32 core a release run uses\" in "
+                     f"tools/lab/README.md")
+        else:
+            os.environ["ARDUINO_CONFIG_FILE"] = conf
     if args.release and args.suites:
         # An explicit list wins: the flag exists to save typing the usual
         # set and to print what is still outstanding, not to overrule a
