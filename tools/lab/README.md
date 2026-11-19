@@ -444,8 +444,8 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   with an empty errors list, and the device was red only because an
   unrelated experiment happened to fail.
 - `ble-sensors` (`ble-shipped-sensors`): the shipped Bluetooth
-  experiments for our own sensors, phyphox:m and phyphox:mini - all 17 of
-  them (the 15 every phone runs, plus "Acceleration Android" and
+  experiments for our own sensors, phyphox:m and phyphox:mini - all 15 of
+  them in 1.3.0 (the 13 every phone runs, plus "Acceleration Android" and
   "Acceleration iOS", which the collection ships per platform and which
   run on the platform their title names). Each is opened from the app's
   own collection (`phyphox://asset=`), connects to the first unit its own
@@ -514,8 +514,8 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   not. The one other hand-written reference, the experiment file named per
   sensor in `devices/*.yml`, gets the same docs-build check.
 
-  Budget: 17 experiments at 15-40 s each plus connect and launch, about
-  12 minutes per phone.
+  Budget: 14 experiments per phone at 15-40 s each plus connect and
+  launch, about 10 minutes per phone.
 - `ble` (`ble-compat-arduino`, `ble-compat-micropython`): the board bench,
   and the one suite that inverts the loop - it flashes a board, then runs
   every phone in that scenario's scope against it, because a flash costs

@@ -128,16 +128,6 @@ experiments:
       - range: [pressure, 850, 1100]
       - range: [temperature, 5, 40]
 
-  # A guided procedure (turn the sensor over, wait, turn back) - the
-  # result values need a person. What runs unattended is the data path:
-  # both streams arrive, and the gyroscope reads near zero at rest.
-  - file: bluetooth/phyphox_mini_Earth_Rotation_LSM6DSR.phyphox
-    device: phyphox:mini
-    time: [gyr_t]
-    values: [gyr_x, gyr_y, gyr_z, acc_z]
-    checks:
-      - near0: [[gyr_x, gyr_y, gyr_z], 3]
-
   - file: bluetooth/phyphox_mini_HDC_Temperature_Humidity.phyphox
     device: phyphox:mini
     seconds: 30
@@ -159,6 +149,11 @@ experiments:
   # "Acceleration iOS", with different sensor configurations - so each
   # runs on the platform its title names. Remove `platforms` to run both
   # everywhere.
+  #
+  # High-rate and known to glitch on a poor connection (the whole device is
+  # experimental), kept in the collection and in this run on purpose to see
+  # how they do (maintainer 2026-11-19). A "stopped arriving" here on an
+  # older phone is the expected kind of result, worth reading per phone.
   - file: bluetooth/phyphox_mini_IMU_lsm6dsr_int.phyphox
     device: phyphox:mini
     platforms: [android]
@@ -172,13 +167,6 @@ experiments:
     platforms: [ios]
     time: [acc_time]
     values: [acc_x_SI, acc_y_SI, acc_z_SI]
-    checks:
-      - magnitude: [[acc_x_SI, acc_y_SI, acc_z_SI], 9.31, 10.31]
-
-  - file: bluetooth/phyphox_mini_IMU_lsm6dsr_int_FFT.phyphox
-    device: phyphox:mini
-    time: [acc_time]
-    values: [acc_x_SI, acc_y_SI, acc_z_SI, fft_mag]
     checks:
       - magnitude: [[acc_x_SI, acc_y_SI, acc_z_SI], 9.31, 10.31]
 
@@ -203,6 +191,11 @@ experiments:
       - range: [humidity, 5, 95]
       - range: [pressure, 850, 1100]
 
+# Removed from the collection for 1.3.0 (maintainer 2026-11-19), so not
+# listed: phyphox_mini_Earth_Rotation_LSM6DSR (belongs to a paper still in
+# review) and phyphox_mini_IMU_lsm6dsr_int_FFT (not reliable yet). Coming
+# back means adding them to `experiments` again - the docs build says so.
+#
 # Shipped for our sensors, deliberately not run - each with its reason.
 # (None yet.) Shape:
 #   - file: bluetooth/phyphox_mini_Something.phyphox
