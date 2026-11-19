@@ -263,13 +263,16 @@ class _ThreadTee:
 _TEE = None
 
 
-def _one_suite(suite, dev_id, dev, args):
+def _one_suite(suite, dev_id, dev, args, capture=True):
     """One suite on one device, capturing whatever it prints so parallel
-    devices cannot interleave their output mid-line."""
+    devices cannot interleave their output mid-line. capture=False (one
+    device at a time) lets it stream instead: captured, a serial suite
+    was silent until the device was done - ten minutes of nothing for
+    ble-sensors, and nothing at all when the run was stopped halfway."""
     import io
     buf = io.StringIO()
     r = None
-    if _TEE is not None:
+    if _TEE is not None and capture:
         _TEE.register(buf)
     try:
         if suite == "sensors":
@@ -319,9 +322,8 @@ def _run_suite(suite, devices, args, jobs):
     if jobs <= 1:
         for dev_id, entry, dev in devices:
             print(f"== {suite} @ {dev_id} ({entry['platform']})", flush=True)
-            r, captured = _one_suite(suite, dev_id, dev, args)
-            for line in captured:
-                print(f"   {line}")
+            r, _captured = _one_suite(suite, dev_id, dev, args,
+                                      capture=False)
             yield dev_id, entry, r, []
         return
 
@@ -497,6 +499,12 @@ def main():
     ap.add_argument("--record-manifest", metavar="DEVICE_ID")
     ap.add_argument("--merge", metavar="DIR")
     args = ap.parse_args()
+    # A run stopped with kill (SIGTERM) used to skip every finally block:
+    # the phones kept their debug.phyphox.* switches, stay-awake and dimmed
+    # screen, and the bench lock stayed behind (2026-11-19). As SystemExit
+    # it unwinds like Ctrl-C does, and the cleanup runs.
+    import signal
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(143))
     args.board_ports = dict(
         kv.split("=", 1) for kv in args.board_port if "=" in kv)
 

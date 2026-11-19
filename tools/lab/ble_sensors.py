@@ -234,13 +234,24 @@ def _finite(vs):
     return [v for v in vs if isinstance(v, (int, float)) and math.isfinite(v)]
 
 
-def _start_when_connected(base, timeout):
+def _start_when_connected(base, timeout, first_delay=3.0, interval=4.0):
     """Both apps refuse to start an experiment whose <bluetooth> blocks
     have not connected, and answer {"result": false} until they have. So
     asking repeatedly is the connect wait here - unlike the board bench,
     where the device is found by the test and the start is asked once.
-    Returns the seconds it took, or None."""
+    Returns the seconds it took, or None.
+
+    Not too eagerly, though: every refused start is also shown to the
+    user. On Android it is a dialog ("no connection to the Bluetooth
+    device, the experiment cannot be started ... retry"), which stays on
+    screen over the measurement that then starts fine - harmless to the
+    data, but on the first smoke run (Pixel 9 Pro, 2026-11-19) it was all
+    the operator could see and read as a failed connection. The connect
+    itself took about 2 s there; so wait first_delay before the first ask
+    and then interval between asks, and a normal connect raises no dialog
+    at all. A slow one still may - stop_app clears it afterwards."""
     t0 = time.time()
+    time.sleep(first_delay)
     while time.time() - t0 < timeout:
         status, body = api(base, "/control?cmd=start", timeout=5)
         try:
@@ -249,9 +260,8 @@ def _start_when_connected(base, timeout):
             started = False
         if started:
             return time.time() - t0
-        time.sleep(2)
+        time.sleep(interval)
     return None
-
 
 def check_values(e, bufs):
     """(findings, warnings, details) for one experiment's final read."""
@@ -304,7 +314,8 @@ def run_one(dev, e, args):
     try:
         if wait_api(dev.base, args.api_wait) is None:
             return ["remote API not reachable"], [], det
-        took = _start_when_connected(dev.base, args.sensor_connect_timeout)
+        took = _start_when_connected(dev.base, args.sensor_connect_timeout,
+                                     first_delay=getattr(args, "start_delay", 3.0))
         if took is None:
             seen = ("a matching sensor was on the air (host scan), so the "
                     "app did not take it" if _SCAN not in (None, _UNSCANNED)
