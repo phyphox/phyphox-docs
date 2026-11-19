@@ -710,7 +710,7 @@ tests:
     area: hardware
     tier: T2
     platforms: [android, ios]
-    status: planned
+    status: active
     description: >-
       The shipped Bluetooth experiments for our own sensors, phyphox:m
       and phyphox:mini, end to end on every lab phone: opened from the
