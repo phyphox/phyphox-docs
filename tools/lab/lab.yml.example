@@ -46,6 +46,11 @@ hosts:
       # USB-native: the node can move after an upload, and the suite looks
       # the board up by its USB id, so this only has to be roughly right
       nano33ble: /dev/ttyACM0
+    # The ESP32 core the release run builds with, and the arduino-cli
+    # install that has it (see "Which ESP32 core a release run uses" in
+    # README.md). The suite refuses to start on any other esp32 core.
+    esp32_core: 4.0.0
+    arduino_config: ~/arduino-cli-lab/arduino-cli.yaml
     # Put back whenever an Arduino upload has overwritten MicroPython on
     # the shared board; the suite reflashes only when it has to.
     micropython_firmware: /path/to/ESP32_GENERIC-<version>.bin

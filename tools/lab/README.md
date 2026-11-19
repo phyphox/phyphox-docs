@@ -190,14 +190,44 @@ bump there needs no change here.
 **Which ESP32 core a release run uses is a deliberate choice**, and the
 report records it (`cores`). arduino-esp32 4.0.0 (released 2026-11-19)
 replaced the core's BLE library, and phyphox-arduino carries a separate
-transport for it. The lab moves to 4.x only after the library session has
-run its own bench on 4.0.0 and found it green - otherwise a red pass
-could be the app or an unverified transport, and nothing here could tell
-which. Switching is then only the install (`arduino-cli core install
-esp32:esp32@4.0.0`, from the index above). Running both lines from one
-host works the way the library session does it: a second arduino-cli
-config with its own data directory, selected with `ARDUINO_CONFIG_FILE`,
-which every arduino-cli call of the suite inherits.
+transport for it, so the ESP32 on 3.x and on 4.x tests different code. The
+lab moves to a new core line only after the library session has run its
+own bench on it and found it green - otherwise a red pass could be the app
+or an unverified transport, and nothing here could tell which.
+
+**The 1.3.0 release run uses 4.0.0** (maintainer, 2026-11-19, after the
+library bench passed on 4.0.0 with an ESP32 and an ESP32-C3 against Android
+and iOS). Two keys per host in `lab.yml` make that a setting rather than
+something to remember:
+
+    esp32_core: 4.0.0                                   # or --esp32-core
+    arduino_config: ~/arduino-cli-lab/arduino-cli.yaml
+
+`esp32_core` is the exact version the run builds with: the suite refuses to
+start on any other installed esp32 core, with the install command in the
+message, whenever the ESP32 is on the bench. `arduino_config` points
+arduino-cli at a second install with its own data directory, set as
+`ARDUINO_CONFIG_FILE` for the whole run so every arduino-cli call inherits
+it (one already set in the environment wins). That keeps the host's
+default install on whatever else it is used for - the library session
+keeps 3.x as the default and 4.x side by side. The second install needs
+every bench board's core, not only the ESP32's:
+
+    mkdir -p ~/arduino-cli-lab
+    cat > ~/arduino-cli-lab/arduino-cli.yaml <<EOF
+    board_manager:
+      additional_urls:
+        - https://espressif.github.io/arduino-esp32/package_esp32_index.json
+    directories:
+      data: $HOME/arduino-cli-lab/data
+      user: $HOME/Arduino
+    EOF
+    export ARDUINO_CONFIG_FILE=~/arduino-cli-lab/arduino-cli.yaml
+    arduino-cli core update-index
+    arduino-cli core install esp32:esp32@4.0.0 arduino:mbed_nano
+
+The sketchbook (`user`) does not matter: the suite compiles with
+`--library` pointing at the checkout.
 
 **pyserial is not optional for the MicroPython scenarios on macOS.**
 Opening a serial port asserts DTR and RTS, which on an ESP32 are the
