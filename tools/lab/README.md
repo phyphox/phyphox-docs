@@ -850,9 +850,9 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
 `devices/<id>.yml`, committed - the expected truth per lab phone. First
 time on a device:
 
-    python3 tools/lab/run.py --config lab.yml --host X --record-manifest pixel-9-pro
+    python3 tools/lab/run.py --config lab.yml --host X --record-manifest pixel-11
 
-writes `devices/pixel-9-pro.skeleton.yml` with the observed buffer names
+writes `devices/pixel-11.skeleton.yml` with the observed buffer names
 per core experiment and the /meta sensor list (Android). Hand-finish it:
 which sensors this device HAS, per sensor the experiment, value/time
 buffer names, a plausibility kind (magnitude9.81, near0, earthfield,

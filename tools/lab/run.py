@@ -2,9 +2,9 @@
 """The device-lab driver (T2). One entry point, split-host capable.
 
     python3 tools/lab/run.py --config lab.yml --host linuxbox
-        [--platform android] [--devices pixel-9-pro,pixel-3]
+        [--platform android] [--devices pixel-11,pixel-3]
         [--suites sensors,audio,experiments,languages]
-        [--out results/] [--record-manifest pixel-9-pro]
+        [--out results/] [--record-manifest pixel-11]
 
     python3 tools/lab/run.py --merge results/   # combine host JSONs
 
