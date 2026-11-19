@@ -25,7 +25,8 @@ hosts:
       # prove they still work, as opposed to the four that run everywhere
       # because BLE behaviour varies by version and manufacturer. Without
       # it the first device of each platform is taken.
-      iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081, newest: true}
+      iphone-18-pro: {platform: ios, serial: "UDID-HERE", port: 8084, newest: true}
+      iphone-14-pro: {platform: ios, serial: "UDID-HERE", port: 8081}
       iphone-8:      {platform: ios, serial: "UDID-HERE", port: 8082}
       ipad-pro:      {platform: ios, serial: "UDID-HERE", port: 8083}
       pixel-11:      {platform: android, serial: "SERIAL", port: 8091, newest: true}

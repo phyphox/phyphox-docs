@@ -1,0 +1,37 @@
+# iPhone 18 Pro - lab sensor truth. Hand-finished 2026-11-19 from the
+# recorded skeleton (same core sensors and buffer names as the iPhone 14
+# Pro). No light entry: iOS has no ambient light API (Android-only row).
+# Rates as on the 14 Pro, and the first run measured the same (motion
+# 100.3 Hz as requested, barometer 1.1 Hz via CMAltimeter).
+device: iphone-18-pro
+sensors:
+  accelerometer:
+    experiment: accelerometer.phyphox
+    value_buffers: [accX, accY, accZ]
+    time_buffer: acc_time
+    plausibility: magnitude9.81
+    rate: {expect: 100, tol: 0.2}
+    seconds: 8
+  gyroscope:
+    experiment: gyroscope.phyphox
+    value_buffers: [gyrX, gyrY, gyrZ]
+    time_buffer: gyr_time
+    plausibility: near0
+    rate: {expect: 100, tol: 0.2}
+    seconds: 8
+  magnetometer:
+    experiment: magnetometer.phyphox
+    value_buffers: [magX, magY, magZ]
+    time_buffer: mag_time
+    plausibility: earthfield
+    rate: {expect: 100, tol: 0.2}
+    seconds: 8
+  pressure:
+    experiment: pressure.phyphox
+    value_buffers: [pressure]
+    time_buffer: p_time
+    plausibility: pressure
+    rate: {expect: 1.1, tol: 0.5}
+    seconds: 10
+gps:
+  experiment: gps.phyphox

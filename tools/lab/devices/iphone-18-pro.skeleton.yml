@@ -1,0 +1,84 @@
+device: iphone-18-pro
+recorded: hand-finish this file into devices/iphone-18-pro.yml - see README
+experiments:
+  accelerometer.phyphox:
+  - accX
+  - accZ
+  - accY
+  - acc
+  - acc_time
+  gyroscope.phyphox:
+  - gyrX
+  - gyr_time
+  - gyrZ
+  - gyrY
+  - gyr
+  magnetometer.phyphox:
+  - windowMagT
+  - accZ
+  - magCount
+  - windowAccT
+  - magAccuracy
+  - smoothAccZ
+  - mag_time
+  - headingRaw
+  - recentMagT
+  - smoothAccY
+  - windowAccX
+  - recentMagX
+  - smoothMagX
+  - accY
+  - windowMagZ
+  - smoothMagY
+  - tiltCorrection
+  - windowAccZ
+  - recentMagY
+  - windowMagY
+  - magX
+  - windowMagX
+  - windowAccY
+  - magY
+  - smoothAccX
+  - headingTilt
+  - smoothMagZ
+  - heading
+  - headingFlat
+  - magTMin
+  - acc_time
+  - accX
+  - mag
+  - recentMagZ
+  - accTMin
+  - magFrom
+  - magZ
+  pressure.phyphox:
+  - p_time
+  - pressure
+  gps.phyphox:
+  - z
+  - dist
+  - subLon
+  - v
+  - dLon
+  - lon
+  - zwgs84
+  - dLat
+  - dir
+  - speedRange
+  - satellites
+  - startLat
+  - t
+  - zAccuracy
+  - lat
+  - status
+  - accuracy
+  - subLat
+  - startLon
+  - countUpdated+1
+  - d
+  - countUpdated
+  - diststart
+  - speedFraction
+  - countT
+  - dnew
+meta_sensors: []
