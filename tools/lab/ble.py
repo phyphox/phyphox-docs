@@ -1607,10 +1607,20 @@ def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
         return ([f"the phone did not connect - {msg}"],
                 {"connected": False,
                  "app_retries": parse_retry_lines(read_app_log(dev))})
+    port = boards[board]
+    if scenario["library"] == "arduino":
+        # Where the board IS, not where lab.yml said: a USB-native board
+        # (the Nano 33 BLE) re-enumerates on every upload and need not come
+        # back on the same node, and a serial readout from the old one hears
+        # nothing - a phone -> board scenario then fails as "the board said
+        # nothing". flash() has always resolved the port this way; the
+        # readout did not, because the ESP32's bridge never moves.
+        fqbn = load_scenarios()["libraries"]["arduino"]["flash"]["fqbn"].get(board)
+        if fqbn:
+            port = resolve_arduino_port(fqbn, port)
     try:
         args._board = board
-        findings, det = assert_scenario(dev, scenario, baseline, args,
-                                        boards[board])
+        findings, det = assert_scenario(dev, scenario, baseline, args, port)
         if getattr(args, "capture_ble_xml", False):
             path, note = capture_xml(dev, scenario, board,
                                      advertised=target_name)
@@ -1668,7 +1678,61 @@ def missing_tools(scenarios, args):
            for t, why in need.items()
            if t in ("esptool", "pyserial") or not _shutil.which(t)]
     if "arduino" in libs and _shutil.which("arduino-cli"):
+        out += core_findings(scenarios, args)
         out += esp32_core_findings()
+    return out
+
+
+def installed_cores():
+    """{platform id: installed version} from arduino-cli, or None when it
+    cannot say. Honours ARDUINO_CONFIG_FILE like every arduino-cli call
+    here, so a side-by-side install (the library session keeps arduino-esp32
+    4.x under its own config) is what gets reported."""
+    r = sh(["arduino-cli", "core", "list", "--format", "json"], timeout=60)
+    try:
+        platforms = json.loads(r.stdout or "{}").get("platforms") or []
+    except ValueError:
+        return None
+    return {p.get("id"): p.get("installed_version") or p.get("installed")
+            for p in platforms if p.get("id")}
+
+
+def bench_cores(scenarios, args):
+    """{board: "package:arch version"} for the Arduino boards this run will
+    flash - what the report records, so a pass says which core built its
+    firmware (the ESP32 on 3.3.13 and on 4.0.0 run different transports
+    of the same library)."""
+    cfg = load_scenarios()
+    fqbns = cfg["libraries"]["arduino"]["flash"]["fqbn"]
+    boards = set(getattr(args, "board_ports", {}) or {})
+    used = {b for s in scenarios if s["library"] == "arduino"
+            for b in s["boards"] if b in boards}
+    have = installed_cores() or {}
+    out = {}
+    for b in sorted(used):
+        if b in fqbns:
+            pid = ":".join(fqbns[b].split(":")[:2])
+            out[b] = f"{pid} {have.get(pid) or 'not installed'}"
+    return out
+
+
+def core_findings(scenarios, args):
+    """A board on the bench whose arduino-cli core is not installed. Found
+    at compile time it reads "Plattform ... nicht gefunden" per flash, two
+    flashes later the board is declared dead - a host that was never set
+    up, reported as a board fault. Matters whenever the bench travels to
+    the other host with a board the host has not seen."""
+    cfg = load_scenarios()
+    fqbns = cfg["libraries"]["arduino"]["flash"]["fqbn"]
+    have = installed_cores()
+    if have is None:
+        return []
+    out = []
+    for board, core in bench_cores(scenarios, args).items():
+        pid = ":".join(fqbns[board].split(":")[:2])
+        if not have.get(pid):
+            out.append(f"the {pid} core for {board} is not installed - "
+                       f"arduino-cli core install {pid}")
     return out
 
 
@@ -1715,6 +1779,11 @@ def esp32_core_findings():
         return []          # an arduino-cli we cannot read: let compile tell
     have = next((p.get("installed_version") or p.get("installed")
                  for p in platforms if p.get("id") == "esp32:esp32"), None)
+    if have is None and not any(p.get("id") == "esp32:esp32"
+                                for p in platforms):
+        # Not installed at all: core_findings says so for a bench that
+        # uses it, and one that does not need not have it.
+        return []
     if have and _version_tuple(have) >= _version_tuple(want):
         return []
     return [f"the esp32:esp32 core is {have or 'not installed'}, the oldest "
@@ -1821,6 +1890,12 @@ def run_suite(devices, args):
         for line in gone:
             print(f"   !! {line}", flush=True)
         return results
+    cores = bench_cores(scenarios, args)
+    if cores:
+        print("   cores: " + ", ".join(f"{b} {c}" for b, c in cores.items()),
+              flush=True)
+        for r in results.values():
+            r["cores"] = cores
     skipped = [s["example"] for s in cfg["scenarios"]
                if not s.get("disabled")
                and not set(s["boards"]) & set(boards)]
@@ -1831,6 +1906,17 @@ def run_suite(devices, args):
             r["warnings"].append(
                 f"{len(skipped)} scenario(s) skipped, no board attached "
                 f"for them: {', '.join(sorted(set(skipped)))}")
+    absent = sorted({b for s in cfg["scenarios"] if not s.get("disabled")
+                     for b in s["boards"] if b not in boards})
+    if absent:
+        # A scenario that still runs on ANOTHER board is not in the list
+        # above, so a run with the Nano left in the drawer would otherwise
+        # look like full coverage (2026-11-19, when the Nano came back).
+        for r in results.values():
+            r["warnings"].append(
+                f"no --board-port for {', '.join(absent)}: the scenarios "
+                f"that name it ran on the other board(s) only, and the "
+                f"scan had no distractor")
 
     silent = set()                    # phones whose build reports no retries
     flashed = {}                      # board -> the name it advertises now

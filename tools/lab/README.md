@@ -104,13 +104,14 @@ merge combines the reports. The ble suite cannot be, because flashing and
 phone-driving are one loop — a board is flashed, then every phone in that
 scenario's scope connects to it before the next flash. The boards are USB
 devices on one machine at a time, so **the board travels to whichever host
-drives the phones**, and an iOS pass means physically moving the ESP32 to
-the MacBook.
+drives the phones**, and an iOS pass means physically moving the ESP32
+and the Nano 33 BLE to the MacBook.
 
 What that host then needs, beyond the Xcode tooling the other suites use:
 `adb` even on the MacBook as soon as an Android phone is on it
 (`brew install --cask android-platform-tools`), `arduino-cli` with the
-`esp32:esp32` core (see below for the version), `mpremote`, `esptool`, an
+`esp32:esp32` core (see below for the version) and the
+`arduino:mbed_nano` core for the Nano, `mpremote`, `esptool`, an
 ESP32 MicroPython image, and `pyserial` plus `bleak` in its venv. `board_check.py` additionally needs Bluetooth
 permission for the terminal it runs from on macOS, which the OS asks for
 once.
@@ -186,6 +187,18 @@ The suite reads the pins from `phyphox-arduino/.github/workflows/` and
 refuses to start on a core older than the oldest of them, with that command in the message - a
 bump there needs no change here.
 
+**Which ESP32 core a release run uses is a deliberate choice**, and the
+report records it (`cores`). arduino-esp32 4.0.0 (released 2026-11-19)
+replaced the core's BLE library, and phyphox-arduino carries a separate
+transport for it. The lab moves to 4.x only after the library session has
+run its own bench on 4.0.0 and found it green - otherwise a red pass
+could be the app or an unverified transport, and nothing here could tell
+which. Switching is then only the install (`arduino-cli core install
+esp32:esp32@4.0.0`, from the index above). Running both lines from one
+host works the way the library session does it: a second arduino-cli
+config with its own data directory, selected with `ARDUINO_CONFIG_FILE`,
+which every arduino-cli call of the suite inherits.
+
 **pyserial is not optional for the MicroPython scenarios on macOS.**
 Opening a serial port asserts DTR and RTS, which on an ESP32 are the
 reset and boot-mode lines, so the open reboots the board: mpremote then
@@ -214,10 +227,9 @@ that file and never open a serial port. It is needed only for the three
 scenarios where the data goes phone -> board and the board's own printout
 is the evidence.
 
-**ModemManager must be kept off the boards.** The ESP32's CP2102 is not an
-ACM device and is not affected, so this matters only once a board with a
-native USB stack is on the bench again (see the scope note below) - but the
-rule costs nothing and the failure it prevents is unreadable. ModemManager
+**ModemManager must be kept off the boards** on Linux. The ESP32's CP2102
+is not an ACM device and is not affected, but the Nano 33 BLE is, and the
+failure is unreadable. ModemManager
 probes every new ACM device with AT commands, and that left the Nano 33
 BLE's bootloader unresponsive: the port opens, a SAM-BA `V#` returns
 nothing, and `bossac` reports "No device found on ttyACM0" against a
@@ -235,15 +247,13 @@ Fix it once, as root:
 `sudo systemctl stop ModemManager` works for one session if you would rather
 not add a rule.
 
-## One board on the bench, and why that is the plan
+## Two boards on the bench: the ESP32, and a Nano 33 BLE for two scenarios
 
-`scenarios.yml` names the ESP32 and nothing else. The bench Nano 33 BLE
-stopped accepting uploads on 2026-08-28 - not from this driver, not from
-the Arduino IDE, not from a second PC - and the maintainer retired it
-rather than replacing it, because the split it forced is the right one:
+What this suite is for, and what it is not:
 
 - **this suite is a RELEASE gate for the app**: does the app still talk
-  to boards? One board answers that, across every phone in the lab.
+  to boards? A board per BLE stack answers that, across every phone in
+  the lab.
 - **the library has its own tests**, with many boards and a single
   phone, living with `phyphox-arduino` (`tools/bench/`: `bench.py`
   plays the phone from the host's Bluetooth adapter, `examples.py`
@@ -256,29 +266,38 @@ library release changes what the boards serve - which is why the
 baselines record the library version (see "Baselines are recorded by
 hand" below).
 
-The driver keeps its per-board machinery - the library test is where it
-will be wanted, and it degrades to one board correctly. Adding a board
-back is one line under `flash.fqbn` plus the board's name in the
-scenarios that should run on it.
+From 2026-08-28 the bench was the ESP32 alone: the Nano 33 BLE had
+stopped accepting uploads, and the maintainer retired it rather than
+replace it, since one board answers the release question. **It came back
+on 2026-11-19** (maintainer), for a reason library 2.0 created. 1.x
+emitted different XML per board, so a second board mostly tested the
+XML again; 2.0 has one serializer for every board, and what still differs
+is the board's BLE STACK - connection timing, MTU, notification pacing,
+which of subscription and control write starts a transfer. That is what
+the app has to cope with, and where its flakes have lived. The Nano is an
+nRF52840 under ArduinoBLE, a genuinely different radio and stack from the
+ESP32's. (The UNO R4 WiFi, Nano 33 IoT and Nano RP2040 Connect would not
+have been: their radio is an Espressif module.)
 
-Two things are genuinely lost meanwhile. **The scan runs with no
-distractor**: with one board there is nothing else in the air, so finding
-the right device out of one device proves less than it looks. Runs used
-to say so in their warnings; they no longer do (maintainer, 2026-08-28),
-because a standing property of the bench is not news once a run, let
-alone once per phone, and repeating it buries the warnings that are worth
-reading. It is recorded here instead, where anyone asking what this suite
-covers will look. And **NRF52 coverage is gone**: the Arduino library emits
-different XML per board (`fixtures/ble/captured/README.md`), so the
-ESP32's output is not evidence about anyone's Nano. The two Nano captures
-already in `corpus/valid/ble-libraries/` stay - they are real library
-output that both parsers must keep loading, and the board they came from
-being off this desk does not change that.
+It runs two scenarios, both on every phone: `arduino/randomNumbers`
+(board -> phone) and `arduino/getSensorDataFromSmartphone` (phone ->
+board), reported as `...@nano33ble`. For everything else it is the idle
+board advertising a different name, so **the scan has a distractor
+again** - with one board there was nothing else in the air, and finding
+the right device out of one proved less than it looked. That costs about
+two flashes per pass, because the idle board keeps whatever it holds as
+long as its name differs.
 
-### Retired-board notes, kept for the library test
+A run without the Nano attached still works, on the ESP32 alone, and
+says so once in every device's warnings: "no --board-port for nano33ble".
+Read that line before calling a pass a release pass.
 
-The Nano was awkward long before it died, and the next USB-native board
-will be too. `usb_reset()` in `ble.py` issues `USBDEVFS_RESET` on one
+The two 1.x Nano captures in `corpus/valid/ble-libraries/` stay - they
+are real library output that both parsers must keep loading.
+
+### Nano notes
+
+The Nano was awkward before it was retired, and USB-native boards are. `usb_reset()` in `ble.py` issues `USBDEVFS_RESET` on one
 board's device node - deliberately device-scoped, never hub-wide, because
 cutting a hub takes out whatever another session is using. It needs write
 access to the node:
@@ -298,14 +317,17 @@ cable or hub is the first thing to suspect on the next board. A root port
 instead of the shared 1a86 hub helped and did not cure it.
 
 The driver drops a board after two failed flashes and carries on with any
-others; `arduino-cli` needs each bench board's core installed once, which
-is now just
+others; `arduino-cli` needs each bench board's core installed once:
 
-    arduino-cli core install esp32:esp32
+    arduino-cli core install arduino:mbed_nano
+    # and esp32:esp32 at the version above
 
-A board added without its core fails at compile with "Plattform '...'
-nicht gefunden", which is a host that was never set up rather than
-anything about the board.
+A board added without its core used to fail at compile with "Plattform
+'...' nicht gefunden", which is a host that was never set up rather than
+anything about the board. The suite now checks every attached board's core
+before the first flash and names the install command, and the report
+records the core each board was built with (`cores`), because the ESP32
+on 3.x and on 4.x runs different transports of the same library.
 
 Two ESP32 build settings are carried in `scenarios.yml` rather than left
 to the default FQBN, both found by compiling every example during bring-up:
@@ -397,11 +419,11 @@ not appear in the scan, check `mpremote connect <port> fs ls` first.
   about a minute and repeating it per phone would waste most of the run.
   It is therefore not in the default `--suites`, needs `--board-port` per
   board, and owns its orchestration (`ble.run_suite`) rather than going
-  through the per-device dispatch. A full pass is ten flashes for the ten
-  scenarios on the one bench board. Where a second board is attached the
+  through the per-device dispatch. A full pass is about a dozen flashes:
+  one per scenario on the ESP32, plus the Nano's two. Where a second board is attached the
   idle one is kept advertising a DIFFERENT name so the scan has to
-  discriminate; the single-board bench cannot, and every run says so once
-  in its warnings.
+  discriminate; a run without the second board says so once in its
+  warnings.
 
   Two flags for it: `--ble-scenario [lib/]example` narrows a run to one
   scenario for bring-up (the report is marked as narrowed, so it cannot

@@ -32,12 +32,11 @@
 #                must match the literal in its source - the renamer
 #                refuses to flash a board when the two disagree, because
 #                nothing measured against either would mean anything.
-#                When a second board is on
-#                the bench the suite keeps it advertising a DIFFERENT
-#                name as a DISTRACTOR, so the scan has to discriminate -
-#                a room with one BLE device in it is not the room these
-#                run in. With the single-board bench below that cannot
-#                happen and every run says so in its warnings.
+#                With two boards on
+#                the bench the suite keeps the idle one advertising a
+#                DIFFERENT name as a DISTRACTOR, so the scan has to
+#                discriminate - a room with one BLE device in it is not
+#                the room these run in.
 #   boards       which lab boards it is flashed to
 #   phones       all | newest - the four scenarios that exercise
 #                different parts of the BLE implementation run on every
@@ -84,18 +83,27 @@
 # `run.py --record-ble-baseline` flashes and measures, a human does the
 # connect and switches remote access on. See tools/lab/README.md.
 #
-# --- Scope: one board, many phones (maintainer, 2026-08-28) -------------
+# --- Scope: the ESP32 for everything, a Nano 33 BLE for two ------------
 #
-# Every scenario here runs on the ESP32 alone. The bench Nano 33 BLE
-# stopped accepting uploads entirely that day - not from this driver, not
-# from the Arduino IDE, not from a second PC - and is presumed dead.
+# A RELEASE test asks "does the app still talk to boards", across every
+# phone in the lab; a LIBRARY test asks "does the library still work on
+# its boards", which needs many boards and only one phone and lives in
+# phyphox-arduino (tools/bench). This file is the first kind.
 #
-# It is not being replaced, because the split it forced is the right one
-# anyway: a RELEASE test asks "does the app still talk to boards", which
-# one board answers, across every phone in the lab; a LIBRARY test asks
-# "does the library still work on its boards", which needs many boards
-# and only one phone. The second belongs with phyphox-arduino and will be
-# built when that library is next worked on; this file is the first.
+# From 2026-08-28 that meant the ESP32 alone: the bench Nano 33 BLE had
+# stopped accepting uploads and was retired (maintainer). It came back on
+# 2026-11-19 (maintainer), for a reason the 2.0 library created: 2.0
+# serves the same XML on every board, so a second board no longer tests
+# the XML - what still differs is the board's BLE STACK (connection
+# timing, MTU, notification pacing), and that is what the app has to cope
+# with. The Nano is an nRF52840 under ArduinoBLE, a genuinely different
+# radio and stack from the ESP32's. (The UNO R4 WiFi, Nano 33 IoT and
+# Nano RP2040 Connect would not be: their radio is an Espressif module.)
+#
+# It runs the two phones:all scenarios that cover both directions -
+# randomNumbers (board -> phone) and getSensorDataFromSmartphone
+# (phone -> board) - and is the distractor for everything else, which
+# brings back the scan having to pick one device out of two.
 #
 # So the driver keeps its per-board machinery (it is what the library
 # test will need, and it degrades to one board correctly) while the
@@ -119,9 +127,14 @@ libraries:
         # 4 MB ESP32-D0WDQ6, so 3 MB of app is available; nothing here uses
         # OTA or a filesystem.
         esp32: esp32:esp32:esp32:PartitionScheme=huge_app
+        # nRF52840, ArduinoBLE on Mbed OS. USB-native, so it re-enumerates
+        # on every upload; see tools/lab/README.md for what that needs on
+        # the host (udev rules on Linux) and what to do when it sticks in
+        # its bootloader.
+        nano33ble: arduino:mbed_nano:nano33ble
         # A board added here is flashed and driven without further changes
-        # - the fqbn is all the driver needs. `nano33ble:
-        # arduino:mbed_nano:nano33ble` is what the retired Nano used.
+        # - the fqbn is all the driver needs, plus its name in the
+        # scenarios that should run on it.
   micropython:
     repository: ../phyphox-micropython
     examples: examples
@@ -146,7 +159,7 @@ scenarios:
   - example: randomNumbers
     library: arduino
     device_name: "phyphox device"
-    boards: [esp32]
+    boards: [esp32, nano33ble]
     phones: all
     expect:
       kind: range_rate
@@ -176,7 +189,7 @@ scenarios:
   - example: getSensorDataFromSmartphone
     library: arduino
     device_name: "phyphox-Arduino"
-    boards: [esp32]
+    boards: [esp32, nano33ble]
     phones: all
     expect:
       kind: board_serial

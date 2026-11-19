@@ -43,6 +43,9 @@ hosts:
     # moved.
     boards:
       esp32: /dev/ttyUSB0
+      # USB-native: the node can move after an upload, and the suite looks
+      # the board up by its USB id, so this only has to be roughly right
+      nano33ble: /dev/ttyACM0
     # Put back whenever an Arduino upload has overwritten MicroPython on
     # the shared board; the suite reflashes only when it has to.
     micropython_firmware: /path/to/ESP32_GENERIC-<version>.bin
