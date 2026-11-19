@@ -36,11 +36,17 @@
 #                range:     [buffer, lo, hi]   mean of the buffer
 #                magnitude: [[x, y, z], lo, hi] mean of |v|
 #                near0:     [[x, y, z], tol]   mean of each axis within ±tol
-#   rate       optional {expect: Hz, tol: fraction} on the first time
-#              buffer - FAILS outside. Not set yet anywhere: the report
-#              records achieved_rate per phone, and expectations are taken
-#              from the first green run rather than guessed from the
-#              config bytes.
+#   rate       {expect: Hz, tol: fraction} on the first time buffer -
+#              FAILS outside; tol defaults to rate_tolerance below. Taken
+#              from the first green run (Pixel 9 Pro, 2026-11-19), not
+#              guessed from the config bytes: the sensors' own clocks set
+#              them (the "500Hz" MLX delivers 679 Hz, the 6667 Hz LSM6DSR
+#              6853). The iOS-only experiment has none until its first iOS
+#              run.
+#
+# Every time buffer is also searched for gaps - intervals over 3x the
+# median - and they are reported as a WARNING with count, longest gap and
+# share of the window. The average rate cannot show a lost BLE packet.
 #
 # The list must cover the collection: every shipped experiment whose
 # <bluetooth> filter would take a phyphox:m or phyphox:mini (or whose file
@@ -54,11 +60,16 @@
 # Units are those the experiment's own views show (m/s², °/s, µT, hPa,
 # °C, %, ppm, mm, lx).
 
+# 10 %, the maintainer's first setting (2026-11-19): the expected spread
+# is BLE as the bottleneck and noise from other devices, not slow phones.
+rate_tolerance: 0.1
+
 experiments:
 
   # ---------------------------------------------------------- phyphox:m --
   - file: bluetooth/phyphox_m_bmp581.phyphox
     device: phyphox:m
+    rate: {expect: 85.7}
     time: [time]
     values: [pressure, temperature]
     checks:
@@ -67,6 +78,7 @@ experiments:
 
   - file: bluetooth/phyphox_m_IMU_bmi323_float_format.phyphox
     device: phyphox:m
+    rate: {expect: 400}
     time: [time]
     values: [acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z]
     checks:
@@ -75,6 +87,7 @@ experiments:
 
   - file: bluetooth/phyphox_m_IMU_bmi323_int_format.phyphox
     device: phyphox:m
+    rate: {expect: 1572}
     time: [gyr_time]
     values: [acc_x_SI, acc_y_SI, acc_z_SI, gyr_x_SI, gyr_y_SI, gyr_z_SI]
     checks:
@@ -83,6 +96,7 @@ experiments:
 
   - file: bluetooth/phyphox_m_MLX_500Hz.phyphox
     device: phyphox:m
+    rate: {expect: 679}
     time: [time]
     values: [magX, magY, magZ]
     checks:
@@ -91,6 +105,7 @@ experiments:
   - file: bluetooth/phyphox_m_SHTC3_configurable.phyphox
     device: phyphox:m
     seconds: 30
+    rate: {expect: 33.3}
     time: [time]
     values: [temperature, humidity]
     checks:
@@ -99,6 +114,7 @@ experiments:
 
   - file: bluetooth/phyphox_m_VL53L4.phyphox
     device: phyphox:m
+    rate: {expect: 102.7}
     time: [time]
     values: [distance]
     checks:
@@ -107,6 +123,7 @@ experiments:
 
   - file: bluetooth/phyphox_m_licht_distanz.phyphox
     device: phyphox:m
+    rate: {expect: 10}
     time: [time]
     values: [light, distance]
     checks:
@@ -114,6 +131,7 @@ experiments:
 
   - file: bluetooth/phyphox_m_light_veml6030.phyphox
     device: phyphox:m
+    rate: {expect: 10}
     time: [time]
     values: [light, white_light]
     checks:
@@ -122,6 +140,7 @@ experiments:
   # ------------------------------------------------------- phyphox:mini --
   - file: bluetooth/phyphox_mini_BMP581_Pressure.phyphox
     device: phyphox:mini
+    rate: {expect: 86.7}
     time: [time]
     values: [pressure, temperature]
     checks:
@@ -131,6 +150,7 @@ experiments:
   - file: bluetooth/phyphox_mini_HDC_Temperature_Humidity.phyphox
     device: phyphox:mini
     seconds: 30
+    rate: {expect: 1}
     time: [time]
     values: [temperature, humidity]
     checks:
@@ -139,6 +159,7 @@ experiments:
 
   - file: bluetooth/phyphox_mini_IMU_lsm6dsr_float.phyphox
     device: phyphox:mini
+    rate: {expect: 220}
     time: [acc_timestamps, gyr_timestamps]
     values: [acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z]
     checks:
@@ -157,6 +178,7 @@ experiments:
   - file: bluetooth/phyphox_mini_IMU_lsm6dsr_int.phyphox
     device: phyphox:mini
     platforms: [android]
+    rate: {expect: 6853}
     time: [acc_time]
     values: [acc_x_SI, acc_y_SI, acc_z_SI]
     checks:
@@ -173,6 +195,7 @@ experiments:
   - file: bluetooth/phyphox_mini_STCC4.phyphox
     device: phyphox:mini
     seconds: 40
+    rate: {expect: 1}
     time: [co2_time, hdc_time]
     values: [co2, temperature, humidity]
     checks:
@@ -183,6 +206,7 @@ experiments:
   - file: bluetooth/phyphox_mini_Temp_Humidity_Pressure_Co2.phyphox
     device: phyphox:mini
     seconds: 40
+    rate: {expect: 1}
     time: [co2_time, hdc_time, bmp_time]
     values: [co2, temperature, humidity, pressure]
     checks:

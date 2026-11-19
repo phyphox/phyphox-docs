@@ -268,6 +268,34 @@ def _start_when_connected(base, timeout, first_delay=8.0, interval=4.0):
         time.sleep(interval)
     return None
 
+def gaps(ts, factor=3.0):
+    """Where the data stream stopped for a while: intervals between
+    consecutive timestamps longer than `factor` times the median interval.
+    None when there are none.
+
+    The average rate cannot show this. The high-rate mini experiments
+    carry one device timestamp per BLE packet and spread its 40 samples
+    at the nominal rate after it, so a lost packet is a jump in the time
+    axis - visible in the graph (the maintainer saw them on the Pixel 9
+    Pro, 2026-11-19) while samples over span still came out at 6853 Hz.
+    Reported, not failed: the bottleneck is the radio and the neighbours
+    on it, and how many gaps are acceptable for an experimental device is
+    for the maintainer to decide once a few runs have been read."""
+    if len(ts) < 10:
+        return None
+    d = [b - a for a, b in zip(ts, ts[1:])]
+    med = sorted(d)[len(d) // 2]
+    if med <= 0:
+        return None
+    long = [x for x in d if x > factor * med]
+    if not long:
+        return None
+    span = ts[-1] - ts[0]
+    return {"count": len(long), "longest_s": round(max(long), 4),
+            "lost_fraction": round(sum(x - med for x in long) / span, 4)
+            if span > 0 else None}
+
+
 def check_values(e, bufs):
     """(findings, warnings, details) for one experiment's final read."""
     findings, warnings, det = [], [], {}
@@ -286,6 +314,11 @@ def check_values(e, bufs):
             b, lo, hi = c["range"]
             m = mean(bufs.get(b) or [])
             det[f"mean_{b}"] = round(m, 3)
+            # min/max as well: a mean alone cannot tell a settled reading
+            # from one still drifting after the sensor was switched on
+            # (the mini's CO2 read 950 and 760 ppm on consecutive runs)
+            vs = _finite(bufs.get(b) or [])
+            det[f"min_{b}"], det[f"max_{b}"] = round(min(vs), 3), round(max(vs), 3)
             if not lo <= m <= hi:
                 warnings.append(f"{b} mean {m:.4g} outside {lo}..{hi} "
                                 f"(bench, not failed)")
@@ -363,13 +396,22 @@ def run_one(dev, e, args):
             det["achieved_rate"] = round(rate, 2)
             det["samples"] = len(first)
             if e.get("rate"):
-                expect, tol = e["rate"]["expect"], e["rate"].get("tol", 0.3)
+                expect = e["rate"]["expect"]
+                tol = e["rate"].get("tol", getattr(args, "rate_tolerance", 0.1))
                 if abs(rate - expect) > expect * tol:
                     findings.append(f"rate {rate:.4g} Hz vs expected {expect} "
                                     f"(tol {tol:.0%})")
+        gap_warnings = []
+        for tb in time_bufs:
+            g = gaps(_finite(bufs.get(tb) or []))
+            if g:
+                det[f"gaps_{tb}"] = g
+                gap_warnings.append(
+                    f"{tb}: {g['count']} gap(s), longest {g['longest_s'] * 1000:.0f} ms, "
+                    f"{g['lost_fraction']:.1%} of the window without data")
         f2, warnings, d2 = check_values(e, bufs)
         det.update(d2)
-        return findings + f2, warnings, det
+        return findings + f2, gap_warnings + warnings, det
     finally:
         # The sensor serves one phone at a time: release it for the next
         # experiment and the next phone (see IOSDevice.stop_app).
@@ -381,6 +423,7 @@ def run_suite(dev, platform, args):
     phone. Returns the {passed, findings, warnings, details} every suite
     returns."""
     experiments = load_fixture()
+    args.rate_tolerance = (load_fixture(full=True) or {}).get("rate_tolerance", 0.1)
     findings, warnings, details = [], [], {}
     bench = set(getattr(args, "ble_sensors", None) or [])
     drift = coverage_findings() + fixture_findings(experiments)
