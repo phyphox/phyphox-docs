@@ -1,6 +1,6 @@
-# The store screenshot scenes - the six pictures both stores show, described once.
+# The store screenshot scenes - the pictures both stores show, described once.
 #
-# Why here and not in an app repo: both platforms must show the same six things
+# Why here and not in an app repo: both platforms must show the same things
 # from the same data, and a scene that quietly exists on one platform only is the
 # drift this repository exists to prevent - the same reason test-matrix.yml lives
 # here. The platform halves (booting emulators, setting the language, capturing)
@@ -188,3 +188,43 @@ scenes:
       screenshots: the audio spectrum has better contrast on a dark background,
       and the stroboscope is new enough that a reader might take the light
       theme for something specific to it rather than an app-wide setting.
+
+  - id: compass
+    kind: experiment
+    experiment: magnetometer.phyphox
+    view: Compass
+    record: [mag_time, magX, magY, magZ, mag, magAccuracy, acc_time, accX, accY, accZ]
+    data: compass.json
+    init:
+      # The "Tilt correction" toggle writes its default (1) into this
+      # container, but on Android only on the first pass after the view is
+      # built - possibly after the one analysis pass that turns the injected
+      # data into a heading. With the container empty at that point the
+      # heading stays empty and the dial shows no bearing, so the value the
+      # toggle would write anyway is set here as well (the same trap as
+      # tone-generator's channels/advanced).
+      tiltCorrection: [1]
+    source: >-
+      Synthetic, not recorded (maintainer's choice, 2026-11-20: "some random
+      data so it shows a bearing"). An emulator or simulator has no useful
+      magnetometer, and a real recording would bake one particular room's
+      disturbances into the listing.
+
+      2 s of magnetometer at 50 Hz and accelerometer at 100 Hz, generated
+      with Python's random.Random(20261207): a field of 19 uT horizontal and
+      45 uT downward (central Europe), the top of the phone at 57 degrees
+      from magnetic north, the phone tilted by 2 and -3 degrees about x and y
+      as when held by hand, Gaussian noise of 0.25 uT and 0.03 m/s^2 per
+      sample, accuracy 3 ("High") throughout. The experiment's own analysis
+      averages the last 0.25 s and gives a tilt-corrected heading of 57.4
+      degrees, shown as "57 deg" and "NE". Without tilt correction it would
+      read 49 degrees - the tilt is deliberate, it is what that switch is for.
+    note: >-
+      The compass, new in 1.3.0 and built from nothing but the file format
+      1.21 view groups, transforms and drawing elements. The heading is not
+      injected directly: it is an analysis output, so the scene feeds the
+      sensor buffers and the app computes it on the one analysis pass after
+      opening (the same mechanism strobe relies on), which also makes the
+      scene a check that the compass analysis runs. Appended as the seventh
+      scene rather than placed earlier, so the existing plates keep their
+      numbers.
