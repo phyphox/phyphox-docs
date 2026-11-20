@@ -300,6 +300,19 @@ def flash(scenario, board, cfg, args, advertised=None):
     # into an ImportError and advertises nothing, which shows up as a
     # scan timeout on the phone and looks like a BLE problem.
     with steady_port(port):
+        # The previous scenario's main.py is usually still running, BLE
+        # and all, and mpremote's ctrl-C stops the program but not the
+        # BLE stack: the library copy's flash writes then panic the
+        # firmware (Guru Meditation, LoadProhibited) and the copy fails
+        # with a boot log - or the board ends up advertising nothing. A
+        # soft reset first did not stop it either. Removing main.py and
+        # rebooting into an idle REPL does (4/4 on the MacBook,
+        # 2026-11-20, against 0/3 before). On a fresh firmware there is
+        # no main.py and the rm fails harmlessly.
+        sh(["mpremote", "connect", port, "fs", "rm", ":main.py"], timeout=60,
+           retries=0)
+        sh(["mpremote", "connect", port, "reset"], timeout=60)
+        time.sleep(MPREMOTE_SETTLE)
         r = sh(["mpremote", "connect", port, "fs", "cp", "-r", "phyphoxBLE", ":"],
                timeout=300, cwd=repo)
         if r.returncode != 0:
