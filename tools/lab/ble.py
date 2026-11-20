@@ -772,6 +772,30 @@ BleCompatConnectTest:" - the same defect, one branch over.
     return said or (out or "")[-300:]
 
 
+def _keep_console(dev, scenario, args, log):
+    """The iOS counterpart of the instrumentation output above: what the
+    app printed during a failed connect, appended to evidence/ with one
+    header per attempt. Returns a string to append to a finding.
+
+    Before this the console was read for its retry lines and thrown away,
+    so a connect that failed on an iPhone left nothing to look at but the
+    finding's generic advice - micropython/createExperiment on the iPhone
+    18 Pro failed that way in two full runs (2026-11-20) and passed every
+    time it was run on its own.
+    """
+    try:
+        path = evidence_path(dev, args,
+                             f"{scenario['library']}-{scenario['example']}"
+                             f"-connect-failed-console.txt")
+        with open(path, "a") as f:
+            f.write(f"===== {time.strftime('%Y-%m-%d %H:%M:%S')} "
+                    f"{scenario['library']}/{scenario['example']}\n")
+            f.write(log or "(the app printed nothing)\n")
+        return f" [app console: {os.path.relpath(path, ROOT)}]"
+    except OSError:
+        return ""
+
+
 def connect_phone(dev, scenario, args, advertised=None):
     """Run the platform's scan-and-connect test on the phone. The UI flow
     (scan, pick the device, accept its experiment) has no remote-API
@@ -1638,9 +1662,12 @@ def _attempt(dev, scenario, args, board, target_name, baseline, boards):
         # spend is the difference between a board that is getting worse
         # and one that was never there. Reading them also ends the
         # capture, which would otherwise be left running.
+        log = read_app_log(dev)
+        if dev.platform == "ios":
+            msg += _keep_console(dev, scenario, args, log)
         return ([f"the phone did not connect - {msg}"],
                 {"connected": False,
-                 "app_retries": parse_retry_lines(read_app_log(dev))})
+                 "app_retries": parse_retry_lines(log)})
     port = boards[board]
     if scenario["library"] == "arduino":
         # Where the board IS, not where lab.yml said: a USB-native board
