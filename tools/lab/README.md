@@ -225,9 +225,15 @@ every bench board's core, not only the ESP32's:
     export ARDUINO_CONFIG_FILE=~/arduino-cli-lab/arduino-cli.yaml
     arduino-cli core update-index
     arduino-cli core install esp32:esp32@4.0.0 arduino:mbed_nano
+    arduino-cli lib install ArduinoBLE
 
-The sketchbook (`user`) does not matter: the suite compiles with
-`--library` pointing at the checkout.
+The suite compiles with `--library` pointing at the phyphox-arduino
+checkout, but that library's own dependency is not part of it: the Nano's
+transport includes `ArduinoBLE.h`, which comes from the sketchbook
+(`user`). A fresh sketchbook without it fails every nano33ble flash -
+scenarios and distractors alike - with "ArduinoBLE.h: No such file or
+directory" (the MacBook, 2026-11-20). The library's CI installs the latest
+ArduinoBLE, so the bench does too.
 
 **pyserial is not optional for the MicroPython scenarios on macOS.**
 Opening a serial port asserts DTR and RTS, which on an ESP32 are the
