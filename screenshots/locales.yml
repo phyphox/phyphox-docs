@@ -1,6 +1,6 @@
 # App language -> store listing locale.
 #
-# The app ships 23 languages (../languages.yml). Neither store uses the same
+# The app ships 24 languages (../languages.yml). Neither store uses the same
 # spelling, and neither supports exactly that set, so the mapping has to be
 # written down once rather than guessed in two scripts.
 #
@@ -31,6 +31,13 @@
 
 locales:
   - {app: en,       android: en-US,  ios: en-US}
+  # Azerbaijani: added 2026-11-20 for 1.3.0. az-AZ is Play's spelling as far
+  # as known, not yet confirmed against the store - the discarded rehearsal
+  # edit of store_release.py rejects a wrong code before anything is published.
+  # The App Store is believed to have no Azerbaijani localization, so the
+  # listing falls back to English there; appstore_upload.py checks the ios
+  # column against fastlane's list, so a code would be caught if one exists.
+  - {app: az,       android: az-AZ,  ios: null}   # no listing on the store yet
   - {app: cs,       android: cs-CZ,  ios: cs}
   - {app: de,       android: de-DE,  ios: de-DE}
   - {app: el,       android: el-GR,  ios: el}
