@@ -81,13 +81,12 @@
       zero-pads internally but truncates back, so the output length always
       equals the input length (analysis.cpp fftw3complex, Analysis.java
       fftAM); ifft goes through the same code with the opposite kernel
-      sign (since 2026-10-05, development).
+      sign.
     ios: >-
       vDSP_DFT only accepts lengths of the form f*2^n with f in {1, 3, 5,
       15}, so other inputs are zero-padded to the next supported length and
       the padded, longer spectrum is returned (FFTAnalysis.swift,
-      nextFFTSize). ifft is specified under the same contract and not yet
-      implemented.
+      nextFFTSize). ifft is padded the same way.
   summary: >-
     A non-power-of-two number of input samples yields a different output
     length and different values on the two platforms; a power-of-two input

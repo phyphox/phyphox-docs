@@ -1,12 +1,11 @@
 # Units
 
 !!! note "New in file format 1.21 (phyphox 1.3.0)"
-    Unit references are part of file format 1.21, which the
-    [next release](../reference/version-history/next.md) carries. A file using them must declare
-    that version, and every app released before it refuses such a file. This page was written
-    ahead of the implementations (2026-09-30), which followed it the same day on both apps'
-    development branches, in the remote interface and in the editor; it remains the definition
-    they are checked against.
+    Unit references are part of file format 1.21, introduced with
+    [phyphox 1.3.0](../reference/version-history/1.3.0.md). A file using them must declare that
+    version, and apps older than 1.3.0 refuse such a file. This page was written ahead of the
+    implementations in both apps, the remote interface and the editor, and it remains the
+    definition they are checked against.
 
 Several view elements show a unit next to a number: the [value](views/basics.md#view-element-value)
 and [edit](views/user-input.md#view-element-edit) elements with their *unit* attribute, the

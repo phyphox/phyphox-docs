@@ -1,9 +1,9 @@
 # View groups
 
 !!! note "New in file format 1.21 (phyphox 1.3.0)"
-    The elements on this page are part of file format 1.21, which the
-    [next release](../../reference/version-history/next.md) carries. Every app released before it
-    refuses a file declaring that version.
+    The elements on this page are part of file format 1.21, introduced with
+    [phyphox 1.3.0](../../reference/version-history/1.3.0.md). Apps older than 1.3.0 refuse a
+    file declaring that version.
 
 A view lays out its elements top to bottom, each taking the full width. View groups are view
 elements that contain other view elements and arrange them differently: side by side, in a grid

@@ -42,7 +42,7 @@ For this you need to be able to upload your experiment to a webserver and you ne
 
 ### Opening a bundled experiment: phyphox://asset=…
 
-**Not yet in a released app version (added to the development branches 2026-08).**
+Available since phyphox 1.2.1.
 
 A phyphox-link can also open one of the experiments that ship with the app, without any server involved. The identifier is the experiment file's path within the bundled collection, URL-encoded:
 
