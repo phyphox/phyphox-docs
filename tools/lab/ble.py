@@ -1595,7 +1595,28 @@ def one_attempt(dev, scenario, args, board, target_name, baseline, boards):
 
     Returns (findings, det). An empty findings list is a pass. Split out
     of the loop so it can be RETRIED - see the retry policy in run_suite.
+
+    A phone -> board scenario holds the board's serial port for the whole
+    turn, opened BEFORE the phone connects. The readout in assert_scenario
+    opens the port only once the phone holds the experiment, and on macOS
+    that open resets an ESP32 (see steady_port): the board rebooted under
+    the connected phone, printed its boot log or its setup() output, and
+    the values the phone sent went nowhere. Every iOS pass failed
+    getSensorDataFromSmartphone and getDataFromSmartphone on the ESP32
+    that way (2026-11-18 and -20) while the same sketch showed the phone's
+    data in a serial monitor, and Android on the Linux bench passed - its
+    driver does not pulse the line. Holding the port moves the one reset
+    to before the connect, where it costs nothing.
     """
+    hold = (steady_port(boards[board])
+            if scenario["expect"]["kind"] == "board_serial"
+            else contextlib.nullcontext())
+    with hold:
+        return _attempt(dev, scenario, args, board, target_name, baseline,
+                        boards)
+
+
+def _attempt(dev, scenario, args, board, target_name, baseline, boards):
     ok, msg, handle = connect_phone(dev, scenario, args,
                                     advertised=target_name)
     if not ok:
